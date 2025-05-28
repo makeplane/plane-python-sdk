@@ -1,13 +1,12 @@
 """Models package."""
 
 from .base import BaseAPIModel, TimestampMixin, PaginatedResponse
-from .user import User, UserCreate, UserUpdate
+from .workspace import Workspace, WorkspaceUpdate
 
 __all__ = [
     "BaseAPIModel",
     "TimestampMixin",
     "PaginatedResponse",
-    "User",
-    "UserCreate",
-    "UserUpdate",
+    "Workspace",
+    "WorkspaceUpdate",
 ]

@@ -4,7 +4,8 @@ import asyncio
 from typing import Optional
 import httpx
 from .config import Config
-from .resources.users import UsersResource
+from .resources.workspaces import UsersResource
+from .resources.projects import ProjectsResource
 
 
 class Client:
@@ -20,6 +21,7 @@ class Client:
 
         # Initialize resources
         self.users = UsersResource(self)
+        self.projects = ProjectsResource(self)
 
     def _create_http_client(self) -> httpx.AsyncClient:
         """Create HTTP client with proper configuration."""
@@ -85,6 +87,11 @@ class SyncClient:
         """Access users resource synchronously."""
         return SyncUsersResource(self._async_client.users)
 
+    @property
+    def projects(self):
+        """Access projects resource synchronously."""
+        return SyncProjectsResource(self._async_client.projects)
+
     def health_check(self) -> dict:
         """Check API health synchronously."""
         return self._run_async(self._async_client.health_check())
@@ -141,3 +148,46 @@ class SyncUsersResource:
     def search(self, query: str, limit: int = 10):
         """Search users synchronously."""
         return self._run_async(self._async_resource.search(query, limit))
+
+
+class SyncProjectsResource:
+    """Synchronous wrapper for projects resource."""
+
+    def __init__(self, async_resource: ProjectsResource):
+        self._async_resource = async_resource
+        self._client = async_resource._client
+
+    def _run_async(self, coro):
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coro)
+
+    def list(
+        self,
+        workspace_slug: str,
+        page: int = 1,
+        per_page: int = 20,
+        search: Optional[str] = None,
+    ):
+        return self._run_async(
+            self._async_resource.list(workspace_slug, page, per_page, search)
+        )
+
+    def get(self, workspace_slug: str, project_id: str):
+        return self._run_async(self._async_resource.get(workspace_slug, project_id))
+
+    def create(self, workspace_slug: str, project_data):
+        return self._run_async(
+            self._async_resource.create(workspace_slug, project_data)
+        )
+
+    def update(self, workspace_slug: str, project_id: str, project_data):
+        return self._run_async(
+            self._async_resource.update(workspace_slug, project_id, project_data)
+        )
+
+    def delete(self, workspace_slug: str, project_id: str):
+        return self._run_async(self._async_resource.delete(workspace_slug, project_id))

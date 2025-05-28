@@ -14,6 +14,7 @@ from ..exceptions import (
     ConnectionError,
 )
 from ..models.base import BaseAPIModel
+from ..client import Client
 
 T = TypeVar("T", bound=BaseAPIModel)
 
@@ -21,7 +22,7 @@ T = TypeVar("T", bound=BaseAPIModel)
 class BaseResource(Generic[T]):
     """Base class for API resources."""
 
-    def __init__(self, client: "Client"):
+    def __init__(self, client: Client):
         self._client = client
         self._http_client = client._http_client
 

@@ -38,3 +38,20 @@ def sample_user_data():
         "createdAt": "2023-01-01T00:00:00Z",
         "updatedAt": "2023-01-01T00:00:00Z",
     }
+
+
+@pytest.fixture
+def sample_workspace_data():
+    """Sample workspace data for testing."""
+    return {
+        "id": "ws-123",
+        "name": "Test Workspace",
+        "logo": "https://logo.url/logo.png",
+        "logo_asset": "https://logo.url/asset.png",
+        "owner": "user-123",
+        "slug": "test-workspace",
+        "organization_size": "small",
+        "timezone": "UTC",
+        "createdAt": "2023-01-01T00:00:00Z",
+        "updatedAt": "2023-01-01T00:00:00Z",
+    }

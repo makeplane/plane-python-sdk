@@ -1,75 +1,54 @@
-"""Basic usage examples for the API SDK."""
+"""Basic usage examples for the API SDK (Project info)."""
 
 import asyncio
 import os
 from plane import Client, Config, SyncClient
-from plane.models.user import UserCreate, UserUpdate
 
 
 async def async_example():
-    """Example using async client."""
-    # Initialize client with config
+    """Example using async client for projects."""
     config = Config(
         api_key=os.getenv("MY_API_KEY", "your-api-key"),
         base_url="https://api.plane.so/api/v1",
     )
-
-    # Or initialize from environment variables
-    # client = Client()  # Uses MY_API_KEY env var
 
     async with Client(config) as client:
         # Check API health
         health = await client.health_check()
         print(f"API Health: {health}")
 
-        # List users
-        result = await client.users.list(page=1, per_page=10)
-        users = result["users"]
-        pagination = result["pagination"]
+        # List workspaces
+        ws_result = await client.workspaces.list(page=1, per_page=5)
+        workspaces = ws_result["workspaces"]
+        if not workspaces:
+            print("No workspaces found.")
+            return
+        workspace = workspaces[0]
+        print(f"Using workspace: {workspace.name} (slug: {workspace.slug})")
 
+        # List projects in the workspace
+        proj_result = await client.projects.list(workspace.slug, page=1, per_page=10)
+        projects = proj_result["projects"]
+        pagination = proj_result["pagination"]
         print(
-            f"Found {len(users)} users (page {pagination.page} of {pagination.total_pages})"
+            f"Found {len(projects)} projects (page {pagination.page} of {pagination.total_pages})"
         )
+        for project in projects:
+            print(f"- {project.name} (id: {project.id}, desc: {project.description})")
 
-        # Get a specific user
-        if users:
-            user = await client.users.get(users[0].id)
-            print(f"User: {user.full_name} ({user.email})")
-
-        # Create a new user
-        new_user_data = UserCreate(
-            email="newuser@example.com",
-            firstName="New",
-            lastName="User",
-            password="securepassword123",
-        )
-
-        try:
-            new_user = await client.users.create(new_user_data)
-            print(f"Created user: {new_user.id}")
-
-            # Update the user
-            update_data = UserUpdate(firstName="Updated")
-            updated_user = await client.users.update(new_user.id, update_data)
-            print(f"Updated user: {updated_user.full_name}")
-
-            # Search users
-            search_results = await client.users.search("Updated", limit=5)
-            print(f"Search found {len(search_results)} users")
-
-            # Delete the user
-            await client.users.delete(new_user.id)
-            print("User deleted")
-
-        except Exception as e:
-            print(f"Error: {e}")
+        # Get a specific project (first one)
+        if projects:
+            project = await client.projects.get(workspace.slug, projects[0].id)
+            print(
+                f"Project details: {project.name} (id: {project.id}) - {project.description}"
+            )
 
 
 def sync_example():
-    """Example using synchronous client."""
+    """Example using synchronous client for projects."""
     config = Config(
         api_key=os.getenv("MY_API_KEY", "your-api-key"),
-        base_url="https://api.example.com/v1",
+        base_url="https://api.plane.so/api/v1",
     )
 
     with SyncClient(config) as client:
@@ -77,30 +56,31 @@ def sync_example():
         health = client.health_check()
         print(f"API Health: {health}")
 
-        # List users
-        result = client.users.list(page=1, per_page=5)
-        users = result["users"]
+        # List workspaces
+        ws_result = client.workspaces.list(page=1, per_page=5)
+        workspaces = ws_result["workspaces"]
+        if not workspaces:
+            print("No workspaces found.")
+            return
+        workspace = workspaces[0]
+        print(f"Using workspace: {workspace.name} (slug: {workspace.slug})")
 
-        print(f"Found {len(users)} users")
-
-        # Create and manage a user
-        new_user_data = UserCreate(
-            email="syncuser@example.com",
-            firstName="Sync",
-            lastName="User",
-            password="securepassword123",
+        # List projects in the workspace
+        proj_result = client.projects.list(workspace.slug, page=1, per_page=10)
+        projects = proj_result["projects"]
+        pagination = proj_result["pagination"]
+        print(
+            f"Found {len(projects)} projects (page {pagination.page} of {pagination.total_pages})"
         )
+        for project in projects:
+            print(f"- {project.name} (id: {project.id}, desc: {project.description})")
 
-        try:
-            new_user = client.users.create(new_user_data)
-            print(f"Created user: {new_user.full_name}")
-
-            # Clean up
-            client.users.delete(new_user.id)
-            print("User deleted")
-
-        except Exception as e:
-            print(f"Error: {e}")
+        # Get a specific project (first one)
+        if projects:
+            project = client.projects.get(workspace.slug, projects[0].id)
+            print(
+                f"Project details: {project.name} (id: {project.id}) - {project.description}"
+            )
 
 
 if __name__ == "__main__":
