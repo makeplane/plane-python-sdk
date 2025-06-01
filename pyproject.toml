@@ -1,124 +1,30 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[project]
-name = "plane-sdk"
+[tool.poetry]
+name = "plane"
 version = "1.0.0"
-description = "Python SDK for Plane APIs"
+description = "Plane API"
+authors = ["OpenAPI Generator Community <team@openapitools.org>"]
+license = "NoLicense"
 readme = "README.md"
-license = { file = "LICENSE" }
-authors = [{ name = "Plane", email = "support@plane.so" }]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-]
-requires-python = ">=3.8"
-dependencies = ["httpx>=0.24.0", "pydantic>=2.0.0", "typing-extensions>=4.0.0"]
+repository = "https://github.com/GIT_USER_ID/GIT_REPO_ID"
+keywords = ["OpenAPI", "OpenAPI-Generator", "Plane API"]
+include = ["plane/py.typed"]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "ruff>=0.0.290",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
-    "mypy>=1.0.0",
-]
+[tool.poetry.dependencies]
+python = "^3.8"
 
-[project.urls]
-Homepage = "https://github.com/makeplane/sdk-python"
-Documentation = "https://github.com/makeplane/sdk-python"
-Repository = "https://github.com/makeplane/sdk-python"
-Issues = "https://github.com/makeplane/sdk-python/issues"
+urllib3 = ">= 1.25.3"
+python-dateutil = ">=2.8.2"
+pydantic = "^1.10.5, <2"
+aenum = ">=3.1.11"
 
-[tool.ruff]
-line-length = 88
-target-version = "py38"
+[tool.poetry.dev-dependencies]
+pytest = ">=7.2.1"
+tox = ">=3.9.0"
+flake8 = ">=4.0.0"
 
-[tool.ruff.format]
-# Use double quotes for strings.
-quote-style = "double"
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
-# Indent with spaces, rather than tabs.
-indent-style = "space"
-
-# Respect magic trailing commas.
-# skip-magic-trailing-comma = true
-
-# Automatically detect the appropriate line ending.
-line-ending = "auto"
-
-[tool.ruff.lint]
-# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
-select = ["E", "F"]
-ignore = []
-
-# Allow autofix for all enabled rules (when `--fix`) is provided.
-fixable = ["ALL"]
-unfixable = []
-
-# Allow unused variables when underscore-prefixed.
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-[tool.ruff.lint.pep8-naming]
-# Allow lowercase variables like "id"
-classmethod-decorators = ["classmethod", "validator", "root_validator"]
-
-[tool.ruff.lint.per-file-ignores]
-# Ignore specific rules for tests
-"tests/*" = ["E402", "F401", "F811"]
-# Ignore imported but unused in __init__.py files
-"__init__.py" = ["F401"]
-
-[tool.ruff.lint.mccabe]
-# Unlike Flake8, default to a complexity level of 10.
-max-complexity = 10
-
-[tool.ruff.lint.isort]
-combine-as-imports = true
-detect-same-package = true
-force-wrap-aliases = true
-known-first-party = ["plane"]
-known-third-party = ["rest_framework"]
-relative-imports-order = "closest-to-furthest"
-
-[tool.ruff.lint.flake8-tidy-imports]
-ban-relative-imports = "parents"
-
-[tool.ruff.lint.pycodestyle]
-ignore-overlong-task-comments = true
-max-doc-length = 88
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
-[tool.ruff.lint.pylint]
-max-args = 8
-max-statements = 50
-
-
-[tool.isort]
-profile = "black"
-line_length = 88
-
-[tool.mypy]
-python_version = "3.8"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
-addopts = "--cov=src/my_api_sdk --cov-report=html --cov-report=term-missing"
+[tool.pylint.'MESSAGES CONTROL']
+extension-pkg-whitelist = "pydantic"
