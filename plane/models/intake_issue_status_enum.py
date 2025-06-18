@@ -37,7 +37,7 @@ class IntakeIssueStatusEnum(int, Enum):
     NUMBER_2 = 2
 
     @classmethod
-    def from_json(cls, json_str: str) -> IntakeIssueStatusEnum:
+    def from_json(cls, json_str: str) -> IntakeIssueStatusEnum: # noqa: F821
         """Create an instance of IntakeIssueStatusEnum from a JSON string"""
         return IntakeIssueStatusEnum(json.loads(json_str))
 

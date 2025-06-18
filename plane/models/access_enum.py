@@ -34,7 +34,7 @@ class AccessEnum(str, Enum):
     EXTERNAL = 'EXTERNAL'
 
     @classmethod
-    def from_json(cls, json_str: str) -> AccessEnum:
+    def from_json(cls, json_str: str) -> AccessEnum: # noqa: F821
         """Create an instance of AccessEnum from a JSON string"""
         return AccessEnum(json.loads(json_str))
 

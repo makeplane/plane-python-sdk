@@ -5,7 +5,7 @@ description = "The Plane REST API"
 authors = ["Plane <support@plane.so>"]
 license = "GNU AGPLv3"
 readme = "README.md"
-repository = "https://github.com/GIT_USER_ID/GIT_REPO_ID"
+repository = "https://github.com/makeplane/plane-python-sdk"
 keywords = ["OpenAPI", "OpenAPI-Generator", "The Plane REST API"]
 include = ["plane/py.typed"]
 

@@ -628,7 +628,7 @@ class TimezoneEnum(str, Enum):
     ZULU = 'Zulu'
 
     @classmethod
-    def from_json(cls, json_str: str) -> TimezoneEnum:
+    def from_json(cls, json_str: str) -> TimezoneEnum: # noqa: F821
         """Create an instance of TimezoneEnum from a JSON string"""
         return TimezoneEnum(json.loads(json_str))
 

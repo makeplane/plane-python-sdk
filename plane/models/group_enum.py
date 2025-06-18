@@ -38,7 +38,7 @@ class GroupEnum(str, Enum):
     TRIAGE = 'triage'
 
     @classmethod
-    def from_json(cls, json_str: str) -> GroupEnum:
+    def from_json(cls, json_str: str) -> GroupEnum: # noqa: F821
         """Create an instance of GroupEnum from a JSON string"""
         return GroupEnum(json.loads(json_str))
 

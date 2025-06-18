@@ -37,7 +37,7 @@ class TypeEnum(str, Enum):
     IMAGE_SLASH_GIF = 'image/gif'
 
     @classmethod
-    def from_json(cls, json_str: str) -> TypeEnum:
+    def from_json(cls, json_str: str) -> TypeEnum: # noqa: F821
         """Create an instance of TypeEnum from a JSON string"""
         return TypeEnum(json.loads(json_str))
 

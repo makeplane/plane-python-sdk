@@ -34,7 +34,7 @@ class RelationTypeEnum(str, Enum):
     USER = 'USER'
 
     @classmethod
-    def from_json(cls, json_str: str) -> RelationTypeEnum:
+    def from_json(cls, json_str: str) -> RelationTypeEnum: # noqa: F821
         """Create an instance of RelationTypeEnum from a JSON string"""
         return RelationTypeEnum(json.loads(json_str))
 

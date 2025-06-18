@@ -37,7 +37,7 @@ class PriorityEnum(str, Enum):
     NONE = 'none'
 
     @classmethod
-    def from_json(cls, json_str: str) -> PriorityEnum:
+    def from_json(cls, json_str: str) -> PriorityEnum: # noqa: F821
         """Create an instance of PriorityEnum from a JSON string"""
         return PriorityEnum(json.loads(json_str))
 

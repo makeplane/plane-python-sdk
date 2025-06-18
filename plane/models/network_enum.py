@@ -34,7 +34,7 @@ class NetworkEnum(int, Enum):
     NUMBER_2 = 2
 
     @classmethod
-    def from_json(cls, json_str: str) -> NetworkEnum:
+    def from_json(cls, json_str: str) -> NetworkEnum: # noqa: F821
         """Create an instance of NetworkEnum from a JSON string"""
         return NetworkEnum(json.loads(json_str))
 

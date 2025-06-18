@@ -34,7 +34,7 @@ class EntityTypeEnum(str, Enum):
     USER_COVER = 'USER_COVER'
 
     @classmethod
-    def from_json(cls, json_str: str) -> EntityTypeEnum:
+    def from_json(cls, json_str: str) -> EntityTypeEnum: # noqa: F821
         """Create an instance of EntityTypeEnum from a JSON string"""
         return EntityTypeEnum(json.loads(json_str))
 

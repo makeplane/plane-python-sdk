@@ -41,7 +41,7 @@ class PropertyTypeEnum(str, Enum):
     FILE = 'FILE'
 
     @classmethod
-    def from_json(cls, json_str: str) -> PropertyTypeEnum:
+    def from_json(cls, json_str: str) -> PropertyTypeEnum: # noqa: F821
         """Create an instance of PropertyTypeEnum from a JSON string"""
         return PropertyTypeEnum(json.loads(json_str))
 

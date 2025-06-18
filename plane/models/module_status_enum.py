@@ -38,7 +38,7 @@ class ModuleStatusEnum(str, Enum):
     CANCELLED = 'cancelled'
 
     @classmethod
-    def from_json(cls, json_str: str) -> ModuleStatusEnum:
+    def from_json(cls, json_str: str) -> ModuleStatusEnum: # noqa: F821
         """Create an instance of ModuleStatusEnum from a JSON string"""
         return ModuleStatusEnum(json.loads(json_str))
 
