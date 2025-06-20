@@ -4,25 +4,25 @@ All URIs are relative to *https://api.plane.so*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**add_module_issues**](ModulesApi.md#add_module_issues) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/ | Add Issues to Module
+[**add_module_work_items**](ModulesApi.md#add_module_work_items) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/ | Add Work Items to Module
 [**archive_module**](ModulesApi.md#archive_module) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/archive/ | Archive module
 [**create_module**](ModulesApi.md#create_module) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/modules/ | Create module
 [**delete_module**](ModulesApi.md#delete_module) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/ | Delete module
-[**delete_module_issue**](ModulesApi.md#delete_module_issue) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/{issue_id}/ | Delete module issue
+[**delete_module_work_item**](ModulesApi.md#delete_module_work_item) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/{issue_id}/ | Delete module work item
 [**list_archived_modules**](ModulesApi.md#list_archived_modules) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/archived-modules/ | List archived modules
-[**list_module_issues**](ModulesApi.md#list_module_issues) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/ | List module issues
+[**list_module_work_items**](ModulesApi.md#list_module_work_items) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/ | List module work items
 [**list_modules**](ModulesApi.md#list_modules) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/modules/ | List modules
 [**retrieve_module**](ModulesApi.md#retrieve_module) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/ | Retrieve module
 [**unarchive_module**](ModulesApi.md#unarchive_module) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/archived-modules/{pk}/unarchive/ | Unarchive module
 [**update_module**](ModulesApi.md#update_module) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/ | Update module
 
 
-# **add_module_issues**
-> ModuleIssue add_module_issues(module_id, project_id, slug, module_issue_request_request)
+# **add_module_work_items**
+> ModuleIssue add_module_work_items(module_id, project_id, slug, module_issue_request_request)
 
-Add Issues to Module
+Add Work Items to Module
 
-Assign multiple issues to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
+Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
 
 ### Example
 
@@ -69,12 +69,12 @@ with plane.ApiClient(configuration) as api_client:
     module_issue_request_request = {"issues":["0ec6cfa4-e906-4aad-9390-2df0303a41cd","0ec6cfa4-e906-4aad-9390-2df0303a41ce"]} # ModuleIssueRequestRequest | 
 
     try:
-        # Add Issues to Module
-        api_response = api_instance.add_module_issues(module_id, project_id, slug, module_issue_request_request)
-        print("The response of ModulesApi->add_module_issues:\n")
+        # Add Work Items to Module
+        api_response = api_instance.add_module_work_items(module_id, project_id, slug, module_issue_request_request)
+        print("The response of ModulesApi->add_module_work_items:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling ModulesApi->add_module_issues: %s\n" % e)
+        print("Exception when calling ModulesApi->add_module_work_items: %s\n" % e)
 ```
 
 
@@ -383,12 +383,12 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **delete_module_issue**
-> delete_module_issue(issue_id, module_id, project_id, slug)
+# **delete_module_work_item**
+> delete_module_work_item(issue_id, module_id, project_id, slug)
 
-Delete module issue
+Delete module work item
 
-Remove an issue from a module while keeping the issue in the project.
+Remove a work item from a module while keeping the work item in the project.
 
 ### Example
 
@@ -433,10 +433,10 @@ with plane.ApiClient(configuration) as api_client:
     slug = 'my-workspace' # str | Workspace slug
 
     try:
-        # Delete module issue
-        api_instance.delete_module_issue(issue_id, module_id, project_id, slug)
+        # Delete module work item
+        api_instance.delete_module_work_item(issue_id, module_id, project_id, slug)
     except Exception as e:
-        print("Exception when calling ModulesApi->delete_module_issue: %s\n" % e)
+        print("Exception when calling ModulesApi->delete_module_work_item: %s\n" % e)
 ```
 
 
@@ -572,12 +572,12 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **list_module_issues**
-> PaginatedModuleIssueResponse list_module_issues(module_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+# **list_module_work_items**
+> PaginatedModuleIssueResponse list_module_work_items(module_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
 
-List module issues
+List module work items
 
-Retrieve all issues assigned to a module with detailed information.
+Retrieve all work items assigned to a module with detailed information.
 
 ### Example
 
@@ -627,12 +627,12 @@ with plane.ApiClient(configuration) as api_client:
     per_page = 20 # int | Number of results per page (default: 20, max: 100) (optional)
 
     try:
-        # List module issues
-        api_response = api_instance.list_module_issues(module_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
-        print("The response of ModulesApi->list_module_issues:\n")
+        # List module work items
+        api_response = api_instance.list_module_work_items(module_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+        print("The response of ModulesApi->list_module_work_items:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling ModulesApi->list_module_issues: %s\n" % e)
+        print("Exception when calling ModulesApi->list_module_work_items: %s\n" % e)
 ```
 
 
@@ -669,7 +669,7 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Module not found |  -  |
-**200** | Paginated list of module issues |  -  |
+**200** | Paginated list of module work items |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

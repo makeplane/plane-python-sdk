@@ -20,14 +20,15 @@ import json
 
 
 from typing import Optional
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, Field, StrictBool, StrictStr
 
-class TransferCycleIssues200Response(BaseModel):
+class RetrieveWorkItemAttachment400Response(BaseModel):
     """
-    TransferCycleIssues200Response
+    RetrieveWorkItemAttachment400Response
     """
-    message: Optional[StrictStr] = Field(default=None, description="Success message")
-    __properties = ["message"]
+    error: Optional[StrictStr] = Field(default=None, description="Error message")
+    status: Optional[StrictBool] = Field(default=None, description="Request status")
+    __properties = ["error", "status"]
 
     class Config:
         """Pydantic configuration"""
@@ -43,8 +44,8 @@ class TransferCycleIssues200Response(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> TransferCycleIssues200Response:
-        """Create an instance of TransferCycleIssues200Response from a JSON string"""
+    def from_json(cls, json_str: str) -> RetrieveWorkItemAttachment400Response:
+        """Create an instance of RetrieveWorkItemAttachment400Response from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -56,16 +57,17 @@ class TransferCycleIssues200Response(BaseModel):
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> TransferCycleIssues200Response:
-        """Create an instance of TransferCycleIssues200Response from a dict"""
+    def from_dict(cls, obj: dict) -> RetrieveWorkItemAttachment400Response:
+        """Create an instance of RetrieveWorkItemAttachment400Response from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return TransferCycleIssues200Response.parse_obj(obj)
+            return RetrieveWorkItemAttachment400Response.parse_obj(obj)
 
-        _obj = TransferCycleIssues200Response.parse_obj({
-            "message": obj.get("message")
+        _obj = RetrieveWorkItemAttachment400Response.parse_obj({
+            "error": obj.get("error"),
+            "status": obj.get("status")
         })
         return _obj
 

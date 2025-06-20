@@ -4,19 +4,19 @@ All URIs are relative to *https://api.plane.so*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**create_issue_link**](WorkItemLinksApi.md#create_issue_link) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/ | Create a new issue link
-[**delete_issue_link**](WorkItemLinksApi.md#delete_issue_link) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/{pk}/ | Delete an issue link
-[**list_issue_links**](WorkItemLinksApi.md#list_issue_links) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/ | Endpoints for issue link create/update/delete and fetch issue link details
-[**retrieve_issue_link**](WorkItemLinksApi.md#retrieve_issue_link) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/{pk}/ | Endpoints for issue link create/update/delete and fetch issue link details
+[**create_work_item_link**](WorkItemLinksApi.md#create_work_item_link) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/ | Endpoints for issue link create/update/delete and fetch issue link details
+[**delete_work_item_link**](WorkItemLinksApi.md#delete_work_item_link) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/{pk}/ | Endpoints for issue link create/update/delete and fetch issue link details
+[**list_work_item_links**](WorkItemLinksApi.md#list_work_item_links) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/ | Endpoints for issue link create/update/delete and fetch issue link details
+[**retrieve_work_item_link**](WorkItemLinksApi.md#retrieve_work_item_link) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/{pk}/ | Endpoints for issue link create/update/delete and fetch issue link details
 [**update_issue_link**](WorkItemLinksApi.md#update_issue_link) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/links/{pk}/ | Update an issue link
 
 
-# **create_issue_link**
-> IssueLink create_issue_link(issue_id, project_id, slug, issue_link_create_request)
+# **create_work_item_link**
+> IssueLink create_work_item_link(issue_id, project_id, slug, issue_link_create_request)
 
-Create a new issue link
+Endpoints for issue link create/update/delete and fetch issue link details
 
-Add a new external link to an issue with URL, title, and metadata.
+Add a new external link to a work item with URL, title, and metadata.
 
 ### Example
 
@@ -63,12 +63,12 @@ with plane.ApiClient(configuration) as api_client:
     issue_link_create_request = {"url":"https://example.com","title":"Example Link"} # IssueLinkCreateRequest | 
 
     try:
-        # Create a new issue link
-        api_response = api_instance.create_issue_link(issue_id, project_id, slug, issue_link_create_request)
-        print("The response of WorkItemLinksApi->create_issue_link:\n")
+        # Endpoints for issue link create/update/delete and fetch issue link details
+        api_response = api_instance.create_work_item_link(issue_id, project_id, slug, issue_link_create_request)
+        print("The response of WorkItemLinksApi->create_work_item_link:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemLinksApi->create_issue_link: %s\n" % e)
+        print("Exception when calling WorkItemLinksApi->create_work_item_link: %s\n" % e)
 ```
 
 
@@ -101,17 +101,17 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Issue not found |  -  |
-**201** | Issue link created successfully |  -  |
+**201** | Work item link created successfully |  -  |
 **400** | Invalid request data provided |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **delete_issue_link**
-> delete_issue_link(issue_id, pk, project_id, slug)
+# **delete_work_item_link**
+> delete_work_item_link(issue_id, pk, project_id, slug)
 
-Delete an issue link
+Endpoints for issue link create/update/delete and fetch issue link details
 
-Permanently remove an external link from an issue.
+Permanently remove an external link from a work item.
 
 ### Example
 
@@ -156,10 +156,10 @@ with plane.ApiClient(configuration) as api_client:
     slug = 'my-workspace' # str | Workspace slug
 
     try:
-        # Delete an issue link
-        api_instance.delete_issue_link(issue_id, pk, project_id, slug)
+        # Endpoints for issue link create/update/delete and fetch issue link details
+        api_instance.delete_work_item_link(issue_id, pk, project_id, slug)
     except Exception as e:
-        print("Exception when calling WorkItemLinksApi->delete_issue_link: %s\n" % e)
+        print("Exception when calling WorkItemLinksApi->delete_work_item_link: %s\n" % e)
 ```
 
 
@@ -191,17 +191,17 @@ void (empty response body)
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
-**404** | Issue link not found |  -  |
-**204** | Issue link deleted successfully |  -  |
+**404** | Work item link not found |  -  |
+**204** | Work item link deleted successfully |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **list_issue_links**
-> PaginatedIssueLinkResponse list_issue_links(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+# **list_work_item_links**
+> PaginatedIssueLinkResponse list_work_item_links(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
 
 Endpoints for issue link create/update/delete and fetch issue link details
 
-Retrieve all links associated with an issue. Supports filtering by URL, title, and metadata.
+Retrieve all links associated with a work item. Supports filtering by URL, title, and metadata.
 
 ### Example
 
@@ -252,11 +252,11 @@ with plane.ApiClient(configuration) as api_client:
 
     try:
         # Endpoints for issue link create/update/delete and fetch issue link details
-        api_response = api_instance.list_issue_links(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
-        print("The response of WorkItemLinksApi->list_issue_links:\n")
+        api_response = api_instance.list_work_item_links(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+        print("The response of WorkItemLinksApi->list_work_item_links:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemLinksApi->list_issue_links: %s\n" % e)
+        print("Exception when calling WorkItemLinksApi->list_work_item_links: %s\n" % e)
 ```
 
 
@@ -293,17 +293,17 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Issue not found |  -  |
-**200** | Paginated list of issue links |  -  |
+**200** | Paginated list of work item links |  -  |
 **400** | Invalid request data provided |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **retrieve_issue_link**
-> PaginatedIssueLinkDetailResponse retrieve_issue_link(issue_id, pk, project_id, slug, cursor=cursor, expand=expand, fields=fields, per_page=per_page)
+# **retrieve_work_item_link**
+> PaginatedIssueLinkDetailResponse retrieve_work_item_link(issue_id, pk, project_id, slug, cursor=cursor, expand=expand, fields=fields, per_page=per_page)
 
 Endpoints for issue link create/update/delete and fetch issue link details
 
-Retrieve details of a specific issue link.
+Retrieve details of a specific work item link.
 
 ### Example
 
@@ -354,11 +354,11 @@ with plane.ApiClient(configuration) as api_client:
 
     try:
         # Endpoints for issue link create/update/delete and fetch issue link details
-        api_response = api_instance.retrieve_issue_link(issue_id, pk, project_id, slug, cursor=cursor, expand=expand, fields=fields, per_page=per_page)
-        print("The response of WorkItemLinksApi->retrieve_issue_link:\n")
+        api_response = api_instance.retrieve_work_item_link(issue_id, pk, project_id, slug, cursor=cursor, expand=expand, fields=fields, per_page=per_page)
+        print("The response of WorkItemLinksApi->retrieve_work_item_link:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemLinksApi->retrieve_issue_link: %s\n" % e)
+        print("Exception when calling WorkItemLinksApi->retrieve_work_item_link: %s\n" % e)
 ```
 
 
@@ -395,7 +395,7 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Issue not found |  -  |
-**200** | Issue link details or paginated list |  -  |
+**200** | Work item link details or paginated list |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

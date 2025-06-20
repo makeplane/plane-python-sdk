@@ -219,7 +219,7 @@ class StatesApi:
     def delete_state(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], state_id : Annotated[StrictStr, Field(..., description="State ID")], **kwargs) -> None:  # noqa: E501
         """Delete state  # noqa: E501
 
-        Permanently remove a workflow state from a project. Default states and states with existing issues cannot be deleted.  # noqa: E501
+        Permanently remove a workflow state from a project. Default states and states with existing work items cannot be deleted.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
@@ -253,7 +253,7 @@ class StatesApi:
     def delete_state_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], state_id : Annotated[StrictStr, Field(..., description="State ID")], **kwargs) -> ApiResponse:  # noqa: E501
         """Delete state  # noqa: E501
 
-        Permanently remove a workflow state from a project. Default states and states with existing issues cannot be deleted.  # noqa: E501
+        Permanently remove a workflow state from a project. Default states and states with existing work items cannot be deleted.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 

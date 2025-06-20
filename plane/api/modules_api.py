@@ -52,14 +52,14 @@ class ModulesApi:
         self.api_client = api_client
 
     @validate_arguments
-    def add_module_issues(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], module_issue_request_request : ModuleIssueRequestRequest, **kwargs) -> ModuleIssue:  # noqa: E501
-        """Add Issues to Module  # noqa: E501
+    def add_module_work_items(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], module_issue_request_request : ModuleIssueRequestRequest, **kwargs) -> ModuleIssue:  # noqa: E501
+        """Add Work Items to Module  # noqa: E501
 
-        Assign multiple issues to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
+        Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.add_module_issues(module_id, project_id, slug, module_issue_request_request, async_req=True)
+        >>> thread = api.add_module_work_items(module_id, project_id, slug, module_issue_request_request, async_req=True)
         >>> result = thread.get()
 
         :param module_id: Module ID (required)
@@ -83,19 +83,19 @@ class ModulesApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the add_module_issues_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the add_module_work_items_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.add_module_issues_with_http_info(module_id, project_id, slug, module_issue_request_request, **kwargs)  # noqa: E501
+        return self.add_module_work_items_with_http_info(module_id, project_id, slug, module_issue_request_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def add_module_issues_with_http_info(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], module_issue_request_request : ModuleIssueRequestRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Add Issues to Module  # noqa: E501
+    def add_module_work_items_with_http_info(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], module_issue_request_request : ModuleIssueRequestRequest, **kwargs) -> ApiResponse:  # noqa: E501
+        """Add Work Items to Module  # noqa: E501
 
-        Assign multiple issues to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
+        Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.add_module_issues_with_http_info(module_id, project_id, slug, module_issue_request_request, async_req=True)
+        >>> thread = api.add_module_work_items_with_http_info(module_id, project_id, slug, module_issue_request_request, async_req=True)
         >>> result = thread.get()
 
         :param module_id: Module ID (required)
@@ -156,7 +156,7 @@ class ModulesApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method add_module_issues" % _key
+                    " to method add_module_work_items" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -695,14 +695,14 @@ class ModulesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def delete_module_issue(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Delete module issue  # noqa: E501
+    def delete_module_work_item(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
+        """Delete module work item  # noqa: E501
 
-        Remove an issue from a module while keeping the issue in the project.  # noqa: E501
+        Remove a work item from a module while keeping the work item in the project.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_module_issue(issue_id, module_id, project_id, slug, async_req=True)
+        >>> thread = api.delete_module_work_item(issue_id, module_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -726,19 +726,19 @@ class ModulesApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_module_issue_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the delete_module_work_item_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.delete_module_issue_with_http_info(issue_id, module_id, project_id, slug, **kwargs)  # noqa: E501
+        return self.delete_module_work_item_with_http_info(issue_id, module_id, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def delete_module_issue_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete module issue  # noqa: E501
+    def delete_module_work_item_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+        """Delete module work item  # noqa: E501
 
-        Remove an issue from a module while keeping the issue in the project.  # noqa: E501
+        Remove a work item from a module while keeping the work item in the project.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_module_issue_with_http_info(issue_id, module_id, project_id, slug, async_req=True)
+        >>> thread = api.delete_module_work_item_with_http_info(issue_id, module_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -799,7 +799,7 @@ class ModulesApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method delete_module_issue" % _key
+                    " to method delete_module_work_item" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -1044,14 +1044,14 @@ class ModulesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_module_issues(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedModuleIssueResponse:  # noqa: E501
-        """List module issues  # noqa: E501
+    def list_module_work_items(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedModuleIssueResponse:  # noqa: E501
+        """List module work items  # noqa: E501
 
-        Retrieve all issues assigned to a module with detailed information.  # noqa: E501
+        Retrieve all work items assigned to a module with detailed information.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_module_issues(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.list_module_work_items(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param module_id: Module ID (required)
@@ -1083,19 +1083,19 @@ class ModulesApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the list_module_issues_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the list_module_work_items_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.list_module_issues_with_http_info(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
+        return self.list_module_work_items_with_http_info(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def list_module_issues_with_http_info(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """List module issues  # noqa: E501
+    def list_module_work_items_with_http_info(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+        """List module work items  # noqa: E501
 
-        Retrieve all issues assigned to a module with detailed information.  # noqa: E501
+        Retrieve all work items assigned to a module with detailed information.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_module_issues_with_http_info(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.list_module_work_items_with_http_info(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param module_id: Module ID (required)
@@ -1168,7 +1168,7 @@ class ModulesApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method list_module_issues" % _key
+                    " to method list_module_work_items" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']

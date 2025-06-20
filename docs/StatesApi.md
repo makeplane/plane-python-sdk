@@ -110,7 +110,7 @@ Name | Type | Description  | Notes
 
 Delete state
 
-Permanently remove a workflow state from a project. Default states and states with existing issues cannot be deleted.
+Permanently remove a workflow state from a project. Default states and states with existing work items cannot be deleted.
 
 ### Example
 

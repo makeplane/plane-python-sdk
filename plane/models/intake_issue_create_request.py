@@ -21,7 +21,7 @@ import json
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field, StrictStr, constr
-from plane.models.intake_issue_status_enum import IntakeIssueStatusEnum
+from plane.models.intake_work_item_status_enum import IntakeWorkItemStatusEnum
 from plane.models.issue_for_intake_request import IssueForIntakeRequest
 
 class IntakeIssueCreateRequest(BaseModel):
@@ -30,7 +30,7 @@ class IntakeIssueCreateRequest(BaseModel):
     """
     issue: IssueForIntakeRequest = Field(default=..., description="Issue data for the intake issue")
     intake: StrictStr = Field(...)
-    status: Optional[IntakeIssueStatusEnum] = None
+    status: Optional[IntakeWorkItemStatusEnum] = None
     snoozed_till: Optional[datetime] = None
     duplicate_to: Optional[StrictStr] = None
     source: Optional[constr(strict=True, max_length=255)] = None

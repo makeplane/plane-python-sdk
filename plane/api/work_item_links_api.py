@@ -49,14 +49,14 @@ class WorkItemLinksApi:
         self.api_client = api_client
 
     @validate_arguments
-    def create_issue_link(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_link_create_request : IssueLinkCreateRequest, **kwargs) -> IssueLink:  # noqa: E501
-        """Create a new issue link  # noqa: E501
+    def create_work_item_link(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_link_create_request : IssueLinkCreateRequest, **kwargs) -> IssueLink:  # noqa: E501
+        """Endpoints for issue link create/update/delete and fetch issue link details  # noqa: E501
 
-        Add a new external link to an issue with URL, title, and metadata.  # noqa: E501
+        Add a new external link to a work item with URL, title, and metadata.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.create_issue_link(issue_id, project_id, slug, issue_link_create_request, async_req=True)
+        >>> thread = api.create_work_item_link(issue_id, project_id, slug, issue_link_create_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -80,19 +80,19 @@ class WorkItemLinksApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the create_issue_link_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the create_work_item_link_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.create_issue_link_with_http_info(issue_id, project_id, slug, issue_link_create_request, **kwargs)  # noqa: E501
+        return self.create_work_item_link_with_http_info(issue_id, project_id, slug, issue_link_create_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def create_issue_link_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_link_create_request : IssueLinkCreateRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Create a new issue link  # noqa: E501
+    def create_work_item_link_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_link_create_request : IssueLinkCreateRequest, **kwargs) -> ApiResponse:  # noqa: E501
+        """Endpoints for issue link create/update/delete and fetch issue link details  # noqa: E501
 
-        Add a new external link to an issue with URL, title, and metadata.  # noqa: E501
+        Add a new external link to a work item with URL, title, and metadata.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.create_issue_link_with_http_info(issue_id, project_id, slug, issue_link_create_request, async_req=True)
+        >>> thread = api.create_work_item_link_with_http_info(issue_id, project_id, slug, issue_link_create_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -153,7 +153,7 @@ class WorkItemLinksApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method create_issue_link" % _key
+                    " to method create_work_item_link" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -224,14 +224,14 @@ class WorkItemLinksApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def delete_issue_link(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Link ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Delete an issue link  # noqa: E501
+    def delete_work_item_link(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Link ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
+        """Endpoints for issue link create/update/delete and fetch issue link details  # noqa: E501
 
-        Permanently remove an external link from an issue.  # noqa: E501
+        Permanently remove an external link from a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_issue_link(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.delete_work_item_link(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -255,19 +255,19 @@ class WorkItemLinksApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_issue_link_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the delete_work_item_link_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.delete_issue_link_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
+        return self.delete_work_item_link_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def delete_issue_link_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Link ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete an issue link  # noqa: E501
+    def delete_work_item_link_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Link ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+        """Endpoints for issue link create/update/delete and fetch issue link details  # noqa: E501
 
-        Permanently remove an external link from an issue.  # noqa: E501
+        Permanently remove an external link from a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_issue_link_with_http_info(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.delete_work_item_link_with_http_info(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -328,7 +328,7 @@ class WorkItemLinksApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method delete_issue_link" % _key
+                    " to method delete_work_item_link" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -382,14 +382,14 @@ class WorkItemLinksApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_issue_links(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueLinkResponse:  # noqa: E501
+    def list_work_item_links(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueLinkResponse:  # noqa: E501
         """Endpoints for issue link create/update/delete and fetch issue link details  # noqa: E501
 
-        Retrieve all links associated with an issue. Supports filtering by URL, title, and metadata.  # noqa: E501
+        Retrieve all links associated with a work item. Supports filtering by URL, title, and metadata.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_issue_links(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.list_work_item_links(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -421,19 +421,19 @@ class WorkItemLinksApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the list_issue_links_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the list_work_item_links_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.list_issue_links_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
+        return self.list_work_item_links_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def list_issue_links_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def list_work_item_links_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Endpoints for issue link create/update/delete and fetch issue link details  # noqa: E501
 
-        Retrieve all links associated with an issue. Supports filtering by URL, title, and metadata.  # noqa: E501
+        Retrieve all links associated with a work item. Supports filtering by URL, title, and metadata.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_issue_links_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.list_work_item_links_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -506,7 +506,7 @@ class WorkItemLinksApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method list_issue_links" % _key
+                    " to method list_work_item_links" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -582,14 +582,14 @@ class WorkItemLinksApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def retrieve_issue_link(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Link ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueLinkDetailResponse:  # noqa: E501
+    def retrieve_work_item_link(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Link ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueLinkDetailResponse:  # noqa: E501
         """Endpoints for issue link create/update/delete and fetch issue link details  # noqa: E501
 
-        Retrieve details of a specific issue link.  # noqa: E501
+        Retrieve details of a specific work item link.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_issue_link(issue_id, pk, project_id, slug, cursor, expand, fields, per_page, async_req=True)
+        >>> thread = api.retrieve_work_item_link(issue_id, pk, project_id, slug, cursor, expand, fields, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -621,19 +621,19 @@ class WorkItemLinksApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the retrieve_issue_link_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the retrieve_work_item_link_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.retrieve_issue_link_with_http_info(issue_id, pk, project_id, slug, cursor, expand, fields, per_page, **kwargs)  # noqa: E501
+        return self.retrieve_work_item_link_with_http_info(issue_id, pk, project_id, slug, cursor, expand, fields, per_page, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def retrieve_issue_link_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Link ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def retrieve_work_item_link_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Link ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Endpoints for issue link create/update/delete and fetch issue link details  # noqa: E501
 
-        Retrieve details of a specific issue link.  # noqa: E501
+        Retrieve details of a specific work item link.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_issue_link_with_http_info(issue_id, pk, project_id, slug, cursor, expand, fields, per_page, async_req=True)
+        >>> thread = api.retrieve_work_item_link_with_http_info(issue_id, pk, project_id, slug, cursor, expand, fields, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -706,7 +706,7 @@ class WorkItemLinksApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method retrieve_issue_link" % _key
+                    " to method retrieve_work_item_link" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']

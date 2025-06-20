@@ -22,12 +22,12 @@ import json
 from typing import Optional
 from pydantic import BaseModel, Field, StrictStr
 
-class TransferCycleIssues400Response(BaseModel):
+class TransferCycleWorkItems200Response(BaseModel):
     """
-    TransferCycleIssues400Response
+    TransferCycleWorkItems200Response
     """
-    error: Optional[StrictStr] = Field(default=None, description="Error message")
-    __properties = ["error"]
+    message: Optional[StrictStr] = Field(default=None, description="Success message")
+    __properties = ["message"]
 
     class Config:
         """Pydantic configuration"""
@@ -43,8 +43,8 @@ class TransferCycleIssues400Response(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> TransferCycleIssues400Response:
-        """Create an instance of TransferCycleIssues400Response from a JSON string"""
+    def from_json(cls, json_str: str) -> TransferCycleWorkItems200Response:
+        """Create an instance of TransferCycleWorkItems200Response from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -56,16 +56,16 @@ class TransferCycleIssues400Response(BaseModel):
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> TransferCycleIssues400Response:
-        """Create an instance of TransferCycleIssues400Response from a dict"""
+    def from_dict(cls, obj: dict) -> TransferCycleWorkItems200Response:
+        """Create an instance of TransferCycleWorkItems200Response from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return TransferCycleIssues400Response.parse_obj(obj)
+            return TransferCycleWorkItems200Response.parse_obj(obj)
 
-        _obj = TransferCycleIssues400Response.parse_obj({
-            "error": obj.get("error")
+        _obj = TransferCycleWorkItems200Response.parse_obj({
+            "message": obj.get("message")
         })
         return _obj
 

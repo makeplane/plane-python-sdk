@@ -46,14 +46,14 @@ class WorkItemActivityApi:
         self.api_client = api_client
 
     @validate_arguments
-    def list_issue_activities(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueActivityResponse:  # noqa: E501
+    def list_work_item_activities(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueActivityResponse:  # noqa: E501
         """Endpoints for issue activity/search and fetch issue activity details  # noqa: E501
 
-        Retrieve all activities for an issue. Supports filtering by activity type and date range.  # noqa: E501
+        Retrieve all activities for a work item. Supports filtering by activity type and date range.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_issue_activities(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.list_work_item_activities(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -85,19 +85,19 @@ class WorkItemActivityApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the list_issue_activities_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the list_work_item_activities_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.list_issue_activities_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
+        return self.list_work_item_activities_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def list_issue_activities_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def list_work_item_activities_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Endpoints for issue activity/search and fetch issue activity details  # noqa: E501
 
-        Retrieve all activities for an issue. Supports filtering by activity type and date range.  # noqa: E501
+        Retrieve all activities for a work item. Supports filtering by activity type and date range.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_issue_activities_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.list_work_item_activities_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -170,7 +170,7 @@ class WorkItemActivityApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method list_issue_activities" % _key
+                    " to method list_work_item_activities" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -246,14 +246,14 @@ class WorkItemActivityApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def retrieve_issue_activity(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Activity ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueActivityDetailResponse:  # noqa: E501
+    def retrieve_work_item_activity(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Activity ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueActivityDetailResponse:  # noqa: E501
         """Endpoints for issue activity/search and fetch issue activity details  # noqa: E501
 
         Retrieve details of a specific activity.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_issue_activity(issue_id, pk, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.retrieve_work_item_activity(issue_id, pk, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -287,19 +287,19 @@ class WorkItemActivityApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the retrieve_issue_activity_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the retrieve_work_item_activity_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.retrieve_issue_activity_with_http_info(issue_id, pk, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
+        return self.retrieve_work_item_activity_with_http_info(issue_id, pk, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def retrieve_issue_activity_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Activity ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def retrieve_work_item_activity_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Activity ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Endpoints for issue activity/search and fetch issue activity details  # noqa: E501
 
         Retrieve details of a specific activity.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_issue_activity_with_http_info(issue_id, pk, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.retrieve_work_item_activity_with_http_info(issue_id, pk, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -375,7 +375,7 @@ class WorkItemActivityApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method retrieve_issue_activity" % _key
+                    " to method retrieve_work_item_activity" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']

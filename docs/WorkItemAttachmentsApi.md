@@ -4,18 +4,18 @@ All URIs are relative to *https://api.plane.so*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**create_issue_attachment**](WorkItemAttachmentsApi.md#create_issue_attachment) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/ | Create a new issue attachment
-[**delete_issue_attachment**](WorkItemAttachmentsApi.md#delete_issue_attachment) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Delete an issue attachment
-[**list_issue_attachments**](WorkItemAttachmentsApi.md#list_issue_attachments) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
-[**retrieve_issue_attachment**](WorkItemAttachmentsApi.md#retrieve_issue_attachment) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
+[**create_work_item_attachment**](WorkItemAttachmentsApi.md#create_work_item_attachment) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
+[**delete_work_item_attachment**](WorkItemAttachmentsApi.md#delete_work_item_attachment) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
+[**list_work_item_attachments**](WorkItemAttachmentsApi.md#list_work_item_attachments) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
+[**retrieve_work_item_attachment**](WorkItemAttachmentsApi.md#retrieve_work_item_attachment) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
 
 
-# **create_issue_attachment**
-> create_issue_attachment(issue_id, project_id, slug, issue_attachment_upload_request)
+# **create_work_item_attachment**
+> create_work_item_attachment(issue_id, project_id, slug, issue_attachment_upload_request)
 
-Create a new issue attachment
+Endpoints for issue attachment create/update/delete and fetch issue attachment details
 
-Generate presigned URL for uploading file attachments to an issue.
+Generate presigned URL for uploading file attachments to a work item.
 
 ### Example
 
@@ -61,10 +61,10 @@ with plane.ApiClient(configuration) as api_client:
     issue_attachment_upload_request = {"name":"document.pdf","type":"application/pdf","size":1024000,"external_id":"1234567890","external_source":"github"} # IssueAttachmentUploadRequest | 
 
     try:
-        # Create a new issue attachment
-        api_instance.create_issue_attachment(issue_id, project_id, slug, issue_attachment_upload_request)
+        # Endpoints for issue attachment create/update/delete and fetch issue attachment details
+        api_instance.create_work_item_attachment(issue_id, project_id, slug, issue_attachment_upload_request)
     except Exception as e:
-        print("Exception when calling WorkItemAttachmentsApi->create_issue_attachment: %s\n" % e)
+        print("Exception when calling WorkItemAttachmentsApi->create_work_item_attachment: %s\n" % e)
 ```
 
 
@@ -102,12 +102,12 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **delete_issue_attachment**
-> delete_issue_attachment(issue_id, pk, project_id, slug)
+# **delete_work_item_attachment**
+> delete_work_item_attachment(issue_id, pk, project_id, slug)
 
-Delete an issue attachment
+Endpoints for issue attachment create/update/delete and fetch issue attachment details
 
-Permanently remove an attachment from an issue. Records deletion activity for audit purposes.
+Permanently remove an attachment from a work item. Records deletion activity for audit purposes.
 
 ### Example
 
@@ -152,10 +152,10 @@ with plane.ApiClient(configuration) as api_client:
     slug = 'my-workspace' # str | Workspace slug
 
     try:
-        # Delete an issue attachment
-        api_instance.delete_issue_attachment(issue_id, pk, project_id, slug)
+        # Endpoints for issue attachment create/update/delete and fetch issue attachment details
+        api_instance.delete_work_item_attachment(issue_id, pk, project_id, slug)
     except Exception as e:
-        print("Exception when calling WorkItemAttachmentsApi->delete_issue_attachment: %s\n" % e)
+        print("Exception when calling WorkItemAttachmentsApi->delete_work_item_attachment: %s\n" % e)
 ```
 
 
@@ -188,16 +188,16 @@ void (empty response body)
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Attachment not found |  -  |
-**204** | Issue attachment deleted successfully |  -  |
+**204** | Work item attachment deleted successfully |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **list_issue_attachments**
-> IssueAttachment list_issue_attachments(issue_id, project_id, slug)
+# **list_work_item_attachments**
+> IssueAttachment list_work_item_attachments(issue_id, project_id, slug)
 
 Endpoints for issue attachment create/update/delete and fetch issue attachment details
 
-Retrieve all attachments for an issue.
+Retrieve all attachments for a work item.
 
 ### Example
 
@@ -243,11 +243,11 @@ with plane.ApiClient(configuration) as api_client:
 
     try:
         # Endpoints for issue attachment create/update/delete and fetch issue attachment details
-        api_response = api_instance.list_issue_attachments(issue_id, project_id, slug)
-        print("The response of WorkItemAttachmentsApi->list_issue_attachments:\n")
+        api_response = api_instance.list_work_item_attachments(issue_id, project_id, slug)
+        print("The response of WorkItemAttachmentsApi->list_work_item_attachments:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemAttachmentsApi->list_issue_attachments: %s\n" % e)
+        print("Exception when calling WorkItemAttachmentsApi->list_work_item_attachments: %s\n" % e)
 ```
 
 
@@ -279,13 +279,13 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Attachment not found |  -  |
-**200** | Issue attachment |  -  |
+**200** | Work item attachment |  -  |
 **400** | Invalid request data provided |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **retrieve_issue_attachment**
-> retrieve_issue_attachment(issue_id, pk, project_id, slug)
+# **retrieve_work_item_attachment**
+> retrieve_work_item_attachment(issue_id, pk, project_id, slug)
 
 Endpoints for issue attachment create/update/delete and fetch issue attachment details
 
@@ -335,9 +335,9 @@ with plane.ApiClient(configuration) as api_client:
 
     try:
         # Endpoints for issue attachment create/update/delete and fetch issue attachment details
-        api_instance.retrieve_issue_attachment(issue_id, pk, project_id, slug)
+        api_instance.retrieve_work_item_attachment(issue_id, pk, project_id, slug)
     except Exception as e:
-        print("Exception when calling WorkItemAttachmentsApi->retrieve_issue_attachment: %s\n" % e)
+        print("Exception when calling WorkItemAttachmentsApi->retrieve_work_item_attachment: %s\n" % e)
 ```
 
 

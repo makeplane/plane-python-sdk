@@ -21,7 +21,7 @@ from aenum import Enum
 
 
 
-class IntakeIssueStatusEnum(int, Enum):
+class IntakeWorkItemStatusEnum(int, Enum):
     """
     * `-2` - Pending * `-1` - Rejected * `0` - Snoozed * `1` - Accepted * `2` - Duplicate
     """
@@ -36,8 +36,8 @@ class IntakeIssueStatusEnum(int, Enum):
     NUMBER_2 = 2
 
     @classmethod
-    def from_json(cls, json_str: str) -> IntakeIssueStatusEnum: # noqa: F821
-        """Create an instance of IntakeIssueStatusEnum from a JSON string"""
-        return IntakeIssueStatusEnum(json.loads(json_str))
+    def from_json(cls, json_str: str) -> IntakeWorkItemStatusEnum: # noqa: F821
+        """Create an instance of IntakeWorkItemStatusEnum from a JSON string"""
+        return IntakeWorkItemStatusEnum(json.loads(json_str))
 
 

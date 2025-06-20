@@ -4,19 +4,19 @@ All URIs are relative to *https://api.plane.so*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**create_issue_comment**](WorkItemCommentsApi.md#create_issue_comment) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/ | Create a new issue comment
-[**delete_issue_comment**](WorkItemCommentsApi.md#delete_issue_comment) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/ | Delete an issue comment
-[**list_issue_comments**](WorkItemCommentsApi.md#list_issue_comments) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/ | Endpoints for issue comment create/update/delete and fetch issue comment details
-[**retrieve_issue_comment**](WorkItemCommentsApi.md#retrieve_issue_comment) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/ | Endpoints for issue comment create/update/delete and fetch issue comment details
-[**update_issue_comment**](WorkItemCommentsApi.md#update_issue_comment) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/ | Update an issue comment
+[**create_work_item_comment**](WorkItemCommentsApi.md#create_work_item_comment) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/ | Endpoints for issue comment create/update/delete and fetch issue comment details
+[**delete_work_item_comment**](WorkItemCommentsApi.md#delete_work_item_comment) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/ | Endpoints for issue comment create/update/delete and fetch issue comment details
+[**list_work_item_comments**](WorkItemCommentsApi.md#list_work_item_comments) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/ | Endpoints for issue comment create/update/delete and fetch issue comment details
+[**retrieve_work_item_comment**](WorkItemCommentsApi.md#retrieve_work_item_comment) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/ | Endpoints for issue comment create/update/delete and fetch issue comment details
+[**update_work_item_comment**](WorkItemCommentsApi.md#update_work_item_comment) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/ | Endpoints for issue comment create/update/delete and fetch issue comment details
 
 
-# **create_issue_comment**
-> IssueComment create_issue_comment(issue_id, project_id, slug, issue_comment_create_request=issue_comment_create_request)
+# **create_work_item_comment**
+> IssueComment create_work_item_comment(issue_id, project_id, slug, issue_comment_create_request=issue_comment_create_request)
 
-Create a new issue comment
+Endpoints for issue comment create/update/delete and fetch issue comment details
 
-Add a new comment to an issue with HTML content.
+Add a new comment to a work item with HTML content.
 
 ### Example
 
@@ -63,12 +63,12 @@ with plane.ApiClient(configuration) as api_client:
     issue_comment_create_request = {"comment_html":"<p>New comment content</p>","external_id":"1234567890","external_source":"github"} # IssueCommentCreateRequest |  (optional)
 
     try:
-        # Create a new issue comment
-        api_response = api_instance.create_issue_comment(issue_id, project_id, slug, issue_comment_create_request=issue_comment_create_request)
-        print("The response of WorkItemCommentsApi->create_issue_comment:\n")
+        # Endpoints for issue comment create/update/delete and fetch issue comment details
+        api_response = api_instance.create_work_item_comment(issue_id, project_id, slug, issue_comment_create_request=issue_comment_create_request)
+        print("The response of WorkItemCommentsApi->create_work_item_comment:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemCommentsApi->create_issue_comment: %s\n" % e)
+        print("Exception when calling WorkItemCommentsApi->create_work_item_comment: %s\n" % e)
 ```
 
 
@@ -101,18 +101,18 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Issue not found |  -  |
-**201** | Issue comment created successfully |  -  |
+**201** | Work item comment created successfully |  -  |
 **400** | Invalid request data provided |  -  |
 **409** | Resource with same external ID already exists |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **delete_issue_comment**
-> delete_issue_comment(issue_id, pk, project_id, slug)
+# **delete_work_item_comment**
+> delete_work_item_comment(issue_id, pk, project_id, slug)
 
-Delete an issue comment
+Endpoints for issue comment create/update/delete and fetch issue comment details
 
-Permanently remove a comment from an issue. Records deletion activity for audit purposes.
+Permanently remove a comment from a work item. Records deletion activity for audit purposes.
 
 ### Example
 
@@ -157,10 +157,10 @@ with plane.ApiClient(configuration) as api_client:
     slug = 'my-workspace' # str | Workspace slug
 
     try:
-        # Delete an issue comment
-        api_instance.delete_issue_comment(issue_id, pk, project_id, slug)
+        # Endpoints for issue comment create/update/delete and fetch issue comment details
+        api_instance.delete_work_item_comment(issue_id, pk, project_id, slug)
     except Exception as e:
-        print("Exception when calling WorkItemCommentsApi->delete_issue_comment: %s\n" % e)
+        print("Exception when calling WorkItemCommentsApi->delete_work_item_comment: %s\n" % e)
 ```
 
 
@@ -193,16 +193,16 @@ void (empty response body)
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Comment not found |  -  |
-**204** | Issue comment deleted successfully |  -  |
+**204** | Work item comment deleted successfully |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **list_issue_comments**
-> PaginatedIssueCommentResponse list_issue_comments(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+# **list_work_item_comments**
+> PaginatedIssueCommentResponse list_work_item_comments(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
 
 Endpoints for issue comment create/update/delete and fetch issue comment details
 
-Retrieve all comments for an issue.
+Retrieve all comments for a work item.
 
 ### Example
 
@@ -253,11 +253,11 @@ with plane.ApiClient(configuration) as api_client:
 
     try:
         # Endpoints for issue comment create/update/delete and fetch issue comment details
-        api_response = api_instance.list_issue_comments(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
-        print("The response of WorkItemCommentsApi->list_issue_comments:\n")
+        api_response = api_instance.list_work_item_comments(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+        print("The response of WorkItemCommentsApi->list_work_item_comments:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemCommentsApi->list_issue_comments: %s\n" % e)
+        print("Exception when calling WorkItemCommentsApi->list_work_item_comments: %s\n" % e)
 ```
 
 
@@ -294,12 +294,12 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Issue not found |  -  |
-**200** | Paginated list of issue comments |  -  |
+**200** | Paginated list of work item comments |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **retrieve_issue_comment**
-> IssueComment retrieve_issue_comment(issue_id, pk, project_id, slug)
+# **retrieve_work_item_comment**
+> IssueComment retrieve_work_item_comment(issue_id, pk, project_id, slug)
 
 Endpoints for issue comment create/update/delete and fetch issue comment details
 
@@ -350,11 +350,11 @@ with plane.ApiClient(configuration) as api_client:
 
     try:
         # Endpoints for issue comment create/update/delete and fetch issue comment details
-        api_response = api_instance.retrieve_issue_comment(issue_id, pk, project_id, slug)
-        print("The response of WorkItemCommentsApi->retrieve_issue_comment:\n")
+        api_response = api_instance.retrieve_work_item_comment(issue_id, pk, project_id, slug)
+        print("The response of WorkItemCommentsApi->retrieve_work_item_comment:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemCommentsApi->retrieve_issue_comment: %s\n" % e)
+        print("Exception when calling WorkItemCommentsApi->retrieve_work_item_comment: %s\n" % e)
 ```
 
 
@@ -387,17 +387,17 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Issue not found |  -  |
-**200** | Issue comments |  -  |
+**200** | Work item comments |  -  |
 **400** | Invalid request data provided |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **update_issue_comment**
-> IssueComment update_issue_comment(issue_id, pk, project_id, slug, patched_issue_comment_create_request=patched_issue_comment_create_request)
+# **update_work_item_comment**
+> IssueComment update_work_item_comment(issue_id, pk, project_id, slug, patched_issue_comment_create_request=patched_issue_comment_create_request)
 
-Update an issue comment
+Endpoints for issue comment create/update/delete and fetch issue comment details
 
-Modify the content of an existing comment on an issue.
+Modify the content of an existing comment on a work item.
 
 ### Example
 
@@ -445,12 +445,12 @@ with plane.ApiClient(configuration) as api_client:
     patched_issue_comment_create_request = {"comment_html":"<p>Updated comment content</p>","external_id":"1234567890","external_source":"github"} # PatchedIssueCommentCreateRequest |  (optional)
 
     try:
-        # Update an issue comment
-        api_response = api_instance.update_issue_comment(issue_id, pk, project_id, slug, patched_issue_comment_create_request=patched_issue_comment_create_request)
-        print("The response of WorkItemCommentsApi->update_issue_comment:\n")
+        # Endpoints for issue comment create/update/delete and fetch issue comment details
+        api_response = api_instance.update_work_item_comment(issue_id, pk, project_id, slug, patched_issue_comment_create_request=patched_issue_comment_create_request)
+        print("The response of WorkItemCommentsApi->update_work_item_comment:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemCommentsApi->update_issue_comment: %s\n" % e)
+        print("Exception when calling WorkItemCommentsApi->update_work_item_comment: %s\n" % e)
 ```
 
 
@@ -484,7 +484,7 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Comment not found |  -  |
-**200** | Issue comment updated successfully |  -  |
+**200** | Work item comment updated successfully |  -  |
 **400** | Invalid request data provided |  -  |
 **409** | Resource with same external ID already exists |  -  |
 

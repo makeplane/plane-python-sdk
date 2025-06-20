@@ -4,19 +4,19 @@ All URIs are relative to *https://api.plane.so*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**create_intake_issue**](IntakeApi.md#create_intake_issue) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/ | Create intake issue
-[**delete_intake_issue**](IntakeApi.md#delete_intake_issue) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/{issue_id}/ | Delete intake issue
-[**get_intake_issues_list**](IntakeApi.md#get_intake_issues_list) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/ | List intake issues
-[**retrieve_intake_issue**](IntakeApi.md#retrieve_intake_issue) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/{issue_id}/ | Retrieve intake issue
-[**update_intake_issue**](IntakeApi.md#update_intake_issue) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/{issue_id}/ | Update intake issue
+[**create_intake_work_item**](IntakeApi.md#create_intake_work_item) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/ | Create intake work item
+[**delete_intake_work_item**](IntakeApi.md#delete_intake_work_item) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/{issue_id}/ | Delete intake work item
+[**get_intake_work_items_list**](IntakeApi.md#get_intake_work_items_list) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/ | List intake work items
+[**retrieve_intake_work_item**](IntakeApi.md#retrieve_intake_work_item) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/{issue_id}/ | Retrieve intake work item
+[**update_intake_work_item**](IntakeApi.md#update_intake_work_item) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/{issue_id}/ | Update intake work item
 
 
-# **create_intake_issue**
-> IntakeIssue create_intake_issue(project_id, slug, intake_issue_create_request)
+# **create_intake_work_item**
+> IntakeIssue create_intake_work_item(project_id, slug, intake_issue_create_request)
 
-Create intake issue
+Create intake work item
 
-Submit a new issue to the project's intake queue for review and triage. Automatically creates the issue with default triage state and tracks activity.
+Submit a new work item to the project's intake queue for review and triage. Automatically creates the work item with default triage state and tracks activity.
 
 ### Example
 
@@ -62,12 +62,12 @@ with plane.ApiClient(configuration) as api_client:
     intake_issue_create_request = {"issue":{"name":"New Issue","description":"New issue description","priority":"medium"}} # IntakeIssueCreateRequest | 
 
     try:
-        # Create intake issue
-        api_response = api_instance.create_intake_issue(project_id, slug, intake_issue_create_request)
-        print("The response of IntakeApi->create_intake_issue:\n")
+        # Create intake work item
+        api_response = api_instance.create_intake_work_item(project_id, slug, intake_issue_create_request)
+        print("The response of IntakeApi->create_intake_work_item:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling IntakeApi->create_intake_issue: %s\n" % e)
+        print("Exception when calling IntakeApi->create_intake_work_item: %s\n" % e)
 ```
 
 
@@ -99,17 +99,17 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
-**201** | Intake issue created |  -  |
+**201** | Intake work item created |  -  |
 **400** | Invalid request data provided |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **delete_intake_issue**
-> delete_intake_issue(issue_id, project_id, slug)
+# **delete_intake_work_item**
+> delete_intake_work_item(issue_id, project_id, slug)
 
-Delete intake issue
+Delete intake work item
 
-Permanently remove an intake issue from the triage queue. Also deletes the underlying issue if it hasn't been accepted yet.
+Permanently remove an intake work item from the triage queue. Also deletes the underlying work item if it hasn't been accepted yet.
 
 ### Example
 
@@ -153,10 +153,10 @@ with plane.ApiClient(configuration) as api_client:
     slug = 'my-workspace' # str | Workspace slug
 
     try:
-        # Delete intake issue
-        api_instance.delete_intake_issue(issue_id, project_id, slug)
+        # Delete intake work item
+        api_instance.delete_intake_work_item(issue_id, project_id, slug)
     except Exception as e:
-        print("Exception when calling IntakeApi->delete_intake_issue: %s\n" % e)
+        print("Exception when calling IntakeApi->delete_intake_work_item: %s\n" % e)
 ```
 
 
@@ -192,12 +192,12 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **get_intake_issues_list**
-> PaginatedIntakeIssueResponse get_intake_issues_list(project_id, slug, cursor=cursor, expand=expand, fields=fields, per_page=per_page)
+# **get_intake_work_items_list**
+> PaginatedIntakeIssueResponse get_intake_work_items_list(project_id, slug, cursor=cursor, expand=expand, fields=fields, per_page=per_page)
 
-List intake issues
+List intake work items
 
-Retrieve all issues in the project's intake queue. Returns paginated results when listing all intake issues.
+Retrieve all work items in the project's intake queue. Returns paginated results when listing all intake work items.
 
 ### Example
 
@@ -245,12 +245,12 @@ with plane.ApiClient(configuration) as api_client:
     per_page = 20 # int | Number of results per page (default: 20, max: 100) (optional)
 
     try:
-        # List intake issues
-        api_response = api_instance.get_intake_issues_list(project_id, slug, cursor=cursor, expand=expand, fields=fields, per_page=per_page)
-        print("The response of IntakeApi->get_intake_issues_list:\n")
+        # List intake work items
+        api_response = api_instance.get_intake_work_items_list(project_id, slug, cursor=cursor, expand=expand, fields=fields, per_page=per_page)
+        print("The response of IntakeApi->get_intake_work_items_list:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling IntakeApi->get_intake_issues_list: %s\n" % e)
+        print("Exception when calling IntakeApi->get_intake_work_items_list: %s\n" % e)
 ```
 
 
@@ -285,16 +285,16 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
-**200** | Paginated list of intake issues |  -  |
+**200** | Paginated list of intake work items |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **retrieve_intake_issue**
-> IntakeIssue retrieve_intake_issue(issue_id, project_id, slug)
+# **retrieve_intake_work_item**
+> IntakeIssue retrieve_intake_work_item(issue_id, project_id, slug)
 
-Retrieve intake issue
+Retrieve intake work item
 
-Retrieve details of a specific intake issue.
+Retrieve details of a specific intake work item.
 
 ### Example
 
@@ -339,12 +339,12 @@ with plane.ApiClient(configuration) as api_client:
     slug = 'my-workspace' # str | Workspace slug
 
     try:
-        # Retrieve intake issue
-        api_response = api_instance.retrieve_intake_issue(issue_id, project_id, slug)
-        print("The response of IntakeApi->retrieve_intake_issue:\n")
+        # Retrieve intake work item
+        api_response = api_instance.retrieve_intake_work_item(issue_id, project_id, slug)
+        print("The response of IntakeApi->retrieve_intake_work_item:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling IntakeApi->retrieve_intake_issue: %s\n" % e)
+        print("Exception when calling IntakeApi->retrieve_intake_work_item: %s\n" % e)
 ```
 
 
@@ -376,16 +376,16 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
-**200** | Intake issue |  -  |
+**200** | Intake work item |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **update_intake_issue**
-> IntakeIssue update_intake_issue(issue_id, project_id, slug, patched_intake_issue_update_request=patched_intake_issue_update_request)
+# **update_intake_work_item**
+> IntakeIssue update_intake_work_item(issue_id, project_id, slug, patched_intake_issue_update_request=patched_intake_issue_update_request)
 
-Update intake issue
+Update intake work item
 
-Modify an existing intake issue's properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.
+Modify an existing intake work item's properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.
 
 ### Example
 
@@ -432,12 +432,12 @@ with plane.ApiClient(configuration) as api_client:
     patched_intake_issue_update_request = {"status":1,"issue":{"name":"Updated Issue","description":"Updated issue description","priority":"high"}} # PatchedIntakeIssueUpdateRequest |  (optional)
 
     try:
-        # Update intake issue
-        api_response = api_instance.update_intake_issue(issue_id, project_id, slug, patched_intake_issue_update_request=patched_intake_issue_update_request)
-        print("The response of IntakeApi->update_intake_issue:\n")
+        # Update intake work item
+        api_response = api_instance.update_intake_work_item(issue_id, project_id, slug, patched_intake_issue_update_request=patched_intake_issue_update_request)
+        print("The response of IntakeApi->update_intake_work_item:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling IntakeApi->update_intake_issue: %s\n" % e)
+        print("Exception when calling IntakeApi->update_intake_work_item: %s\n" % e)
 ```
 
 
@@ -470,7 +470,7 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
-**200** | Intake issue updated |  -  |
+**200** | Intake work item updated |  -  |
 **400** | Invalid request data provided |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

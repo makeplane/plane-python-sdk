@@ -4,16 +4,16 @@ All URIs are relative to *https://api.plane.so*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**list_issue_activities**](WorkItemActivityApi.md#list_issue_activities) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/activities/ | Endpoints for issue activity/search and fetch issue activity details
-[**retrieve_issue_activity**](WorkItemActivityApi.md#retrieve_issue_activity) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/activities/{pk}/ | Endpoints for issue activity/search and fetch issue activity details
+[**list_work_item_activities**](WorkItemActivityApi.md#list_work_item_activities) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/activities/ | Endpoints for issue activity/search and fetch issue activity details
+[**retrieve_work_item_activity**](WorkItemActivityApi.md#retrieve_work_item_activity) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/activities/{pk}/ | Endpoints for issue activity/search and fetch issue activity details
 
 
-# **list_issue_activities**
-> PaginatedIssueActivityResponse list_issue_activities(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+# **list_work_item_activities**
+> PaginatedIssueActivityResponse list_work_item_activities(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
 
 Endpoints for issue activity/search and fetch issue activity details
 
-Retrieve all activities for an issue. Supports filtering by activity type and date range.
+Retrieve all activities for a work item. Supports filtering by activity type and date range.
 
 ### Example
 
@@ -64,11 +64,11 @@ with plane.ApiClient(configuration) as api_client:
 
     try:
         # Endpoints for issue activity/search and fetch issue activity details
-        api_response = api_instance.list_issue_activities(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
-        print("The response of WorkItemActivityApi->list_issue_activities:\n")
+        api_response = api_instance.list_work_item_activities(issue_id, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+        print("The response of WorkItemActivityApi->list_work_item_activities:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemActivityApi->list_issue_activities: %s\n" % e)
+        print("Exception when calling WorkItemActivityApi->list_work_item_activities: %s\n" % e)
 ```
 
 
@@ -110,8 +110,8 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **retrieve_issue_activity**
-> PaginatedIssueActivityDetailResponse retrieve_issue_activity(issue_id, pk, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+# **retrieve_work_item_activity**
+> PaginatedIssueActivityDetailResponse retrieve_work_item_activity(issue_id, pk, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
 
 Endpoints for issue activity/search and fetch issue activity details
 
@@ -167,11 +167,11 @@ with plane.ApiClient(configuration) as api_client:
 
     try:
         # Endpoints for issue activity/search and fetch issue activity details
-        api_response = api_instance.retrieve_issue_activity(issue_id, pk, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
-        print("The response of WorkItemActivityApi->retrieve_issue_activity:\n")
+        api_response = api_instance.retrieve_work_item_activity(issue_id, pk, project_id, slug, cursor=cursor, expand=expand, fields=fields, order_by=order_by, per_page=per_page)
+        print("The response of WorkItemActivityApi->retrieve_work_item_activity:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemActivityApi->retrieve_issue_activity: %s\n" % e)
+        print("Exception when calling WorkItemActivityApi->retrieve_work_item_activity: %s\n" % e)
 ```
 
 
@@ -209,7 +209,7 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | Issue not found |  -  |
-**200** | Paginated list of issue activities |  -  |
+**200** | Paginated list of work item activities |  -  |
 **400** | Invalid request data provided |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

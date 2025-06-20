@@ -48,14 +48,14 @@ class WorkItemCommentsApi:
         self.api_client = api_client
 
     @validate_arguments
-    def create_issue_comment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_comment_create_request : Optional[IssueCommentCreateRequest] = None, **kwargs) -> IssueComment:  # noqa: E501
-        """Create a new issue comment  # noqa: E501
+    def create_work_item_comment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_comment_create_request : Optional[IssueCommentCreateRequest] = None, **kwargs) -> IssueComment:  # noqa: E501
+        """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
-        Add a new comment to an issue with HTML content.  # noqa: E501
+        Add a new comment to a work item with HTML content.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.create_issue_comment(issue_id, project_id, slug, issue_comment_create_request, async_req=True)
+        >>> thread = api.create_work_item_comment(issue_id, project_id, slug, issue_comment_create_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -79,19 +79,19 @@ class WorkItemCommentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the create_issue_comment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the create_work_item_comment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.create_issue_comment_with_http_info(issue_id, project_id, slug, issue_comment_create_request, **kwargs)  # noqa: E501
+        return self.create_work_item_comment_with_http_info(issue_id, project_id, slug, issue_comment_create_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def create_issue_comment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_comment_create_request : Optional[IssueCommentCreateRequest] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """Create a new issue comment  # noqa: E501
+    def create_work_item_comment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_comment_create_request : Optional[IssueCommentCreateRequest] = None, **kwargs) -> ApiResponse:  # noqa: E501
+        """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
-        Add a new comment to an issue with HTML content.  # noqa: E501
+        Add a new comment to a work item with HTML content.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.create_issue_comment_with_http_info(issue_id, project_id, slug, issue_comment_create_request, async_req=True)
+        >>> thread = api.create_work_item_comment_with_http_info(issue_id, project_id, slug, issue_comment_create_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -152,7 +152,7 @@ class WorkItemCommentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method create_issue_comment" % _key
+                    " to method create_work_item_comment" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -224,14 +224,14 @@ class WorkItemCommentsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def delete_issue_comment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Delete an issue comment  # noqa: E501
+    def delete_work_item_comment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
+        """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
-        Permanently remove a comment from an issue. Records deletion activity for audit purposes.  # noqa: E501
+        Permanently remove a comment from a work item. Records deletion activity for audit purposes.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_issue_comment(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.delete_work_item_comment(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -255,19 +255,19 @@ class WorkItemCommentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_issue_comment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the delete_work_item_comment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.delete_issue_comment_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
+        return self.delete_work_item_comment_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def delete_issue_comment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete an issue comment  # noqa: E501
+    def delete_work_item_comment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+        """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
-        Permanently remove a comment from an issue. Records deletion activity for audit purposes.  # noqa: E501
+        Permanently remove a comment from a work item. Records deletion activity for audit purposes.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_issue_comment_with_http_info(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.delete_work_item_comment_with_http_info(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -328,7 +328,7 @@ class WorkItemCommentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method delete_issue_comment" % _key
+                    " to method delete_work_item_comment" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -382,14 +382,14 @@ class WorkItemCommentsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_issue_comments(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueCommentResponse:  # noqa: E501
+    def list_work_item_comments(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIssueCommentResponse:  # noqa: E501
         """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
-        Retrieve all comments for an issue.  # noqa: E501
+        Retrieve all comments for a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_issue_comments(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.list_work_item_comments(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -421,19 +421,19 @@ class WorkItemCommentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the list_issue_comments_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the list_work_item_comments_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.list_issue_comments_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
+        return self.list_work_item_comments_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def list_issue_comments_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def list_work_item_comments_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
-        Retrieve all comments for an issue.  # noqa: E501
+        Retrieve all comments for a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_issue_comments_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
+        >>> thread = api.list_work_item_comments_with_http_info(issue_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -506,7 +506,7 @@ class WorkItemCommentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method list_issue_comments" % _key
+                    " to method list_work_item_comments" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -581,14 +581,14 @@ class WorkItemCommentsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def retrieve_issue_comment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IssueComment:  # noqa: E501
+    def retrieve_work_item_comment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IssueComment:  # noqa: E501
         """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
         Retrieve details of a specific comment.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_issue_comment(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.retrieve_work_item_comment(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -612,19 +612,19 @@ class WorkItemCommentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the retrieve_issue_comment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the retrieve_work_item_comment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.retrieve_issue_comment_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
+        return self.retrieve_work_item_comment_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def retrieve_issue_comment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+    def retrieve_work_item_comment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
         """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
         Retrieve details of a specific comment.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_issue_comment_with_http_info(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.retrieve_work_item_comment_with_http_info(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -685,7 +685,7 @@ class WorkItemCommentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method retrieve_issue_comment" % _key
+                    " to method retrieve_work_item_comment" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -749,14 +749,14 @@ class WorkItemCommentsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def update_issue_comment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_issue_comment_create_request : Optional[PatchedIssueCommentCreateRequest] = None, **kwargs) -> IssueComment:  # noqa: E501
-        """Update an issue comment  # noqa: E501
+    def update_work_item_comment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_issue_comment_create_request : Optional[PatchedIssueCommentCreateRequest] = None, **kwargs) -> IssueComment:  # noqa: E501
+        """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
-        Modify the content of an existing comment on an issue.  # noqa: E501
+        Modify the content of an existing comment on a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.update_issue_comment(issue_id, pk, project_id, slug, patched_issue_comment_create_request, async_req=True)
+        >>> thread = api.update_work_item_comment(issue_id, pk, project_id, slug, patched_issue_comment_create_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -782,19 +782,19 @@ class WorkItemCommentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the update_issue_comment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the update_work_item_comment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.update_issue_comment_with_http_info(issue_id, pk, project_id, slug, patched_issue_comment_create_request, **kwargs)  # noqa: E501
+        return self.update_work_item_comment_with_http_info(issue_id, pk, project_id, slug, patched_issue_comment_create_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def update_issue_comment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_issue_comment_create_request : Optional[PatchedIssueCommentCreateRequest] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """Update an issue comment  # noqa: E501
+    def update_work_item_comment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], pk : Annotated[StrictStr, Field(..., description="Comment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_issue_comment_create_request : Optional[PatchedIssueCommentCreateRequest] = None, **kwargs) -> ApiResponse:  # noqa: E501
+        """Endpoints for issue comment create/update/delete and fetch issue comment details  # noqa: E501
 
-        Modify the content of an existing comment on an issue.  # noqa: E501
+        Modify the content of an existing comment on a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.update_issue_comment_with_http_info(issue_id, pk, project_id, slug, patched_issue_comment_create_request, async_req=True)
+        >>> thread = api.update_work_item_comment_with_http_info(issue_id, pk, project_id, slug, patched_issue_comment_create_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -858,7 +858,7 @@ class WorkItemCommentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method update_issue_comment" % _key
+                    " to method update_work_item_comment" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']

@@ -932,14 +932,14 @@ class WorkItemsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def search_issues(self, search : Annotated[StrictStr, Field(..., description="Search query to filter results by name, description, or identifier")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], limit : Annotated[Optional[StrictInt], Field(description="Maximum number of results to return")] = None, project_id : Annotated[Optional[StrictStr], Field(description="Project ID for filtering results within a specific project")] = None, workspace_search : Annotated[Optional[StrictStr], Field(description="Whether to search across entire workspace or within specific project")] = None, **kwargs) -> IssueSearch:  # noqa: E501
-        """Search issues  # noqa: E501
+    def search_work_items(self, search : Annotated[StrictStr, Field(..., description="Search query to filter results by name, description, or identifier")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], limit : Annotated[Optional[StrictInt], Field(description="Maximum number of results to return")] = None, project_id : Annotated[Optional[StrictStr], Field(description="Project ID for filtering results within a specific project")] = None, workspace_search : Annotated[Optional[StrictStr], Field(description="Whether to search across entire workspace or within specific project")] = None, **kwargs) -> IssueSearch:  # noqa: E501
+        """search_work_items  # noqa: E501
 
         Perform semantic search across issue names, sequence IDs, and project identifiers.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.search_issues(search, slug, limit, project_id, workspace_search, async_req=True)
+        >>> thread = api.search_work_items(search, slug, limit, project_id, workspace_search, async_req=True)
         >>> result = thread.get()
 
         :param search: Search query to filter results by name, description, or identifier (required)
@@ -965,19 +965,19 @@ class WorkItemsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the search_issues_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the search_work_items_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.search_issues_with_http_info(search, slug, limit, project_id, workspace_search, **kwargs)  # noqa: E501
+        return self.search_work_items_with_http_info(search, slug, limit, project_id, workspace_search, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def search_issues_with_http_info(self, search : Annotated[StrictStr, Field(..., description="Search query to filter results by name, description, or identifier")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], limit : Annotated[Optional[StrictInt], Field(description="Maximum number of results to return")] = None, project_id : Annotated[Optional[StrictStr], Field(description="Project ID for filtering results within a specific project")] = None, workspace_search : Annotated[Optional[StrictStr], Field(description="Whether to search across entire workspace or within specific project")] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """Search issues  # noqa: E501
+    def search_work_items_with_http_info(self, search : Annotated[StrictStr, Field(..., description="Search query to filter results by name, description, or identifier")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], limit : Annotated[Optional[StrictInt], Field(description="Maximum number of results to return")] = None, project_id : Annotated[Optional[StrictStr], Field(description="Project ID for filtering results within a specific project")] = None, workspace_search : Annotated[Optional[StrictStr], Field(description="Whether to search across entire workspace or within specific project")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+        """search_work_items  # noqa: E501
 
         Perform semantic search across issue names, sequence IDs, and project identifiers.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.search_issues_with_http_info(search, slug, limit, project_id, workspace_search, async_req=True)
+        >>> thread = api.search_work_items_with_http_info(search, slug, limit, project_id, workspace_search, async_req=True)
         >>> result = thread.get()
 
         :param search: Search query to filter results by name, description, or identifier (required)
@@ -1041,7 +1041,7 @@ class WorkItemsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method search_issues" % _key
+                    " to method search_work_items" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']

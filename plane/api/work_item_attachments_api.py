@@ -44,14 +44,14 @@ class WorkItemAttachmentsApi:
         self.api_client = api_client
 
     @validate_arguments
-    def create_issue_attachment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_attachment_upload_request : IssueAttachmentUploadRequest, **kwargs) -> None:  # noqa: E501
-        """Create a new issue attachment  # noqa: E501
+    def create_work_item_attachment(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_attachment_upload_request : IssueAttachmentUploadRequest, **kwargs) -> None:  # noqa: E501
+        """Endpoints for issue attachment create/update/delete and fetch issue attachment details  # noqa: E501
 
-        Generate presigned URL for uploading file attachments to an issue.  # noqa: E501
+        Generate presigned URL for uploading file attachments to a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.create_issue_attachment(issue_id, project_id, slug, issue_attachment_upload_request, async_req=True)
+        >>> thread = api.create_work_item_attachment(issue_id, project_id, slug, issue_attachment_upload_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -75,19 +75,19 @@ class WorkItemAttachmentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the create_issue_attachment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the create_work_item_attachment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.create_issue_attachment_with_http_info(issue_id, project_id, slug, issue_attachment_upload_request, **kwargs)  # noqa: E501
+        return self.create_work_item_attachment_with_http_info(issue_id, project_id, slug, issue_attachment_upload_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def create_issue_attachment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_attachment_upload_request : IssueAttachmentUploadRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Create a new issue attachment  # noqa: E501
+    def create_work_item_attachment_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_attachment_upload_request : IssueAttachmentUploadRequest, **kwargs) -> ApiResponse:  # noqa: E501
+        """Endpoints for issue attachment create/update/delete and fetch issue attachment details  # noqa: E501
 
-        Generate presigned URL for uploading file attachments to an issue.  # noqa: E501
+        Generate presigned URL for uploading file attachments to a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.create_issue_attachment_with_http_info(issue_id, project_id, slug, issue_attachment_upload_request, async_req=True)
+        >>> thread = api.create_work_item_attachment_with_http_info(issue_id, project_id, slug, issue_attachment_upload_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -148,7 +148,7 @@ class WorkItemAttachmentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method create_issue_attachment" % _key
+                    " to method create_work_item_attachment" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -209,14 +209,14 @@ class WorkItemAttachmentsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def delete_issue_attachment(self, issue_id : StrictStr, pk : Annotated[StrictStr, Field(..., description="Attachment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Delete an issue attachment  # noqa: E501
+    def delete_work_item_attachment(self, issue_id : StrictStr, pk : Annotated[StrictStr, Field(..., description="Attachment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
+        """Endpoints for issue attachment create/update/delete and fetch issue attachment details  # noqa: E501
 
-        Permanently remove an attachment from an issue. Records deletion activity for audit purposes.  # noqa: E501
+        Permanently remove an attachment from a work item. Records deletion activity for audit purposes.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_issue_attachment(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.delete_work_item_attachment(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: (required)
@@ -240,19 +240,19 @@ class WorkItemAttachmentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_issue_attachment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the delete_work_item_attachment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.delete_issue_attachment_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
+        return self.delete_work_item_attachment_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def delete_issue_attachment_with_http_info(self, issue_id : StrictStr, pk : Annotated[StrictStr, Field(..., description="Attachment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete an issue attachment  # noqa: E501
+    def delete_work_item_attachment_with_http_info(self, issue_id : StrictStr, pk : Annotated[StrictStr, Field(..., description="Attachment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+        """Endpoints for issue attachment create/update/delete and fetch issue attachment details  # noqa: E501
 
-        Permanently remove an attachment from an issue. Records deletion activity for audit purposes.  # noqa: E501
+        Permanently remove an attachment from a work item. Records deletion activity for audit purposes.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_issue_attachment_with_http_info(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.delete_work_item_attachment_with_http_info(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: (required)
@@ -313,7 +313,7 @@ class WorkItemAttachmentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method delete_issue_attachment" % _key
+                    " to method delete_work_item_attachment" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -367,14 +367,14 @@ class WorkItemAttachmentsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_issue_attachments(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IssueAttachment:  # noqa: E501
+    def list_work_item_attachments(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IssueAttachment:  # noqa: E501
         """Endpoints for issue attachment create/update/delete and fetch issue attachment details  # noqa: E501
 
-        Retrieve all attachments for an issue.  # noqa: E501
+        Retrieve all attachments for a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_issue_attachments(issue_id, project_id, slug, async_req=True)
+        >>> thread = api.list_work_item_attachments(issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -396,19 +396,19 @@ class WorkItemAttachmentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the list_issue_attachments_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the list_work_item_attachments_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.list_issue_attachments_with_http_info(issue_id, project_id, slug, **kwargs)  # noqa: E501
+        return self.list_work_item_attachments_with_http_info(issue_id, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def list_issue_attachments_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+    def list_work_item_attachments_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
         """Endpoints for issue attachment create/update/delete and fetch issue attachment details  # noqa: E501
 
-        Retrieve all attachments for an issue.  # noqa: E501
+        Retrieve all attachments for a work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_issue_attachments_with_http_info(issue_id, project_id, slug, async_req=True)
+        >>> thread = api.list_work_item_attachments_with_http_info(issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -466,7 +466,7 @@ class WorkItemAttachmentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method list_issue_attachments" % _key
+                    " to method list_work_item_attachments" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -527,14 +527,14 @@ class WorkItemAttachmentsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def retrieve_issue_attachment(self, issue_id : StrictStr, pk : Annotated[StrictStr, Field(..., description="Attachment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
+    def retrieve_work_item_attachment(self, issue_id : StrictStr, pk : Annotated[StrictStr, Field(..., description="Attachment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
         """Endpoints for issue attachment create/update/delete and fetch issue attachment details  # noqa: E501
 
         Download attachment file. Returns a redirect to the presigned download URL.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_issue_attachment(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.retrieve_work_item_attachment(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: (required)
@@ -558,19 +558,19 @@ class WorkItemAttachmentsApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the retrieve_issue_attachment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the retrieve_work_item_attachment_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.retrieve_issue_attachment_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
+        return self.retrieve_work_item_attachment_with_http_info(issue_id, pk, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def retrieve_issue_attachment_with_http_info(self, issue_id : StrictStr, pk : Annotated[StrictStr, Field(..., description="Attachment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+    def retrieve_work_item_attachment_with_http_info(self, issue_id : StrictStr, pk : Annotated[StrictStr, Field(..., description="Attachment ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
         """Endpoints for issue attachment create/update/delete and fetch issue attachment details  # noqa: E501
 
         Download attachment file. Returns a redirect to the presigned download URL.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_issue_attachment_with_http_info(issue_id, pk, project_id, slug, async_req=True)
+        >>> thread = api.retrieve_work_item_attachment_with_http_info(issue_id, pk, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: (required)
@@ -631,7 +631,7 @@ class WorkItemAttachmentsApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method retrieve_issue_attachment" % _key
+                    " to method retrieve_work_item_attachment" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']

@@ -5,7 +5,7 @@ Serializer for updating intake work items and their associated issues.  Handles 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**status** | [**IntakeIssueStatusEnum**](IntakeIssueStatusEnum.md) |  | [optional] 
+**status** | [**IntakeWorkItemStatusEnum**](IntakeWorkItemStatusEnum.md) |  | [optional] 
 **snoozed_till** | **datetime** |  | [optional] 
 **duplicate_to** | **str** |  | [optional] 
 **source** | **str** |  | [optional] 

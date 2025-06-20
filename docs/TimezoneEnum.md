@@ -1,6 +1,6 @@
 # TimezoneEnum
 
-* `Africa/Abidjan` - Africa/Abidjan * `Africa/Accra` - Africa/Accra * `Africa/Addis_Ababa` - Africa/Addis_Ababa * `Africa/Algiers` - Africa/Algiers * `Africa/Asmara` - Africa/Asmara * `Africa/Asmera` - Africa/Asmera * `Africa/Bamako` - Africa/Bamako * `Africa/Bangui` - Africa/Bangui * `Africa/Banjul` - Africa/Banjul * `Africa/Bissau` - Africa/Bissau * `Africa/Blantyre` - Africa/Blantyre * `Africa/Brazzaville` - Africa/Brazzaville * `Africa/Bujumbura` - Africa/Bujumbura * `Africa/Cairo` - Africa/Cairo * `Africa/Casablanca` - Africa/Casablanca * `Africa/Ceuta` - Africa/Ceuta * `Africa/Conakry` - Africa/Conakry * `Africa/Dakar` - Africa/Dakar * `Africa/Dar_es_Salaam` - Africa/Dar_es_Salaam * `Africa/Djibouti` - Africa/Djibouti * `Africa/Douala` - Africa/Douala * `Africa/El_Aaiun` - Africa/El_Aaiun * `Africa/Freetown` - Africa/Freetown * `Africa/Gaborone` - Africa/Gaborone * `Africa/Harare` - Africa/Harare * `Africa/Johannesburg` - Africa/Johannesburg * `Africa/Juba` - Africa/Juba * `Africa/Kampala` - Africa/Kampala * `Africa/Khartoum` - Africa/Khartoum * `Africa/Kigali` - Africa/Kigali * `Africa/Kinshasa` - Africa/Kinshasa * `Africa/Lagos` - Africa/Lagos * `Africa/Libreville` - Africa/Libreville * `Africa/Lome` - Africa/Lome * `Africa/Luanda` - Africa/Luanda * `Africa/Lubumbashi` - Africa/Lubumbashi * `Africa/Lusaka` - Africa/Lusaka * `Africa/Malabo` - Africa/Malabo * `Africa/Maputo` - Africa/Maputo * `Africa/Maseru` - Africa/Maseru * `Africa/Mbabane` - Africa/Mbabane * `Africa/Mogadishu` - Africa/Mogadishu * `Africa/Monrovia` - Africa/Monrovia * `Africa/Nairobi` - Africa/Nairobi * `Africa/Ndjamena` - Africa/Ndjamena * `Africa/Niamey` - Africa/Niamey * `Africa/Nouakchott` - Africa/Nouakchott * `Africa/Ouagadougou` - Africa/Ouagadougou * `Africa/Porto-Novo` - Africa/Porto-Novo * `Africa/Sao_Tome` - Africa/Sao_Tome * `Africa/Timbuktu` - Africa/Timbuktu * `Africa/Tripoli` - Africa/Tripoli * `Africa/Tunis` - Africa/Tunis * `Africa/Windhoek` - Africa/Windhoek * `America/Adak` - America/Adak * `America/Anchorage` - America/Anchorage * `America/Anguilla` - America/Anguilla * `America/Antigua` - America/Antigua * `America/Araguaina` - America/Araguaina * `America/Argentina/Buenos_Aires` - America/Argentina/Buenos_Aires * `America/Argentina/Catamarca` - America/Argentina/Catamarca * `America/Argentina/ComodRivadavia` - America/Argentina/ComodRivadavia * `America/Argentina/Cordoba` - America/Argentina/Cordoba * `America/Argentina/Jujuy` - America/Argentina/Jujuy * `America/Argentina/La_Rioja` - America/Argentina/La_Rioja * `America/Argentina/Mendoza` - America/Argentina/Mendoza * `America/Argentina/Rio_Gallegos` - America/Argentina/Rio_Gallegos * `America/Argentina/Salta` - America/Argentina/Salta * `America/Argentina/San_Juan` - America/Argentina/San_Juan * `America/Argentina/San_Luis` - America/Argentina/San_Luis * `America/Argentina/Tucuman` - America/Argentina/Tucuman * `America/Argentina/Ushuaia` - America/Argentina/Ushuaia * `America/Aruba` - America/Aruba * `America/Asuncion` - America/Asuncion * `America/Atikokan` - America/Atikokan * `America/Atka` - America/Atka * `America/Bahia` - America/Bahia * `America/Bahia_Banderas` - America/Bahia_Banderas * `America/Barbados` - America/Barbados * `America/Belem` - America/Belem * `America/Belize` - America/Belize * `America/Blanc-Sablon` - America/Blanc-Sablon * `America/Boa_Vista` - America/Boa_Vista * `America/Bogota` - America/Bogota * `America/Boise` - America/Boise * `America/Buenos_Aires` - America/Buenos_Aires * `America/Cambridge_Bay` - America/Cambridge_Bay * `America/Campo_Grande` - America/Campo_Grande * `America/Cancun` - America/Cancun * `America/Caracas` - America/Caracas * `America/Catamarca` - America/Catamarca * `America/Cayenne` - America/Cayenne * `America/Cayman` - America/Cayman * `America/Chicago` - America/Chicago * `America/Chihuahua` - America/Chihuahua * `America/Ciudad_Juarez` - America/Ciudad_Juarez * `America/Coral_Harbour` - America/Coral_Harbour * `America/Cordoba` - America/Cordoba * `America/Costa_Rica` - America/Costa_Rica * `America/Creston` - America/Creston * `America/Cuiaba` - America/Cuiaba * `America/Curacao` - America/Curacao * `America/Danmarkshavn` - America/Danmarkshavn * `America/Dawson` - America/Dawson * `America/Dawson_Creek` - America/Dawson_Creek * `America/Denver` - America/Denver * `America/Detroit` - America/Detroit * `America/Dominica` - America/Dominica * `America/Edmonton` - America/Edmonton * `America/Eirunepe` - America/Eirunepe * `America/El_Salvador` - America/El_Salvador * `America/Ensenada` - America/Ensenada * `America/Fort_Nelson` - America/Fort_Nelson * `America/Fort_Wayne` - America/Fort_Wayne * `America/Fortaleza` - America/Fortaleza * `America/Glace_Bay` - America/Glace_Bay * `America/Godthab` - America/Godthab * `America/Goose_Bay` - America/Goose_Bay * `America/Grand_Turk` - America/Grand_Turk * `America/Grenada` - America/Grenada * `America/Guadeloupe` - America/Guadeloupe * `America/Guatemala` - America/Guatemala * `America/Guayaquil` - America/Guayaquil * `America/Guyana` - America/Guyana * `America/Halifax` - America/Halifax * `America/Havana` - America/Havana * `America/Hermosillo` - America/Hermosillo * `America/Indiana/Indianapolis` - America/Indiana/Indianapolis * `America/Indiana/Knox` - America/Indiana/Knox * `America/Indiana/Marengo` - America/Indiana/Marengo * `America/Indiana/Petersburg` - America/Indiana/Petersburg * `America/Indiana/Tell_City` - America/Indiana/Tell_City * `America/Indiana/Vevay` - America/Indiana/Vevay * `America/Indiana/Vincennes` - America/Indiana/Vincennes * `America/Indiana/Winamac` - America/Indiana/Winamac * `America/Indianapolis` - America/Indianapolis * `America/Inuvik` - America/Inuvik * `America/Iqaluit` - America/Iqaluit * `America/Jamaica` - America/Jamaica * `America/Jujuy` - America/Jujuy * `America/Juneau` - America/Juneau * `America/Kentucky/Louisville` - America/Kentucky/Louisville * `America/Kentucky/Monticello` - America/Kentucky/Monticello * `America/Knox_IN` - America/Knox_IN * `America/Kralendijk` - America/Kralendijk * `America/La_Paz` - America/La_Paz * `America/Lima` - America/Lima * `America/Los_Angeles` - America/Los_Angeles * `America/Louisville` - America/Louisville * `America/Lower_Princes` - America/Lower_Princes * `America/Maceio` - America/Maceio * `America/Managua` - America/Managua * `America/Manaus` - America/Manaus * `America/Marigot` - America/Marigot * `America/Martinique` - America/Martinique * `America/Matamoros` - America/Matamoros * `America/Mazatlan` - America/Mazatlan * `America/Mendoza` - America/Mendoza * `America/Menominee` - America/Menominee * `America/Merida` - America/Merida * `America/Metlakatla` - America/Metlakatla * `America/Mexico_City` - America/Mexico_City * `America/Miquelon` - America/Miquelon * `America/Moncton` - America/Moncton * `America/Monterrey` - America/Monterrey * `America/Montevideo` - America/Montevideo * `America/Montreal` - America/Montreal * `America/Montserrat` - America/Montserrat * `America/Nassau` - America/Nassau * `America/New_York` - America/New_York * `America/Nipigon` - America/Nipigon * `America/Nome` - America/Nome * `America/Noronha` - America/Noronha * `America/North_Dakota/Beulah` - America/North_Dakota/Beulah * `America/North_Dakota/Center` - America/North_Dakota/Center * `America/North_Dakota/New_Salem` - America/North_Dakota/New_Salem * `America/Nuuk` - America/Nuuk * `America/Ojinaga` - America/Ojinaga * `America/Panama` - America/Panama * `America/Pangnirtung` - America/Pangnirtung * `America/Paramaribo` - America/Paramaribo * `America/Phoenix` - America/Phoenix * `America/Port-au-Prince` - America/Port-au-Prince * `America/Port_of_Spain` - America/Port_of_Spain * `America/Porto_Acre` - America/Porto_Acre * `America/Porto_Velho` - America/Porto_Velho * `America/Puerto_Rico` - America/Puerto_Rico * `America/Punta_Arenas` - America/Punta_Arenas * `America/Rainy_River` - America/Rainy_River * `America/Rankin_Inlet` - America/Rankin_Inlet * `America/Recife` - America/Recife * `America/Regina` - America/Regina * `America/Resolute` - America/Resolute * `America/Rio_Branco` - America/Rio_Branco * `America/Rosario` - America/Rosario * `America/Santa_Isabel` - America/Santa_Isabel * `America/Santarem` - America/Santarem * `America/Santiago` - America/Santiago * `America/Santo_Domingo` - America/Santo_Domingo * `America/Sao_Paulo` - America/Sao_Paulo * `America/Scoresbysund` - America/Scoresbysund * `America/Shiprock` - America/Shiprock * `America/Sitka` - America/Sitka * `America/St_Barthelemy` - America/St_Barthelemy * `America/St_Johns` - America/St_Johns * `America/St_Kitts` - America/St_Kitts * `America/St_Lucia` - America/St_Lucia * `America/St_Thomas` - America/St_Thomas * `America/St_Vincent` - America/St_Vincent * `America/Swift_Current` - America/Swift_Current * `America/Tegucigalpa` - America/Tegucigalpa * `America/Thule` - America/Thule * `America/Thunder_Bay` - America/Thunder_Bay * `America/Tijuana` - America/Tijuana * `America/Toronto` - America/Toronto * `America/Tortola` - America/Tortola * `America/Vancouver` - America/Vancouver * `America/Virgin` - America/Virgin * `America/Whitehorse` - America/Whitehorse * `America/Winnipeg` - America/Winnipeg * `America/Yakutat` - America/Yakutat * `America/Yellowknife` - America/Yellowknife * `Antarctica/Casey` - Antarctica/Casey * `Antarctica/Davis` - Antarctica/Davis * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville * `Antarctica/Macquarie` - Antarctica/Macquarie * `Antarctica/Mawson` - Antarctica/Mawson * `Antarctica/McMurdo` - Antarctica/McMurdo * `Antarctica/Palmer` - Antarctica/Palmer * `Antarctica/Rothera` - Antarctica/Rothera * `Antarctica/South_Pole` - Antarctica/South_Pole * `Antarctica/Syowa` - Antarctica/Syowa * `Antarctica/Troll` - Antarctica/Troll * `Antarctica/Vostok` - Antarctica/Vostok * `Arctic/Longyearbyen` - Arctic/Longyearbyen * `Asia/Aden` - Asia/Aden * `Asia/Almaty` - Asia/Almaty * `Asia/Amman` - Asia/Amman * `Asia/Anadyr` - Asia/Anadyr * `Asia/Aqtau` - Asia/Aqtau * `Asia/Aqtobe` - Asia/Aqtobe * `Asia/Ashgabat` - Asia/Ashgabat * `Asia/Ashkhabad` - Asia/Ashkhabad * `Asia/Atyrau` - Asia/Atyrau * `Asia/Baghdad` - Asia/Baghdad * `Asia/Bahrain` - Asia/Bahrain * `Asia/Baku` - Asia/Baku * `Asia/Bangkok` - Asia/Bangkok * `Asia/Barnaul` - Asia/Barnaul * `Asia/Beirut` - Asia/Beirut * `Asia/Bishkek` - Asia/Bishkek * `Asia/Brunei` - Asia/Brunei * `Asia/Calcutta` - Asia/Calcutta * `Asia/Chita` - Asia/Chita * `Asia/Choibalsan` - Asia/Choibalsan * `Asia/Chongqing` - Asia/Chongqing * `Asia/Chungking` - Asia/Chungking * `Asia/Colombo` - Asia/Colombo * `Asia/Dacca` - Asia/Dacca * `Asia/Damascus` - Asia/Damascus * `Asia/Dhaka` - Asia/Dhaka * `Asia/Dili` - Asia/Dili * `Asia/Dubai` - Asia/Dubai * `Asia/Dushanbe` - Asia/Dushanbe * `Asia/Famagusta` - Asia/Famagusta * `Asia/Gaza` - Asia/Gaza * `Asia/Harbin` - Asia/Harbin * `Asia/Hebron` - Asia/Hebron * `Asia/Ho_Chi_Minh` - Asia/Ho_Chi_Minh * `Asia/Hong_Kong` - Asia/Hong_Kong * `Asia/Hovd` - Asia/Hovd * `Asia/Irkutsk` - Asia/Irkutsk * `Asia/Istanbul` - Asia/Istanbul * `Asia/Jakarta` - Asia/Jakarta * `Asia/Jayapura` - Asia/Jayapura * `Asia/Jerusalem` - Asia/Jerusalem * `Asia/Kabul` - Asia/Kabul * `Asia/Kamchatka` - Asia/Kamchatka * `Asia/Karachi` - Asia/Karachi * `Asia/Kashgar` - Asia/Kashgar * `Asia/Kathmandu` - Asia/Kathmandu * `Asia/Katmandu` - Asia/Katmandu * `Asia/Khandyga` - Asia/Khandyga * `Asia/Kolkata` - Asia/Kolkata * `Asia/Krasnoyarsk` - Asia/Krasnoyarsk * `Asia/Kuala_Lumpur` - Asia/Kuala_Lumpur * `Asia/Kuching` - Asia/Kuching * `Asia/Kuwait` - Asia/Kuwait * `Asia/Macao` - Asia/Macao * `Asia/Macau` - Asia/Macau * `Asia/Magadan` - Asia/Magadan * `Asia/Makassar` - Asia/Makassar * `Asia/Manila` - Asia/Manila * `Asia/Muscat` - Asia/Muscat * `Asia/Nicosia` - Asia/Nicosia * `Asia/Novokuznetsk` - Asia/Novokuznetsk * `Asia/Novosibirsk` - Asia/Novosibirsk * `Asia/Omsk` - Asia/Omsk * `Asia/Oral` - Asia/Oral * `Asia/Phnom_Penh` - Asia/Phnom_Penh * `Asia/Pontianak` - Asia/Pontianak * `Asia/Pyongyang` - Asia/Pyongyang * `Asia/Qatar` - Asia/Qatar * `Asia/Qostanay` - Asia/Qostanay * `Asia/Qyzylorda` - Asia/Qyzylorda * `Asia/Rangoon` - Asia/Rangoon * `Asia/Riyadh` - Asia/Riyadh * `Asia/Saigon` - Asia/Saigon * `Asia/Sakhalin` - Asia/Sakhalin * `Asia/Samarkand` - Asia/Samarkand * `Asia/Seoul` - Asia/Seoul * `Asia/Shanghai` - Asia/Shanghai * `Asia/Singapore` - Asia/Singapore * `Asia/Srednekolymsk` - Asia/Srednekolymsk * `Asia/Taipei` - Asia/Taipei * `Asia/Tashkent` - Asia/Tashkent * `Asia/Tbilisi` - Asia/Tbilisi * `Asia/Tehran` - Asia/Tehran * `Asia/Tel_Aviv` - Asia/Tel_Aviv * `Asia/Thimbu` - Asia/Thimbu * `Asia/Thimphu` - Asia/Thimphu * `Asia/Tokyo` - Asia/Tokyo * `Asia/Tomsk` - Asia/Tomsk * `Asia/Ujung_Pandang` - Asia/Ujung_Pandang * `Asia/Ulaanbaatar` - Asia/Ulaanbaatar * `Asia/Ulan_Bator` - Asia/Ulan_Bator * `Asia/Urumqi` - Asia/Urumqi * `Asia/Ust-Nera` - Asia/Ust-Nera * `Asia/Vientiane` - Asia/Vientiane * `Asia/Vladivostok` - Asia/Vladivostok * `Asia/Yakutsk` - Asia/Yakutsk * `Asia/Yangon` - Asia/Yangon * `Asia/Yekaterinburg` - Asia/Yekaterinburg * `Asia/Yerevan` - Asia/Yerevan * `Atlantic/Azores` - Atlantic/Azores * `Atlantic/Bermuda` - Atlantic/Bermuda * `Atlantic/Canary` - Atlantic/Canary * `Atlantic/Cape_Verde` - Atlantic/Cape_Verde * `Atlantic/Faeroe` - Atlantic/Faeroe * `Atlantic/Faroe` - Atlantic/Faroe * `Atlantic/Jan_Mayen` - Atlantic/Jan_Mayen * `Atlantic/Madeira` - Atlantic/Madeira * `Atlantic/Reykjavik` - Atlantic/Reykjavik * `Atlantic/South_Georgia` - Atlantic/South_Georgia * `Atlantic/St_Helena` - Atlantic/St_Helena * `Atlantic/Stanley` - Atlantic/Stanley * `Australia/ACT` - Australia/ACT * `Australia/Adelaide` - Australia/Adelaide * `Australia/Brisbane` - Australia/Brisbane * `Australia/Broken_Hill` - Australia/Broken_Hill * `Australia/Canberra` - Australia/Canberra * `Australia/Currie` - Australia/Currie * `Australia/Darwin` - Australia/Darwin * `Australia/Eucla` - Australia/Eucla * `Australia/Hobart` - Australia/Hobart * `Australia/LHI` - Australia/LHI * `Australia/Lindeman` - Australia/Lindeman * `Australia/Lord_Howe` - Australia/Lord_Howe * `Australia/Melbourne` - Australia/Melbourne * `Australia/NSW` - Australia/NSW * `Australia/North` - Australia/North * `Australia/Perth` - Australia/Perth * `Australia/Queensland` - Australia/Queensland * `Australia/South` - Australia/South * `Australia/Sydney` - Australia/Sydney * `Australia/Tasmania` - Australia/Tasmania * `Australia/Victoria` - Australia/Victoria * `Australia/West` - Australia/West * `Australia/Yancowinna` - Australia/Yancowinna * `Brazil/Acre` - Brazil/Acre * `Brazil/DeNoronha` - Brazil/DeNoronha * `Brazil/East` - Brazil/East * `Brazil/West` - Brazil/West * `CET` - CET * `CST6CDT` - CST6CDT * `Canada/Atlantic` - Canada/Atlantic * `Canada/Central` - Canada/Central * `Canada/Eastern` - Canada/Eastern * `Canada/Mountain` - Canada/Mountain * `Canada/Newfoundland` - Canada/Newfoundland * `Canada/Pacific` - Canada/Pacific * `Canada/Saskatchewan` - Canada/Saskatchewan * `Canada/Yukon` - Canada/Yukon * `Chile/Continental` - Chile/Continental * `Chile/EasterIsland` - Chile/EasterIsland * `Cuba` - Cuba * `EET` - EET * `EST` - EST * `EST5EDT` - EST5EDT * `Egypt` - Egypt * `Eire` - Eire * `Etc/GMT` - Etc/GMT * `Etc/GMT+0` - Etc/GMT+0 * `Etc/GMT+1` - Etc/GMT+1 * `Etc/GMT+10` - Etc/GMT+10 * `Etc/GMT+11` - Etc/GMT+11 * `Etc/GMT+12` - Etc/GMT+12 * `Etc/GMT+2` - Etc/GMT+2 * `Etc/GMT+3` - Etc/GMT+3 * `Etc/GMT+4` - Etc/GMT+4 * `Etc/GMT+5` - Etc/GMT+5 * `Etc/GMT+6` - Etc/GMT+6 * `Etc/GMT+7` - Etc/GMT+7 * `Etc/GMT+8` - Etc/GMT+8 * `Etc/GMT+9` - Etc/GMT+9 * `Etc/GMT-0` - Etc/GMT-0 * `Etc/GMT-1` - Etc/GMT-1 * `Etc/GMT-10` - Etc/GMT-10 * `Etc/GMT-11` - Etc/GMT-11 * `Etc/GMT-12` - Etc/GMT-12 * `Etc/GMT-13` - Etc/GMT-13 * `Etc/GMT-14` - Etc/GMT-14 * `Etc/GMT-2` - Etc/GMT-2 * `Etc/GMT-3` - Etc/GMT-3 * `Etc/GMT-4` - Etc/GMT-4 * `Etc/GMT-5` - Etc/GMT-5 * `Etc/GMT-6` - Etc/GMT-6 * `Etc/GMT-7` - Etc/GMT-7 * `Etc/GMT-8` - Etc/GMT-8 * `Etc/GMT-9` - Etc/GMT-9 * `Etc/GMT0` - Etc/GMT0 * `Etc/Greenwich` - Etc/Greenwich * `Etc/UCT` - Etc/UCT * `Etc/UTC` - Etc/UTC * `Etc/Universal` - Etc/Universal * `Etc/Zulu` - Etc/Zulu * `Europe/Amsterdam` - Europe/Amsterdam * `Europe/Andorra` - Europe/Andorra * `Europe/Astrakhan` - Europe/Astrakhan * `Europe/Athens` - Europe/Athens * `Europe/Belfast` - Europe/Belfast * `Europe/Belgrade` - Europe/Belgrade * `Europe/Berlin` - Europe/Berlin * `Europe/Bratislava` - Europe/Bratislava * `Europe/Brussels` - Europe/Brussels * `Europe/Bucharest` - Europe/Bucharest * `Europe/Budapest` - Europe/Budapest * `Europe/Busingen` - Europe/Busingen * `Europe/Chisinau` - Europe/Chisinau * `Europe/Copenhagen` - Europe/Copenhagen * `Europe/Dublin` - Europe/Dublin * `Europe/Gibraltar` - Europe/Gibraltar * `Europe/Guernsey` - Europe/Guernsey * `Europe/Helsinki` - Europe/Helsinki * `Europe/Isle_of_Man` - Europe/Isle_of_Man * `Europe/Istanbul` - Europe/Istanbul * `Europe/Jersey` - Europe/Jersey * `Europe/Kaliningrad` - Europe/Kaliningrad * `Europe/Kiev` - Europe/Kiev * `Europe/Kirov` - Europe/Kirov * `Europe/Kyiv` - Europe/Kyiv * `Europe/Lisbon` - Europe/Lisbon * `Europe/Ljubljana` - Europe/Ljubljana * `Europe/London` - Europe/London * `Europe/Luxembourg` - Europe/Luxembourg * `Europe/Madrid` - Europe/Madrid * `Europe/Malta` - Europe/Malta * `Europe/Mariehamn` - Europe/Mariehamn * `Europe/Minsk` - Europe/Minsk * `Europe/Monaco` - Europe/Monaco * `Europe/Moscow` - Europe/Moscow * `Europe/Nicosia` - Europe/Nicosia * `Europe/Oslo` - Europe/Oslo * `Europe/Paris` - Europe/Paris * `Europe/Podgorica` - Europe/Podgorica * `Europe/Prague` - Europe/Prague * `Europe/Riga` - Europe/Riga * `Europe/Rome` - Europe/Rome * `Europe/Samara` - Europe/Samara * `Europe/San_Marino` - Europe/San_Marino * `Europe/Sarajevo` - Europe/Sarajevo * `Europe/Saratov` - Europe/Saratov * `Europe/Simferopol` - Europe/Simferopol * `Europe/Skopje` - Europe/Skopje * `Europe/Sofia` - Europe/Sofia * `Europe/Stockholm` - Europe/Stockholm * `Europe/Tallinn` - Europe/Tallinn * `Europe/Tirane` - Europe/Tirane * `Europe/Tiraspol` - Europe/Tiraspol * `Europe/Ulyanovsk` - Europe/Ulyanovsk * `Europe/Uzhgorod` - Europe/Uzhgorod * `Europe/Vaduz` - Europe/Vaduz * `Europe/Vatican` - Europe/Vatican * `Europe/Vienna` - Europe/Vienna * `Europe/Vilnius` - Europe/Vilnius * `Europe/Volgograd` - Europe/Volgograd * `Europe/Warsaw` - Europe/Warsaw * `Europe/Zagreb` - Europe/Zagreb * `Europe/Zaporozhye` - Europe/Zaporozhye * `Europe/Zurich` - Europe/Zurich * `GB` - GB * `GB-Eire` - GB-Eire * `GMT` - GMT * `GMT+0` - GMT+0 * `GMT-0` - GMT-0 * `GMT0` - GMT0 * `Greenwich` - Greenwich * `HST` - HST * `Hongkong` - Hongkong * `Iceland` - Iceland * `Indian/Antananarivo` - Indian/Antananarivo * `Indian/Chagos` - Indian/Chagos * `Indian/Christmas` - Indian/Christmas * `Indian/Cocos` - Indian/Cocos * `Indian/Comoro` - Indian/Comoro * `Indian/Kerguelen` - Indian/Kerguelen * `Indian/Mahe` - Indian/Mahe * `Indian/Maldives` - Indian/Maldives * `Indian/Mauritius` - Indian/Mauritius * `Indian/Mayotte` - Indian/Mayotte * `Indian/Reunion` - Indian/Reunion * `Iran` - Iran * `Israel` - Israel * `Jamaica` - Jamaica * `Japan` - Japan * `Kwajalein` - Kwajalein * `Libya` - Libya * `MET` - MET * `MST` - MST * `MST7MDT` - MST7MDT * `Mexico/BajaNorte` - Mexico/BajaNorte * `Mexico/BajaSur` - Mexico/BajaSur * `Mexico/General` - Mexico/General * `NZ` - NZ * `NZ-CHAT` - NZ-CHAT * `Navajo` - Navajo * `PRC` - PRC * `PST8PDT` - PST8PDT * `Pacific/Apia` - Pacific/Apia * `Pacific/Auckland` - Pacific/Auckland * `Pacific/Bougainville` - Pacific/Bougainville * `Pacific/Chatham` - Pacific/Chatham * `Pacific/Chuuk` - Pacific/Chuuk * `Pacific/Easter` - Pacific/Easter * `Pacific/Efate` - Pacific/Efate * `Pacific/Enderbury` - Pacific/Enderbury * `Pacific/Fakaofo` - Pacific/Fakaofo * `Pacific/Fiji` - Pacific/Fiji * `Pacific/Funafuti` - Pacific/Funafuti * `Pacific/Galapagos` - Pacific/Galapagos * `Pacific/Gambier` - Pacific/Gambier * `Pacific/Guadalcanal` - Pacific/Guadalcanal * `Pacific/Guam` - Pacific/Guam * `Pacific/Honolulu` - Pacific/Honolulu * `Pacific/Johnston` - Pacific/Johnston * `Pacific/Kanton` - Pacific/Kanton * `Pacific/Kiritimati` - Pacific/Kiritimati * `Pacific/Kosrae` - Pacific/Kosrae * `Pacific/Kwajalein` - Pacific/Kwajalein * `Pacific/Majuro` - Pacific/Majuro * `Pacific/Marquesas` - Pacific/Marquesas * `Pacific/Midway` - Pacific/Midway * `Pacific/Nauru` - Pacific/Nauru * `Pacific/Niue` - Pacific/Niue * `Pacific/Norfolk` - Pacific/Norfolk * `Pacific/Noumea` - Pacific/Noumea * `Pacific/Pago_Pago` - Pacific/Pago_Pago * `Pacific/Palau` - Pacific/Palau * `Pacific/Pitcairn` - Pacific/Pitcairn * `Pacific/Pohnpei` - Pacific/Pohnpei * `Pacific/Ponape` - Pacific/Ponape * `Pacific/Port_Moresby` - Pacific/Port_Moresby * `Pacific/Rarotonga` - Pacific/Rarotonga * `Pacific/Saipan` - Pacific/Saipan * `Pacific/Samoa` - Pacific/Samoa * `Pacific/Tahiti` - Pacific/Tahiti * `Pacific/Tarawa` - Pacific/Tarawa * `Pacific/Tongatapu` - Pacific/Tongatapu * `Pacific/Truk` - Pacific/Truk * `Pacific/Wake` - Pacific/Wake * `Pacific/Wallis` - Pacific/Wallis * `Pacific/Yap` - Pacific/Yap * `Poland` - Poland * `Portugal` - Portugal * `ROC` - ROC * `ROK` - ROK * `Singapore` - Singapore * `Turkey` - Turkey * `UCT` - UCT * `US/Alaska` - US/Alaska * `US/Aleutian` - US/Aleutian * `US/Arizona` - US/Arizona * `US/Central` - US/Central * `US/East-Indiana` - US/East-Indiana * `US/Eastern` - US/Eastern * `US/Hawaii` - US/Hawaii * `US/Indiana-Starke` - US/Indiana-Starke * `US/Michigan` - US/Michigan * `US/Mountain` - US/Mountain * `US/Pacific` - US/Pacific * `US/Samoa` - US/Samoa * `UTC` - UTC * `Universal` - Universal * `W-SU` - W-SU * `WET` - WET * `Zulu` - Zulu
+* `Africa/Abidjan` - Africa/Abidjan * `Africa/Accra` - Africa/Accra * `Africa/Addis_Ababa` - Africa/Addis_Ababa * `Africa/Algiers` - Africa/Algiers * `Africa/Asmara` - Africa/Asmara * `Africa/Bamako` - Africa/Bamako * `Africa/Bangui` - Africa/Bangui * `Africa/Banjul` - Africa/Banjul * `Africa/Bissau` - Africa/Bissau * `Africa/Blantyre` - Africa/Blantyre * `Africa/Brazzaville` - Africa/Brazzaville * `Africa/Bujumbura` - Africa/Bujumbura * `Africa/Cairo` - Africa/Cairo * `Africa/Casablanca` - Africa/Casablanca * `Africa/Ceuta` - Africa/Ceuta * `Africa/Conakry` - Africa/Conakry * `Africa/Dakar` - Africa/Dakar * `Africa/Dar_es_Salaam` - Africa/Dar_es_Salaam * `Africa/Djibouti` - Africa/Djibouti * `Africa/Douala` - Africa/Douala * `Africa/El_Aaiun` - Africa/El_Aaiun * `Africa/Freetown` - Africa/Freetown * `Africa/Gaborone` - Africa/Gaborone * `Africa/Harare` - Africa/Harare * `Africa/Johannesburg` - Africa/Johannesburg * `Africa/Juba` - Africa/Juba * `Africa/Kampala` - Africa/Kampala * `Africa/Khartoum` - Africa/Khartoum * `Africa/Kigali` - Africa/Kigali * `Africa/Kinshasa` - Africa/Kinshasa * `Africa/Lagos` - Africa/Lagos * `Africa/Libreville` - Africa/Libreville * `Africa/Lome` - Africa/Lome * `Africa/Luanda` - Africa/Luanda * `Africa/Lubumbashi` - Africa/Lubumbashi * `Africa/Lusaka` - Africa/Lusaka * `Africa/Malabo` - Africa/Malabo * `Africa/Maputo` - Africa/Maputo * `Africa/Maseru` - Africa/Maseru * `Africa/Mbabane` - Africa/Mbabane * `Africa/Mogadishu` - Africa/Mogadishu * `Africa/Monrovia` - Africa/Monrovia * `Africa/Nairobi` - Africa/Nairobi * `Africa/Ndjamena` - Africa/Ndjamena * `Africa/Niamey` - Africa/Niamey * `Africa/Nouakchott` - Africa/Nouakchott * `Africa/Ouagadougou` - Africa/Ouagadougou * `Africa/Porto-Novo` - Africa/Porto-Novo * `Africa/Sao_Tome` - Africa/Sao_Tome * `Africa/Tripoli` - Africa/Tripoli * `Africa/Tunis` - Africa/Tunis * `Africa/Windhoek` - Africa/Windhoek * `America/Adak` - America/Adak * `America/Anchorage` - America/Anchorage * `America/Anguilla` - America/Anguilla * `America/Antigua` - America/Antigua * `America/Araguaina` - America/Araguaina * `America/Argentina/Buenos_Aires` - America/Argentina/Buenos_Aires * `America/Argentina/Catamarca` - America/Argentina/Catamarca * `America/Argentina/Cordoba` - America/Argentina/Cordoba * `America/Argentina/Jujuy` - America/Argentina/Jujuy * `America/Argentina/La_Rioja` - America/Argentina/La_Rioja * `America/Argentina/Mendoza` - America/Argentina/Mendoza * `America/Argentina/Rio_Gallegos` - America/Argentina/Rio_Gallegos * `America/Argentina/Salta` - America/Argentina/Salta * `America/Argentina/San_Juan` - America/Argentina/San_Juan * `America/Argentina/San_Luis` - America/Argentina/San_Luis * `America/Argentina/Tucuman` - America/Argentina/Tucuman * `America/Argentina/Ushuaia` - America/Argentina/Ushuaia * `America/Aruba` - America/Aruba * `America/Asuncion` - America/Asuncion * `America/Atikokan` - America/Atikokan * `America/Bahia` - America/Bahia * `America/Bahia_Banderas` - America/Bahia_Banderas * `America/Barbados` - America/Barbados * `America/Belem` - America/Belem * `America/Belize` - America/Belize * `America/Blanc-Sablon` - America/Blanc-Sablon * `America/Boa_Vista` - America/Boa_Vista * `America/Bogota` - America/Bogota * `America/Boise` - America/Boise * `America/Cambridge_Bay` - America/Cambridge_Bay * `America/Campo_Grande` - America/Campo_Grande * `America/Cancun` - America/Cancun * `America/Caracas` - America/Caracas * `America/Cayenne` - America/Cayenne * `America/Cayman` - America/Cayman * `America/Chicago` - America/Chicago * `America/Chihuahua` - America/Chihuahua * `America/Ciudad_Juarez` - America/Ciudad_Juarez * `America/Costa_Rica` - America/Costa_Rica * `America/Creston` - America/Creston * `America/Cuiaba` - America/Cuiaba * `America/Curacao` - America/Curacao * `America/Danmarkshavn` - America/Danmarkshavn * `America/Dawson` - America/Dawson * `America/Dawson_Creek` - America/Dawson_Creek * `America/Denver` - America/Denver * `America/Detroit` - America/Detroit * `America/Dominica` - America/Dominica * `America/Edmonton` - America/Edmonton * `America/Eirunepe` - America/Eirunepe * `America/El_Salvador` - America/El_Salvador * `America/Fort_Nelson` - America/Fort_Nelson * `America/Fortaleza` - America/Fortaleza * `America/Glace_Bay` - America/Glace_Bay * `America/Goose_Bay` - America/Goose_Bay * `America/Grand_Turk` - America/Grand_Turk * `America/Grenada` - America/Grenada * `America/Guadeloupe` - America/Guadeloupe * `America/Guatemala` - America/Guatemala * `America/Guayaquil` - America/Guayaquil * `America/Guyana` - America/Guyana * `America/Halifax` - America/Halifax * `America/Havana` - America/Havana * `America/Hermosillo` - America/Hermosillo * `America/Indiana/Indianapolis` - America/Indiana/Indianapolis * `America/Indiana/Knox` - America/Indiana/Knox * `America/Indiana/Marengo` - America/Indiana/Marengo * `America/Indiana/Petersburg` - America/Indiana/Petersburg * `America/Indiana/Tell_City` - America/Indiana/Tell_City * `America/Indiana/Vevay` - America/Indiana/Vevay * `America/Indiana/Vincennes` - America/Indiana/Vincennes * `America/Indiana/Winamac` - America/Indiana/Winamac * `America/Inuvik` - America/Inuvik * `America/Iqaluit` - America/Iqaluit * `America/Jamaica` - America/Jamaica * `America/Juneau` - America/Juneau * `America/Kentucky/Louisville` - America/Kentucky/Louisville * `America/Kentucky/Monticello` - America/Kentucky/Monticello * `America/Kralendijk` - America/Kralendijk * `America/La_Paz` - America/La_Paz * `America/Lima` - America/Lima * `America/Los_Angeles` - America/Los_Angeles * `America/Lower_Princes` - America/Lower_Princes * `America/Maceio` - America/Maceio * `America/Managua` - America/Managua * `America/Manaus` - America/Manaus * `America/Marigot` - America/Marigot * `America/Martinique` - America/Martinique * `America/Matamoros` - America/Matamoros * `America/Mazatlan` - America/Mazatlan * `America/Menominee` - America/Menominee * `America/Merida` - America/Merida * `America/Metlakatla` - America/Metlakatla * `America/Mexico_City` - America/Mexico_City * `America/Miquelon` - America/Miquelon * `America/Moncton` - America/Moncton * `America/Monterrey` - America/Monterrey * `America/Montevideo` - America/Montevideo * `America/Montserrat` - America/Montserrat * `America/Nassau` - America/Nassau * `America/New_York` - America/New_York * `America/Nome` - America/Nome * `America/Noronha` - America/Noronha * `America/North_Dakota/Beulah` - America/North_Dakota/Beulah * `America/North_Dakota/Center` - America/North_Dakota/Center * `America/North_Dakota/New_Salem` - America/North_Dakota/New_Salem * `America/Nuuk` - America/Nuuk * `America/Ojinaga` - America/Ojinaga * `America/Panama` - America/Panama * `America/Paramaribo` - America/Paramaribo * `America/Phoenix` - America/Phoenix * `America/Port-au-Prince` - America/Port-au-Prince * `America/Port_of_Spain` - America/Port_of_Spain * `America/Porto_Velho` - America/Porto_Velho * `America/Puerto_Rico` - America/Puerto_Rico * `America/Punta_Arenas` - America/Punta_Arenas * `America/Rankin_Inlet` - America/Rankin_Inlet * `America/Recife` - America/Recife * `America/Regina` - America/Regina * `America/Resolute` - America/Resolute * `America/Rio_Branco` - America/Rio_Branco * `America/Santarem` - America/Santarem * `America/Santiago` - America/Santiago * `America/Santo_Domingo` - America/Santo_Domingo * `America/Sao_Paulo` - America/Sao_Paulo * `America/Scoresbysund` - America/Scoresbysund * `America/Sitka` - America/Sitka * `America/St_Barthelemy` - America/St_Barthelemy * `America/St_Johns` - America/St_Johns * `America/St_Kitts` - America/St_Kitts * `America/St_Lucia` - America/St_Lucia * `America/St_Thomas` - America/St_Thomas * `America/St_Vincent` - America/St_Vincent * `America/Swift_Current` - America/Swift_Current * `America/Tegucigalpa` - America/Tegucigalpa * `America/Thule` - America/Thule * `America/Tijuana` - America/Tijuana * `America/Toronto` - America/Toronto * `America/Tortola` - America/Tortola * `America/Vancouver` - America/Vancouver * `America/Whitehorse` - America/Whitehorse * `America/Winnipeg` - America/Winnipeg * `America/Yakutat` - America/Yakutat * `Antarctica/Casey` - Antarctica/Casey * `Antarctica/Davis` - Antarctica/Davis * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville * `Antarctica/Macquarie` - Antarctica/Macquarie * `Antarctica/Mawson` - Antarctica/Mawson * `Antarctica/McMurdo` - Antarctica/McMurdo * `Antarctica/Palmer` - Antarctica/Palmer * `Antarctica/Rothera` - Antarctica/Rothera * `Antarctica/Syowa` - Antarctica/Syowa * `Antarctica/Troll` - Antarctica/Troll * `Antarctica/Vostok` - Antarctica/Vostok * `Arctic/Longyearbyen` - Arctic/Longyearbyen * `Asia/Aden` - Asia/Aden * `Asia/Almaty` - Asia/Almaty * `Asia/Amman` - Asia/Amman * `Asia/Anadyr` - Asia/Anadyr * `Asia/Aqtau` - Asia/Aqtau * `Asia/Aqtobe` - Asia/Aqtobe * `Asia/Ashgabat` - Asia/Ashgabat * `Asia/Atyrau` - Asia/Atyrau * `Asia/Baghdad` - Asia/Baghdad * `Asia/Bahrain` - Asia/Bahrain * `Asia/Baku` - Asia/Baku * `Asia/Bangkok` - Asia/Bangkok * `Asia/Barnaul` - Asia/Barnaul * `Asia/Beirut` - Asia/Beirut * `Asia/Bishkek` - Asia/Bishkek * `Asia/Brunei` - Asia/Brunei * `Asia/Chita` - Asia/Chita * `Asia/Choibalsan` - Asia/Choibalsan * `Asia/Colombo` - Asia/Colombo * `Asia/Damascus` - Asia/Damascus * `Asia/Dhaka` - Asia/Dhaka * `Asia/Dili` - Asia/Dili * `Asia/Dubai` - Asia/Dubai * `Asia/Dushanbe` - Asia/Dushanbe * `Asia/Famagusta` - Asia/Famagusta * `Asia/Gaza` - Asia/Gaza * `Asia/Hebron` - Asia/Hebron * `Asia/Ho_Chi_Minh` - Asia/Ho_Chi_Minh * `Asia/Hong_Kong` - Asia/Hong_Kong * `Asia/Hovd` - Asia/Hovd * `Asia/Irkutsk` - Asia/Irkutsk * `Asia/Jakarta` - Asia/Jakarta * `Asia/Jayapura` - Asia/Jayapura * `Asia/Jerusalem` - Asia/Jerusalem * `Asia/Kabul` - Asia/Kabul * `Asia/Kamchatka` - Asia/Kamchatka * `Asia/Karachi` - Asia/Karachi * `Asia/Kathmandu` - Asia/Kathmandu * `Asia/Khandyga` - Asia/Khandyga * `Asia/Kolkata` - Asia/Kolkata * `Asia/Krasnoyarsk` - Asia/Krasnoyarsk * `Asia/Kuala_Lumpur` - Asia/Kuala_Lumpur * `Asia/Kuching` - Asia/Kuching * `Asia/Kuwait` - Asia/Kuwait * `Asia/Macau` - Asia/Macau * `Asia/Magadan` - Asia/Magadan * `Asia/Makassar` - Asia/Makassar * `Asia/Manila` - Asia/Manila * `Asia/Muscat` - Asia/Muscat * `Asia/Nicosia` - Asia/Nicosia * `Asia/Novokuznetsk` - Asia/Novokuznetsk * `Asia/Novosibirsk` - Asia/Novosibirsk * `Asia/Omsk` - Asia/Omsk * `Asia/Oral` - Asia/Oral * `Asia/Phnom_Penh` - Asia/Phnom_Penh * `Asia/Pontianak` - Asia/Pontianak * `Asia/Pyongyang` - Asia/Pyongyang * `Asia/Qatar` - Asia/Qatar * `Asia/Qostanay` - Asia/Qostanay * `Asia/Qyzylorda` - Asia/Qyzylorda * `Asia/Riyadh` - Asia/Riyadh * `Asia/Sakhalin` - Asia/Sakhalin * `Asia/Samarkand` - Asia/Samarkand * `Asia/Seoul` - Asia/Seoul * `Asia/Shanghai` - Asia/Shanghai * `Asia/Singapore` - Asia/Singapore * `Asia/Srednekolymsk` - Asia/Srednekolymsk * `Asia/Taipei` - Asia/Taipei * `Asia/Tashkent` - Asia/Tashkent * `Asia/Tbilisi` - Asia/Tbilisi * `Asia/Tehran` - Asia/Tehran * `Asia/Thimphu` - Asia/Thimphu * `Asia/Tokyo` - Asia/Tokyo * `Asia/Tomsk` - Asia/Tomsk * `Asia/Ulaanbaatar` - Asia/Ulaanbaatar * `Asia/Urumqi` - Asia/Urumqi * `Asia/Ust-Nera` - Asia/Ust-Nera * `Asia/Vientiane` - Asia/Vientiane * `Asia/Vladivostok` - Asia/Vladivostok * `Asia/Yakutsk` - Asia/Yakutsk * `Asia/Yangon` - Asia/Yangon * `Asia/Yekaterinburg` - Asia/Yekaterinburg * `Asia/Yerevan` - Asia/Yerevan * `Atlantic/Azores` - Atlantic/Azores * `Atlantic/Bermuda` - Atlantic/Bermuda * `Atlantic/Canary` - Atlantic/Canary * `Atlantic/Cape_Verde` - Atlantic/Cape_Verde * `Atlantic/Faroe` - Atlantic/Faroe * `Atlantic/Madeira` - Atlantic/Madeira * `Atlantic/Reykjavik` - Atlantic/Reykjavik * `Atlantic/South_Georgia` - Atlantic/South_Georgia * `Atlantic/St_Helena` - Atlantic/St_Helena * `Atlantic/Stanley` - Atlantic/Stanley * `Australia/Adelaide` - Australia/Adelaide * `Australia/Brisbane` - Australia/Brisbane * `Australia/Broken_Hill` - Australia/Broken_Hill * `Australia/Darwin` - Australia/Darwin * `Australia/Eucla` - Australia/Eucla * `Australia/Hobart` - Australia/Hobart * `Australia/Lindeman` - Australia/Lindeman * `Australia/Lord_Howe` - Australia/Lord_Howe * `Australia/Melbourne` - Australia/Melbourne * `Australia/Perth` - Australia/Perth * `Australia/Sydney` - Australia/Sydney * `Canada/Atlantic` - Canada/Atlantic * `Canada/Central` - Canada/Central * `Canada/Eastern` - Canada/Eastern * `Canada/Mountain` - Canada/Mountain * `Canada/Newfoundland` - Canada/Newfoundland * `Canada/Pacific` - Canada/Pacific * `Europe/Amsterdam` - Europe/Amsterdam * `Europe/Andorra` - Europe/Andorra * `Europe/Astrakhan` - Europe/Astrakhan * `Europe/Athens` - Europe/Athens * `Europe/Belgrade` - Europe/Belgrade * `Europe/Berlin` - Europe/Berlin * `Europe/Bratislava` - Europe/Bratislava * `Europe/Brussels` - Europe/Brussels * `Europe/Bucharest` - Europe/Bucharest * `Europe/Budapest` - Europe/Budapest * `Europe/Busingen` - Europe/Busingen * `Europe/Chisinau` - Europe/Chisinau * `Europe/Copenhagen` - Europe/Copenhagen * `Europe/Dublin` - Europe/Dublin * `Europe/Gibraltar` - Europe/Gibraltar * `Europe/Guernsey` - Europe/Guernsey * `Europe/Helsinki` - Europe/Helsinki * `Europe/Isle_of_Man` - Europe/Isle_of_Man * `Europe/Istanbul` - Europe/Istanbul * `Europe/Jersey` - Europe/Jersey * `Europe/Kaliningrad` - Europe/Kaliningrad * `Europe/Kirov` - Europe/Kirov * `Europe/Kyiv` - Europe/Kyiv * `Europe/Lisbon` - Europe/Lisbon * `Europe/Ljubljana` - Europe/Ljubljana * `Europe/London` - Europe/London * `Europe/Luxembourg` - Europe/Luxembourg * `Europe/Madrid` - Europe/Madrid * `Europe/Malta` - Europe/Malta * `Europe/Mariehamn` - Europe/Mariehamn * `Europe/Minsk` - Europe/Minsk * `Europe/Monaco` - Europe/Monaco * `Europe/Moscow` - Europe/Moscow * `Europe/Oslo` - Europe/Oslo * `Europe/Paris` - Europe/Paris * `Europe/Podgorica` - Europe/Podgorica * `Europe/Prague` - Europe/Prague * `Europe/Riga` - Europe/Riga * `Europe/Rome` - Europe/Rome * `Europe/Samara` - Europe/Samara * `Europe/San_Marino` - Europe/San_Marino * `Europe/Sarajevo` - Europe/Sarajevo * `Europe/Saratov` - Europe/Saratov * `Europe/Simferopol` - Europe/Simferopol * `Europe/Skopje` - Europe/Skopje * `Europe/Sofia` - Europe/Sofia * `Europe/Stockholm` - Europe/Stockholm * `Europe/Tallinn` - Europe/Tallinn * `Europe/Tirane` - Europe/Tirane * `Europe/Ulyanovsk` - Europe/Ulyanovsk * `Europe/Vaduz` - Europe/Vaduz * `Europe/Vatican` - Europe/Vatican * `Europe/Vienna` - Europe/Vienna * `Europe/Vilnius` - Europe/Vilnius * `Europe/Volgograd` - Europe/Volgograd * `Europe/Warsaw` - Europe/Warsaw * `Europe/Zagreb` - Europe/Zagreb * `Europe/Zurich` - Europe/Zurich * `GMT` - GMT * `Indian/Antananarivo` - Indian/Antananarivo * `Indian/Chagos` - Indian/Chagos * `Indian/Christmas` - Indian/Christmas * `Indian/Cocos` - Indian/Cocos * `Indian/Comoro` - Indian/Comoro * `Indian/Kerguelen` - Indian/Kerguelen * `Indian/Mahe` - Indian/Mahe * `Indian/Maldives` - Indian/Maldives * `Indian/Mauritius` - Indian/Mauritius * `Indian/Mayotte` - Indian/Mayotte * `Indian/Reunion` - Indian/Reunion * `Pacific/Apia` - Pacific/Apia * `Pacific/Auckland` - Pacific/Auckland * `Pacific/Bougainville` - Pacific/Bougainville * `Pacific/Chatham` - Pacific/Chatham * `Pacific/Chuuk` - Pacific/Chuuk * `Pacific/Easter` - Pacific/Easter * `Pacific/Efate` - Pacific/Efate * `Pacific/Fakaofo` - Pacific/Fakaofo * `Pacific/Fiji` - Pacific/Fiji * `Pacific/Funafuti` - Pacific/Funafuti * `Pacific/Galapagos` - Pacific/Galapagos * `Pacific/Gambier` - Pacific/Gambier * `Pacific/Guadalcanal` - Pacific/Guadalcanal * `Pacific/Guam` - Pacific/Guam * `Pacific/Honolulu` - Pacific/Honolulu * `Pacific/Kanton` - Pacific/Kanton * `Pacific/Kiritimati` - Pacific/Kiritimati * `Pacific/Kosrae` - Pacific/Kosrae * `Pacific/Kwajalein` - Pacific/Kwajalein * `Pacific/Majuro` - Pacific/Majuro * `Pacific/Marquesas` - Pacific/Marquesas * `Pacific/Midway` - Pacific/Midway * `Pacific/Nauru` - Pacific/Nauru * `Pacific/Niue` - Pacific/Niue * `Pacific/Norfolk` - Pacific/Norfolk * `Pacific/Noumea` - Pacific/Noumea * `Pacific/Pago_Pago` - Pacific/Pago_Pago * `Pacific/Palau` - Pacific/Palau * `Pacific/Pitcairn` - Pacific/Pitcairn * `Pacific/Pohnpei` - Pacific/Pohnpei * `Pacific/Port_Moresby` - Pacific/Port_Moresby * `Pacific/Rarotonga` - Pacific/Rarotonga * `Pacific/Saipan` - Pacific/Saipan * `Pacific/Tahiti` - Pacific/Tahiti * `Pacific/Tarawa` - Pacific/Tarawa * `Pacific/Tongatapu` - Pacific/Tongatapu * `Pacific/Wake` - Pacific/Wake * `Pacific/Wallis` - Pacific/Wallis * `US/Alaska` - US/Alaska * `US/Arizona` - US/Arizona * `US/Central` - US/Central * `US/Eastern` - US/Eastern * `US/Hawaii` - US/Hawaii * `US/Mountain` - US/Mountain * `US/Pacific` - US/Pacific * `UTC` - UTC
 
 ## Enum
 
@@ -13,8 +13,6 @@
 * `AFRICA_SLASH_ALGIERS` (value: `'Africa/Algiers'`)
 
 * `AFRICA_SLASH_ASMARA` (value: `'Africa/Asmara'`)
-
-* `AFRICA_SLASH_ASMERA` (value: `'Africa/Asmera'`)
 
 * `AFRICA_SLASH_BAMAKO` (value: `'Africa/Bamako'`)
 
@@ -104,8 +102,6 @@
 
 * `AFRICA_SLASH_SAO_TOME` (value: `'Africa/Sao_Tome'`)
 
-* `AFRICA_SLASH_TIMBUKTU` (value: `'Africa/Timbuktu'`)
-
 * `AFRICA_SLASH_TRIPOLI` (value: `'Africa/Tripoli'`)
 
 * `AFRICA_SLASH_TUNIS` (value: `'Africa/Tunis'`)
@@ -125,8 +121,6 @@
 * `AMERICA_SLASH_ARGENTINA_SLASH_BUENOS_AIRES` (value: `'America/Argentina/Buenos_Aires'`)
 
 * `AMERICA_SLASH_ARGENTINA_SLASH_CATAMARCA` (value: `'America/Argentina/Catamarca'`)
-
-* `AMERICA_SLASH_ARGENTINA_SLASH_COMOD_RIVADAVIA` (value: `'America/Argentina/ComodRivadavia'`)
 
 * `AMERICA_SLASH_ARGENTINA_SLASH_CORDOBA` (value: `'America/Argentina/Cordoba'`)
 
@@ -154,8 +148,6 @@
 
 * `AMERICA_SLASH_ATIKOKAN` (value: `'America/Atikokan'`)
 
-* `AMERICA_SLASH_ATKA` (value: `'America/Atka'`)
-
 * `AMERICA_SLASH_BAHIA` (value: `'America/Bahia'`)
 
 * `AMERICA_SLASH_BAHIA_BANDERAS` (value: `'America/Bahia_Banderas'`)
@@ -174,8 +166,6 @@
 
 * `AMERICA_SLASH_BOISE` (value: `'America/Boise'`)
 
-* `AMERICA_SLASH_BUENOS_AIRES` (value: `'America/Buenos_Aires'`)
-
 * `AMERICA_SLASH_CAMBRIDGE_BAY` (value: `'America/Cambridge_Bay'`)
 
 * `AMERICA_SLASH_CAMPO_GRANDE` (value: `'America/Campo_Grande'`)
@@ -183,8 +173,6 @@
 * `AMERICA_SLASH_CANCUN` (value: `'America/Cancun'`)
 
 * `AMERICA_SLASH_CARACAS` (value: `'America/Caracas'`)
-
-* `AMERICA_SLASH_CATAMARCA` (value: `'America/Catamarca'`)
 
 * `AMERICA_SLASH_CAYENNE` (value: `'America/Cayenne'`)
 
@@ -195,10 +183,6 @@
 * `AMERICA_SLASH_CHIHUAHUA` (value: `'America/Chihuahua'`)
 
 * `AMERICA_SLASH_CIUDAD_JUAREZ` (value: `'America/Ciudad_Juarez'`)
-
-* `AMERICA_SLASH_CORAL_HARBOUR` (value: `'America/Coral_Harbour'`)
-
-* `AMERICA_SLASH_CORDOBA` (value: `'America/Cordoba'`)
 
 * `AMERICA_SLASH_COSTA_RICA` (value: `'America/Costa_Rica'`)
 
@@ -226,17 +210,11 @@
 
 * `AMERICA_SLASH_EL_SALVADOR` (value: `'America/El_Salvador'`)
 
-* `AMERICA_SLASH_ENSENADA` (value: `'America/Ensenada'`)
-
 * `AMERICA_SLASH_FORT_NELSON` (value: `'America/Fort_Nelson'`)
-
-* `AMERICA_SLASH_FORT_WAYNE` (value: `'America/Fort_Wayne'`)
 
 * `AMERICA_SLASH_FORTALEZA` (value: `'America/Fortaleza'`)
 
 * `AMERICA_SLASH_GLACE_BAY` (value: `'America/Glace_Bay'`)
-
-* `AMERICA_SLASH_GODTHAB` (value: `'America/Godthab'`)
 
 * `AMERICA_SLASH_GOOSE_BAY` (value: `'America/Goose_Bay'`)
 
@@ -274,23 +252,17 @@
 
 * `AMERICA_SLASH_INDIANA_SLASH_WINAMAC` (value: `'America/Indiana/Winamac'`)
 
-* `AMERICA_SLASH_INDIANAPOLIS` (value: `'America/Indianapolis'`)
-
 * `AMERICA_SLASH_INUVIK` (value: `'America/Inuvik'`)
 
 * `AMERICA_SLASH_IQALUIT` (value: `'America/Iqaluit'`)
 
 * `AMERICA_SLASH_JAMAICA` (value: `'America/Jamaica'`)
 
-* `AMERICA_SLASH_JUJUY` (value: `'America/Jujuy'`)
-
 * `AMERICA_SLASH_JUNEAU` (value: `'America/Juneau'`)
 
 * `AMERICA_SLASH_KENTUCKY_SLASH_LOUISVILLE` (value: `'America/Kentucky/Louisville'`)
 
 * `AMERICA_SLASH_KENTUCKY_SLASH_MONTICELLO` (value: `'America/Kentucky/Monticello'`)
-
-* `AMERICA_SLASH_KNOX_IN` (value: `'America/Knox_IN'`)
 
 * `AMERICA_SLASH_KRALENDIJK` (value: `'America/Kralendijk'`)
 
@@ -299,8 +271,6 @@
 * `AMERICA_SLASH_LIMA` (value: `'America/Lima'`)
 
 * `AMERICA_SLASH_LOS_ANGELES` (value: `'America/Los_Angeles'`)
-
-* `AMERICA_SLASH_LOUISVILLE` (value: `'America/Louisville'`)
 
 * `AMERICA_SLASH_LOWER_PRINCES` (value: `'America/Lower_Princes'`)
 
@@ -318,8 +288,6 @@
 
 * `AMERICA_SLASH_MAZATLAN` (value: `'America/Mazatlan'`)
 
-* `AMERICA_SLASH_MENDOZA` (value: `'America/Mendoza'`)
-
 * `AMERICA_SLASH_MENOMINEE` (value: `'America/Menominee'`)
 
 * `AMERICA_SLASH_MERIDA` (value: `'America/Merida'`)
@@ -336,15 +304,11 @@
 
 * `AMERICA_SLASH_MONTEVIDEO` (value: `'America/Montevideo'`)
 
-* `AMERICA_SLASH_MONTREAL` (value: `'America/Montreal'`)
-
 * `AMERICA_SLASH_MONTSERRAT` (value: `'America/Montserrat'`)
 
 * `AMERICA_SLASH_NASSAU` (value: `'America/Nassau'`)
 
 * `AMERICA_SLASH_NEW_YORK` (value: `'America/New_York'`)
-
-* `AMERICA_SLASH_NIPIGON` (value: `'America/Nipigon'`)
 
 * `AMERICA_SLASH_NOME` (value: `'America/Nome'`)
 
@@ -362,8 +326,6 @@
 
 * `AMERICA_SLASH_PANAMA` (value: `'America/Panama'`)
 
-* `AMERICA_SLASH_PANGNIRTUNG` (value: `'America/Pangnirtung'`)
-
 * `AMERICA_SLASH_PARAMARIBO` (value: `'America/Paramaribo'`)
 
 * `AMERICA_SLASH_PHOENIX` (value: `'America/Phoenix'`)
@@ -372,15 +334,11 @@
 
 * `AMERICA_SLASH_PORT_OF_SPAIN` (value: `'America/Port_of_Spain'`)
 
-* `AMERICA_SLASH_PORTO_ACRE` (value: `'America/Porto_Acre'`)
-
 * `AMERICA_SLASH_PORTO_VELHO` (value: `'America/Porto_Velho'`)
 
 * `AMERICA_SLASH_PUERTO_RICO` (value: `'America/Puerto_Rico'`)
 
 * `AMERICA_SLASH_PUNTA_ARENAS` (value: `'America/Punta_Arenas'`)
-
-* `AMERICA_SLASH_RAINY_RIVER` (value: `'America/Rainy_River'`)
 
 * `AMERICA_SLASH_RANKIN_INLET` (value: `'America/Rankin_Inlet'`)
 
@@ -392,10 +350,6 @@
 
 * `AMERICA_SLASH_RIO_BRANCO` (value: `'America/Rio_Branco'`)
 
-* `AMERICA_SLASH_ROSARIO` (value: `'America/Rosario'`)
-
-* `AMERICA_SLASH_SANTA_ISABEL` (value: `'America/Santa_Isabel'`)
-
 * `AMERICA_SLASH_SANTAREM` (value: `'America/Santarem'`)
 
 * `AMERICA_SLASH_SANTIAGO` (value: `'America/Santiago'`)
@@ -405,8 +359,6 @@
 * `AMERICA_SLASH_SAO_PAULO` (value: `'America/Sao_Paulo'`)
 
 * `AMERICA_SLASH_SCORESBYSUND` (value: `'America/Scoresbysund'`)
-
-* `AMERICA_SLASH_SHIPROCK` (value: `'America/Shiprock'`)
 
 * `AMERICA_SLASH_SITKA` (value: `'America/Sitka'`)
 
@@ -428,8 +380,6 @@
 
 * `AMERICA_SLASH_THULE` (value: `'America/Thule'`)
 
-* `AMERICA_SLASH_THUNDER_BAY` (value: `'America/Thunder_Bay'`)
-
 * `AMERICA_SLASH_TIJUANA` (value: `'America/Tijuana'`)
 
 * `AMERICA_SLASH_TORONTO` (value: `'America/Toronto'`)
@@ -438,15 +388,11 @@
 
 * `AMERICA_SLASH_VANCOUVER` (value: `'America/Vancouver'`)
 
-* `AMERICA_SLASH_VIRGIN` (value: `'America/Virgin'`)
-
 * `AMERICA_SLASH_WHITEHORSE` (value: `'America/Whitehorse'`)
 
 * `AMERICA_SLASH_WINNIPEG` (value: `'America/Winnipeg'`)
 
 * `AMERICA_SLASH_YAKUTAT` (value: `'America/Yakutat'`)
-
-* `AMERICA_SLASH_YELLOWKNIFE` (value: `'America/Yellowknife'`)
 
 * `ANTARCTICA_SLASH_CASEY` (value: `'Antarctica/Casey'`)
 
@@ -463,8 +409,6 @@
 * `ANTARCTICA_SLASH_PALMER` (value: `'Antarctica/Palmer'`)
 
 * `ANTARCTICA_SLASH_ROTHERA` (value: `'Antarctica/Rothera'`)
-
-* `ANTARCTICA_SLASH_SOUTH_POLE` (value: `'Antarctica/South_Pole'`)
 
 * `ANTARCTICA_SLASH_SYOWA` (value: `'Antarctica/Syowa'`)
 
@@ -488,8 +432,6 @@
 
 * `ASIA_SLASH_ASHGABAT` (value: `'Asia/Ashgabat'`)
 
-* `ASIA_SLASH_ASHKHABAD` (value: `'Asia/Ashkhabad'`)
-
 * `ASIA_SLASH_ATYRAU` (value: `'Asia/Atyrau'`)
 
 * `ASIA_SLASH_BAGHDAD` (value: `'Asia/Baghdad'`)
@@ -508,19 +450,11 @@
 
 * `ASIA_SLASH_BRUNEI` (value: `'Asia/Brunei'`)
 
-* `ASIA_SLASH_CALCUTTA` (value: `'Asia/Calcutta'`)
-
 * `ASIA_SLASH_CHITA` (value: `'Asia/Chita'`)
 
 * `ASIA_SLASH_CHOIBALSAN` (value: `'Asia/Choibalsan'`)
 
-* `ASIA_SLASH_CHONGQING` (value: `'Asia/Chongqing'`)
-
-* `ASIA_SLASH_CHUNGKING` (value: `'Asia/Chungking'`)
-
 * `ASIA_SLASH_COLOMBO` (value: `'Asia/Colombo'`)
-
-* `ASIA_SLASH_DACCA` (value: `'Asia/Dacca'`)
 
 * `ASIA_SLASH_DAMASCUS` (value: `'Asia/Damascus'`)
 
@@ -536,8 +470,6 @@
 
 * `ASIA_SLASH_GAZA` (value: `'Asia/Gaza'`)
 
-* `ASIA_SLASH_HARBIN` (value: `'Asia/Harbin'`)
-
 * `ASIA_SLASH_HEBRON` (value: `'Asia/Hebron'`)
 
 * `ASIA_SLASH_HO_CHI_MINH` (value: `'Asia/Ho_Chi_Minh'`)
@@ -547,8 +479,6 @@
 * `ASIA_SLASH_HOVD` (value: `'Asia/Hovd'`)
 
 * `ASIA_SLASH_IRKUTSK` (value: `'Asia/Irkutsk'`)
-
-* `ASIA_SLASH_ISTANBUL` (value: `'Asia/Istanbul'`)
 
 * `ASIA_SLASH_JAKARTA` (value: `'Asia/Jakarta'`)
 
@@ -562,11 +492,7 @@
 
 * `ASIA_SLASH_KARACHI` (value: `'Asia/Karachi'`)
 
-* `ASIA_SLASH_KASHGAR` (value: `'Asia/Kashgar'`)
-
 * `ASIA_SLASH_KATHMANDU` (value: `'Asia/Kathmandu'`)
-
-* `ASIA_SLASH_KATMANDU` (value: `'Asia/Katmandu'`)
 
 * `ASIA_SLASH_KHANDYGA` (value: `'Asia/Khandyga'`)
 
@@ -579,8 +505,6 @@
 * `ASIA_SLASH_KUCHING` (value: `'Asia/Kuching'`)
 
 * `ASIA_SLASH_KUWAIT` (value: `'Asia/Kuwait'`)
-
-* `ASIA_SLASH_MACAO` (value: `'Asia/Macao'`)
 
 * `ASIA_SLASH_MACAU` (value: `'Asia/Macau'`)
 
@@ -614,11 +538,7 @@
 
 * `ASIA_SLASH_QYZYLORDA` (value: `'Asia/Qyzylorda'`)
 
-* `ASIA_SLASH_RANGOON` (value: `'Asia/Rangoon'`)
-
 * `ASIA_SLASH_RIYADH` (value: `'Asia/Riyadh'`)
-
-* `ASIA_SLASH_SAIGON` (value: `'Asia/Saigon'`)
 
 * `ASIA_SLASH_SAKHALIN` (value: `'Asia/Sakhalin'`)
 
@@ -640,21 +560,13 @@
 
 * `ASIA_SLASH_TEHRAN` (value: `'Asia/Tehran'`)
 
-* `ASIA_SLASH_TEL_AVIV` (value: `'Asia/Tel_Aviv'`)
-
-* `ASIA_SLASH_THIMBU` (value: `'Asia/Thimbu'`)
-
 * `ASIA_SLASH_THIMPHU` (value: `'Asia/Thimphu'`)
 
 * `ASIA_SLASH_TOKYO` (value: `'Asia/Tokyo'`)
 
 * `ASIA_SLASH_TOMSK` (value: `'Asia/Tomsk'`)
 
-* `ASIA_SLASH_UJUNG_PANDANG` (value: `'Asia/Ujung_Pandang'`)
-
 * `ASIA_SLASH_ULAANBAATAR` (value: `'Asia/Ulaanbaatar'`)
-
-* `ASIA_SLASH_ULAN_BATOR` (value: `'Asia/Ulan_Bator'`)
 
 * `ASIA_SLASH_URUMQI` (value: `'Asia/Urumqi'`)
 
@@ -680,11 +592,7 @@
 
 * `ATLANTIC_SLASH_CAPE_VERDE` (value: `'Atlantic/Cape_Verde'`)
 
-* `ATLANTIC_SLASH_FAEROE` (value: `'Atlantic/Faeroe'`)
-
 * `ATLANTIC_SLASH_FAROE` (value: `'Atlantic/Faroe'`)
-
-* `ATLANTIC_SLASH_JAN_MAYEN` (value: `'Atlantic/Jan_Mayen'`)
 
 * `ATLANTIC_SLASH_MADEIRA` (value: `'Atlantic/Madeira'`)
 
@@ -696,17 +604,11 @@
 
 * `ATLANTIC_SLASH_STANLEY` (value: `'Atlantic/Stanley'`)
 
-* `AUSTRALIA_SLASH_ACT` (value: `'Australia/ACT'`)
-
 * `AUSTRALIA_SLASH_ADELAIDE` (value: `'Australia/Adelaide'`)
 
 * `AUSTRALIA_SLASH_BRISBANE` (value: `'Australia/Brisbane'`)
 
 * `AUSTRALIA_SLASH_BROKEN_HILL` (value: `'Australia/Broken_Hill'`)
-
-* `AUSTRALIA_SLASH_CANBERRA` (value: `'Australia/Canberra'`)
-
-* `AUSTRALIA_SLASH_CURRIE` (value: `'Australia/Currie'`)
 
 * `AUSTRALIA_SLASH_DARWIN` (value: `'Australia/Darwin'`)
 
@@ -714,45 +616,15 @@
 
 * `AUSTRALIA_SLASH_HOBART` (value: `'Australia/Hobart'`)
 
-* `AUSTRALIA_SLASH_LHI` (value: `'Australia/LHI'`)
-
 * `AUSTRALIA_SLASH_LINDEMAN` (value: `'Australia/Lindeman'`)
 
 * `AUSTRALIA_SLASH_LORD_HOWE` (value: `'Australia/Lord_Howe'`)
 
 * `AUSTRALIA_SLASH_MELBOURNE` (value: `'Australia/Melbourne'`)
 
-* `AUSTRALIA_SLASH_NSW` (value: `'Australia/NSW'`)
-
-* `AUSTRALIA_SLASH_NORTH` (value: `'Australia/North'`)
-
 * `AUSTRALIA_SLASH_PERTH` (value: `'Australia/Perth'`)
 
-* `AUSTRALIA_SLASH_QUEENSLAND` (value: `'Australia/Queensland'`)
-
-* `AUSTRALIA_SLASH_SOUTH` (value: `'Australia/South'`)
-
 * `AUSTRALIA_SLASH_SYDNEY` (value: `'Australia/Sydney'`)
-
-* `AUSTRALIA_SLASH_TASMANIA` (value: `'Australia/Tasmania'`)
-
-* `AUSTRALIA_SLASH_VICTORIA` (value: `'Australia/Victoria'`)
-
-* `AUSTRALIA_SLASH_WEST` (value: `'Australia/West'`)
-
-* `AUSTRALIA_SLASH_YANCOWINNA` (value: `'Australia/Yancowinna'`)
-
-* `BRAZIL_SLASH_ACRE` (value: `'Brazil/Acre'`)
-
-* `BRAZIL_SLASH_DE_NORONHA` (value: `'Brazil/DeNoronha'`)
-
-* `BRAZIL_SLASH_EAST` (value: `'Brazil/East'`)
-
-* `BRAZIL_SLASH_WEST` (value: `'Brazil/West'`)
-
-* `CET` (value: `'CET'`)
-
-* `CST6CDT` (value: `'CST6CDT'`)
 
 * `CANADA_SLASH_ATLANTIC` (value: `'Canada/Atlantic'`)
 
@@ -766,96 +638,6 @@
 
 * `CANADA_SLASH_PACIFIC` (value: `'Canada/Pacific'`)
 
-* `CANADA_SLASH_SASKATCHEWAN` (value: `'Canada/Saskatchewan'`)
-
-* `CANADA_SLASH_YUKON` (value: `'Canada/Yukon'`)
-
-* `CHILE_SLASH_CONTINENTAL` (value: `'Chile/Continental'`)
-
-* `CHILE_SLASH_EASTER_ISLAND` (value: `'Chile/EasterIsland'`)
-
-* `CUBA` (value: `'Cuba'`)
-
-* `EET` (value: `'EET'`)
-
-* `EST` (value: `'EST'`)
-
-* `EST5EDT` (value: `'EST5EDT'`)
-
-* `EGYPT` (value: `'Egypt'`)
-
-* `EIRE` (value: `'Eire'`)
-
-* `ETC_SLASH_GMT` (value: `'Etc/GMT'`)
-
-* `ETC_SLASH_GMT_PLUS_0` (value: `'Etc/GMT+0'`)
-
-* `ETC_SLASH_GMT_PLUS_1` (value: `'Etc/GMT+1'`)
-
-* `ETC_SLASH_GMT_PLUS_10` (value: `'Etc/GMT+10'`)
-
-* `ETC_SLASH_GMT_PLUS_11` (value: `'Etc/GMT+11'`)
-
-* `ETC_SLASH_GMT_PLUS_12` (value: `'Etc/GMT+12'`)
-
-* `ETC_SLASH_GMT_PLUS_2` (value: `'Etc/GMT+2'`)
-
-* `ETC_SLASH_GMT_PLUS_3` (value: `'Etc/GMT+3'`)
-
-* `ETC_SLASH_GMT_PLUS_4` (value: `'Etc/GMT+4'`)
-
-* `ETC_SLASH_GMT_PLUS_5` (value: `'Etc/GMT+5'`)
-
-* `ETC_SLASH_GMT_PLUS_6` (value: `'Etc/GMT+6'`)
-
-* `ETC_SLASH_GMT_PLUS_7` (value: `'Etc/GMT+7'`)
-
-* `ETC_SLASH_GMT_PLUS_8` (value: `'Etc/GMT+8'`)
-
-* `ETC_SLASH_GMT_PLUS_9` (value: `'Etc/GMT+9'`)
-
-* `ETC_SLASH_GMT_MINUS_0` (value: `'Etc/GMT-0'`)
-
-* `ETC_SLASH_GMT_MINUS_1` (value: `'Etc/GMT-1'`)
-
-* `ETC_SLASH_GMT_MINUS_10` (value: `'Etc/GMT-10'`)
-
-* `ETC_SLASH_GMT_MINUS_11` (value: `'Etc/GMT-11'`)
-
-* `ETC_SLASH_GMT_MINUS_12` (value: `'Etc/GMT-12'`)
-
-* `ETC_SLASH_GMT_MINUS_13` (value: `'Etc/GMT-13'`)
-
-* `ETC_SLASH_GMT_MINUS_14` (value: `'Etc/GMT-14'`)
-
-* `ETC_SLASH_GMT_MINUS_2` (value: `'Etc/GMT-2'`)
-
-* `ETC_SLASH_GMT_MINUS_3` (value: `'Etc/GMT-3'`)
-
-* `ETC_SLASH_GMT_MINUS_4` (value: `'Etc/GMT-4'`)
-
-* `ETC_SLASH_GMT_MINUS_5` (value: `'Etc/GMT-5'`)
-
-* `ETC_SLASH_GMT_MINUS_6` (value: `'Etc/GMT-6'`)
-
-* `ETC_SLASH_GMT_MINUS_7` (value: `'Etc/GMT-7'`)
-
-* `ETC_SLASH_GMT_MINUS_8` (value: `'Etc/GMT-8'`)
-
-* `ETC_SLASH_GMT_MINUS_9` (value: `'Etc/GMT-9'`)
-
-* `ETC_SLASH_GMT0` (value: `'Etc/GMT0'`)
-
-* `ETC_SLASH_GREENWICH` (value: `'Etc/Greenwich'`)
-
-* `ETC_SLASH_UCT` (value: `'Etc/UCT'`)
-
-* `ETC_SLASH_UTC` (value: `'Etc/UTC'`)
-
-* `ETC_SLASH_UNIVERSAL` (value: `'Etc/Universal'`)
-
-* `ETC_SLASH_ZULU` (value: `'Etc/Zulu'`)
-
 * `EUROPE_SLASH_AMSTERDAM` (value: `'Europe/Amsterdam'`)
 
 * `EUROPE_SLASH_ANDORRA` (value: `'Europe/Andorra'`)
@@ -863,8 +645,6 @@
 * `EUROPE_SLASH_ASTRAKHAN` (value: `'Europe/Astrakhan'`)
 
 * `EUROPE_SLASH_ATHENS` (value: `'Europe/Athens'`)
-
-* `EUROPE_SLASH_BELFAST` (value: `'Europe/Belfast'`)
 
 * `EUROPE_SLASH_BELGRADE` (value: `'Europe/Belgrade'`)
 
@@ -900,8 +680,6 @@
 
 * `EUROPE_SLASH_KALININGRAD` (value: `'Europe/Kaliningrad'`)
 
-* `EUROPE_SLASH_KIEV` (value: `'Europe/Kiev'`)
-
 * `EUROPE_SLASH_KIROV` (value: `'Europe/Kirov'`)
 
 * `EUROPE_SLASH_KYIV` (value: `'Europe/Kyiv'`)
@@ -925,8 +703,6 @@
 * `EUROPE_SLASH_MONACO` (value: `'Europe/Monaco'`)
 
 * `EUROPE_SLASH_MOSCOW` (value: `'Europe/Moscow'`)
-
-* `EUROPE_SLASH_NICOSIA` (value: `'Europe/Nicosia'`)
 
 * `EUROPE_SLASH_OSLO` (value: `'Europe/Oslo'`)
 
@@ -960,11 +736,7 @@
 
 * `EUROPE_SLASH_TIRANE` (value: `'Europe/Tirane'`)
 
-* `EUROPE_SLASH_TIRASPOL` (value: `'Europe/Tiraspol'`)
-
 * `EUROPE_SLASH_ULYANOVSK` (value: `'Europe/Ulyanovsk'`)
-
-* `EUROPE_SLASH_UZHGOROD` (value: `'Europe/Uzhgorod'`)
 
 * `EUROPE_SLASH_VADUZ` (value: `'Europe/Vaduz'`)
 
@@ -980,29 +752,9 @@
 
 * `EUROPE_SLASH_ZAGREB` (value: `'Europe/Zagreb'`)
 
-* `EUROPE_SLASH_ZAPOROZHYE` (value: `'Europe/Zaporozhye'`)
-
 * `EUROPE_SLASH_ZURICH` (value: `'Europe/Zurich'`)
 
-* `GB` (value: `'GB'`)
-
-* `GB_MINUS_EIRE` (value: `'GB-Eire'`)
-
 * `GMT` (value: `'GMT'`)
-
-* `GMT_PLUS_0` (value: `'GMT+0'`)
-
-* `GMT_MINUS_0` (value: `'GMT-0'`)
-
-* `GMT0` (value: `'GMT0'`)
-
-* `GREENWICH` (value: `'Greenwich'`)
-
-* `HST` (value: `'HST'`)
-
-* `HONGKONG` (value: `'Hongkong'`)
-
-* `ICELAND` (value: `'Iceland'`)
 
 * `INDIAN_SLASH_ANTANANARIVO` (value: `'Indian/Antananarivo'`)
 
@@ -1026,40 +778,6 @@
 
 * `INDIAN_SLASH_REUNION` (value: `'Indian/Reunion'`)
 
-* `IRAN` (value: `'Iran'`)
-
-* `ISRAEL` (value: `'Israel'`)
-
-* `JAMAICA` (value: `'Jamaica'`)
-
-* `JAPAN` (value: `'Japan'`)
-
-* `KWAJALEIN` (value: `'Kwajalein'`)
-
-* `LIBYA` (value: `'Libya'`)
-
-* `MET` (value: `'MET'`)
-
-* `MST` (value: `'MST'`)
-
-* `MST7MDT` (value: `'MST7MDT'`)
-
-* `MEXICO_SLASH_BAJA_NORTE` (value: `'Mexico/BajaNorte'`)
-
-* `MEXICO_SLASH_BAJA_SUR` (value: `'Mexico/BajaSur'`)
-
-* `MEXICO_SLASH_GENERAL` (value: `'Mexico/General'`)
-
-* `NZ` (value: `'NZ'`)
-
-* `NZ_MINUS_CHAT` (value: `'NZ-CHAT'`)
-
-* `NAVAJO` (value: `'Navajo'`)
-
-* `PRC` (value: `'PRC'`)
-
-* `PST8PDT` (value: `'PST8PDT'`)
-
 * `PACIFIC_SLASH_APIA` (value: `'Pacific/Apia'`)
 
 * `PACIFIC_SLASH_AUCKLAND` (value: `'Pacific/Auckland'`)
@@ -1073,8 +791,6 @@
 * `PACIFIC_SLASH_EASTER` (value: `'Pacific/Easter'`)
 
 * `PACIFIC_SLASH_EFATE` (value: `'Pacific/Efate'`)
-
-* `PACIFIC_SLASH_ENDERBURY` (value: `'Pacific/Enderbury'`)
 
 * `PACIFIC_SLASH_FAKAOFO` (value: `'Pacific/Fakaofo'`)
 
@@ -1091,8 +807,6 @@
 * `PACIFIC_SLASH_GUAM` (value: `'Pacific/Guam'`)
 
 * `PACIFIC_SLASH_HONOLULU` (value: `'Pacific/Honolulu'`)
-
-* `PACIFIC_SLASH_JOHNSTON` (value: `'Pacific/Johnston'`)
 
 * `PACIFIC_SLASH_KANTON` (value: `'Pacific/Kanton'`)
 
@@ -1124,15 +838,11 @@
 
 * `PACIFIC_SLASH_POHNPEI` (value: `'Pacific/Pohnpei'`)
 
-* `PACIFIC_SLASH_PONAPE` (value: `'Pacific/Ponape'`)
-
 * `PACIFIC_SLASH_PORT_MORESBY` (value: `'Pacific/Port_Moresby'`)
 
 * `PACIFIC_SLASH_RAROTONGA` (value: `'Pacific/Rarotonga'`)
 
 * `PACIFIC_SLASH_SAIPAN` (value: `'Pacific/Saipan'`)
-
-* `PACIFIC_SLASH_SAMOA` (value: `'Pacific/Samoa'`)
 
 * `PACIFIC_SLASH_TAHITI` (value: `'Pacific/Tahiti'`)
 
@@ -1140,61 +850,25 @@
 
 * `PACIFIC_SLASH_TONGATAPU` (value: `'Pacific/Tongatapu'`)
 
-* `PACIFIC_SLASH_TRUK` (value: `'Pacific/Truk'`)
-
 * `PACIFIC_SLASH_WAKE` (value: `'Pacific/Wake'`)
 
 * `PACIFIC_SLASH_WALLIS` (value: `'Pacific/Wallis'`)
 
-* `PACIFIC_SLASH_YAP` (value: `'Pacific/Yap'`)
-
-* `POLAND` (value: `'Poland'`)
-
-* `PORTUGAL` (value: `'Portugal'`)
-
-* `ROC` (value: `'ROC'`)
-
-* `ROK` (value: `'ROK'`)
-
-* `SINGAPORE` (value: `'Singapore'`)
-
-* `TURKEY` (value: `'Turkey'`)
-
-* `UCT` (value: `'UCT'`)
-
 * `US_SLASH_ALASKA` (value: `'US/Alaska'`)
-
-* `US_SLASH_ALEUTIAN` (value: `'US/Aleutian'`)
 
 * `US_SLASH_ARIZONA` (value: `'US/Arizona'`)
 
 * `US_SLASH_CENTRAL` (value: `'US/Central'`)
 
-* `US_SLASH_EAST_MINUS_INDIANA` (value: `'US/East-Indiana'`)
-
 * `US_SLASH_EASTERN` (value: `'US/Eastern'`)
 
 * `US_SLASH_HAWAII` (value: `'US/Hawaii'`)
-
-* `US_SLASH_INDIANA_MINUS_STARKE` (value: `'US/Indiana-Starke'`)
-
-* `US_SLASH_MICHIGAN` (value: `'US/Michigan'`)
 
 * `US_SLASH_MOUNTAIN` (value: `'US/Mountain'`)
 
 * `US_SLASH_PACIFIC` (value: `'US/Pacific'`)
 
-* `US_SLASH_SAMOA` (value: `'US/Samoa'`)
-
 * `UTC` (value: `'UTC'`)
-
-* `UNIVERSAL` (value: `'Universal'`)
-
-* `W_MINUS_SU` (value: `'W-SU'`)
-
-* `WET` (value: `'WET'`)
-
-* `ZULU` (value: `'Zulu'`)
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

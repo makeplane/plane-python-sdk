@@ -31,7 +31,7 @@ from plane.models.paginated_cycle_issue_response import PaginatedCycleIssueRespo
 from plane.models.paginated_cycle_response import PaginatedCycleResponse
 from plane.models.patched_cycle_update_request import PatchedCycleUpdateRequest
 from plane.models.transfer_cycle_issue_request_request import TransferCycleIssueRequestRequest
-from plane.models.transfer_cycle_issues200_response import TransferCycleIssues200Response
+from plane.models.transfer_cycle_work_items200_response import TransferCycleWorkItems200Response
 
 from plane.api_client import ApiClient
 from plane.api_response import ApiResponse
@@ -54,14 +54,14 @@ class CyclesApi:
         self.api_client = api_client
 
     @validate_arguments
-    def add_cycle_issues(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cycle_issue_request_request : CycleIssueRequestRequest, **kwargs) -> CycleIssue:  # noqa: E501
-        """Add Issues to Cycle  # noqa: E501
+    def add_cycle_work_items(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cycle_issue_request_request : CycleIssueRequestRequest, **kwargs) -> CycleIssue:  # noqa: E501
+        """Add Work Items to Cycle  # noqa: E501
 
-        Assign multiple issues to a cycle. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
+        Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.add_cycle_issues(cycle_id, project_id, slug, cycle_issue_request_request, async_req=True)
+        >>> thread = api.add_cycle_work_items(cycle_id, project_id, slug, cycle_issue_request_request, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -85,19 +85,19 @@ class CyclesApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the add_cycle_issues_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the add_cycle_work_items_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.add_cycle_issues_with_http_info(cycle_id, project_id, slug, cycle_issue_request_request, **kwargs)  # noqa: E501
+        return self.add_cycle_work_items_with_http_info(cycle_id, project_id, slug, cycle_issue_request_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def add_cycle_issues_with_http_info(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cycle_issue_request_request : CycleIssueRequestRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Add Issues to Cycle  # noqa: E501
+    def add_cycle_work_items_with_http_info(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cycle_issue_request_request : CycleIssueRequestRequest, **kwargs) -> ApiResponse:  # noqa: E501
+        """Add Work Items to Cycle  # noqa: E501
 
-        Assign multiple issues to a cycle. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
+        Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.add_cycle_issues_with_http_info(cycle_id, project_id, slug, cycle_issue_request_request, async_req=True)
+        >>> thread = api.add_cycle_work_items_with_http_info(cycle_id, project_id, slug, cycle_issue_request_request, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -158,7 +158,7 @@ class CyclesApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method add_cycle_issues" % _key
+                    " to method add_cycle_work_items" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -695,14 +695,14 @@ class CyclesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def delete_cycle_issue(self, cycle_id : StrictStr, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Delete cycle issue  # noqa: E501
+    def delete_cycle_work_item(self, cycle_id : StrictStr, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
+        """Delete cycle work item  # noqa: E501
 
-        Remove an issue from a cycle while keeping the issue in the project.  # noqa: E501
+        Remove a work item from a cycle while keeping the work item in the project.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_cycle_issue(cycle_id, issue_id, project_id, slug, async_req=True)
+        >>> thread = api.delete_cycle_work_item(cycle_id, issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -726,19 +726,19 @@ class CyclesApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_cycle_issue_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the delete_cycle_work_item_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.delete_cycle_issue_with_http_info(cycle_id, issue_id, project_id, slug, **kwargs)  # noqa: E501
+        return self.delete_cycle_work_item_with_http_info(cycle_id, issue_id, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def delete_cycle_issue_with_http_info(self, cycle_id : StrictStr, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete cycle issue  # noqa: E501
+    def delete_cycle_work_item_with_http_info(self, cycle_id : StrictStr, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+        """Delete cycle work item  # noqa: E501
 
-        Remove an issue from a cycle while keeping the issue in the project.  # noqa: E501
+        Remove a work item from a cycle while keeping the work item in the project.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_cycle_issue_with_http_info(cycle_id, issue_id, project_id, slug, async_req=True)
+        >>> thread = api.delete_cycle_work_item_with_http_info(cycle_id, issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -799,7 +799,7 @@ class CyclesApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method delete_cycle_issue" % _key
+                    " to method delete_cycle_work_item" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -1020,14 +1020,14 @@ class CyclesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_cycle_issues(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedCycleIssueResponse:  # noqa: E501
-        """List cycle issues  # noqa: E501
+    def list_cycle_work_items(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedCycleIssueResponse:  # noqa: E501
+        """List cycle work items  # noqa: E501
 
-        Retrieve all issues assigned to a cycle.  # noqa: E501
+        Retrieve all work items assigned to a cycle.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_cycle_issues(cycle_id, project_id, slug, cursor, per_page, async_req=True)
+        >>> thread = api.list_cycle_work_items(cycle_id, project_id, slug, cursor, per_page, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -1053,19 +1053,19 @@ class CyclesApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the list_cycle_issues_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the list_cycle_work_items_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.list_cycle_issues_with_http_info(cycle_id, project_id, slug, cursor, per_page, **kwargs)  # noqa: E501
+        return self.list_cycle_work_items_with_http_info(cycle_id, project_id, slug, cursor, per_page, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def list_cycle_issues_with_http_info(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """List cycle issues  # noqa: E501
+    def list_cycle_work_items_with_http_info(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+        """List cycle work items  # noqa: E501
 
-        Retrieve all issues assigned to a cycle.  # noqa: E501
+        Retrieve all work items assigned to a cycle.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_cycle_issues_with_http_info(cycle_id, project_id, slug, cursor, per_page, async_req=True)
+        >>> thread = api.list_cycle_work_items_with_http_info(cycle_id, project_id, slug, cursor, per_page, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -1129,7 +1129,7 @@ class CyclesApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method list_cycle_issues" % _key
+                    " to method list_cycle_work_items" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -1553,14 +1553,14 @@ class CyclesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def retrieve_cycle_issue(self, cycle_id : StrictStr, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> CycleIssue:  # noqa: E501
-        """Retrieve cycle issue  # noqa: E501
+    def retrieve_cycle_work_item(self, cycle_id : StrictStr, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> CycleIssue:  # noqa: E501
+        """Retrieve cycle work item  # noqa: E501
 
-        Retrieve details of a specific cycle issue.  # noqa: E501
+        Retrieve details of a specific cycle work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_cycle_issue(cycle_id, issue_id, project_id, slug, async_req=True)
+        >>> thread = api.retrieve_cycle_work_item(cycle_id, issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -1584,19 +1584,19 @@ class CyclesApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the retrieve_cycle_issue_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the retrieve_cycle_work_item_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.retrieve_cycle_issue_with_http_info(cycle_id, issue_id, project_id, slug, **kwargs)  # noqa: E501
+        return self.retrieve_cycle_work_item_with_http_info(cycle_id, issue_id, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def retrieve_cycle_issue_with_http_info(self, cycle_id : StrictStr, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Retrieve cycle issue  # noqa: E501
+    def retrieve_cycle_work_item_with_http_info(self, cycle_id : StrictStr, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+        """Retrieve cycle work item  # noqa: E501
 
-        Retrieve details of a specific cycle issue.  # noqa: E501
+        Retrieve details of a specific cycle work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_cycle_issue_with_http_info(cycle_id, issue_id, project_id, slug, async_req=True)
+        >>> thread = api.retrieve_cycle_work_item_with_http_info(cycle_id, issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -1657,7 +1657,7 @@ class CyclesApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method retrieve_cycle_issue" % _key
+                    " to method retrieve_cycle_work_item" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -1720,14 +1720,14 @@ class CyclesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def transfer_cycle_issues(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], transfer_cycle_issue_request_request : TransferCycleIssueRequestRequest, **kwargs) -> TransferCycleIssues200Response:  # noqa: E501
-        """Transfer cycle issues  # noqa: E501
+    def transfer_cycle_work_items(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], transfer_cycle_issue_request_request : TransferCycleIssueRequestRequest, **kwargs) -> TransferCycleWorkItems200Response:  # noqa: E501
+        """Transfer cycle work items  # noqa: E501
 
-        Move incomplete issues from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.  # noqa: E501
+        Move incomplete work items from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.transfer_cycle_issues(cycle_id, project_id, slug, transfer_cycle_issue_request_request, async_req=True)
+        >>> thread = api.transfer_cycle_work_items(cycle_id, project_id, slug, transfer_cycle_issue_request_request, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -1747,23 +1747,23 @@ class CyclesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: TransferCycleIssues200Response
+        :rtype: TransferCycleWorkItems200Response
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the transfer_cycle_issues_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the transfer_cycle_work_items_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.transfer_cycle_issues_with_http_info(cycle_id, project_id, slug, transfer_cycle_issue_request_request, **kwargs)  # noqa: E501
+        return self.transfer_cycle_work_items_with_http_info(cycle_id, project_id, slug, transfer_cycle_issue_request_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def transfer_cycle_issues_with_http_info(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], transfer_cycle_issue_request_request : TransferCycleIssueRequestRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Transfer cycle issues  # noqa: E501
+    def transfer_cycle_work_items_with_http_info(self, cycle_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], transfer_cycle_issue_request_request : TransferCycleIssueRequestRequest, **kwargs) -> ApiResponse:  # noqa: E501
+        """Transfer cycle work items  # noqa: E501
 
-        Move incomplete issues from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.  # noqa: E501
+        Move incomplete work items from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.transfer_cycle_issues_with_http_info(cycle_id, project_id, slug, transfer_cycle_issue_request_request, async_req=True)
+        >>> thread = api.transfer_cycle_work_items_with_http_info(cycle_id, project_id, slug, transfer_cycle_issue_request_request, async_req=True)
         >>> result = thread.get()
 
         :param cycle_id: (required)
@@ -1796,7 +1796,7 @@ class CyclesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: tuple(TransferCycleIssues200Response, status_code(int), headers(HTTPHeaderDict))
+        :rtype: tuple(TransferCycleWorkItems200Response, status_code(int), headers(HTTPHeaderDict))
         """
 
         _params = locals()
@@ -1824,7 +1824,7 @@ class CyclesApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method transfer_cycle_issues" % _key
+                    " to method transfer_cycle_work_items" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -1873,8 +1873,8 @@ class CyclesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "TransferCycleIssues200Response",
-            '400': "TransferCycleIssues400Response",
+            '200': "TransferCycleWorkItems200Response",
+            '400': "TransferCycleWorkItems400Response",
         }
 
         return self.api_client.call_api(

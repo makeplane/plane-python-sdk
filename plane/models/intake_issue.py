@@ -21,7 +21,7 @@ import json
 from datetime import datetime
 from typing import Any, Optional
 from pydantic import BaseModel, Field, StrictStr, constr
-from plane.models.intake_issue_status_enum import IntakeIssueStatusEnum
+from plane.models.intake_work_item_status_enum import IntakeWorkItemStatusEnum
 from plane.models.issue_expand import IssueExpand
 
 class IntakeIssue(BaseModel):
@@ -34,7 +34,7 @@ class IntakeIssue(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
-    status: Optional[IntakeIssueStatusEnum] = None
+    status: Optional[IntakeWorkItemStatusEnum] = None
     snoozed_till: Optional[datetime] = None
     source: Optional[constr(strict=True, max_length=255)] = None
     source_email: Optional[StrictStr] = None

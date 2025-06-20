@@ -21,14 +21,14 @@ import json
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field, StrictStr, constr
-from plane.models.intake_issue_status_enum import IntakeIssueStatusEnum
+from plane.models.intake_work_item_status_enum import IntakeWorkItemStatusEnum
 from plane.models.issue_for_intake_request import IssueForIntakeRequest
 
 class PatchedIntakeIssueUpdateRequest(BaseModel):
     """
     Serializer for updating intake work items and their associated issues.  Handles intake work item modifications including status changes, triage decisions, and embedded issue updates for issue queue processing workflows.  # noqa: E501
     """
-    status: Optional[IntakeIssueStatusEnum] = None
+    status: Optional[IntakeWorkItemStatusEnum] = None
     snoozed_till: Optional[datetime] = None
     duplicate_to: Optional[StrictStr] = None
     source: Optional[constr(strict=True, max_length=255)] = None

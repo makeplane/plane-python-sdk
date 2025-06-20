@@ -20,15 +20,14 @@ import json
 
 
 from typing import Optional
-from pydantic import BaseModel, Field, StrictBool, StrictStr
+from pydantic import BaseModel, Field, StrictStr
 
-class RetrieveIssueAttachment400Response(BaseModel):
+class TransferCycleWorkItems400Response(BaseModel):
     """
-    RetrieveIssueAttachment400Response
+    TransferCycleWorkItems400Response
     """
     error: Optional[StrictStr] = Field(default=None, description="Error message")
-    status: Optional[StrictBool] = Field(default=None, description="Request status")
-    __properties = ["error", "status"]
+    __properties = ["error"]
 
     class Config:
         """Pydantic configuration"""
@@ -44,8 +43,8 @@ class RetrieveIssueAttachment400Response(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> RetrieveIssueAttachment400Response:
-        """Create an instance of RetrieveIssueAttachment400Response from a JSON string"""
+    def from_json(cls, json_str: str) -> TransferCycleWorkItems400Response:
+        """Create an instance of TransferCycleWorkItems400Response from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -57,17 +56,16 @@ class RetrieveIssueAttachment400Response(BaseModel):
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> RetrieveIssueAttachment400Response:
-        """Create an instance of RetrieveIssueAttachment400Response from a dict"""
+    def from_dict(cls, obj: dict) -> TransferCycleWorkItems400Response:
+        """Create an instance of TransferCycleWorkItems400Response from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return RetrieveIssueAttachment400Response.parse_obj(obj)
+            return TransferCycleWorkItems400Response.parse_obj(obj)
 
-        _obj = RetrieveIssueAttachment400Response.parse_obj({
-            "error": obj.get("error"),
-            "status": obj.get("status")
+        _obj = TransferCycleWorkItems400Response.parse_obj({
+            "error": obj.get("error")
         })
         return _obj
 

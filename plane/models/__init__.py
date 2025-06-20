@@ -27,7 +27,7 @@ from plane.models.get_workspace_members200_response_inner import GetWorkspaceMem
 from plane.models.group_enum import GroupEnum
 from plane.models.intake_issue import IntakeIssue
 from plane.models.intake_issue_create_request import IntakeIssueCreateRequest
-from plane.models.intake_issue_status_enum import IntakeIssueStatusEnum
+from plane.models.intake_work_item_status_enum import IntakeWorkItemStatusEnum
 from plane.models.issue import Issue
 from plane.models.issue_activity import IssueActivity
 from plane.models.issue_attachment import IssueAttachment
@@ -97,14 +97,14 @@ from plane.models.project_create_request import ProjectCreateRequest
 from plane.models.project_worklog_summary import ProjectWorklogSummary
 from plane.models.property_type_enum import PropertyTypeEnum
 from plane.models.relation_type_enum import RelationTypeEnum
-from plane.models.retrieve_issue_attachment400_response import RetrieveIssueAttachment400Response
+from plane.models.retrieve_work_item_attachment400_response import RetrieveWorkItemAttachment400Response
 from plane.models.state import State
 from plane.models.state_lite import StateLite
 from plane.models.state_request import StateRequest
 from plane.models.timezone_enum import TimezoneEnum
 from plane.models.transfer_cycle_issue_request_request import TransferCycleIssueRequestRequest
-from plane.models.transfer_cycle_issues200_response import TransferCycleIssues200Response
-from plane.models.transfer_cycle_issues400_response import TransferCycleIssues400Response
+from plane.models.transfer_cycle_work_items200_response import TransferCycleWorkItems200Response
+from plane.models.transfer_cycle_work_items400_response import TransferCycleWorkItems400Response
 from plane.models.type_enum import TypeEnum
 from plane.models.user_asset_upload_request import UserAssetUploadRequest
 from plane.models.user_lite import UserLite

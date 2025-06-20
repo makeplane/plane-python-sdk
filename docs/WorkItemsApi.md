@@ -9,7 +9,7 @@ Method | HTTP request | Description
 [**get_workspace_work_item**](WorkItemsApi.md#get_workspace_work_item) | **GET** /api/v1/workspaces/{slug}/issues/{project_identifier}-{issue_identifier}/ | Retrieve work item by identifiers
 [**list_work_items**](WorkItemsApi.md#list_work_items) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/ | List work items
 [**retrieve_work_item**](WorkItemsApi.md#retrieve_work_item) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{pk}/ | Retrieve work item
-[**search_issues**](WorkItemsApi.md#search_issues) | **GET** /api/v1/workspaces/{slug}/issues/search/ | Search issues
+[**search_work_items**](WorkItemsApi.md#search_work_items) | **GET** /api/v1/workspaces/{slug}/issues/search/ | 
 [**update_work_item**](WorkItemsApi.md#update_work_item) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{pk}/ | Partially update work item
 
 
@@ -490,10 +490,10 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **search_issues**
-> IssueSearch search_issues(search, slug, limit=limit, project_id=project_id, workspace_search=workspace_search)
+# **search_work_items**
+> IssueSearch search_work_items(search, slug, limit=limit, project_id=project_id, workspace_search=workspace_search)
 
-Search issues
+
 
 Perform semantic search across issue names, sequence IDs, and project identifiers.
 
@@ -542,12 +542,11 @@ with plane.ApiClient(configuration) as api_client:
     workspace_search = 'false' # str | Whether to search across entire workspace or within specific project (optional)
 
     try:
-        # Search issues
-        api_response = api_instance.search_issues(search, slug, limit=limit, project_id=project_id, workspace_search=workspace_search)
-        print("The response of WorkItemsApi->search_issues:\n")
+        api_response = api_instance.search_work_items(search, slug, limit=limit, project_id=project_id, workspace_search=workspace_search)
+        print("The response of WorkItemsApi->search_work_items:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling WorkItemsApi->search_issues: %s\n" % e)
+        print("Exception when calling WorkItemsApi->search_work_items: %s\n" % e)
 ```
 
 
@@ -578,7 +577,7 @@ Name | Type | Description  | Notes
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Issue search results |  -  |
+**200** | Work item search results |  -  |
 **400** | Bad request - invalid search parameters |  -  |
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |

@@ -11,7 +11,7 @@ Name | Type | Description | Notes
 **created_at** | **datetime** |  | [optional] [readonly] 
 **updated_at** | **datetime** |  | [optional] [readonly] 
 **deleted_at** | **datetime** |  | [optional] 
-**status** | [**IntakeIssueStatusEnum**](IntakeIssueStatusEnum.md) |  | [optional] 
+**status** | [**IntakeWorkItemStatusEnum**](IntakeWorkItemStatusEnum.md) |  | [optional] 
 **snoozed_till** | **datetime** |  | [optional] 
 **source** | **str** |  | [optional] 
 **source_email** | **str** |  | [optional] 

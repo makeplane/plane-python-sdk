@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **issue** | [**IssueForIntakeRequest**](IssueForIntakeRequest.md) | Issue data for the intake issue | 
 **intake** | **str** |  | 
-**status** | [**IntakeIssueStatusEnum**](IntakeIssueStatusEnum.md) |  | [optional] 
+**status** | [**IntakeWorkItemStatusEnum**](IntakeWorkItemStatusEnum.md) |  | [optional] 
 **snoozed_till** | **datetime** |  | [optional] 
 **duplicate_to** | **str** |  | [optional] 
 **source** | **str** |  | [optional] 

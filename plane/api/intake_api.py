@@ -48,14 +48,14 @@ class IntakeApi:
         self.api_client = api_client
 
     @validate_arguments
-    def create_intake_issue(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], intake_issue_create_request : IntakeIssueCreateRequest, **kwargs) -> IntakeIssue:  # noqa: E501
-        """Create intake issue  # noqa: E501
+    def create_intake_work_item(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], intake_issue_create_request : IntakeIssueCreateRequest, **kwargs) -> IntakeIssue:  # noqa: E501
+        """Create intake work item  # noqa: E501
 
-        Submit a new issue to the project's intake queue for review and triage. Automatically creates the issue with default triage state and tracks activity.  # noqa: E501
+        Submit a new work item to the project's intake queue for review and triage. Automatically creates the work item with default triage state and tracks activity.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.create_intake_issue(project_id, slug, intake_issue_create_request, async_req=True)
+        >>> thread = api.create_intake_work_item(project_id, slug, intake_issue_create_request, async_req=True)
         >>> result = thread.get()
 
         :param project_id: Project ID (required)
@@ -77,19 +77,19 @@ class IntakeApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the create_intake_issue_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the create_intake_work_item_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.create_intake_issue_with_http_info(project_id, slug, intake_issue_create_request, **kwargs)  # noqa: E501
+        return self.create_intake_work_item_with_http_info(project_id, slug, intake_issue_create_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def create_intake_issue_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], intake_issue_create_request : IntakeIssueCreateRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Create intake issue  # noqa: E501
+    def create_intake_work_item_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], intake_issue_create_request : IntakeIssueCreateRequest, **kwargs) -> ApiResponse:  # noqa: E501
+        """Create intake work item  # noqa: E501
 
-        Submit a new issue to the project's intake queue for review and triage. Automatically creates the issue with default triage state and tracks activity.  # noqa: E501
+        Submit a new work item to the project's intake queue for review and triage. Automatically creates the work item with default triage state and tracks activity.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.create_intake_issue_with_http_info(project_id, slug, intake_issue_create_request, async_req=True)
+        >>> thread = api.create_intake_work_item_with_http_info(project_id, slug, intake_issue_create_request, async_req=True)
         >>> result = thread.get()
 
         :param project_id: Project ID (required)
@@ -147,7 +147,7 @@ class IntakeApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method create_intake_issue" % _key
+                    " to method create_intake_work_item" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -215,14 +215,14 @@ class IntakeApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def delete_intake_issue(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Delete intake issue  # noqa: E501
+    def delete_intake_work_item(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
+        """Delete intake work item  # noqa: E501
 
-        Permanently remove an intake issue from the triage queue. Also deletes the underlying issue if it hasn't been accepted yet.  # noqa: E501
+        Permanently remove an intake work item from the triage queue. Also deletes the underlying work item if it hasn't been accepted yet.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_intake_issue(issue_id, project_id, slug, async_req=True)
+        >>> thread = api.delete_intake_work_item(issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -244,19 +244,19 @@ class IntakeApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_intake_issue_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the delete_intake_work_item_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.delete_intake_issue_with_http_info(issue_id, project_id, slug, **kwargs)  # noqa: E501
+        return self.delete_intake_work_item_with_http_info(issue_id, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def delete_intake_issue_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete intake issue  # noqa: E501
+    def delete_intake_work_item_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+        """Delete intake work item  # noqa: E501
 
-        Permanently remove an intake issue from the triage queue. Also deletes the underlying issue if it hasn't been accepted yet.  # noqa: E501
+        Permanently remove an intake work item from the triage queue. Also deletes the underlying work item if it hasn't been accepted yet.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.delete_intake_issue_with_http_info(issue_id, project_id, slug, async_req=True)
+        >>> thread = api.delete_intake_work_item_with_http_info(issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -314,7 +314,7 @@ class IntakeApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method delete_intake_issue" % _key
+                    " to method delete_intake_work_item" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -365,14 +365,14 @@ class IntakeApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def get_intake_issues_list(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIntakeIssueResponse:  # noqa: E501
-        """List intake issues  # noqa: E501
+    def get_intake_work_items_list(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedIntakeIssueResponse:  # noqa: E501
+        """List intake work items  # noqa: E501
 
-        Retrieve all issues in the project's intake queue. Returns paginated results when listing all intake issues.  # noqa: E501
+        Retrieve all work items in the project's intake queue. Returns paginated results when listing all intake work items.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.get_intake_issues_list(project_id, slug, cursor, expand, fields, per_page, async_req=True)
+        >>> thread = api.get_intake_work_items_list(project_id, slug, cursor, expand, fields, per_page, async_req=True)
         >>> result = thread.get()
 
         :param project_id: Project ID (required)
@@ -400,19 +400,19 @@ class IntakeApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the get_intake_issues_list_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the get_intake_work_items_list_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.get_intake_issues_list_with_http_info(project_id, slug, cursor, expand, fields, per_page, **kwargs)  # noqa: E501
+        return self.get_intake_work_items_list_with_http_info(project_id, slug, cursor, expand, fields, per_page, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def get_intake_issues_list_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """List intake issues  # noqa: E501
+    def get_intake_work_items_list_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+        """List intake work items  # noqa: E501
 
-        Retrieve all issues in the project's intake queue. Returns paginated results when listing all intake issues.  # noqa: E501
+        Retrieve all work items in the project's intake queue. Returns paginated results when listing all intake work items.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.get_intake_issues_list_with_http_info(project_id, slug, cursor, expand, fields, per_page, async_req=True)
+        >>> thread = api.get_intake_work_items_list_with_http_info(project_id, slug, cursor, expand, fields, per_page, async_req=True)
         >>> result = thread.get()
 
         :param project_id: Project ID (required)
@@ -479,7 +479,7 @@ class IntakeApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method get_intake_issues_list" % _key
+                    " to method get_intake_work_items_list" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -548,14 +548,14 @@ class IntakeApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def retrieve_intake_issue(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IntakeIssue:  # noqa: E501
-        """Retrieve intake issue  # noqa: E501
+    def retrieve_intake_work_item(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IntakeIssue:  # noqa: E501
+        """Retrieve intake work item  # noqa: E501
 
-        Retrieve details of a specific intake issue.  # noqa: E501
+        Retrieve details of a specific intake work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_intake_issue(issue_id, project_id, slug, async_req=True)
+        >>> thread = api.retrieve_intake_work_item(issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -577,19 +577,19 @@ class IntakeApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the retrieve_intake_issue_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the retrieve_intake_work_item_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.retrieve_intake_issue_with_http_info(issue_id, project_id, slug, **kwargs)  # noqa: E501
+        return self.retrieve_intake_work_item_with_http_info(issue_id, project_id, slug, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def retrieve_intake_issue_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Retrieve intake issue  # noqa: E501
+    def retrieve_intake_work_item_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
+        """Retrieve intake work item  # noqa: E501
 
-        Retrieve details of a specific intake issue.  # noqa: E501
+        Retrieve details of a specific intake work item.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.retrieve_intake_issue_with_http_info(issue_id, project_id, slug, async_req=True)
+        >>> thread = api.retrieve_intake_work_item_with_http_info(issue_id, project_id, slug, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -647,7 +647,7 @@ class IntakeApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method retrieve_intake_issue" % _key
+                    " to method retrieve_intake_work_item" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']
@@ -707,14 +707,14 @@ class IntakeApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def update_intake_issue(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_intake_issue_update_request : Optional[PatchedIntakeIssueUpdateRequest] = None, **kwargs) -> IntakeIssue:  # noqa: E501
-        """Update intake issue  # noqa: E501
+    def update_intake_work_item(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_intake_issue_update_request : Optional[PatchedIntakeIssueUpdateRequest] = None, **kwargs) -> IntakeIssue:  # noqa: E501
+        """Update intake work item  # noqa: E501
 
-        Modify an existing intake issue's properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.  # noqa: E501
+        Modify an existing intake work item's properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.update_intake_issue(issue_id, project_id, slug, patched_intake_issue_update_request, async_req=True)
+        >>> thread = api.update_intake_work_item(issue_id, project_id, slug, patched_intake_issue_update_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -738,19 +738,19 @@ class IntakeApi:
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
-            message = "Error! Please call the update_intake_issue_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
+            message = "Error! Please call the update_intake_work_item_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
             raise ValueError(message)
-        return self.update_intake_issue_with_http_info(issue_id, project_id, slug, patched_intake_issue_update_request, **kwargs)  # noqa: E501
+        return self.update_intake_work_item_with_http_info(issue_id, project_id, slug, patched_intake_issue_update_request, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def update_intake_issue_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_intake_issue_update_request : Optional[PatchedIntakeIssueUpdateRequest] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """Update intake issue  # noqa: E501
+    def update_intake_work_item_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_intake_issue_update_request : Optional[PatchedIntakeIssueUpdateRequest] = None, **kwargs) -> ApiResponse:  # noqa: E501
+        """Update intake work item  # noqa: E501
 
-        Modify an existing intake issue's properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.  # noqa: E501
+        Modify an existing intake work item's properties or status for triage processing. Supports status changes like accept, reject, or mark as duplicate.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.update_intake_issue_with_http_info(issue_id, project_id, slug, patched_intake_issue_update_request, async_req=True)
+        >>> thread = api.update_intake_work_item_with_http_info(issue_id, project_id, slug, patched_intake_issue_update_request, async_req=True)
         >>> result = thread.get()
 
         :param issue_id: Issue ID (required)
@@ -811,7 +811,7 @@ class IntakeApi:
             if _key not in _all_params:
                 raise ApiTypeError(
                     "Got an unexpected keyword argument '%s'"
-                    " to method update_intake_issue" % _key
+                    " to method update_intake_work_item" % _key
                 )
             _params[_key] = _val
         del _params['kwargs']

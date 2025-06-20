@@ -4,27 +4,27 @@ All URIs are relative to *https://api.plane.so*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**add_cycle_issues**](CyclesApi.md#add_cycle_issues) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/ | Add Issues to Cycle
+[**add_cycle_work_items**](CyclesApi.md#add_cycle_work_items) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/ | Add Work Items to Cycle
 [**archive_cycle**](CyclesApi.md#archive_cycle) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/archive/ | Archive cycle
 [**create_cycle**](CyclesApi.md#create_cycle) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/ | Create cycle
 [**delete_cycle**](CyclesApi.md#delete_cycle) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{pk}/ | Delete cycle
-[**delete_cycle_issue**](CyclesApi.md#delete_cycle_issue) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/{issue_id}/ | Delete cycle issue
+[**delete_cycle_work_item**](CyclesApi.md#delete_cycle_work_item) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/{issue_id}/ | Delete cycle work item
 [**list_archived_cycles**](CyclesApi.md#list_archived_cycles) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/archived-cycles/ | List archived cycles
-[**list_cycle_issues**](CyclesApi.md#list_cycle_issues) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/ | List cycle issues
+[**list_cycle_work_items**](CyclesApi.md#list_cycle_work_items) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/ | List cycle work items
 [**list_cycles**](CyclesApi.md#list_cycles) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/ | List cycles
 [**retrieve_cycle**](CyclesApi.md#retrieve_cycle) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{pk}/ | Retrieve cycle
-[**retrieve_cycle_issue**](CyclesApi.md#retrieve_cycle_issue) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/{issue_id}/ | Retrieve cycle issue
-[**transfer_cycle_issues**](CyclesApi.md#transfer_cycle_issues) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/transfer-issues/ | Transfer cycle issues
+[**retrieve_cycle_work_item**](CyclesApi.md#retrieve_cycle_work_item) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/{issue_id}/ | Retrieve cycle work item
+[**transfer_cycle_work_items**](CyclesApi.md#transfer_cycle_work_items) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/transfer-issues/ | Transfer cycle work items
 [**unarchive_cycle**](CyclesApi.md#unarchive_cycle) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/archived-cycles/{pk}/unarchive/ | Unarchive cycle
 [**update_cycle**](CyclesApi.md#update_cycle) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{pk}/ | Update cycle
 
 
-# **add_cycle_issues**
-> CycleIssue add_cycle_issues(cycle_id, project_id, slug, cycle_issue_request_request)
+# **add_cycle_work_items**
+> CycleIssue add_cycle_work_items(cycle_id, project_id, slug, cycle_issue_request_request)
 
-Add Issues to Cycle
+Add Work Items to Cycle
 
-Assign multiple issues to a cycle. Automatically handles bulk creation and updates with activity tracking.
+Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.
 
 ### Example
 
@@ -71,12 +71,12 @@ with plane.ApiClient(configuration) as api_client:
     cycle_issue_request_request = {"issues":["0ec6cfa4-e906-4aad-9390-2df0303a41cd","0ec6cfa4-e906-4aad-9390-2df0303a41ce"]} # CycleIssueRequestRequest | 
 
     try:
-        # Add Issues to Cycle
-        api_response = api_instance.add_cycle_issues(cycle_id, project_id, slug, cycle_issue_request_request)
-        print("The response of CyclesApi->add_cycle_issues:\n")
+        # Add Work Items to Cycle
+        api_response = api_instance.add_cycle_work_items(cycle_id, project_id, slug, cycle_issue_request_request)
+        print("The response of CyclesApi->add_cycle_work_items:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling CyclesApi->add_cycle_issues: %s\n" % e)
+        print("Exception when calling CyclesApi->add_cycle_work_items: %s\n" % e)
 ```
 
 
@@ -109,7 +109,7 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
-**200** | Cycle issues added |  -  |
+**200** | Cycle work items added |  -  |
 **400** | Required fields are missing |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -383,12 +383,12 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **delete_cycle_issue**
-> delete_cycle_issue(cycle_id, issue_id, project_id, slug)
+# **delete_cycle_work_item**
+> delete_cycle_work_item(cycle_id, issue_id, project_id, slug)
 
-Delete cycle issue
+Delete cycle work item
 
-Remove an issue from a cycle while keeping the issue in the project.
+Remove a work item from a cycle while keeping the work item in the project.
 
 ### Example
 
@@ -433,10 +433,10 @@ with plane.ApiClient(configuration) as api_client:
     slug = 'my-workspace' # str | Workspace slug
 
     try:
-        # Delete cycle issue
-        api_instance.delete_cycle_issue(cycle_id, issue_id, project_id, slug)
+        # Delete cycle work item
+        api_instance.delete_cycle_work_item(cycle_id, issue_id, project_id, slug)
     except Exception as e:
-        print("Exception when calling CyclesApi->delete_cycle_issue: %s\n" % e)
+        print("Exception when calling CyclesApi->delete_cycle_work_item: %s\n" % e)
 ```
 
 
@@ -566,12 +566,12 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **list_cycle_issues**
-> PaginatedCycleIssueResponse list_cycle_issues(cycle_id, project_id, slug, cursor=cursor, per_page=per_page)
+# **list_cycle_work_items**
+> PaginatedCycleIssueResponse list_cycle_work_items(cycle_id, project_id, slug, cursor=cursor, per_page=per_page)
 
-List cycle issues
+List cycle work items
 
-Retrieve all issues assigned to a cycle.
+Retrieve all work items assigned to a cycle.
 
 ### Example
 
@@ -618,12 +618,12 @@ with plane.ApiClient(configuration) as api_client:
     per_page = 20 # int | Number of results per page (default: 20, max: 100) (optional)
 
     try:
-        # List cycle issues
-        api_response = api_instance.list_cycle_issues(cycle_id, project_id, slug, cursor=cursor, per_page=per_page)
-        print("The response of CyclesApi->list_cycle_issues:\n")
+        # List cycle work items
+        api_response = api_instance.list_cycle_work_items(cycle_id, project_id, slug, cursor=cursor, per_page=per_page)
+        print("The response of CyclesApi->list_cycle_work_items:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling CyclesApi->list_cycle_issues: %s\n" % e)
+        print("Exception when calling CyclesApi->list_cycle_work_items: %s\n" % e)
 ```
 
 
@@ -657,7 +657,7 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
-**200** | Paginated list of cycle issues |  -  |
+**200** | Paginated list of cycle work items |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -853,12 +853,12 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **retrieve_cycle_issue**
-> CycleIssue retrieve_cycle_issue(cycle_id, issue_id, project_id, slug)
+# **retrieve_cycle_work_item**
+> CycleIssue retrieve_cycle_work_item(cycle_id, issue_id, project_id, slug)
 
-Retrieve cycle issue
+Retrieve cycle work item
 
-Retrieve details of a specific cycle issue.
+Retrieve details of a specific cycle work item.
 
 ### Example
 
@@ -904,12 +904,12 @@ with plane.ApiClient(configuration) as api_client:
     slug = 'my-workspace' # str | Workspace slug
 
     try:
-        # Retrieve cycle issue
-        api_response = api_instance.retrieve_cycle_issue(cycle_id, issue_id, project_id, slug)
-        print("The response of CyclesApi->retrieve_cycle_issue:\n")
+        # Retrieve cycle work item
+        api_response = api_instance.retrieve_cycle_work_item(cycle_id, issue_id, project_id, slug)
+        print("The response of CyclesApi->retrieve_cycle_work_item:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling CyclesApi->retrieve_cycle_issue: %s\n" % e)
+        print("Exception when calling CyclesApi->retrieve_cycle_work_item: %s\n" % e)
 ```
 
 
@@ -942,16 +942,16 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
-**200** | Cycle issues |  -  |
+**200** | Cycle work items |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **transfer_cycle_issues**
-> TransferCycleIssues200Response transfer_cycle_issues(cycle_id, project_id, slug, transfer_cycle_issue_request_request)
+# **transfer_cycle_work_items**
+> TransferCycleWorkItems200Response transfer_cycle_work_items(cycle_id, project_id, slug, transfer_cycle_issue_request_request)
 
-Transfer cycle issues
+Transfer cycle work items
 
-Move incomplete issues from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.
+Move incomplete work items from the current cycle to a new target cycle. Captures progress snapshot and transfers only unfinished work items.
 
 ### Example
 
@@ -963,7 +963,7 @@ import time
 import os
 import plane
 from plane.models.transfer_cycle_issue_request_request import TransferCycleIssueRequestRequest
-from plane.models.transfer_cycle_issues200_response import TransferCycleIssues200Response
+from plane.models.transfer_cycle_work_items200_response import TransferCycleWorkItems200Response
 from plane.rest import ApiException
 from pprint import pprint
 
@@ -998,12 +998,12 @@ with plane.ApiClient(configuration) as api_client:
     transfer_cycle_issue_request_request = {"new_cycle_id":"0ec6cfa4-e906-4aad-9390-2df0303a41ce"} # TransferCycleIssueRequestRequest | 
 
     try:
-        # Transfer cycle issues
-        api_response = api_instance.transfer_cycle_issues(cycle_id, project_id, slug, transfer_cycle_issue_request_request)
-        print("The response of CyclesApi->transfer_cycle_issues:\n")
+        # Transfer cycle work items
+        api_response = api_instance.transfer_cycle_work_items(cycle_id, project_id, slug, transfer_cycle_issue_request_request)
+        print("The response of CyclesApi->transfer_cycle_work_items:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling CyclesApi->transfer_cycle_issues: %s\n" % e)
+        print("Exception when calling CyclesApi->transfer_cycle_work_items: %s\n" % e)
 ```
 
 
@@ -1019,7 +1019,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**TransferCycleIssues200Response**](TransferCycleIssues200Response.md)
+[**TransferCycleWorkItems200Response**](TransferCycleWorkItems200Response.md)
 
 ### Authorization
 
@@ -1036,7 +1036,7 @@ Name | Type | Description  | Notes
 **401** | Authentication credentials were not provided or are invalid. |  -  |
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
-**200** | Issues transferred successfully |  -  |
+**200** | Work items transferred successfully |  -  |
 **400** | Bad request |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
