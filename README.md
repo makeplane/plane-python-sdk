@@ -1,4 +1,4 @@
-# plane
+# plane-sdk
 The Plane REST API
 
 Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
