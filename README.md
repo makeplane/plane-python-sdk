@@ -53,47 +53,39 @@ Execute `pytest` to run the tests.
 Please follow the [installation procedure](#installation--usage) and then run the following:
 
 ```python
+from plane.configuration import Configuration
+from plane.api_client import ApiClient
+from plane.api.users_api import UsersApi
+from plane.api.projects_api import ProjectsApi
+from plane.exceptions import ApiException
 
-import time
-import plane
-from plane.rest import ApiException
-from pprint import pprint
+def test_api():
 
-# Defining the host is optional and defaults to https://api.plane.so
-# See configuration.py for a list of all supported configuration parameters.
-configuration = plane.Configuration(
-    host = "https://api.plane.so"
-)
+    # Configure API Key authentication
+    configuration = Configuration(
+        api_key={'ApiKeyAuthentication': <API_KEY>}
+    )
 
-# The client must configure the authentication and authorization parameters
-# in accordance with the API server security policy.
-# Examples for each auth method are provided below, use the example that
-# satisfies your auth use case.
+    # Configure Access Token authentication
+    # configuration = Configuration(
+    #    access_token='<PLANE_ACCESS_TOKEN>'
+    # )
 
-# Configure API key authorization: ApiKeyAuthentication
-configuration.api_key['ApiKeyAuthentication'] = os.environ["API_KEY"]
+    # Create API client instance
+    api_client = ApiClient(configuration)
 
-# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
-# configuration.api_key_prefix['ApiKeyAuthentication'] = 'Bearer'
+    # Create Users API instance
+    users_api = UsersApi(api_client)
 
-configuration.access_token = os.environ["ACCESS_TOKEN"]
+    # Call get_current_user endpoint
+    print("Fetching current user information...")
+    user = users_api.get_current_user()
+    print(user.email)
 
-configuration.access_token = os.environ["ACCESS_TOKEN"]
-
-
-# Enter a context with an instance of the API client
-with plane.ApiClient(configuration) as api_client:
-    # Create an instance of the API class
-    api_instance = plane.AssetsApi(api_client)
-    slug = 'my-workspace' # str | Workspace slug
-    generic_asset_upload_request = {"name":"image.jpg","type":"image/jpeg","size":1024000,"project_id":"123e4567-e89b-12d3-a456-426614174000","external_id":"1234567890","external_source":"github"} # GenericAssetUploadRequest | 
-
-    try:
-        # Generate presigned URL for generic asset upload
-        api_instance.create_generic_asset_upload(slug, generic_asset_upload_request)
-    except ApiException as e:
-        print("Exception when calling AssetsApi->create_generic_asset_upload: %s\n" % e)
-
+    projects_api = ProjectsApi(api_client)
+    projects_response = projects_api.list_projects(slug="<workspace_slug>")
+    for project in projects_response.results:
+        print(f"{project.id} - {project.name}")
 ```
 
 ## Documentation for API Endpoints
