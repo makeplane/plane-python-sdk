@@ -19,7 +19,7 @@ import re  # noqa: F401
 import json
 
 from datetime import datetime
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 from pydantic import BaseModel, Field, StrictBool, StrictFloat, StrictInt, StrictStr, conlist, constr
 from plane.models.property_type_enum import PropertyTypeEnum
 from plane.models.relation_type_enum import RelationTypeEnum

@@ -19,7 +19,6 @@ import logging
 import re
 import ssl
 
-from urllib.parse import urlencode, quote_plus
 import urllib3
 
 from plane.exceptions import ApiException, UnauthorizedException, ForbiddenException, NotFoundException, ServiceException, ApiValueError, BadRequestException
@@ -162,7 +161,6 @@ class RESTClientObject:
         headers = headers or {}
         # url already contains the URL query string
         # so reset query_params to empty dict
-        query_params = {}
 
         timeout = None
         if _request_timeout:

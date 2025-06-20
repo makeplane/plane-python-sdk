@@ -19,7 +19,6 @@ import re  # noqa: F401
 import json
 
 
-from typing import List
 from pydantic import BaseModel, Field, StrictStr, conlist
 
 class ModuleIssueRequestRequest(BaseModel):

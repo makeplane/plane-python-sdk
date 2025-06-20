@@ -14,10 +14,8 @@
 
 
 import re  # noqa: F401
-import io
-import warnings
 
-from pydantic import validate_arguments, ValidationError
+from pydantic import validate_arguments
 
 from plane.models.user_lite import UserLite
 
