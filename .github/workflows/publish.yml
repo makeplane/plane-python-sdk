@@ -31,3 +31,22 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           python -m twine upload dist/*
+
+      - name: Get version from setup.py
+        id: package-version
+        run: |
+          VERSION=$(grep "VERSION = " setup.py | cut -d'"' -f2)
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from setup.py"
+            exit 1
+          fi
+          echo "current-version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.package-version.outputs.current-version }}
+          name: v${{ steps.package-version.outputs.current-version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
