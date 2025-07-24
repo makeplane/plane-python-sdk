@@ -46,7 +46,7 @@ class MembersApi:
         self.api_client = api_client
 
     @validate_arguments
-    def get_project_members(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> UserLite:  # noqa: E501
+    def get_project_members(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> List[UserLite]:  # noqa: E501
         """List project members  # noqa: E501
 
         Retrieve all users who are members of the specified project.  # noqa: E501
@@ -69,7 +69,7 @@ class MembersApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: UserLite
+        :rtype: List[UserLite]
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
@@ -114,7 +114,7 @@ class MembersApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: tuple(UserLite, status_code(int), headers(HTTPHeaderDict))
+        :rtype: tuple(List[UserLite], status_code(int), headers(HTTPHeaderDict))
         """
 
         _params = locals()
@@ -173,7 +173,7 @@ class MembersApi:
         _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
 
         _response_types_map = {
-            '200': "UserLite",
+            '200': "List[UserLite]",
             '401': None,
             '403': None,
             '404': None,

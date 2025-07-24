@@ -37,6 +37,7 @@ docs/IssuePropertyValueAPI.md
 docs/IssuePropertyValueAPIRequest.md
 docs/IssueRequest.md
 docs/IssueSearch.md
+docs/IssueSearchItem.md
 docs/IssueTypeAPI.md
 docs/IssueTypeAPIRequest.md
 docs/IssueWorkLogAPI.md
@@ -169,6 +170,7 @@ plane/models/issue_property_value_api.py
 plane/models/issue_property_value_api_request.py
 plane/models/issue_request.py
 plane/models/issue_search.py
+plane/models/issue_search_item.py
 plane/models/issue_type_api.py
 plane/models/issue_type_api_request.py
 plane/models/issue_work_log_api.py
@@ -231,6 +233,9 @@ plane/models/transfer_cycle_work_items400_response.py
 plane/models/type_enum.py
 plane/models/user_asset_upload_request.py
 plane/models/user_lite.py
+plane/oauth/__init__.py
+plane/oauth/api.py
+plane/oauth/models.py
 plane/py.typed
 plane/rest.py
 pyproject.toml

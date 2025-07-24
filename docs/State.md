@@ -12,7 +12,6 @@ Name | Type | Description | Notes
 **name** | **str** |  | 
 **description** | **str** |  | [optional] 
 **color** | **str** |  | 
-**slug** | **str** |  | [optional] [readonly] 
 **sequence** | **float** |  | [optional] 
 **group** | [**GroupEnum**](GroupEnum.md) |  | [optional] 
 **is_triage** | **bool** |  | [optional] 

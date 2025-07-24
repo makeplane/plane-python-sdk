@@ -7,7 +7,7 @@ OAuth API helpers for Plane SDK using urllib3
 import base64
 import json
 import logging
-from typing import Optional
+from typing import List, Optional
 from urllib.parse import urlencode
 
 from plane.configuration import Configuration
@@ -147,9 +147,9 @@ class OAuthApi:
             logger.error(f"Unexpected error during bot token request: {e}")
             raise ApiException(status=0, reason=str(e))
 
-    def get_app_installation(
-        self, token: str, app_installation_id: str
-    ) -> PlaneOAuthAppInstallation:
+    def get_app_installations(
+        self, token: str, app_installation_id: Optional[str] = None
+    ) -> List[PlaneOAuthAppInstallation]:
         """Get an app installation by ID using the bot token.
         For token, use the bot token from the get_bot_token method.
         """
@@ -157,18 +157,25 @@ class OAuthApi:
             headers = {
                 "Authorization": f"Bearer {token}",
             }
+            path = "/auth/o/app-installation/"
+            if app_installation_id:
+                path += f"?id={app_installation_id}"
             response = self.rest_client.get_request(
-                url=f"{self.base_url}/auth/o/app-installation/?id={app_installation_id}",
+                url=f"{self.base_url}{path}",
                 headers=headers,
             )
             if not response.data:
                 raise ApiException(status=404, reason="App installation not found")
-            return PlaneOAuthAppInstallation.validate(json.loads(response.data)[0])
+            return [
+                PlaneOAuthAppInstallation.validate(item)
+                for item in json.loads(response.data)
+            ]
         except ApiException as e:
             logger.error(f"Failed to get app installation: {e}")
             raise
         except Exception as e:
             logger.error(f"Unexpected error during app installation request: {e}")
+            raise
 
     def _get_basic_auth_token(self) -> str:
         """Generate basic auth token from client_id and client_secret."""

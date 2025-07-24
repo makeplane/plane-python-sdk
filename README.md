@@ -4,7 +4,7 @@ The Plane REST API
 Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
 - API version: 0.0.1
-- Package version: 0.1.3
+- Package version: 0.1.4
 - Generator version: 7.13.0
 - Build package: org.openapitools.codegen.languages.PythonPydanticV1ClientCodegen
 For more information, please visit [https://plane.so](https://plane.so)
@@ -227,6 +227,7 @@ Class | Method | HTTP request | Description
  - [IssuePropertyValueAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyValueAPIRequest.md)
  - [IssueRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueRequest.md)
  - [IssueSearch](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueSearch.md)
+ - [IssueSearchItem](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueSearchItem.md)
  - [IssueTypeAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueTypeAPI.md)
  - [IssueTypeAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueTypeAPIRequest.md)
  - [IssueWorkLogAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueWorkLogAPI.md)

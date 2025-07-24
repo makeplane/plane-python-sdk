@@ -20,7 +20,7 @@ from pydantic import validate_arguments
 from typing_extensions import Annotated
 from pydantic import Field, StrictStr
 
-from typing import Optional
+from typing import List, Optional
 
 from plane.models.issue_type_api import IssueTypeAPI
 from plane.models.issue_type_api_request import IssueTypeAPIRequest
@@ -364,7 +364,7 @@ class WorkItemTypesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_issue_types(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IssueTypeAPI:  # noqa: E501
+    def list_issue_types(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> List[IssueTypeAPI]:  # noqa: E501
         """List issue types  # noqa: E501
 
         List all issue types for a project  # noqa: E501
@@ -387,7 +387,7 @@ class WorkItemTypesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: IssueTypeAPI
+        :rtype: List[IssueTypeAPI]
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
@@ -432,7 +432,7 @@ class WorkItemTypesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: tuple(IssueTypeAPI, status_code(int), headers(HTTPHeaderDict))
+        :rtype: tuple(List[IssueTypeAPI], status_code(int), headers(HTTPHeaderDict))
         """
 
         _params = locals()
@@ -494,7 +494,7 @@ class WorkItemTypesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "IssueTypeAPI",
+            '200': "List[IssueTypeAPI]",
         }
 
         return self.api_client.call_api(

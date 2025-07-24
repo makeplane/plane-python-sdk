@@ -9,7 +9,7 @@ Method | HTTP request | Description
 
 
 # **get_project_members**
-> UserLite get_project_members(project_id, slug)
+> List[UserLite] get_project_members(project_id, slug)
 
 List project members
 
@@ -76,7 +76,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**UserLite**](UserLite.md)
+[**List[UserLite]**](UserLite.md)
 
 ### Authorization
 

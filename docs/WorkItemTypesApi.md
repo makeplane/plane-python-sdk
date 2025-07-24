@@ -194,7 +194,7 @@ void (empty response body)
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **list_issue_types**
-> IssueTypeAPI list_issue_types(project_id, slug)
+> List[IssueTypeAPI] list_issue_types(project_id, slug)
 
 List issue types
 
@@ -261,7 +261,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**IssueTypeAPI**](IssueTypeAPI.md)
+[**List[IssueTypeAPI]**](IssueTypeAPI.md)
 
 ### Authorization
 

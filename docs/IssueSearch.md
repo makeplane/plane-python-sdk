@@ -5,12 +5,7 @@ Serializer for work item search result data formatting.  Provides standardized s
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **str** | Issue ID | 
-**name** | **str** | Issue name | 
-**sequence_id** | **str** | Issue sequence ID | 
-**project__identifier** | **str** | Project identifier | 
-**project_id** | **str** | Project ID | 
-**workspace__slug** | **str** | Workspace slug | 
+**issues** | [**List[IssueSearchItem]**](IssueSearchItem.md) | Array of search result issues | 
 
 ## Example
 

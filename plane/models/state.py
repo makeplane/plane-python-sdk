@@ -20,7 +20,7 @@ import json
 
 from datetime import datetime
 from typing import Optional, Union
-from pydantic import BaseModel, Field, StrictBool, StrictFloat, StrictInt, StrictStr, constr, validator
+from pydantic import BaseModel, Field, StrictBool, StrictFloat, StrictInt, StrictStr, constr
 from plane.models.group_enum import GroupEnum
 
 class State(BaseModel):
@@ -34,7 +34,6 @@ class State(BaseModel):
     name: constr(strict=True, max_length=255) = Field(...)
     description: Optional[StrictStr] = None
     color: constr(strict=True, max_length=255) = Field(...)
-    slug: Optional[constr(strict=True)] = None
     sequence: Optional[Union[StrictFloat, StrictInt]] = None
     group: Optional[GroupEnum] = None
     is_triage: Optional[StrictBool] = None
@@ -45,17 +44,7 @@ class State(BaseModel):
     updated_by: Optional[StrictStr] = None
     project: Optional[StrictStr] = None
     workspace: Optional[StrictStr] = None
-    __properties = ["id", "created_at", "updated_at", "deleted_at", "name", "description", "color", "slug", "sequence", "group", "is_triage", "default", "external_source", "external_id", "created_by", "updated_by", "project", "workspace"]
-
-    @validator('slug')
-    def slug_validate_regular_expression(cls, value):
-        """Validates the regular expression"""
-        if value is None:
-            return value
-
-        if not re.match(r"^[-a-zA-Z0-9_]+$", value):
-            raise ValueError(r"must validate the regular expression /^[-a-zA-Z0-9_]+$/")
-        return value
+    __properties = ["id", "created_at", "updated_at", "deleted_at", "name", "description", "color", "sequence", "group", "is_triage", "default", "external_source", "external_id", "created_by", "updated_by", "project", "workspace"]
 
     class Config:
         """Pydantic configuration"""
@@ -83,7 +72,6 @@ class State(BaseModel):
                             "created_at",
                             "updated_at",
                             "deleted_at",
-                            "slug",
                             "created_by",
                             "updated_by",
                             "project",
@@ -134,7 +122,6 @@ class State(BaseModel):
             "name": obj.get("name"),
             "description": obj.get("description"),
             "color": obj.get("color"),
-            "slug": obj.get("slug"),
             "sequence": obj.get("sequence"),
             "group": obj.get("group"),
             "is_triage": obj.get("is_triage"),

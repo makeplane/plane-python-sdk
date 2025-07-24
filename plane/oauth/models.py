@@ -1,5 +1,4 @@
 from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -10,13 +9,11 @@ class PlaneOAuthTokenResponse(BaseModel):
     scope: Optional[str] = None
     refresh_token: Optional[str] = None
 
-
 class WorkspaceDetail(BaseModel):
     name: str
     slug: str
     id: str
     logo_url: Optional[str] = None
-
 
 class PlaneOAuthAppInstallation(BaseModel):
     id: str

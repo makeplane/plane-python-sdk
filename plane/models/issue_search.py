@@ -19,20 +19,15 @@ import re  # noqa: F401
 import json
 
 
-
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, Field, conlist
+from plane.models.issue_search_item import IssueSearchItem
 
 class IssueSearch(BaseModel):
     """
     Serializer for work item search result data formatting.  Provides standardized search result structure including work item identifiers, project context, and workspace information for search API responses.  # noqa: E501
     """
-    id: StrictStr = Field(default=..., description="Issue ID")
-    name: StrictStr = Field(default=..., description="Issue name")
-    sequence_id: StrictStr = Field(default=..., description="Issue sequence ID")
-    project__identifier: StrictStr = Field(default=..., description="Project identifier")
-    project_id: StrictStr = Field(default=..., description="Project ID")
-    workspace__slug: StrictStr = Field(default=..., description="Workspace slug")
-    __properties = ["id", "name", "sequence_id", "project__identifier", "project_id", "workspace__slug"]
+    issues: conlist(IssueSearchItem) = Field(default=..., description="Array of search result issues")
+    __properties = ["issues"]
 
     class Config:
         """Pydantic configuration"""
@@ -58,6 +53,13 @@ class IssueSearch(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
+        # override the default output from pydantic by calling `to_dict()` of each item in issues (list)
+        _items = []
+        if self.issues:
+            for _item in self.issues:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['issues'] = _items
         return _dict
 
     @classmethod
@@ -70,12 +72,7 @@ class IssueSearch(BaseModel):
             return IssueSearch.parse_obj(obj)
 
         _obj = IssueSearch.parse_obj({
-            "id": obj.get("id"),
-            "name": obj.get("name"),
-            "sequence_id": obj.get("sequence_id"),
-            "project__identifier": obj.get("project__identifier"),
-            "project_id": obj.get("project_id"),
-            "workspace__slug": obj.get("workspace__slug")
+            "issues": [IssueSearchItem.from_dict(_item) for _item in obj.get("issues")] if obj.get("issues") is not None else None
         })
         return _obj
 

@@ -15,7 +15,7 @@
 """  # noqa: E501
 
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 # import apis into sdk package
 from plane.api.assets_api import AssetsApi
@@ -79,6 +79,7 @@ from plane.models.issue_property_value_api import IssuePropertyValueAPI
 from plane.models.issue_property_value_api_request import IssuePropertyValueAPIRequest
 from plane.models.issue_request import IssueRequest
 from plane.models.issue_search import IssueSearch
+from plane.models.issue_search_item import IssueSearchItem
 from plane.models.issue_type_api import IssueTypeAPI
 from plane.models.issue_type_api_request import IssueTypeAPIRequest
 from plane.models.issue_work_log_api import IssueWorkLogAPI
