@@ -29,3 +29,8 @@ class PlaneOAuthAppInstallation(BaseModel):
     installed_by: str
     app_bot: str
     webhook: Optional[str] = None
+
+class OAuthConfig(BaseModel):
+    client_id: str
+    client_secret: str
+    redirect_uri: str

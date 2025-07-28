@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plane"
-version = "0.1.4"
+version = "0.1.5"
 description = "The Plane REST API"
 authors = ["Plane <support@plane.so>"]
 license = "GNU AGPLv3"

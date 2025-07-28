@@ -14,25 +14,28 @@ from plane.configuration import Configuration
 from plane.exceptions import ApiException
 from plane.rest import RESTClientObject
 
-from .models import PlaneOAuthAppInstallation, PlaneOAuthTokenResponse
+from .models import OAuthConfig, PlaneOAuthAppInstallation, PlaneOAuthTokenResponse
 
 logger = logging.getLogger(__name__)
 
 
 class OAuthApi:
     """OAuth API helper class using urllib3."""
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    redirect_uri: Optional[str] = None
+    base_url: str = "https://api.plane.so"
 
     def __init__(
         self,
-        client_id: str,
-        client_secret: str,
-        redirect_uri: str,
+        oauth_config: Optional[OAuthConfig] = None,
         base_url: str = "https://api.plane.so",
         configuration: Optional[Configuration] = None,
     ):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.redirect_uri = redirect_uri
+        if oauth_config:
+            self.client_id = oauth_config.client_id
+            self.client_secret = oauth_config.client_secret
+            self.redirect_uri = oauth_config.redirect_uri
         self.base_url = base_url.rstrip("/")
 
         if configuration is None:
