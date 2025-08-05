@@ -43,7 +43,7 @@ jobs:
           echo "current-version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.package-version.outputs.current-version }}
           name: v${{ steps.package-version.outputs.current-version }}
