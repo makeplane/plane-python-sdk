@@ -487,7 +487,7 @@ void (empty response body)
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **list_issue_properties**
-> IssuePropertyAPI list_issue_properties(project_id, slug, type_id)
+> List[IssuePropertyAPI] list_issue_properties(project_id, slug, type_id)
 
 List issue properties
 
@@ -556,7 +556,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**IssuePropertyAPI**](IssuePropertyAPI.md)
+[**List[IssuePropertyAPI]**](IssuePropertyAPI.md)
 
 ### Authorization
 
@@ -578,7 +578,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **list_issue_property_options**
-> IssuePropertyOptionAPI list_issue_property_options(project_id, property_id, slug)
+> List[IssuePropertyOptionAPI] list_issue_property_options(project_id, property_id, slug)
 
 List issue property options
 
@@ -647,7 +647,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**IssuePropertyOptionAPI**](IssuePropertyOptionAPI.md)
+[**List[IssuePropertyOptionAPI]**](IssuePropertyOptionAPI.md)
 
 ### Authorization
 
@@ -669,7 +669,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **list_issue_property_values**
-> IssuePropertyValueAPI list_issue_property_values(issue_id, project_id, property_id, slug)
+> List[IssuePropertyValueAPIDetail] list_issue_property_values(issue_id, project_id, property_id, slug)
 
 List issue property values
 
@@ -684,7 +684,7 @@ List issue property values
 import time
 import os
 import plane
-from plane.models.issue_property_value_api import IssuePropertyValueAPI
+from plane.models.issue_property_value_api_detail import IssuePropertyValueAPIDetail
 from plane.rest import ApiException
 from pprint import pprint
 
@@ -740,7 +740,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**IssuePropertyValueAPI**](IssuePropertyValueAPI.md)
+[**List[IssuePropertyValueAPIDetail]**](IssuePropertyValueAPIDetail.md)
 
 ### Authorization
 

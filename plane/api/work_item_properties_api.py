@@ -20,13 +20,14 @@ from pydantic import validate_arguments
 from typing_extensions import Annotated
 from pydantic import Field, StrictStr
 
-from typing import Optional
+from typing import List, Optional
 
 from plane.models.issue_property_api import IssuePropertyAPI
 from plane.models.issue_property_api_request import IssuePropertyAPIRequest
 from plane.models.issue_property_option_api import IssuePropertyOptionAPI
 from plane.models.issue_property_option_api_request import IssuePropertyOptionAPIRequest
 from plane.models.issue_property_value_api import IssuePropertyValueAPI
+from plane.models.issue_property_value_api_detail import IssuePropertyValueAPIDetail
 from plane.models.issue_property_value_api_request import IssuePropertyValueAPIRequest
 from plane.models.patched_issue_property_api_request import PatchedIssuePropertyAPIRequest
 from plane.models.patched_issue_property_option_api_request import PatchedIssuePropertyOptionAPIRequest
@@ -902,7 +903,7 @@ class WorkItemPropertiesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_issue_properties(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], type_id : Annotated[StrictStr, Field(..., description="Type ID")], **kwargs) -> IssuePropertyAPI:  # noqa: E501
+    def list_issue_properties(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], type_id : Annotated[StrictStr, Field(..., description="Type ID")], **kwargs) -> List[IssuePropertyAPI]:  # noqa: E501
         """List issue properties  # noqa: E501
 
         List issue properties  # noqa: E501
@@ -927,7 +928,7 @@ class WorkItemPropertiesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: IssuePropertyAPI
+        :rtype: List[IssuePropertyAPI]
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
@@ -974,7 +975,7 @@ class WorkItemPropertiesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: tuple(IssuePropertyAPI, status_code(int), headers(HTTPHeaderDict))
+        :rtype: tuple(List[IssuePropertyAPI], status_code(int), headers(HTTPHeaderDict))
         """
 
         _params = locals()
@@ -1040,7 +1041,7 @@ class WorkItemPropertiesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "IssuePropertyAPI",
+            '200': "List[IssuePropertyAPI]",
         }
 
         return self.api_client.call_api(
@@ -1061,7 +1062,7 @@ class WorkItemPropertiesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_issue_property_options(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], property_id : Annotated[StrictStr, Field(..., description="Property ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IssuePropertyOptionAPI:  # noqa: E501
+    def list_issue_property_options(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], property_id : Annotated[StrictStr, Field(..., description="Property ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> List[IssuePropertyOptionAPI]:  # noqa: E501
         """List issue property options  # noqa: E501
 
         List issue property options  # noqa: E501
@@ -1086,7 +1087,7 @@ class WorkItemPropertiesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: IssuePropertyOptionAPI
+        :rtype: List[IssuePropertyOptionAPI]
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
@@ -1133,7 +1134,7 @@ class WorkItemPropertiesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: tuple(IssuePropertyOptionAPI, status_code(int), headers(HTTPHeaderDict))
+        :rtype: tuple(List[IssuePropertyOptionAPI], status_code(int), headers(HTTPHeaderDict))
         """
 
         _params = locals()
@@ -1199,7 +1200,7 @@ class WorkItemPropertiesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "IssuePropertyOptionAPI",
+            '200': "List[IssuePropertyOptionAPI]",
         }
 
         return self.api_client.call_api(
@@ -1220,7 +1221,7 @@ class WorkItemPropertiesApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_issue_property_values(self, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], property_id : Annotated[StrictStr, Field(..., description="Property ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> IssuePropertyValueAPI:  # noqa: E501
+    def list_issue_property_values(self, issue_id : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], property_id : Annotated[StrictStr, Field(..., description="Property ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> List[IssuePropertyValueAPIDetail]:  # noqa: E501
         """List issue property values  # noqa: E501
 
         List issue property values  # noqa: E501
@@ -1247,7 +1248,7 @@ class WorkItemPropertiesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: IssuePropertyValueAPI
+        :rtype: List[IssuePropertyValueAPIDetail]
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
@@ -1296,7 +1297,7 @@ class WorkItemPropertiesApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: tuple(IssuePropertyValueAPI, status_code(int), headers(HTTPHeaderDict))
+        :rtype: tuple(List[IssuePropertyValueAPIDetail], status_code(int), headers(HTTPHeaderDict))
         """
 
         _params = locals()
@@ -1366,7 +1367,7 @@ class WorkItemPropertiesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "IssuePropertyValueAPI",
+            '200': "List[IssuePropertyValueAPIDetail]",
         }
 
         return self.api_client.call_api(

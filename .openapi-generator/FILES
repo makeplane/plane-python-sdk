@@ -25,6 +25,7 @@ docs/IssueAttachment.md
 docs/IssueAttachmentUploadRequest.md
 docs/IssueComment.md
 docs/IssueCommentCreateRequest.md
+docs/IssueDetail.md
 docs/IssueExpand.md
 docs/IssueForIntakeRequest.md
 docs/IssueLink.md
@@ -34,6 +35,7 @@ docs/IssuePropertyAPIRequest.md
 docs/IssuePropertyOptionAPI.md
 docs/IssuePropertyOptionAPIRequest.md
 docs/IssuePropertyValueAPI.md
+docs/IssuePropertyValueAPIDetail.md
 docs/IssuePropertyValueAPIRequest.md
 docs/IssueRequest.md
 docs/IssueSearch.md
@@ -44,7 +46,6 @@ docs/IssueWorkLogAPI.md
 docs/IssueWorkLogAPIRequest.md
 docs/Label.md
 docs/LabelCreateUpdateRequest.md
-docs/LabelLite.md
 docs/LabelsApi.md
 docs/MembersApi.md
 docs/Module.md
@@ -158,6 +159,7 @@ plane/models/issue_attachment.py
 plane/models/issue_attachment_upload_request.py
 plane/models/issue_comment.py
 plane/models/issue_comment_create_request.py
+plane/models/issue_detail.py
 plane/models/issue_expand.py
 plane/models/issue_for_intake_request.py
 plane/models/issue_link.py
@@ -167,6 +169,7 @@ plane/models/issue_property_api_request.py
 plane/models/issue_property_option_api.py
 plane/models/issue_property_option_api_request.py
 plane/models/issue_property_value_api.py
+plane/models/issue_property_value_api_detail.py
 plane/models/issue_property_value_api_request.py
 plane/models/issue_request.py
 plane/models/issue_search.py
@@ -177,7 +180,6 @@ plane/models/issue_work_log_api.py
 plane/models/issue_work_log_api_request.py
 plane/models/label.py
 plane/models/label_create_update_request.py
-plane/models/label_lite.py
 plane/models/module.py
 plane/models/module_create_request.py
 plane/models/module_issue.py

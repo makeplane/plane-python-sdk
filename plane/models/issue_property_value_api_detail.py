@@ -19,17 +19,15 @@ import re  # noqa: F401
 import json
 
 
-from typing import Optional
-from pydantic import BaseModel, Field, StrictStr, constr
+from pydantic import BaseModel, Field, StrictStr, conlist
 
-class LabelLite(BaseModel):
+class IssuePropertyValueAPIDetail(BaseModel):
     """
-    Lightweight label serializer for minimal data transfer.  Provides essential label information with visual properties, optimized for UI display and performance-critical operations.  # noqa: E501
+    Serializer for aggregated issue property values response. This serializer handles the response format from the query_annotator method which returns property_id and values (ArrayAgg of property values).  # noqa: E501
     """
-    id: Optional[StrictStr] = None
-    name: constr(strict=True, max_length=255) = Field(...)
-    color: Optional[constr(strict=True, max_length=255)] = None
-    __properties = ["id", "name", "color"]
+    property_id: StrictStr = Field(default=..., description="The ID of the issue property")
+    values: conlist(StrictStr) = Field(default=..., description="List of aggregated property values for the given property")
+    __properties = ["property_id", "values"]
 
     class Config:
         """Pydantic configuration"""
@@ -45,32 +43,30 @@ class LabelLite(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> LabelLite:
-        """Create an instance of LabelLite from a JSON string"""
+    def from_json(cls, json_str: str) -> IssuePropertyValueAPIDetail:
+        """Create an instance of IssuePropertyValueAPIDetail from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
         """Returns the dictionary representation of the model using alias"""
         _dict = self.dict(by_alias=True,
                           exclude={
-                            "id",
                           },
                           exclude_none=True)
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> LabelLite:
-        """Create an instance of LabelLite from a dict"""
+    def from_dict(cls, obj: dict) -> IssuePropertyValueAPIDetail:
+        """Create an instance of IssuePropertyValueAPIDetail from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return LabelLite.parse_obj(obj)
+            return IssuePropertyValueAPIDetail.parse_obj(obj)
 
-        _obj = LabelLite.parse_obj({
-            "id": obj.get("id"),
-            "name": obj.get("name"),
-            "color": obj.get("color")
+        _obj = IssuePropertyValueAPIDetail.parse_obj({
+            "property_id": obj.get("property_id"),
+            "values": obj.get("values")
         })
         return _obj
 

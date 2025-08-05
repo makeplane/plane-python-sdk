@@ -34,6 +34,7 @@ from plane.models.issue_attachment import IssueAttachment
 from plane.models.issue_attachment_upload_request import IssueAttachmentUploadRequest
 from plane.models.issue_comment import IssueComment
 from plane.models.issue_comment_create_request import IssueCommentCreateRequest
+from plane.models.issue_detail import IssueDetail
 from plane.models.issue_expand import IssueExpand
 from plane.models.issue_for_intake_request import IssueForIntakeRequest
 from plane.models.issue_link import IssueLink
@@ -43,6 +44,7 @@ from plane.models.issue_property_api_request import IssuePropertyAPIRequest
 from plane.models.issue_property_option_api import IssuePropertyOptionAPI
 from plane.models.issue_property_option_api_request import IssuePropertyOptionAPIRequest
 from plane.models.issue_property_value_api import IssuePropertyValueAPI
+from plane.models.issue_property_value_api_detail import IssuePropertyValueAPIDetail
 from plane.models.issue_property_value_api_request import IssuePropertyValueAPIRequest
 from plane.models.issue_request import IssueRequest
 from plane.models.issue_search import IssueSearch
@@ -53,7 +55,6 @@ from plane.models.issue_work_log_api import IssueWorkLogAPI
 from plane.models.issue_work_log_api_request import IssueWorkLogAPIRequest
 from plane.models.label import Label
 from plane.models.label_create_update_request import LabelCreateUpdateRequest
-from plane.models.label_lite import LabelLite
 from plane.models.module import Module
 from plane.models.module_create_request import ModuleCreateRequest
 from plane.models.module_issue import ModuleIssue
