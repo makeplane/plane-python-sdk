@@ -389,7 +389,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **retrieve_work_item**
-> Issue retrieve_work_item(pk, project_id, slug, expand=expand, external_id=external_id, external_source=external_source, fields=fields, order_by=order_by)
+> IssueDetail retrieve_work_item(pk, project_id, slug, expand=expand, external_id=external_id, external_source=external_source, fields=fields, order_by=order_by)
 
 Retrieve work item
 
@@ -404,7 +404,7 @@ Retrieve details of a specific work item.
 import time
 import os
 import plane
-from plane.models.issue import Issue
+from plane.models.issue_detail import IssueDetail
 from plane.rest import ApiException
 from pprint import pprint
 
@@ -468,7 +468,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**Issue**](Issue.md)
+[**IssueDetail**](IssueDetail.md)
 
 ### Authorization
 

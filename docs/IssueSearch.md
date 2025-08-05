@@ -1,11 +1,11 @@
 # IssueSearch
 
-Serializer for work item search result data formatting.  Provides standardized search result structure including work item identifiers, project context, and workspace information for search API responses.
+Search results for work items.  Provides list of issues with their identifiers, names, and project context.
 
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**issues** | [**List[IssueSearchItem]**](IssueSearchItem.md) | Array of search result issues | 
+**issues** | [**List[IssueSearchItem]**](IssueSearchItem.md) |  | 
 
 ## Example
 

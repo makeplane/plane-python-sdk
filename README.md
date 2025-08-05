@@ -4,7 +4,7 @@ The Plane REST API
 Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
 - API version: 0.0.1
-- Package version: 0.1.5
+- Package version: 0.1.6
 - Generator version: 7.13.0
 - Build package: org.openapitools.codegen.languages.PythonPydanticV1ClientCodegen
 For more information, please visit [https://plane.so](https://plane.so)
@@ -215,6 +215,7 @@ Class | Method | HTTP request | Description
  - [IssueAttachmentUploadRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueAttachmentUploadRequest.md)
  - [IssueComment](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueComment.md)
  - [IssueCommentCreateRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueCommentCreateRequest.md)
+ - [IssueDetail](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueDetail.md)
  - [IssueExpand](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueExpand.md)
  - [IssueForIntakeRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueForIntakeRequest.md)
  - [IssueLink](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueLink.md)
@@ -224,6 +225,7 @@ Class | Method | HTTP request | Description
  - [IssuePropertyOptionAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyOptionAPI.md)
  - [IssuePropertyOptionAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyOptionAPIRequest.md)
  - [IssuePropertyValueAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyValueAPI.md)
+ - [IssuePropertyValueAPIDetail](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyValueAPIDetail.md)
  - [IssuePropertyValueAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyValueAPIRequest.md)
  - [IssueRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueRequest.md)
  - [IssueSearch](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueSearch.md)
@@ -234,7 +236,6 @@ Class | Method | HTTP request | Description
  - [IssueWorkLogAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueWorkLogAPIRequest.md)
  - [Label](https://github.com/makeplane/plane-python-sdk/blob/main/docs/Label.md)
  - [LabelCreateUpdateRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/LabelCreateUpdateRequest.md)
- - [LabelLite](https://github.com/makeplane/plane-python-sdk/blob/main/docs/LabelLite.md)
  - [Module](https://github.com/makeplane/plane-python-sdk/blob/main/docs/Module.md)
  - [ModuleCreateRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ModuleCreateRequest.md)
  - [ModuleIssue](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ModuleIssue.md)

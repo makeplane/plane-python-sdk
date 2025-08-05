@@ -19,29 +19,25 @@ import re  # noqa: F401
 import json
 
 from datetime import date, datetime
-from typing import Any, Optional, Union
-from pydantic import BaseModel, Field, StrictBool, StrictBytes, StrictFloat, StrictInt, StrictStr, conint, constr
-from plane.models.cycle_lite import CycleLite
-from plane.models.module_lite import ModuleLite
+from typing import Optional, Union
+from pydantic import BaseModel, Field, StrictBool, StrictBytes, StrictFloat, StrictInt, StrictStr, conint, conlist, constr
+from plane.models.label import Label
 from plane.models.priority_enum import PriorityEnum
-from plane.models.state_lite import StateLite
+from plane.models.user_lite import UserLite
 
-class IssueExpand(BaseModel):
+class IssueDetail(BaseModel):
     """
-    Extended work item serializer with full relationship expansion.  Provides work items with expanded related data including cycles, modules, labels, assignees, and states for comprehensive data representation.  # noqa: E501
+    Comprehensive work item serializer with full relationship management.  Handles complete work item lifecycle including assignees, labels, validation, and related model updates. Supports dynamic field expansion and HTML content processing.  # noqa: E501
     """
     id: Optional[StrictStr] = None
-    cycle: Optional[CycleLite] = None
-    module: Optional[ModuleLite] = None
-    labels: Optional[StrictStr] = None
-    assignees: Optional[StrictStr] = None
-    state: Optional[StateLite] = None
+    assignees: conlist(UserLite) = Field(...)
+    labels: conlist(Label) = Field(...)
+    type_id: Optional[StrictStr] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
     point: Optional[conint(strict=True, le=12, ge=0)] = None
     name: constr(strict=True, max_length=255) = Field(...)
-    description: Optional[Any] = None
     description_html: Optional[StrictStr] = None
     description_stripped: Optional[StrictStr] = None
     description_binary: Optional[Union[StrictBytes, StrictStr]] = None
@@ -60,9 +56,10 @@ class IssueExpand(BaseModel):
     project: Optional[StrictStr] = None
     workspace: Optional[StrictStr] = None
     parent: Optional[StrictStr] = None
+    state: Optional[StrictStr] = None
     estimate_point: Optional[StrictStr] = None
     type: Optional[StrictStr] = None
-    __properties = ["id", "cycle", "module", "labels", "assignees", "state", "created_at", "updated_at", "deleted_at", "point", "name", "description", "description_html", "description_stripped", "description_binary", "priority", "start_date", "target_date", "sequence_id", "sort_order", "completed_at", "archived_at", "is_draft", "external_source", "external_id", "created_by", "updated_by", "project", "workspace", "parent", "estimate_point", "type"]
+    __properties = ["id", "assignees", "labels", "type_id", "created_at", "updated_at", "deleted_at", "point", "name", "description_html", "description_stripped", "description_binary", "priority", "start_date", "target_date", "sequence_id", "sort_order", "completed_at", "archived_at", "is_draft", "external_source", "external_id", "created_by", "updated_by", "project", "workspace", "parent", "state", "estimate_point", "type"]
 
     class Config:
         """Pydantic configuration"""
@@ -78,8 +75,8 @@ class IssueExpand(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> IssueExpand:
-        """Create an instance of IssueExpand from a JSON string"""
+    def from_json(cls, json_str: str) -> IssueDetail:
+        """Create an instance of IssueDetail from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -87,29 +84,33 @@ class IssueExpand(BaseModel):
         _dict = self.dict(by_alias=True,
                           exclude={
                             "id",
-                            "cycle",
-                            "module",
-                            "labels",
-                            "assignees",
-                            "state",
                             "created_at",
                             "updated_at",
                             "description_binary",
-                            "created_by",
                             "updated_by",
                             "project",
                             "workspace",
                           },
                           exclude_none=True)
-        # override the default output from pydantic by calling `to_dict()` of cycle
-        if self.cycle:
-            _dict['cycle'] = self.cycle.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of module
-        if self.module:
-            _dict['module'] = self.module.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of state
-        if self.state:
-            _dict['state'] = self.state.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of each item in assignees (list)
+        _items = []
+        if self.assignees:
+            for _item in self.assignees:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['assignees'] = _items
+        # override the default output from pydantic by calling `to_dict()` of each item in labels (list)
+        _items = []
+        if self.labels:
+            for _item in self.labels:
+                if _item:
+                    _items.append(_item.to_dict())
+            _dict['labels'] = _items
+        # set to None if type_id (nullable) is None
+        # and __fields_set__ contains the field
+        if self.type_id is None and "type_id" in self.__fields_set__:
+            _dict['type_id'] = None
+
         # set to None if deleted_at (nullable) is None
         # and __fields_set__ contains the field
         if self.deleted_at is None and "deleted_at" in self.__fields_set__:
@@ -119,11 +120,6 @@ class IssueExpand(BaseModel):
         # and __fields_set__ contains the field
         if self.point is None and "point" in self.__fields_set__:
             _dict['point'] = None
-
-        # set to None if description (nullable) is None
-        # and __fields_set__ contains the field
-        if self.description is None and "description" in self.__fields_set__:
-            _dict['description'] = None
 
         # set to None if description_stripped (nullable) is None
         # and __fields_set__ contains the field
@@ -180,6 +176,11 @@ class IssueExpand(BaseModel):
         if self.parent is None and "parent" in self.__fields_set__:
             _dict['parent'] = None
 
+        # set to None if state (nullable) is None
+        # and __fields_set__ contains the field
+        if self.state is None and "state" in self.__fields_set__:
+            _dict['state'] = None
+
         # set to None if estimate_point (nullable) is None
         # and __fields_set__ contains the field
         if self.estimate_point is None and "estimate_point" in self.__fields_set__:
@@ -193,27 +194,24 @@ class IssueExpand(BaseModel):
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> IssueExpand:
-        """Create an instance of IssueExpand from a dict"""
+    def from_dict(cls, obj: dict) -> IssueDetail:
+        """Create an instance of IssueDetail from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return IssueExpand.parse_obj(obj)
+            return IssueDetail.parse_obj(obj)
 
-        _obj = IssueExpand.parse_obj({
+        _obj = IssueDetail.parse_obj({
             "id": obj.get("id"),
-            "cycle": CycleLite.from_dict(obj.get("cycle")) if obj.get("cycle") is not None else None,
-            "module": ModuleLite.from_dict(obj.get("module")) if obj.get("module") is not None else None,
-            "labels": obj.get("labels"),
-            "assignees": obj.get("assignees"),
-            "state": StateLite.from_dict(obj.get("state")) if obj.get("state") is not None else None,
+            "assignees": [UserLite.from_dict(_item) for _item in obj.get("assignees")] if obj.get("assignees") is not None else None,
+            "labels": [Label.from_dict(_item) for _item in obj.get("labels")] if obj.get("labels") is not None else None,
+            "type_id": obj.get("type_id"),
             "created_at": obj.get("created_at"),
             "updated_at": obj.get("updated_at"),
             "deleted_at": obj.get("deleted_at"),
             "point": obj.get("point"),
             "name": obj.get("name"),
-            "description": obj.get("description"),
             "description_html": obj.get("description_html"),
             "description_stripped": obj.get("description_stripped"),
             "description_binary": obj.get("description_binary"),
@@ -232,6 +230,7 @@ class IssueExpand(BaseModel):
             "project": obj.get("project"),
             "workspace": obj.get("workspace"),
             "parent": obj.get("parent"),
+            "state": obj.get("state"),
             "estimate_point": obj.get("estimate_point"),
             "type": obj.get("type")
         })

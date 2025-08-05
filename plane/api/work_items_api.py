@@ -23,6 +23,7 @@ from pydantic import Field, StrictInt, StrictStr
 from typing import Optional
 
 from plane.models.issue import Issue
+from plane.models.issue_detail import IssueDetail
 from plane.models.issue_request import IssueRequest
 from plane.models.issue_search import IssueSearch
 from plane.models.paginated_work_item_response import PaginatedWorkItemResponse
@@ -732,7 +733,7 @@ class WorkItemsApi:
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def retrieve_work_item(self, pk : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, external_id : Annotated[Optional[StrictStr], Field(description="External system identifier for filtering or lookup")] = None, external_source : Annotated[Optional[StrictStr], Field(description="External system source name for filtering or lookup")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, **kwargs) -> Issue:  # noqa: E501
+    def retrieve_work_item(self, pk : StrictStr, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, external_id : Annotated[Optional[StrictStr], Field(description="External system identifier for filtering or lookup")] = None, external_source : Annotated[Optional[StrictStr], Field(description="External system source name for filtering or lookup")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, **kwargs) -> IssueDetail:  # noqa: E501
         """Retrieve work item  # noqa: E501
 
         Retrieve details of a specific work item.  # noqa: E501
@@ -767,7 +768,7 @@ class WorkItemsApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: Issue
+        :rtype: IssueDetail
         """
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
@@ -824,7 +825,7 @@ class WorkItemsApi:
         :return: Returns the result object.
                  If the method is called asynchronously,
                  returns the request thread.
-        :rtype: tuple(Issue, status_code(int), headers(HTTPHeaderDict))
+        :rtype: tuple(IssueDetail, status_code(int), headers(HTTPHeaderDict))
         """
 
         _params = locals()
@@ -910,7 +911,7 @@ class WorkItemsApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "Issue",
+            '200': "IssueDetail",
             '400': None,
         }
 

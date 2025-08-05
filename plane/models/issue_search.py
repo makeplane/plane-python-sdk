@@ -24,9 +24,9 @@ from plane.models.issue_search_item import IssueSearchItem
 
 class IssueSearch(BaseModel):
     """
-    Serializer for work item search result data formatting.  Provides standardized search result structure including work item identifiers, project context, and workspace information for search API responses.  # noqa: E501
+    Search results for work items.  Provides list of issues with their identifiers, names, and project context.  # noqa: E501
     """
-    issues: conlist(IssueSearchItem) = Field(default=..., description="Array of search result issues")
+    issues: conlist(IssueSearchItem) = Field(...)
     __properties = ["issues"]
 
     class Config:
