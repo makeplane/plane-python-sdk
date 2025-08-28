@@ -3,6 +3,7 @@
 Serializer for work item data within intake submissions.  Handles essential work item fields for intake processing including content validation and priority assignment for triage workflows.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | 
@@ -20,7 +21,7 @@ json = "{}"
 # create an instance of IssueForIntakeRequest from a JSON string
 issue_for_intake_request_instance = IssueForIntakeRequest.from_json(json)
 # print the JSON string representation of the object
-print IssueForIntakeRequest.to_json()
+print(IssueForIntakeRequest.to_json())
 
 # convert the object into a dict
 issue_for_intake_request_dict = issue_for_intake_request_instance.to_dict()

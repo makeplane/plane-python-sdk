@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **grouped_by** | **str** |  | 
@@ -27,7 +28,7 @@ json = "{}"
 # create an instance of PaginatedLabelResponse from a JSON string
 paginated_label_response_instance = PaginatedLabelResponse.from_json(json)
 # print the JSON string representation of the object
-print PaginatedLabelResponse.to_json()
+print(PaginatedLabelResponse.to_json())
 
 # convert the object into a dict
 paginated_label_response_dict = paginated_label_response_instance.to_dict()

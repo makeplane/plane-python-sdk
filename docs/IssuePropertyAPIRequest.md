@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **relation_type** | [**RelationTypeEnum**](RelationTypeEnum.md) |  | [optional] 
@@ -27,7 +28,7 @@ json = "{}"
 # create an instance of IssuePropertyAPIRequest from a JSON string
 issue_property_api_request_instance = IssuePropertyAPIRequest.from_json(json)
 # print the JSON string representation of the object
-print IssuePropertyAPIRequest.to_json()
+print(IssuePropertyAPIRequest.to_json())
 
 # convert the object into a dict
 issue_property_api_request_dict = issue_property_api_request_instance.to_dict()

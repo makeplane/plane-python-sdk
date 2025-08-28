@@ -3,6 +3,7 @@
 Serializer for creating modules with member validation and date checking.  Handles module creation including member assignment validation, date range verification, and duplicate name prevention for feature-based project organization setup.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | 
@@ -25,7 +26,7 @@ json = "{}"
 # create an instance of ModuleCreateRequest from a JSON string
 module_create_request_instance = ModuleCreateRequest.from_json(json)
 # print the JSON string representation of the object
-print ModuleCreateRequest.to_json()
+print(ModuleCreateRequest.to_json())
 
 # convert the object into a dict
 module_create_request_dict = module_create_request_instance.to_dict()

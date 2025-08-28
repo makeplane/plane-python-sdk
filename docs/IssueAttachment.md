@@ -3,6 +3,7 @@
 Serializer for work item file attachments.  Manages file asset associations with work items including metadata, storage information, and access control for document management.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -40,7 +41,7 @@ json = "{}"
 # create an instance of IssueAttachment from a JSON string
 issue_attachment_instance = IssueAttachment.from_json(json)
 # print the JSON string representation of the object
-print IssueAttachment.to_json()
+print(IssueAttachment.to_json())
 
 # convert the object into a dict
 issue_attachment_dict = issue_attachment_instance.to_dict()

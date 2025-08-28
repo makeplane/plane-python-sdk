@@ -3,6 +3,7 @@
 Comprehensive module serializer with work item metrics and member management.  Provides complete module data including work item counts by status, member relationships, and progress tracking for feature-based project organization.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -44,7 +45,7 @@ json = "{}"
 # create an instance of Module from a JSON string
 module_instance = Module.from_json(json)
 # print the JSON string representation of the object
-print Module.to_json()
+print(Module.to_json())
 
 # convert the object into a dict
 module_dict = module_instance.to_dict()

@@ -3,6 +3,7 @@
 Serializer for work item states with default state management.  Handles state creation and updates including default state validation and automatic default state switching for workflow management.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | [optional] 
@@ -25,7 +26,7 @@ json = "{}"
 # create an instance of PatchedStateRequest from a JSON string
 patched_state_request_instance = PatchedStateRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedStateRequest.to_json()
+print(PatchedStateRequest.to_json())
 
 # convert the object into a dict
 patched_state_request_dict = patched_state_request_instance.to_dict()

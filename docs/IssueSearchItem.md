@@ -3,6 +3,7 @@
 Individual issue component for search results.  Provides standardized search result structure including work item identifiers, project context, and workspace information for search API responses.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** | Issue ID | 
@@ -22,7 +23,7 @@ json = "{}"
 # create an instance of IssueSearchItem from a JSON string
 issue_search_item_instance = IssueSearchItem.from_json(json)
 # print the JSON string representation of the object
-print IssueSearchItem.to_json()
+print(IssueSearchItem.to_json())
 
 # convert the object into a dict
 issue_search_item_dict = issue_search_item_instance.to_dict()

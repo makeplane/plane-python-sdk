@@ -3,6 +3,7 @@
 Serializer for generic asset upload requests with project association.  Validates metadata for generating presigned URLs for workspace assets including project association, external system tracking, and file validation for document management and content storage workflows.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** | Original filename of the asset | 
@@ -22,7 +23,7 @@ json = "{}"
 # create an instance of GenericAssetUploadRequest from a JSON string
 generic_asset_upload_request_instance = GenericAssetUploadRequest.from_json(json)
 # print the JSON string representation of the object
-print GenericAssetUploadRequest.to_json()
+print(GenericAssetUploadRequest.to_json())
 
 # convert the object into a dict
 generic_asset_upload_request_dict = generic_asset_upload_request_instance.to_dict()

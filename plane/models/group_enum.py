@@ -13,12 +13,10 @@
 """  # noqa: E501
 
 
+from __future__ import annotations
 import json
-import re  # noqa: F401
-from aenum import Enum
-
-
-
+from enum import Enum
+from typing_extensions import Self
 
 
 class GroupEnum(str, Enum):
@@ -37,8 +35,8 @@ class GroupEnum(str, Enum):
     TRIAGE = 'triage'
 
     @classmethod
-    def from_json(cls, json_str: str) -> GroupEnum: # noqa: F821
+    def from_json(cls, json_str: str) -> Self:
         """Create an instance of GroupEnum from a JSON string"""
-        return GroupEnum(json.loads(json_str))
+        return cls(json.loads(json_str))
 
 

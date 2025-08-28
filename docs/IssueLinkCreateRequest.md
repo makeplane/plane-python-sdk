@@ -3,6 +3,7 @@
 Serializer for creating work item external links with validation.  Handles URL validation, format checking, and duplicate prevention for attaching external resources to work items.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **url** | **str** |  | 
@@ -17,7 +18,7 @@ json = "{}"
 # create an instance of IssueLinkCreateRequest from a JSON string
 issue_link_create_request_instance = IssueLinkCreateRequest.from_json(json)
 # print the JSON string representation of the object
-print IssueLinkCreateRequest.to_json()
+print(IssueLinkCreateRequest.to_json())
 
 # convert the object into a dict
 issue_link_create_request_dict = issue_link_create_request_instance.to_dict()

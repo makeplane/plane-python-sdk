@@ -3,6 +3,7 @@
 Extended work item serializer with full relationship expansion.  Provides work items with expanded related data including cycles, modules, labels, assignees, and states for comprehensive data representation.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -48,7 +49,7 @@ json = "{}"
 # create an instance of IssueExpand from a JSON string
 issue_expand_instance = IssueExpand.from_json(json)
 # print the JSON string representation of the object
-print IssueExpand.to_json()
+print(IssueExpand.to_json())
 
 # convert the object into a dict
 issue_expand_dict = issue_expand_instance.to_dict()

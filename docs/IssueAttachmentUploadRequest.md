@@ -3,6 +3,7 @@
 Serializer for work item attachment upload request validation.  Handles file upload metadata validation including size, type, and external integration tracking for secure work item document attachment workflows.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** | Original filename of the asset | 
@@ -21,7 +22,7 @@ json = "{}"
 # create an instance of IssueAttachmentUploadRequest from a JSON string
 issue_attachment_upload_request_instance = IssueAttachmentUploadRequest.from_json(json)
 # print the JSON string representation of the object
-print IssueAttachmentUploadRequest.to_json()
+print(IssueAttachmentUploadRequest.to_json())
 
 # convert the object into a dict
 issue_attachment_upload_request_dict = issue_attachment_upload_request_instance.to_dict()

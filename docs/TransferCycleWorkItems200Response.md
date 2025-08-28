@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **message** | **str** | Success message | [optional] 
@@ -16,7 +17,7 @@ json = "{}"
 # create an instance of TransferCycleWorkItems200Response from a JSON string
 transfer_cycle_work_items200_response_instance = TransferCycleWorkItems200Response.from_json(json)
 # print the JSON string representation of the object
-print TransferCycleWorkItems200Response.to_json()
+print(TransferCycleWorkItems200Response.to_json())
 
 # convert the object into a dict
 transfer_cycle_work_items200_response_dict = transfer_cycle_work_items200_response_instance.to_dict()

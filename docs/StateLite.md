@@ -3,6 +3,7 @@
 Lightweight state serializer for minimal data transfer.  Provides essential state information including visual properties and grouping data optimized for UI display and filtering.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -20,7 +21,7 @@ json = "{}"
 # create an instance of StateLite from a JSON string
 state_lite_instance = StateLite.from_json(json)
 # print the JSON string representation of the object
-print StateLite.to_json()
+print(StateLite.to_json())
 
 # convert the object into a dict
 state_lite_dict = state_lite_instance.to_dict()

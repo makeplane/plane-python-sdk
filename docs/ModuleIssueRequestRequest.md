@@ -3,6 +3,7 @@
 Serializer for bulk work item assignment to modules.  Validates work item ID lists for batch operations including module assignment and work item organization workflows.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **issues** | **List[str]** | List of issue IDs to add to the module | 
@@ -17,7 +18,7 @@ json = "{}"
 # create an instance of ModuleIssueRequestRequest from a JSON string
 module_issue_request_request_instance = ModuleIssueRequestRequest.from_json(json)
 # print the JSON string representation of the object
-print ModuleIssueRequestRequest.to_json()
+print(ModuleIssueRequestRequest.to_json())
 
 # convert the object into a dict
 module_issue_request_request_dict = module_issue_request_request_instance.to_dict()

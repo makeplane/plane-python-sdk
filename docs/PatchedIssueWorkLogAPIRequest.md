@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **description** | **str** |  | [optional] 
@@ -19,7 +20,7 @@ json = "{}"
 # create an instance of PatchedIssueWorkLogAPIRequest from a JSON string
 patched_issue_work_log_api_request_instance = PatchedIssueWorkLogAPIRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedIssueWorkLogAPIRequest.to_json()
+print(PatchedIssueWorkLogAPIRequest.to_json())
 
 # convert the object into a dict
 patched_issue_work_log_api_request_dict = patched_issue_work_log_api_request_instance.to_dict()

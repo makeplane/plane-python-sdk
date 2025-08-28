@@ -3,6 +3,7 @@
 Serializer for user asset upload requests.  This serializer validates the metadata required to generate a presigned URL for uploading user profile assets (avatar or cover image) directly to S3 storage. Supports JPEG, PNG, WebP, JPG, and GIF image formats with size validation.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** | Original filename of the asset | 
@@ -20,7 +21,7 @@ json = "{}"
 # create an instance of UserAssetUploadRequest from a JSON string
 user_asset_upload_request_instance = UserAssetUploadRequest.from_json(json)
 # print the JSON string representation of the object
-print UserAssetUploadRequest.to_json()
+print(UserAssetUploadRequest.to_json())
 
 # convert the object into a dict
 user_asset_upload_request_dict = user_asset_upload_request_instance.to_dict()

@@ -3,6 +3,7 @@
 Cycle serializer with comprehensive project metrics and time tracking.  Provides cycle details including work item counts by status, progress estimates, and time-bound iteration data for project management and sprint planning.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -47,7 +48,7 @@ json = "{}"
 # create an instance of Cycle from a JSON string
 cycle_instance = Cycle.from_json(json)
 # print the JSON string representation of the object
-print Cycle.to_json()
+print(Cycle.to_json())
 
 # convert the object into a dict
 cycle_dict = cycle_instance.to_dict()

@@ -3,6 +3,7 @@
 Full serializer for work item comments with membership context.  Provides complete comment data including member status, content formatting, and edit tracking for collaborative work item discussions.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -34,7 +35,7 @@ json = "{}"
 # create an instance of IssueComment from a JSON string
 issue_comment_instance = IssueComment.from_json(json)
 # print the JSON string representation of the object
-print IssueComment.to_json()
+print(IssueComment.to_json())
 
 # convert the object into a dict
 issue_comment_dict = issue_comment_instance.to_dict()

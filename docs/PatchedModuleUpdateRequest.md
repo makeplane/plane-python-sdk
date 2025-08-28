@@ -3,6 +3,7 @@
 Serializer for updating modules with enhanced validation and member management.  Extends module creation with update-specific validations including member reassignment, name conflict checking, and relationship management for module modifications.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | [optional] 
@@ -25,7 +26,7 @@ json = "{}"
 # create an instance of PatchedModuleUpdateRequest from a JSON string
 patched_module_update_request_instance = PatchedModuleUpdateRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedModuleUpdateRequest.to_json()
+print(PatchedModuleUpdateRequest.to_json())
 
 # convert the object into a dict
 patched_module_update_request_dict = patched_module_update_request_instance.to_dict()

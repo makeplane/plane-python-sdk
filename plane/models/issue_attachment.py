@@ -19,25 +19,28 @@ import re  # noqa: F401
 import json
 
 from datetime import datetime
-from typing import Any, Optional, Union
-from pydantic import BaseModel, Field, StrictBool, StrictFloat, StrictInt, StrictStr, constr
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr
+from typing import Any, ClassVar, Dict, List, Optional, Union
+from typing_extensions import Annotated
+from typing import Set
+from typing_extensions import Self
 
 class IssueAttachment(BaseModel):
     """
-    Serializer for work item file attachments.  Manages file asset associations with work items including metadata, storage information, and access control for document management.  # noqa: E501
-    """
+    Serializer for work item file attachments.  Manages file asset associations with work items including metadata, storage information, and access control for document management.
+    """ # noqa: E501
     id: Optional[StrictStr] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     deleted_at: Optional[datetime] = None
     attributes: Optional[Any] = None
-    asset: StrictStr = Field(...)
-    entity_type: Optional[constr(strict=True, max_length=255)] = None
-    entity_identifier: Optional[constr(strict=True, max_length=255)] = None
+    asset: StrictStr
+    entity_type: Optional[Annotated[str, Field(strict=True, max_length=255)]] = None
+    entity_identifier: Optional[Annotated[str, Field(strict=True, max_length=255)]] = None
     is_deleted: Optional[StrictBool] = None
     is_archived: Optional[StrictBool] = None
-    external_id: Optional[constr(strict=True, max_length=255)] = None
-    external_source: Optional[constr(strict=True, max_length=255)] = None
+    external_id: Optional[Annotated[str, Field(strict=True, max_length=255)]] = None
+    external_source: Optional[Annotated[str, Field(strict=True, max_length=255)]] = None
     size: Optional[Union[StrictFloat, StrictInt]] = None
     is_uploaded: Optional[StrictBool] = None
     storage_metadata: Optional[Any] = None
@@ -50,131 +53,153 @@ class IssueAttachment(BaseModel):
     issue: Optional[StrictStr] = None
     comment: Optional[StrictStr] = None
     page: Optional[StrictStr] = None
-    __properties = ["id", "created_at", "updated_at", "deleted_at", "attributes", "asset", "entity_type", "entity_identifier", "is_deleted", "is_archived", "external_id", "external_source", "size", "is_uploaded", "storage_metadata", "created_by", "updated_by", "user", "workspace", "draft_issue", "project", "issue", "comment", "page"]
+    __properties: ClassVar[List[str]] = ["id", "created_at", "updated_at", "deleted_at", "attributes", "asset", "entity_type", "entity_identifier", "is_deleted", "is_archived", "external_id", "external_source", "size", "is_uploaded", "storage_metadata", "created_by", "updated_by", "user", "workspace", "draft_issue", "project", "issue", "comment", "page"]
 
-    class Config:
-        """Pydantic configuration"""
-        allow_population_by_field_name = True
-        validate_assignment = True
+    model_config = ConfigDict(
+        populate_by_name=True,
+        validate_assignment=True,
+        protected_namespaces=(),
+    )
+
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
-        return pprint.pformat(self.dict(by_alias=True))
+        return pprint.pformat(self.model_dump(by_alias=True))
 
     def to_json(self) -> str:
         """Returns the JSON representation of the model using alias"""
+        # TODO: pydantic v2: use .model_dump_json(by_alias=True, exclude_unset=True) instead
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> IssueAttachment:
+    def from_json(cls, json_str: str) -> Optional[Self]:
         """Create an instance of IssueAttachment from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
-    def to_dict(self):
-        """Returns the dictionary representation of the model using alias"""
-        _dict = self.dict(by_alias=True,
-                          exclude={
-                            "id",
-                            "created_at",
-                            "updated_at",
-                            "updated_by",
-                            "workspace",
-                            "project",
-                            "issue",
-                          },
-                          exclude_none=True)
+    def to_dict(self) -> Dict[str, Any]:
+        """Return the dictionary representation of the model using alias.
+
+        This has the following differences from calling pydantic's
+        `self.model_dump(by_alias=True)`:
+
+        * `None` is only added to the output dict for nullable fields that
+          were set at model initialization. Other fields with value `None`
+          are ignored.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        * OpenAPI `readOnly` fields are excluded.
+        """
+        excluded_fields: Set[str] = set([
+            "id",
+            "created_at",
+            "updated_at",
+            "updated_by",
+            "workspace",
+            "project",
+            "issue",
+        ])
+
+        _dict = self.model_dump(
+            by_alias=True,
+            exclude=excluded_fields,
+            exclude_none=True,
+        )
         # set to None if deleted_at (nullable) is None
-        # and __fields_set__ contains the field
-        if self.deleted_at is None and "deleted_at" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.deleted_at is None and "deleted_at" in self.model_fields_set:
             _dict['deleted_at'] = None
 
         # set to None if attributes (nullable) is None
-        # and __fields_set__ contains the field
-        if self.attributes is None and "attributes" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.attributes is None and "attributes" in self.model_fields_set:
             _dict['attributes'] = None
 
         # set to None if entity_type (nullable) is None
-        # and __fields_set__ contains the field
-        if self.entity_type is None and "entity_type" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.entity_type is None and "entity_type" in self.model_fields_set:
             _dict['entity_type'] = None
 
         # set to None if entity_identifier (nullable) is None
-        # and __fields_set__ contains the field
-        if self.entity_identifier is None and "entity_identifier" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.entity_identifier is None and "entity_identifier" in self.model_fields_set:
             _dict['entity_identifier'] = None
 
         # set to None if external_id (nullable) is None
-        # and __fields_set__ contains the field
-        if self.external_id is None and "external_id" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.external_id is None and "external_id" in self.model_fields_set:
             _dict['external_id'] = None
 
         # set to None if external_source (nullable) is None
-        # and __fields_set__ contains the field
-        if self.external_source is None and "external_source" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.external_source is None and "external_source" in self.model_fields_set:
             _dict['external_source'] = None
 
         # set to None if storage_metadata (nullable) is None
-        # and __fields_set__ contains the field
-        if self.storage_metadata is None and "storage_metadata" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.storage_metadata is None and "storage_metadata" in self.model_fields_set:
             _dict['storage_metadata'] = None
 
         # set to None if created_by (nullable) is None
-        # and __fields_set__ contains the field
-        if self.created_by is None and "created_by" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.created_by is None and "created_by" in self.model_fields_set:
             _dict['created_by'] = None
 
         # set to None if updated_by (nullable) is None
-        # and __fields_set__ contains the field
-        if self.updated_by is None and "updated_by" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.updated_by is None and "updated_by" in self.model_fields_set:
             _dict['updated_by'] = None
 
         # set to None if user (nullable) is None
-        # and __fields_set__ contains the field
-        if self.user is None and "user" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.user is None and "user" in self.model_fields_set:
             _dict['user'] = None
 
         # set to None if workspace (nullable) is None
-        # and __fields_set__ contains the field
-        if self.workspace is None and "workspace" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.workspace is None and "workspace" in self.model_fields_set:
             _dict['workspace'] = None
 
         # set to None if draft_issue (nullable) is None
-        # and __fields_set__ contains the field
-        if self.draft_issue is None and "draft_issue" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.draft_issue is None and "draft_issue" in self.model_fields_set:
             _dict['draft_issue'] = None
 
         # set to None if project (nullable) is None
-        # and __fields_set__ contains the field
-        if self.project is None and "project" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.project is None and "project" in self.model_fields_set:
             _dict['project'] = None
 
         # set to None if issue (nullable) is None
-        # and __fields_set__ contains the field
-        if self.issue is None and "issue" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.issue is None and "issue" in self.model_fields_set:
             _dict['issue'] = None
 
         # set to None if comment (nullable) is None
-        # and __fields_set__ contains the field
-        if self.comment is None and "comment" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.comment is None and "comment" in self.model_fields_set:
             _dict['comment'] = None
 
         # set to None if page (nullable) is None
-        # and __fields_set__ contains the field
-        if self.page is None and "page" in self.__fields_set__:
+        # and model_fields_set contains the field
+        if self.page is None and "page" in self.model_fields_set:
             _dict['page'] = None
 
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> IssueAttachment:
+    def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
         """Create an instance of IssueAttachment from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return IssueAttachment.parse_obj(obj)
+            return cls.model_validate(obj)
 
-        _obj = IssueAttachment.parse_obj({
+        _obj = cls.model_validate({
             "id": obj.get("id"),
             "created_at": obj.get("created_at"),
             "updated_at": obj.get("updated_at"),

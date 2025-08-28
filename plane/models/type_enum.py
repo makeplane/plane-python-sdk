@@ -13,12 +13,10 @@
 """  # noqa: E501
 
 
+from __future__ import annotations
 import json
-import re  # noqa: F401
-from aenum import Enum
-
-
-
+from enum import Enum
+from typing_extensions import Self
 
 
 class TypeEnum(str, Enum):
@@ -36,8 +34,8 @@ class TypeEnum(str, Enum):
     IMAGE_SLASH_GIF = 'image/gif'
 
     @classmethod
-    def from_json(cls, json_str: str) -> TypeEnum: # noqa: F821
+    def from_json(cls, json_str: str) -> Self:
         """Create an instance of TypeEnum from a JSON string"""
-        return TypeEnum(json.loads(json_str))
+        return cls(json.loads(json_str))
 
 

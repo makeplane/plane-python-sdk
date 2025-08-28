@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **grouped_by** | **str** |  | 
@@ -27,7 +28,7 @@ json = "{}"
 # create an instance of PaginatedProjectResponse from a JSON string
 paginated_project_response_instance = PaginatedProjectResponse.from_json(json)
 # print the JSON string representation of the object
-print PaginatedProjectResponse.to_json()
+print(PaginatedProjectResponse.to_json())
 
 # convert the object into a dict
 paginated_project_response_dict = paginated_project_response_instance.to_dict()

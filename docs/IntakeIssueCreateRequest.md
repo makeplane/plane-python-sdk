@@ -3,6 +3,7 @@
 Serializer for creating intake work items with embedded issue data.  Manages intake work item creation including nested issue creation, status assignment, and source tracking for issue queue management.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **issue** | [**IssueForIntakeRequest**](IssueForIntakeRequest.md) | Issue data for the intake issue | 
@@ -23,7 +24,7 @@ json = "{}"
 # create an instance of IntakeIssueCreateRequest from a JSON string
 intake_issue_create_request_instance = IntakeIssueCreateRequest.from_json(json)
 # print the JSON string representation of the object
-print IntakeIssueCreateRequest.to_json()
+print(IntakeIssueCreateRequest.to_json())
 
 # convert the object into a dict
 intake_issue_create_request_dict = intake_issue_create_request_instance.to_dict()

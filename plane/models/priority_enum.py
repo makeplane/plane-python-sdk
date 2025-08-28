@@ -13,12 +13,10 @@
 """  # noqa: E501
 
 
+from __future__ import annotations
 import json
-import re  # noqa: F401
-from aenum import Enum
-
-
-
+from enum import Enum
+from typing_extensions import Self
 
 
 class PriorityEnum(str, Enum):
@@ -36,8 +34,8 @@ class PriorityEnum(str, Enum):
     NONE = 'none'
 
     @classmethod
-    def from_json(cls, json_str: str) -> PriorityEnum: # noqa: F821
+    def from_json(cls, json_str: str) -> Self:
         """Create an instance of PriorityEnum from a JSON string"""
-        return PriorityEnum(json.loads(json_str))
+        return cls(json.loads(json_str))
 
 

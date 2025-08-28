@@ -3,6 +3,7 @@
 Serializer for work item activity and change history.  Tracks and represents work item modifications, state changes, and user interactions for audit trails and activity feeds.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -10,7 +11,7 @@ Name | Type | Description | Notes
 **updated_at** | **datetime** |  | [optional] [readonly] 
 **deleted_at** | **datetime** |  | [optional] 
 **verb** | **str** |  | [optional] 
-**field** | **str** |  | [optional] 
+**var_field** | **str** |  | [optional] 
 **old_value** | **str** |  | [optional] 
 **new_value** | **str** |  | [optional] 
 **comment** | **str** |  | [optional] 
@@ -34,7 +35,7 @@ json = "{}"
 # create an instance of IssueActivity from a JSON string
 issue_activity_instance = IssueActivity.from_json(json)
 # print the JSON string representation of the object
-print IssueActivity.to_json()
+print(IssueActivity.to_json())
 
 # convert the object into a dict
 issue_activity_dict = issue_activity_instance.to_dict()

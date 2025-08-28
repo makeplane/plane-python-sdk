@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | [optional] 
@@ -22,7 +23,7 @@ json = "{}"
 # create an instance of PatchedIssuePropertyOptionAPIRequest from a JSON string
 patched_issue_property_option_api_request_instance = PatchedIssuePropertyOptionAPIRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedIssuePropertyOptionAPIRequest.to_json()
+print(PatchedIssuePropertyOptionAPIRequest.to_json())
 
 # convert the object into a dict
 patched_issue_property_option_api_request_dict = patched_issue_property_option_api_request_instance.to_dict()
