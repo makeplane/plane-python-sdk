@@ -3,6 +3,7 @@
 Serializer for creating projects with workspace validation.  Handles project creation including identifier validation, member verification, and workspace association for new project initialization.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | 
@@ -33,7 +34,7 @@ json = "{}"
 # create an instance of ProjectCreateRequest from a JSON string
 project_create_request_instance = ProjectCreateRequest.from_json(json)
 # print the JSON string representation of the object
-print ProjectCreateRequest.to_json()
+print(ProjectCreateRequest.to_json())
 
 # convert the object into a dict
 project_create_request_dict = project_create_request_instance.to_dict()

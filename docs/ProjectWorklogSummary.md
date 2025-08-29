@@ -3,6 +3,7 @@
 Serializer for project worklog summary with aggregated duration per issue
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **issue_id** | **str** | ID of the work item | 
@@ -18,7 +19,7 @@ json = "{}"
 # create an instance of ProjectWorklogSummary from a JSON string
 project_worklog_summary_instance = ProjectWorklogSummary.from_json(json)
 # print the JSON string representation of the object
-print ProjectWorklogSummary.to_json()
+print(ProjectWorklogSummary.to_json())
 
 # convert the object into a dict
 project_worklog_summary_dict = project_worklog_summary_instance.to_dict()

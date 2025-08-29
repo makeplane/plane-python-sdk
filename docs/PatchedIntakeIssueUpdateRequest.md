@@ -3,6 +3,7 @@
 Serializer for updating intake work items and their associated issues.  Handles intake work item modifications including status changes, triage decisions, and embedded issue updates for issue queue processing workflows.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **status** | [**IntakeWorkItemStatusEnum**](IntakeWorkItemStatusEnum.md) |  | [optional] 
@@ -22,7 +23,7 @@ json = "{}"
 # create an instance of PatchedIntakeIssueUpdateRequest from a JSON string
 patched_intake_issue_update_request_instance = PatchedIntakeIssueUpdateRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedIntakeIssueUpdateRequest.to_json()
+print(PatchedIntakeIssueUpdateRequest.to_json())
 
 # convert the object into a dict
 patched_intake_issue_update_request_dict = patched_intake_issue_update_request_instance.to_dict()

@@ -12,7 +12,7 @@ from urllib.parse import urlencode
 
 from plane.configuration import Configuration
 from plane.exceptions import ApiException
-from plane.rest import RESTClientObject
+from plane.api_client import ApiClient
 
 from .models import OAuthConfig, PlaneOAuthAppInstallation, PlaneOAuthTokenResponse
 
@@ -42,7 +42,7 @@ class OAuthApi:
             configuration = Configuration(host=base_url)
 
         self.configuration = configuration
-        self.rest_client = RESTClientObject(configuration)
+        self.api_client = ApiClient(configuration)
 
     def get_authorization_url(
         self,
@@ -79,12 +79,16 @@ class OAuthApi:
         }
 
         try:
-            response = self.rest_client.post_request(
-                url=f"{self.base_url}/auth/o/token/", headers=headers, post_params=data
+            response = self.api_client.call_api(
+                "POST",
+                "/auth/o/token/",
+                header_params=headers,
+                body=data,
             )
+            response.read()
+            json_response = json.loads(response.data)
 
-            response_data = json.loads(response.data.decode("utf-8"))
-            return PlaneOAuthTokenResponse.validate(response_data)
+            return PlaneOAuthTokenResponse.model_validate(json_response)
 
         except ApiException as e:
             logger.error(f"Failed to exchange code for token: {e}")
@@ -112,8 +116,16 @@ class OAuthApi:
                 url=f"{self.base_url}/auth/o/token/", headers=headers, post_params=data
             )
 
-            response_data = json.loads(response.data.decode("utf-8"))
-            return PlaneOAuthTokenResponse.validate(response_data)
+            response = self.api_client.call_api(
+                "POST",
+                "/auth/o/token/",
+                header_params=headers,
+                body=data,
+            )
+            response.read()
+            json_response = json.loads(response.data)
+
+            return PlaneOAuthTokenResponse.model_validate(json_response)
 
         except ApiException as e:
             logger.error(f"Failed to refresh token: {e}")
@@ -140,8 +152,16 @@ class OAuthApi:
                 url=f"{self.base_url}/auth/o/token/", headers=headers, post_params=data
             )
 
-            response_data = json.loads(response.data.decode("utf-8"))
-            return PlaneOAuthTokenResponse.validate(response_data)
+            response = self.api_client.call_api(
+                "POST",
+                "/auth/o/token/",
+                header_params=headers,
+                body=data,
+            )
+            response.read()
+            json_response = json.loads(response.data)
+
+            return PlaneOAuthTokenResponse.model_validate(json_response)
 
         except ApiException as e:
             logger.error(f"Failed to get bot token: {e}")
@@ -160,19 +180,21 @@ class OAuthApi:
             headers = {
                 "Authorization": f"Bearer {token}",
             }
-            path = "/auth/o/app-installation/"
+            path = f"{self.base_url}/auth/o/app-installation/"
             if app_installation_id:
                 path += f"?id={app_installation_id}"
-            response = self.rest_client.get_request(
-                url=f"{self.base_url}{path}",
-                headers=headers,
+            response = self.api_client.call_api(
+                "GET",
+                path,
+                header_params=headers,
             )
-            if not response.data:
-                raise ApiException(status=404, reason="App installation not found")
+            response.read()
+            json_response = json.loads(response.data)
             return [
-                PlaneOAuthAppInstallation.validate(item)
-                for item in json.loads(response.data)
+                PlaneOAuthAppInstallation.model_validate(item)
+                for item in json_response
             ]
+
         except ApiException as e:
             logger.error(f"Failed to get app installation: {e}")
             raise

@@ -23,9 +23,8 @@ Create a new workflow state for a project with specified name, color, and group.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.state import State
 from plane.models.state_request import StateRequest
@@ -74,6 +73,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -94,6 +94,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -117,9 +118,8 @@ Permanently remove a workflow state from a project. Default states and states wi
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.rest import ApiException
 from pprint import pprint
@@ -164,6 +164,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -184,6 +185,7 @@ void (empty response body)
  - **Accept**: Not defined
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -206,9 +208,8 @@ Retrieve all workflow states for a project.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.paginated_state_response import PaginatedStateResponse
 from plane.rest import ApiException
@@ -259,6 +260,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -282,6 +284,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -303,9 +306,8 @@ Retrieve details of a specific state.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.state import State
 from plane.rest import ApiException
@@ -353,6 +355,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -373,6 +376,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -394,9 +398,8 @@ Partially update an existing workflow state's properties like name, color, or gr
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.patched_state_request import PatchedStateRequest
 from plane.models.state import State
@@ -446,6 +449,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -467,6 +471,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |

@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **relation_type** | [**RelationTypeEnum**](RelationTypeEnum.md) |  | [optional] 
@@ -27,7 +28,7 @@ json = "{}"
 # create an instance of PatchedIssuePropertyAPIRequest from a JSON string
 patched_issue_property_api_request_instance = PatchedIssuePropertyAPIRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedIssuePropertyAPIRequest.to_json()
+print(PatchedIssuePropertyAPIRequest.to_json())
 
 # convert the object into a dict
 patched_issue_property_api_request_dict = patched_issue_property_api_request_instance.to_dict()

@@ -3,6 +3,7 @@
 Comprehensive serializer for intake work items with expanded issue details.  Provides full intake work item data including embedded issue information, status tracking, and triage metadata for issue queue management.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -36,7 +37,7 @@ json = "{}"
 # create an instance of IntakeIssue from a JSON string
 intake_issue_instance = IntakeIssue.from_json(json)
 # print the JSON string representation of the object
-print IntakeIssue.to_json()
+print(IntakeIssue.to_json())
 
 # convert the object into a dict
 intake_issue_dict = intake_issue_instance.to_dict()

@@ -3,6 +3,7 @@
 Comprehensive work item serializer with full relationship management.  Handles complete work item lifecycle including assignees, labels, validation, and related model updates. Supports dynamic field expansion and HTML content processing.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **assignees** | **List[str]** |  | [optional] 
@@ -39,7 +40,7 @@ json = "{}"
 # create an instance of PatchedIssueRequest from a JSON string
 patched_issue_request_instance = PatchedIssueRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedIssueRequest.to_json()
+print(PatchedIssueRequest.to_json())
 
 # convert the object into a dict
 patched_issue_request_dict = patched_issue_request_instance.to_dict()

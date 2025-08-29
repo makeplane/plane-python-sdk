@@ -13,12 +13,10 @@
 """  # noqa: E501
 
 
+from __future__ import annotations
 import json
-import re  # noqa: F401
-from aenum import Enum
-
-
-
+from enum import Enum
+from typing_extensions import Self
 
 
 class EntityTypeEnum(str, Enum):
@@ -33,8 +31,8 @@ class EntityTypeEnum(str, Enum):
     USER_COVER = 'USER_COVER'
 
     @classmethod
-    def from_json(cls, json_str: str) -> EntityTypeEnum: # noqa: F821
+    def from_json(cls, json_str: str) -> Self:
         """Create an instance of EntityTypeEnum from a JSON string"""
-        return EntityTypeEnum(json.loads(json_str))
+        return cls(json.loads(json_str))
 
 

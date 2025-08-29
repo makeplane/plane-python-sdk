@@ -3,6 +3,7 @@
 Full serializer for work item external links.  Provides complete link information including metadata and timestamps for managing external resource associations with work items.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -28,7 +29,7 @@ json = "{}"
 # create an instance of IssueLink from a JSON string
 issue_link_instance = IssueLink.from_json(json)
 # print the JSON string representation of the object
-print IssueLink.to_json()
+print(IssueLink.to_json())
 
 # convert the object into a dict
 issue_link_dict = issue_link_instance.to_dict()

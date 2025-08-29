@@ -3,6 +3,7 @@
 Serializer for creating and updating work item labels.  Manages label metadata including colors, descriptions, hierarchy, and sorting for work item categorization and filtering.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | [optional] 
@@ -23,7 +24,7 @@ json = "{}"
 # create an instance of PatchedLabelCreateUpdateRequest from a JSON string
 patched_label_create_update_request_instance = PatchedLabelCreateUpdateRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedLabelCreateUpdateRequest.to_json()
+print(PatchedLabelCreateUpdateRequest.to_json())
 
 # convert the object into a dict
 patched_label_create_update_request_dict = patched_label_create_update_request_instance.to_dict()

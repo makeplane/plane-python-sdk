@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **grouped_by** | **str** |  | 
@@ -27,7 +28,7 @@ json = "{}"
 # create an instance of PaginatedCycleIssueResponse from a JSON string
 paginated_cycle_issue_response_instance = PaginatedCycleIssueResponse.from_json(json)
 # print the JSON string representation of the object
-print PaginatedCycleIssueResponse.to_json()
+print(PaginatedCycleIssueResponse.to_json())
 
 # convert the object into a dict
 paginated_cycle_issue_response_dict = paginated_cycle_issue_response_instance.to_dict()

@@ -19,9 +19,8 @@ Retrieve the authenticated user's profile information including basic details.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.user_lite import UserLite
 from plane.rest import ApiException
@@ -65,6 +64,7 @@ with plane.ApiClient(configuration) as api_client:
 
 
 ### Parameters
+
 This endpoint does not need any parameter.
 
 ### Return type
@@ -81,6 +81,7 @@ This endpoint does not need any parameter.
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |

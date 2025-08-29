@@ -3,6 +3,7 @@
 Lightweight user serializer for minimal data transfer.  Provides essential user information including names, avatar, and contact details optimized for member lists, assignee displays, and user references.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -23,7 +24,7 @@ json = "{}"
 # create an instance of UserLite from a JSON string
 user_lite_instance = UserLite.from_json(json)
 # print the JSON string representation of the object
-print UserLite.to_json()
+print(UserLite.to_json())
 
 # convert the object into a dict
 user_lite_dict = user_lite_instance.to_dict()

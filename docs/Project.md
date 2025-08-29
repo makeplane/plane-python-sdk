@@ -3,6 +3,7 @@
 Comprehensive project serializer with metrics and member context.  Provides complete project data including member counts, cycle/module totals, deployment status, and user-specific context for project management.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -60,7 +61,7 @@ json = "{}"
 # create an instance of Project from a JSON string
 project_instance = Project.from_json(json)
 # print the JSON string representation of the object
-print Project.to_json()
+print(Project.to_json())
 
 # convert the object into a dict
 project_dict = project_instance.to_dict()

@@ -3,6 +3,7 @@
 Lightweight cycle serializer for minimal data transfer.  Provides essential cycle information without computed metrics, optimized for list views and reference lookups.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -38,7 +39,7 @@ json = "{}"
 # create an instance of CycleLite from a JSON string
 cycle_lite_instance = CycleLite.from_json(json)
 # print the JSON string representation of the object
-print CycleLite.to_json()
+print(CycleLite.to_json())
 
 # convert the object into a dict
 cycle_lite_dict = cycle_lite_instance.to_dict()

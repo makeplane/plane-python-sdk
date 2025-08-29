@@ -23,9 +23,8 @@ Submit a new work item to the project's intake queue for review and triage. Auto
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.intake_issue import IntakeIssue
 from plane.models.intake_issue_create_request import IntakeIssueCreateRequest
@@ -74,6 +73,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -94,6 +94,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -116,9 +117,8 @@ Permanently remove an intake work item from the triage queue. Also deletes the u
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.rest import ApiException
 from pprint import pprint
@@ -163,6 +163,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **issue_id** | **str**| Issue ID | 
@@ -183,6 +184,7 @@ void (empty response body)
  - **Accept**: Not defined
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -204,9 +206,8 @@ Retrieve all work items in the project's intake queue. Returns paginated results
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.paginated_intake_issue_response import PaginatedIntakeIssueResponse
 from plane.rest import ApiException
@@ -257,6 +258,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -280,6 +282,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -301,9 +304,8 @@ Retrieve details of a specific intake work item.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.intake_issue import IntakeIssue
 from plane.rest import ApiException
@@ -351,6 +353,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **issue_id** | **str**| Issue ID | 
@@ -371,6 +374,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -392,9 +396,8 @@ Modify an existing intake work item's properties or status for triage processing
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.intake_issue import IntakeIssue
 from plane.models.patched_intake_issue_update_request import PatchedIntakeIssueUpdateRequest
@@ -444,6 +447,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **issue_id** | **str**| Issue ID | 
@@ -465,6 +469,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |

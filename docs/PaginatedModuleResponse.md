@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **grouped_by** | **str** |  | 
@@ -27,7 +28,7 @@ json = "{}"
 # create an instance of PaginatedModuleResponse from a JSON string
 paginated_module_response_instance = PaginatedModuleResponse.from_json(json)
 # print the JSON string representation of the object
-print PaginatedModuleResponse.to_json()
+print(PaginatedModuleResponse.to_json())
 
 # convert the object into a dict
 paginated_module_response_dict = paginated_module_response_instance.to_dict()

@@ -3,6 +3,7 @@
 Serializer for cycle-issue relationships with sub-issue counting.  Manages the association between cycles and work items, including hierarchical issue tracking for nested work item structures.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -27,7 +28,7 @@ json = "{}"
 # create an instance of CycleIssue from a JSON string
 cycle_issue_instance = CycleIssue.from_json(json)
 # print the JSON string representation of the object
-print CycleIssue.to_json()
+print(CycleIssue.to_json())
 
 # convert the object into a dict
 cycle_issue_dict = cycle_issue_instance.to_dict()

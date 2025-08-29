@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **error** | **str** | Error message | [optional] 
@@ -17,7 +18,7 @@ json = "{}"
 # create an instance of RetrieveWorkItemAttachment400Response from a JSON string
 retrieve_work_item_attachment400_response_instance = RetrieveWorkItemAttachment400Response.from_json(json)
 # print the JSON string representation of the object
-print RetrieveWorkItemAttachment400Response.to_json()
+print(RetrieveWorkItemAttachment400Response.to_json())
 
 # convert the object into a dict
 retrieve_work_item_attachment400_response_dict = retrieve_work_item_attachment400_response_instance.to_dict()

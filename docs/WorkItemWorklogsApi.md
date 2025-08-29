@@ -23,9 +23,8 @@ Create a new worklog entry
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.issue_work_log_api import IssueWorkLogAPI
 from plane.models.issue_work_log_api_request import IssueWorkLogAPIRequest
@@ -75,6 +74,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **issue_id** | **str**|  | 
@@ -96,6 +96,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -118,9 +119,8 @@ Delete a worklog entry
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.rest import ApiException
 from pprint import pprint
@@ -166,6 +166,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **issue_id** | **str**|  | 
@@ -187,6 +188,7 @@ void (empty response body)
  - **Accept**: Not defined
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -208,9 +210,8 @@ Get project worklog summary
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.project_worklog_summary import ProjectWorklogSummary
 from plane.rest import ApiException
@@ -257,6 +258,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -276,6 +278,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -297,9 +300,8 @@ List worklog entries
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.issue_work_log_api import IssueWorkLogAPI
 from plane.rest import ApiException
@@ -347,6 +349,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **issue_id** | **str**|  | 
@@ -367,6 +370,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -388,9 +392,8 @@ Update a worklog entry
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.issue_work_log_api import IssueWorkLogAPI
 from plane.models.patched_issue_work_log_api_request import PatchedIssueWorkLogAPIRequest
@@ -441,6 +444,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **issue_id** | **str**|  | 
@@ -463,6 +467,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |

@@ -25,9 +25,8 @@ Move a project to archived status, hiding it from active project lists.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.rest import ApiException
 from pprint import pprint
@@ -71,6 +70,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -90,6 +90,7 @@ void (empty response body)
  - **Accept**: Not defined
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -111,9 +112,8 @@ Create a new project in the workspace with default states and member assignments
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.project import Project
 from plane.models.project_create_request import ProjectCreateRequest
@@ -161,6 +161,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **slug** | **str**| Workspace slug | 
@@ -180,6 +181,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -202,9 +204,8 @@ Permanently remove a project and all its associated data from the workspace.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.rest import ApiException
 from pprint import pprint
@@ -248,6 +249,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **pk** | **str**| Project ID | 
@@ -267,6 +269,7 @@ void (empty response body)
  - **Accept**: Not defined
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -288,9 +291,8 @@ Retrieve all projects in a workspace or get details of a specific project.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.paginated_project_response import PaginatedProjectResponse
 from plane.rest import ApiException
@@ -341,6 +343,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **slug** | **str**| Workspace slug | 
@@ -364,6 +367,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -385,9 +389,8 @@ Retrieve details of a specific project.
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.project import Project
 from plane.rest import ApiException
@@ -434,6 +437,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **pk** | **str**| Project ID | 
@@ -453,6 +457,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -474,9 +479,8 @@ Restore an archived project to active status, making it available in regular wor
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.rest import ApiException
 from pprint import pprint
@@ -520,6 +524,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **project_id** | **str**| Project ID | 
@@ -539,6 +544,7 @@ void (empty response body)
  - **Accept**: Not defined
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |
@@ -560,9 +566,8 @@ Partially update an existing project's properties like name, description, or set
 * Api Key Authentication (ApiKeyAuthentication):
 * OAuth Authentication (OAuth2Authentication):
 * OAuth Authentication (OAuth2Authentication):
+
 ```python
-import time
-import os
 import plane
 from plane.models.patched_project_update_request import PatchedProjectUpdateRequest
 from plane.models.project import Project
@@ -611,6 +616,7 @@ with plane.ApiClient(configuration) as api_client:
 
 ### Parameters
 
+
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **pk** | **str**| Project ID | 
@@ -631,6 +637,7 @@ Name | Type | Description  | Notes
  - **Accept**: application/json
 
 ### HTTP response details
+
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 **401** | Authentication credentials were not provided or are invalid. |  -  |

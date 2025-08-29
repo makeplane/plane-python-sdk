@@ -3,6 +3,7 @@
 Serializer for creating cycles with timezone handling and date validation.  Manages cycle creation including project timezone conversion, date range validation, and UTC normalization for time-bound iteration planning and sprint management.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | 
@@ -24,7 +25,7 @@ json = "{}"
 # create an instance of CycleCreateRequest from a JSON string
 cycle_create_request_instance = CycleCreateRequest.from_json(json)
 # print the JSON string representation of the object
-print CycleCreateRequest.to_json()
+print(CycleCreateRequest.to_json())
 
 # convert the object into a dict
 cycle_create_request_dict = cycle_create_request_instance.to_dict()

@@ -3,6 +3,7 @@
 Lightweight module serializer for minimal data transfer.  Provides essential module information without computed metrics, optimized for list views and reference lookups.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -39,7 +40,7 @@ json = "{}"
 # create an instance of ModuleLite from a JSON string
 module_lite_instance = ModuleLite.from_json(json)
 # print the JSON string representation of the object
-print ModuleLite.to_json()
+print(ModuleLite.to_json())
 
 # convert the object into a dict
 module_lite_dict = module_lite_instance.to_dict()

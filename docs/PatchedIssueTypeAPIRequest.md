@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **project_ids** | **List[str]** |  | [optional] 
@@ -22,7 +23,7 @@ json = "{}"
 # create an instance of PatchedIssueTypeAPIRequest from a JSON string
 patched_issue_type_api_request_instance = PatchedIssueTypeAPIRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedIssueTypeAPIRequest.to_json()
+print(PatchedIssueTypeAPIRequest.to_json())
 
 # convert the object into a dict
 patched_issue_type_api_request_dict = patched_issue_type_api_request_instance.to_dict()

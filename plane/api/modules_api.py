@@ -12,15 +12,9 @@
     Do not edit the class manually.
 """  # noqa: E501
 
-
-import re  # noqa: F401
-
-from pydantic import validate_arguments
-
+from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
+from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
-from pydantic import Field, StrictInt, StrictStr
-
-from typing import Optional
 
 from plane.models.module import Module
 from plane.models.module_create_request import ModuleCreateRequest
@@ -31,12 +25,9 @@ from plane.models.paginated_module_issue_response import PaginatedModuleIssueRes
 from plane.models.paginated_module_response import PaginatedModuleResponse
 from plane.models.patched_module_update_request import PatchedModuleUpdateRequest
 
-from plane.api_client import ApiClient
+from plane.api_client import ApiClient, RequestSerialized
 from plane.api_response import ApiResponse
-from plane.exceptions import (  # noqa: F401
-    ApiTypeError,
-    ApiValueError
-)
+from plane.rest import RESTResponseType
 
 
 class ModulesApi:
@@ -51,52 +42,30 @@ class ModulesApi:
             api_client = ApiClient.get_default()
         self.api_client = api_client
 
-    @validate_arguments
-    def add_module_work_items(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], module_issue_request_request : ModuleIssueRequestRequest, **kwargs) -> ModuleIssue:  # noqa: E501
-        """Add Work Items to Module  # noqa: E501
 
-        Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def add_module_work_items(
+        self,
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        module_issue_request_request: ModuleIssueRequestRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ModuleIssue:
+        """Add Work Items to Module
 
-        >>> thread = api.add_module_work_items(module_id, project_id, slug, module_issue_request_request, async_req=True)
-        >>> result = thread.get()
-
-        :param module_id: Module ID (required)
-        :type module_id: str
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param module_issue_request_request: (required)
-        :type module_issue_request_request: ModuleIssueRequestRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: ModuleIssue
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the add_module_work_items_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.add_module_work_items_with_http_info(module_id, project_id, slug, module_issue_request_request, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def add_module_work_items_with_http_info(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], module_issue_request_request : ModuleIssueRequestRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Add Work Items to Module  # noqa: E501
-
-        Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.add_module_work_items_with_http_info(module_id, project_id, slug, module_issue_request_request, async_req=True)
-        >>> result = thread.get()
+        Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
 
         :param module_id: Module ID (required)
         :type module_id: str
@@ -106,419 +75,669 @@ class ModulesApi:
         :type slug: str
         :param module_issue_request_request: (required)
         :type module_issue_request_request: ModuleIssueRequestRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(ModuleIssue, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'module_id',
-            'project_id',
-            'slug',
-            'module_issue_request_request'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._add_module_work_items_serialize(
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            module_issue_request_request=module_issue_request_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method add_module_work_items" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
-
-        _collection_formats = {}
-
-        # process the path parameters
-        _path_params = {}
-        if _params['module_id'] is not None:
-            _path_params['module_id'] = _params['module_id']
-
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
-        # process the query parameters
-        _query_params = []
-        # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
-        # process the form parameters
-        _form_params = []
-        _files = {}
-        # process the body parameter
-        _body_params = None
-        if _params['module_issue_request_request'] is not None:
-            _body_params = _params['module_issue_request_request']
-
-        # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
-
-        # set the HTTP header `Content-Type`
-        _content_types_list = _params.get('_content_type',
-            self.api_client.select_header_content_type(
-                ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data']))
-        if _content_types_list:
-                _header_params['Content-Type'] = _content_types_list
-
-        # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
-
-        _response_types_map = {
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '200': "ModuleIssue",
             '400': None,
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/', 'POST',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def archive_module(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Archive module  # noqa: E501
 
-        Move a module to archived status for historical tracking.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def add_module_work_items_with_http_info(
+        self,
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        module_issue_request_request: ModuleIssueRequestRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[ModuleIssue]:
+        """Add Work Items to Module
 
-        >>> thread = api.archive_module(pk, project_id, slug, async_req=True)
-        >>> result = thread.get()
+        Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
 
-        :param pk: Module ID (required)
-        :type pk: str
+        :param module_id: Module ID (required)
+        :type module_id: str
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the archive_module_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.archive_module_with_http_info(pk, project_id, slug, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def archive_module_with_http_info(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Archive module  # noqa: E501
-
-        Move a module to archived status for historical tracking.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.archive_module_with_http_info(pk, project_id, slug, async_req=True)
-        >>> result = thread.get()
-
-        :param pk: Module ID (required)
-        :type pk: str
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
+        :param module_issue_request_request: (required)
+        :type module_issue_request_request: ModuleIssueRequestRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'pk',
-            'project_id',
-            'slug'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._add_module_work_items_serialize(
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            module_issue_request_request=module_issue_request_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method archive_module" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
-
-        _collection_formats = {}
-
-        # process the path parameters
-        _path_params = {}
-        if _params['pk'] is not None:
-            _path_params['pk'] = _params['pk']
-
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
-        # process the query parameters
-        _query_params = []
-        # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
-        # process the form parameters
-        _form_params = []
-        _files = {}
-        # process the body parameter
-        _body_params = None
-        # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
-
-        _response_types_map = {}
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/archive/', 'POST',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "ModuleIssue",
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        )
 
-    @validate_arguments
-    def create_module(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], module_create_request : ModuleCreateRequest, **kwargs) -> Module:  # noqa: E501
-        """Create module  # noqa: E501
 
-        Create a new project module with specified name, description, and timeline.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def add_module_work_items_without_preload_content(
+        self,
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        module_issue_request_request: ModuleIssueRequestRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Add Work Items to Module
 
-        >>> thread = api.create_module(project_id, slug, module_create_request, async_req=True)
-        >>> result = thread.get()
+        Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
 
+        :param module_id: Module ID (required)
+        :type module_id: str
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param module_create_request: (required)
-        :type module_create_request: ModuleCreateRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: Module
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the create_module_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.create_module_with_http_info(project_id, slug, module_create_request, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def create_module_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], module_create_request : ModuleCreateRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Create module  # noqa: E501
-
-        Create a new project module with specified name, description, and timeline.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.create_module_with_http_info(project_id, slug, module_create_request, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param module_create_request: (required)
-        :type module_create_request: ModuleCreateRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
+        :param module_issue_request_request: (required)
+        :type module_issue_request_request: ModuleIssueRequestRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(Module, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'project_id',
-            'slug',
-            'module_create_request'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._add_module_work_items_serialize(
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            module_issue_request_request=module_issue_request_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method create_module" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "ModuleIssue",
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
 
-        _collection_formats = {}
+
+    def _add_module_work_items_serialize(
+        self,
+        module_id,
+        project_id,
+        slug,
+        module_issue_request_request,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
+        if module_id is not None:
+            _path_params['module_id'] = module_id
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
         # process the query parameters
-        _query_params = []
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
-        if _params['module_create_request'] is not None:
-            _body_params = _params['module_create_request']
+        if module_issue_request_request is not None:
+            _body_params = module_issue_request_request
+
 
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
 
         # set the HTTP header `Content-Type`
-        _content_types_list = _params.get('_content_type',
-            self.api_client.select_header_content_type(
-                ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data']))
-        if _content_types_list:
-                _header_params['Content-Type'] = _content_types_list
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json', 
+                        'application/x-www-form-urlencoded', 
+                        'multipart/form-data'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def archive_module(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> None:
+        """Archive module
+
+        Move a module to archived status for historical tracking.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._archive_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def archive_module_with_http_info(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[None]:
+        """Archive module
+
+        Move a module to archived status for historical tracking.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._archive_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def archive_module_without_preload_content(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Archive module
+
+        Move a module to archived status for historical tracking.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._archive_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _archive_module_serialize(
+        self,
+        pk,
+        project_id,
+        slug,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if pk is not None:
+            _path_params['pk'] = pk
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/archive/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def create_module(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        module_create_request: ModuleCreateRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Module:
+        """Create module
+
+        Create a new project module with specified name, description, and timeline.
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param module_create_request: (required)
+        :type module_create_request: ModuleCreateRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._create_module_serialize(
+            project_id=project_id,
+            slug=slug,
+            module_create_request=module_create_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
@@ -526,536 +745,986 @@ class ModulesApi:
             '400': None,
             '409': None,
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/', 'POST',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def delete_module(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Delete module  # noqa: E501
 
-        Permanently remove a module and all its associated issue relationships.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def create_module_with_http_info(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        module_create_request: ModuleCreateRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Module]:
+        """Create module
 
-        >>> thread = api.delete_module(pk, project_id, slug, async_req=True)
-        >>> result = thread.get()
+        Create a new project module with specified name, description, and timeline.
 
-        :param pk: Module ID (required)
-        :type pk: str
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_module_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.delete_module_with_http_info(pk, project_id, slug, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def delete_module_with_http_info(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete module  # noqa: E501
-
-        Permanently remove a module and all its associated issue relationships.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.delete_module_with_http_info(pk, project_id, slug, async_req=True)
-        >>> result = thread.get()
-
-        :param pk: Module ID (required)
-        :type pk: str
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
+        :param module_create_request: (required)
+        :type module_create_request: ModuleCreateRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'pk',
-            'project_id',
-            'slug'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._create_module_serialize(
+            project_id=project_id,
+            slug=slug,
+            module_create_request=module_create_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method delete_module" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
-
-        _collection_formats = {}
-
-        # process the path parameters
-        _path_params = {}
-        if _params['pk'] is not None:
-            _path_params['pk'] = _params['pk']
-
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
-        # process the query parameters
-        _query_params = []
-        # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
-        # process the form parameters
-        _form_params = []
-        _files = {}
-        # process the body parameter
-        _body_params = None
-        # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
-
-        _response_types_map = {}
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/', 'DELETE',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '201': "Module",
+            '400': None,
+            '409': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        )
 
-    @validate_arguments
-    def delete_module_work_item(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Delete module work item  # noqa: E501
 
-        Remove a work item from a module while keeping the work item in the project.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def create_module_without_preload_content(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        module_create_request: ModuleCreateRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Create module
 
-        >>> thread = api.delete_module_work_item(issue_id, module_id, project_id, slug, async_req=True)
-        >>> result = thread.get()
+        Create a new project module with specified name, description, and timeline.
 
-        :param issue_id: Issue ID (required)
-        :type issue_id: str
-        :param module_id: Module ID (required)
-        :type module_id: str
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_module_work_item_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.delete_module_work_item_with_http_info(issue_id, module_id, project_id, slug, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def delete_module_work_item_with_http_info(self, issue_id : Annotated[StrictStr, Field(..., description="Issue ID")], module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete module work item  # noqa: E501
-
-        Remove a work item from a module while keeping the work item in the project.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.delete_module_work_item_with_http_info(issue_id, module_id, project_id, slug, async_req=True)
-        >>> result = thread.get()
-
-        :param issue_id: Issue ID (required)
-        :type issue_id: str
-        :param module_id: Module ID (required)
-        :type module_id: str
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
+        :param module_create_request: (required)
+        :type module_create_request: ModuleCreateRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'issue_id',
-            'module_id',
-            'project_id',
-            'slug'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._create_module_serialize(
+            project_id=project_id,
+            slug=slug,
+            module_create_request=module_create_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method delete_module_work_item" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
-
-        _collection_formats = {}
-
-        # process the path parameters
-        _path_params = {}
-        if _params['issue_id'] is not None:
-            _path_params['issue_id'] = _params['issue_id']
-
-        if _params['module_id'] is not None:
-            _path_params['module_id'] = _params['module_id']
-
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
-        # process the query parameters
-        _query_params = []
-        # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
-        # process the form parameters
-        _form_params = []
-        _files = {}
-        # process the body parameter
-        _body_params = None
-        # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
-
-        _response_types_map = {}
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/{issue_id}/', 'DELETE',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
-            response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
-
-    @validate_arguments
-    def list_archived_modules(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedArchivedModuleResponse:  # noqa: E501
-        """List archived modules  # noqa: E501
-
-        Retrieve all modules that have been archived in the project.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.list_archived_modules(project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param cursor: Pagination cursor for getting next set of results
-        :type cursor: str
-        :param expand: Comma-separated list of related fields to expand in response
-        :type expand: str
-        :param fields: Comma-separated list of fields to include in response
-        :type fields: str
-        :param order_by: Field to order results by. Prefix with '-' for descending order
-        :type order_by: str
-        :param per_page: Number of results per page (default: 20, max: 100)
-        :type per_page: int
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: PaginatedArchivedModuleResponse
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the list_archived_modules_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.list_archived_modules_with_http_info(project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def list_archived_modules_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """List archived modules  # noqa: E501
-
-        Retrieve all modules that have been archived in the project.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.list_archived_modules_with_http_info(project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param cursor: Pagination cursor for getting next set of results
-        :type cursor: str
-        :param expand: Comma-separated list of related fields to expand in response
-        :type expand: str
-        :param fields: Comma-separated list of fields to include in response
-        :type fields: str
-        :param order_by: Field to order results by. Prefix with '-' for descending order
-        :type order_by: str
-        :param per_page: Number of results per page (default: 20, max: 100)
-        :type per_page: int
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
-        :param _request_timeout: timeout setting for this request. If one
-                                 number provided, it will be total request
-                                 timeout. It can also be a pair (tuple) of
-                                 (connection, read) timeouts.
-        :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
-        :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(PaginatedArchivedModuleResponse, status_code(int), headers(HTTPHeaderDict))
-        """
-
-        _params = locals()
-
-        _all_params = [
-            'project_id',
-            'slug',
-            'cursor',
-            'expand',
-            'fields',
-            'order_by',
-            'per_page'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '201': "Module",
+            '400': None,
+            '409': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
         )
+        return response_data.response
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method list_archived_modules" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
 
-        _collection_formats = {}
+    def _create_module_serialize(
+        self,
+        project_id,
+        slug,
+        module_create_request,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
         # process the query parameters
-        _query_params = []
-        if _params.get('cursor') is not None:  # noqa: E501
-            _query_params.append(('cursor', _params['cursor']))
-
-        if _params.get('expand') is not None:  # noqa: E501
-            _query_params.append(('expand', _params['expand']))
-
-        if _params.get('fields') is not None:  # noqa: E501
-            _query_params.append(('fields', _params['fields']))
-
-        if _params.get('order_by') is not None:  # noqa: E501
-            _query_params.append(('order_by', _params['order_by']))
-
-        if _params.get('per_page') is not None:  # noqa: E501
-            _query_params.append(('per_page', _params['per_page']))
-
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
+        if module_create_request is not None:
+            _body_params = module_create_request
+
+
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json', 
+                        'application/x-www-form-urlencoded', 
+                        'multipart/form-data'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def delete_module(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> None:
+        """Delete module
+
+        Permanently remove a module and all its associated issue relationships.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def delete_module_with_http_info(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[None]:
+        """Delete module
+
+        Permanently remove a module and all its associated issue relationships.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def delete_module_without_preload_content(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Delete module
+
+        Permanently remove a module and all its associated issue relationships.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _delete_module_serialize(
+        self,
+        pk,
+        project_id,
+        slug,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if pk is not None:
+            _path_params['pk'] = pk
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='DELETE',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def delete_module_work_item(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> None:
+        """Delete module work item
+
+        Remove a work item from a module while keeping the work item in the project.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param module_id: Module ID (required)
+        :type module_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_module_work_item_serialize(
+            issue_id=issue_id,
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def delete_module_work_item_with_http_info(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[None]:
+        """Delete module work item
+
+        Remove a work item from a module while keeping the work item in the project.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param module_id: Module ID (required)
+        :type module_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_module_work_item_serialize(
+            issue_id=issue_id,
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def delete_module_work_item_without_preload_content(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Delete module work item
+
+        Remove a work item from a module while keeping the work item in the project.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param module_id: Module ID (required)
+        :type module_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_module_work_item_serialize(
+            issue_id=issue_id,
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _delete_module_work_item_serialize(
+        self,
+        issue_id,
+        module_id,
+        project_id,
+        slug,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if issue_id is not None:
+            _path_params['issue_id'] = issue_id
+        if module_id is not None:
+            _path_params['module_id'] = module_id
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='DELETE',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/{issue_id}/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def list_archived_modules(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> PaginatedArchivedModuleResponse:
+        """List archived modules
+
+        Retrieve all modules that have been archived in the project.
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_archived_modules_serialize(
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '200': "PaginatedArchivedModuleResponse",
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/archived-modules/', 'GET',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def list_module_work_items(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedModuleIssueResponse:  # noqa: E501
-        """List module work items  # noqa: E501
 
-        Retrieve all work items assigned to a module with detailed information.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def list_archived_modules_with_http_info(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[PaginatedArchivedModuleResponse]:
+        """List archived modules
 
-        >>> thread = api.list_module_work_items(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
-        >>> result = thread.get()
+        Retrieve all modules that have been archived in the project.
 
-        :param module_id: Module ID (required)
-        :type module_id: str
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
@@ -1070,189 +1739,371 @@ class ModulesApi:
         :type order_by: str
         :param per_page: Number of results per page (default: 20, max: 100)
         :type per_page: int
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: PaginatedModuleIssueResponse
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the list_module_work_items_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.list_module_work_items_with_http_info(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def list_module_work_items_with_http_info(self, module_id : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """List module work items  # noqa: E501
-
-        Retrieve all work items assigned to a module with detailed information.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.list_module_work_items_with_http_info(module_id, project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
-        >>> result = thread.get()
-
-        :param module_id: Module ID (required)
-        :type module_id: str
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param cursor: Pagination cursor for getting next set of results
-        :type cursor: str
-        :param expand: Comma-separated list of related fields to expand in response
-        :type expand: str
-        :param fields: Comma-separated list of fields to include in response
-        :type fields: str
-        :param order_by: Field to order results by. Prefix with '-' for descending order
-        :type order_by: str
-        :param per_page: Number of results per page (default: 20, max: 100)
-        :type per_page: int
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(PaginatedModuleIssueResponse, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'module_id',
-            'project_id',
-            'slug',
-            'cursor',
-            'expand',
-            'fields',
-            'order_by',
-            'per_page'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._list_archived_modules_serialize(
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method list_module_work_items" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "PaginatedArchivedModuleResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
 
-        _collection_formats = {}
+
+    @validate_call
+    def list_archived_modules_without_preload_content(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List archived modules
+
+        Retrieve all modules that have been archived in the project.
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_archived_modules_serialize(
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "PaginatedArchivedModuleResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _list_archived_modules_serialize(
+        self,
+        project_id,
+        slug,
+        cursor,
+        expand,
+        fields,
+        order_by,
+        per_page,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['module_id'] is not None:
-            _path_params['module_id'] = _params['module_id']
-
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
         # process the query parameters
-        _query_params = []
-        if _params.get('cursor') is not None:  # noqa: E501
-            _query_params.append(('cursor', _params['cursor']))
-
-        if _params.get('expand') is not None:  # noqa: E501
-            _query_params.append(('expand', _params['expand']))
-
-        if _params.get('fields') is not None:  # noqa: E501
-            _query_params.append(('fields', _params['fields']))
-
-        if _params.get('order_by') is not None:  # noqa: E501
-            _query_params.append(('order_by', _params['order_by']))
-
-        if _params.get('per_page') is not None:  # noqa: E501
-            _query_params.append(('per_page', _params['per_page']))
-
+        if cursor is not None:
+            
+            _query_params.append(('cursor', cursor))
+            
+        if expand is not None:
+            
+            _query_params.append(('expand', expand))
+            
+        if fields is not None:
+            
+            _query_params.append(('fields', fields))
+            
+        if order_by is not None:
+            
+            _query_params.append(('order_by', order_by))
+            
+        if per_page is not None:
+            
+            _query_params.append(('per_page', per_page))
+            
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
+
+
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/archived-modules/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def list_module_work_items(
+        self,
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> PaginatedModuleIssueResponse:
+        """List module work items
+
+        Retrieve all work items assigned to a module with detailed information.
+
+        :param module_id: Module ID (required)
+        :type module_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_module_work_items_serialize(
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '200': "PaginatedModuleIssueResponse",
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/', 'GET',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def list_modules(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> PaginatedModuleResponse:  # noqa: E501
-        """List modules  # noqa: E501
 
-        Retrieve all modules in a project.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def list_module_work_items_with_http_info(
+        self,
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[PaginatedModuleIssueResponse]:
+        """List module work items
 
-        >>> thread = api.list_modules(project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
-        >>> result = thread.get()
+        Retrieve all work items assigned to a module with detailed information.
 
+        :param module_id: Module ID (required)
+        :type module_id: str
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
@@ -1267,375 +2118,723 @@ class ModulesApi:
         :type order_by: str
         :param per_page: Number of results per page (default: 20, max: 100)
         :type per_page: int
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: PaginatedModuleResponse
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the list_modules_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.list_modules_with_http_info(project_id, slug, cursor, expand, fields, order_by, per_page, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def list_modules_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], cursor : Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None, expand : Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None, fields : Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None, order_by : Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None, per_page : Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """List modules  # noqa: E501
-
-        Retrieve all modules in a project.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.list_modules_with_http_info(project_id, slug, cursor, expand, fields, order_by, per_page, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param cursor: Pagination cursor for getting next set of results
-        :type cursor: str
-        :param expand: Comma-separated list of related fields to expand in response
-        :type expand: str
-        :param fields: Comma-separated list of fields to include in response
-        :type fields: str
-        :param order_by: Field to order results by. Prefix with '-' for descending order
-        :type order_by: str
-        :param per_page: Number of results per page (default: 20, max: 100)
-        :type per_page: int
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(PaginatedModuleResponse, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'project_id',
-            'slug',
-            'cursor',
-            'expand',
-            'fields',
-            'order_by',
-            'per_page'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._list_module_work_items_serialize(
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method list_modules" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "PaginatedModuleIssueResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
 
-        _collection_formats = {}
+
+    @validate_call
+    def list_module_work_items_without_preload_content(
+        self,
+        module_id: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List module work items
+
+        Retrieve all work items assigned to a module with detailed information.
+
+        :param module_id: Module ID (required)
+        :type module_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_module_work_items_serialize(
+            module_id=module_id,
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "PaginatedModuleIssueResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _list_module_work_items_serialize(
+        self,
+        module_id,
+        project_id,
+        slug,
+        cursor,
+        expand,
+        fields,
+        order_by,
+        per_page,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
+        if module_id is not None:
+            _path_params['module_id'] = module_id
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
         # process the query parameters
-        _query_params = []
-        if _params.get('cursor') is not None:  # noqa: E501
-            _query_params.append(('cursor', _params['cursor']))
-
-        if _params.get('expand') is not None:  # noqa: E501
-            _query_params.append(('expand', _params['expand']))
-
-        if _params.get('fields') is not None:  # noqa: E501
-            _query_params.append(('fields', _params['fields']))
-
-        if _params.get('order_by') is not None:  # noqa: E501
-            _query_params.append(('order_by', _params['order_by']))
-
-        if _params.get('per_page') is not None:  # noqa: E501
-            _query_params.append(('per_page', _params['per_page']))
-
+        if cursor is not None:
+            
+            _query_params.append(('cursor', cursor))
+            
+        if expand is not None:
+            
+            _query_params.append(('expand', expand))
+            
+        if fields is not None:
+            
+            _query_params.append(('fields', fields))
+            
+        if order_by is not None:
+            
+            _query_params.append(('order_by', order_by))
+            
+        if per_page is not None:
+            
+            _query_params.append(('per_page', per_page))
+            
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
+
+
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/{module_id}/module-issues/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def list_modules(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> PaginatedModuleResponse:
+        """List modules
+
+        Retrieve all modules in a project.
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_modules_serialize(
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '200': "PaginatedModuleResponse",
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/', 'GET',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def retrieve_module(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> Module:  # noqa: E501
-        """Retrieve module  # noqa: E501
 
-        Retrieve details of a specific module.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def list_modules_with_http_info(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[PaginatedModuleResponse]:
+        """List modules
 
-        >>> thread = api.retrieve_module(pk, project_id, slug, async_req=True)
-        >>> result = thread.get()
+        Retrieve all modules in a project.
 
-        :param pk: Module ID (required)
-        :type pk: str
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: Module
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the retrieve_module_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.retrieve_module_with_http_info(pk, project_id, slug, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def retrieve_module_with_http_info(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Retrieve module  # noqa: E501
-
-        Retrieve details of a specific module.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.retrieve_module_with_http_info(pk, project_id, slug, async_req=True)
-        >>> result = thread.get()
-
-        :param pk: Module ID (required)
-        :type pk: str
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(Module, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'pk',
-            'project_id',
-            'slug'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._list_modules_serialize(
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method retrieve_module" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "PaginatedModuleResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
 
-        _collection_formats = {}
+
+    @validate_call
+    def list_modules_without_preload_content(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List modules
+
+        Retrieve all modules in a project.
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_modules_serialize(
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "PaginatedModuleResponse",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _list_modules_serialize(
+        self,
+        project_id,
+        slug,
+        cursor,
+        expand,
+        fields,
+        order_by,
+        per_page,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['pk'] is not None:
-            _path_params['pk'] = _params['pk']
-
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
         # process the query parameters
-        _query_params = []
+        if cursor is not None:
+            
+            _query_params.append(('cursor', cursor))
+            
+        if expand is not None:
+            
+            _query_params.append(('expand', expand))
+            
+        if fields is not None:
+            
+            _query_params.append(('fields', fields))
+            
+        if order_by is not None:
+            
+            _query_params.append(('order_by', order_by))
+            
+        if per_page is not None:
+            
+            _query_params.append(('per_page', per_page))
+            
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
+
+
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def retrieve_module(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Module:
+        """Retrieve module
+
+        Retrieve details of a specific module.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._retrieve_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '200': "Module",
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/', 'GET',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def unarchive_module(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> None:  # noqa: E501
-        """Unarchive module  # noqa: E501
 
-        Restore an archived module to active status, making it available for regular use.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def retrieve_module_with_http_info(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Module]:
+        """Retrieve module
 
-        >>> thread = api.unarchive_module(pk, project_id, slug, async_req=True)
-        >>> result = thread.get()
-
-        :param pk: Module ID (required)
-        :type pk: str
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the unarchive_module_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.unarchive_module_with_http_info(pk, project_id, slug, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def unarchive_module_with_http_info(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """Unarchive module  # noqa: E501
-
-        Restore an archived module to active status, making it available for regular use.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.unarchive_module_with_http_info(pk, project_id, slug, async_req=True)
-        >>> result = thread.get()
+        Retrieve details of a specific module.
 
         :param pk: Module ID (required)
         :type pk: str
@@ -1643,151 +2842,77 @@ class ModulesApi:
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'pk',
-            'project_id',
-            'slug'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._retrieve_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method unarchive_module" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
-
-        _collection_formats = {}
-
-        # process the path parameters
-        _path_params = {}
-        if _params['pk'] is not None:
-            _path_params['pk'] = _params['pk']
-
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
-        # process the query parameters
-        _query_params = []
-        # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
-        # process the form parameters
-        _form_params = []
-        _files = {}
-        # process the body parameter
-        _body_params = None
-        # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
-
-        _response_types_map = {}
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/archived-modules/{pk}/unarchive/', 'DELETE',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "Module",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        )
 
-    @validate_arguments
-    def update_module(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_module_update_request : Optional[PatchedModuleUpdateRequest] = None, **kwargs) -> Module:  # noqa: E501
-        """Update module  # noqa: E501
 
-        Modify an existing module's properties like name, description, status, or timeline.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def retrieve_module_without_preload_content(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Retrieve module
 
-        >>> thread = api.update_module(pk, project_id, slug, patched_module_update_request, async_req=True)
-        >>> result = thread.get()
-
-        :param pk: Module ID (required)
-        :type pk: str
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param patched_module_update_request:
-        :type patched_module_update_request: PatchedModuleUpdateRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: Module
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the update_module_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.update_module_with_http_info(pk, project_id, slug, patched_module_update_request, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def update_module_with_http_info(self, pk : Annotated[StrictStr, Field(..., description="Module ID")], project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], patched_module_update_request : Optional[PatchedModuleUpdateRequest] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """Update module  # noqa: E501
-
-        Modify an existing module's properties like name, description, status, or timeline.  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.update_module_with_http_info(pk, project_id, slug, patched_module_update_request, async_req=True)
-        >>> result = thread.get()
+        Retrieve details of a specific module.
 
         :param pk: Module ID (required)
         :type pk: str
@@ -1795,104 +2920,484 @@ class ModulesApi:
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param patched_module_update_request:
-        :type patched_module_update_request: PatchedModuleUpdateRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(Module, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'pk',
-            'project_id',
-            'slug',
-            'patched_module_update_request'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._retrieve_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method update_module" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "Module",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
 
-        _collection_formats = {}
+
+    def _retrieve_module_serialize(
+        self,
+        pk,
+        project_id,
+        slug,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['pk'] is not None:
-            _path_params['pk'] = _params['pk']
-
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
+        if pk is not None:
+            _path_params['pk'] = pk
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
         # process the query parameters
-        _query_params = []
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
-        if _params['patched_module_update_request'] is not None:
-            _body_params = _params['patched_module_update_request']
+
 
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
 
-        # set the HTTP header `Content-Type`
-        _content_types_list = _params.get('_content_type',
-            self.api_client.select_header_content_type(
-                ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data']))
-        if _content_types_list:
-                _header_params['Content-Type'] = _content_types_list
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def unarchive_module(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> None:
+        """Unarchive module
+
+        Restore an archived module to active status, making it available for regular use.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._unarchive_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def unarchive_module_with_http_info(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[None]:
+        """Unarchive module
+
+        Restore an archived module to active status, making it available for regular use.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._unarchive_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def unarchive_module_without_preload_content(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Unarchive module
+
+        Restore an archived module to active status, making it available for regular use.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._unarchive_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _unarchive_module_serialize(
+        self,
+        pk,
+        project_id,
+        slug,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if pk is not None:
+            _path_params['pk'] = pk
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='DELETE',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/archived-modules/{pk}/unarchive/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def update_module(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        patched_module_update_request: Optional[PatchedModuleUpdateRequest] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> Module:
+        """Update module
+
+        Modify an existing module's properties like name, description, status, or timeline.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param patched_module_update_request:
+        :type patched_module_update_request: PatchedModuleUpdateRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._update_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            patched_module_update_request=patched_module_update_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
@@ -1900,20 +3405,266 @@ class ModulesApi:
             '400': "Module",
             '409': None,
         }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
 
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/', 'PATCH',
-            _path_params,
-            _query_params,
-            _header_params,
+
+    @validate_call
+    def update_module_with_http_info(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        patched_module_update_request: Optional[PatchedModuleUpdateRequest] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[Module]:
+        """Update module
+
+        Modify an existing module's properties like name, description, status, or timeline.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param patched_module_update_request:
+        :type patched_module_update_request: PatchedModuleUpdateRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._update_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            patched_module_update_request=patched_module_update_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "Module",
+            '400': "Module",
+            '409': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def update_module_without_preload_content(
+        self,
+        pk: Annotated[StrictStr, Field(description="Module ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        patched_module_update_request: Optional[PatchedModuleUpdateRequest] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Update module
+
+        Modify an existing module's properties like name, description, status, or timeline.
+
+        :param pk: Module ID (required)
+        :type pk: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param patched_module_update_request:
+        :type patched_module_update_request: PatchedModuleUpdateRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._update_module_serialize(
+            pk=pk,
+            project_id=project_id,
+            slug=slug,
+            patched_module_update_request=patched_module_update_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "Module",
+            '400': "Module",
+            '409': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _update_module_serialize(
+        self,
+        pk,
+        project_id,
+        slug,
+        patched_module_update_request,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if pk is not None:
+            _path_params['pk'] = pk
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if patched_module_update_request is not None:
+            _body_params = patched_module_update_request
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json', 
+                        'application/x-www-form-urlencoded', 
+                        'multipart/form-data'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='PATCH',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
             body=_body_params,
             post_params=_form_params,
             files=_files,
-            response_types_map=_response_types_map,
             auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
             collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+

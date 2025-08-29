@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -25,7 +26,7 @@ json = "{}"
 # create an instance of IssueWorkLogAPI from a JSON string
 issue_work_log_api_instance = IssueWorkLogAPI.from_json(json)
 # print the JSON string representation of the object
-print IssueWorkLogAPI.to_json()
+print(IssueWorkLogAPI.to_json())
 
 # convert the object into a dict
 issue_work_log_api_dict = issue_work_log_api_instance.to_dict()

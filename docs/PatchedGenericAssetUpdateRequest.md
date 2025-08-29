@@ -3,6 +3,7 @@
 Serializer for generic asset upload confirmation and status management.  Handles post-upload status updates for workspace assets including upload completion marking and metadata finalization.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **is_uploaded** | **bool** | Whether the asset has been successfully uploaded | [optional] [default to True]
@@ -17,7 +18,7 @@ json = "{}"
 # create an instance of PatchedGenericAssetUpdateRequest from a JSON string
 patched_generic_asset_update_request_instance = PatchedGenericAssetUpdateRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedGenericAssetUpdateRequest.to_json()
+print(PatchedGenericAssetUpdateRequest.to_json())
 
 # convert the object into a dict
 patched_generic_asset_update_request_dict = patched_generic_asset_update_request_instance.to_dict()

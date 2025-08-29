@@ -3,6 +3,7 @@
 Serializer for module-work item relationships with sub-item counting.  Manages the association between modules and work items, including hierarchical issue tracking for nested work item structures.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -27,7 +28,7 @@ json = "{}"
 # create an instance of ModuleIssue from a JSON string
 module_issue_instance = ModuleIssue.from_json(json)
 # print the JSON string representation of the object
-print ModuleIssue.to_json()
+print(ModuleIssue.to_json())
 
 # convert the object into a dict
 module_issue_dict = module_issue_instance.to_dict()

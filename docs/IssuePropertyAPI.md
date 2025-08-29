@@ -2,6 +2,7 @@
 
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -39,7 +40,7 @@ json = "{}"
 # create an instance of IssuePropertyAPI from a JSON string
 issue_property_api_instance = IssuePropertyAPI.from_json(json)
 # print the JSON string representation of the object
-print IssuePropertyAPI.to_json()
+print(IssuePropertyAPI.to_json())
 
 # convert the object into a dict
 issue_property_api_dict = issue_property_api_instance.to_dict()

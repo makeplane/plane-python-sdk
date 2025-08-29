@@ -12,26 +12,17 @@
     Do not edit the class manually.
 """  # noqa: E501
 
-
-import re  # noqa: F401
-
-from pydantic import validate_arguments
-
+from pydantic import validate_call, Field, StrictFloat, StrictStr, StrictInt
+from typing import Any, Dict, List, Optional, Tuple, Union
 from typing_extensions import Annotated
-from pydantic import Field, StrictStr
-
-from typing import List, Optional
 
 from plane.models.issue_type_api import IssueTypeAPI
 from plane.models.issue_type_api_request import IssueTypeAPIRequest
 from plane.models.patched_issue_type_api_request import PatchedIssueTypeAPIRequest
 
-from plane.api_client import ApiClient
+from plane.api_client import ApiClient, RequestSerialized
 from plane.api_response import ApiResponse
-from plane.exceptions import (  # noqa: F401
-    ApiTypeError,
-    ApiValueError
-)
+from plane.rest import RESTResponseType
 
 
 class WorkItemTypesApi:
@@ -46,50 +37,29 @@ class WorkItemTypesApi:
             api_client = ApiClient.get_default()
         self.api_client = api_client
 
-    @validate_arguments
-    def create_issue_type(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_type_api_request : IssueTypeAPIRequest, **kwargs) -> IssueTypeAPI:  # noqa: E501
-        """Create a new issue type  # noqa: E501
 
-        Create a new issue type for a project  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def create_issue_type(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_type_api_request: IssueTypeAPIRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> IssueTypeAPI:
+        """Create a new issue type
 
-        >>> thread = api.create_issue_type(project_id, slug, issue_type_api_request, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param issue_type_api_request: (required)
-        :type issue_type_api_request: IssueTypeAPIRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: IssueTypeAPI
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the create_issue_type_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.create_issue_type_with_http_info(project_id, slug, issue_type_api_request, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def create_issue_type_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], issue_type_api_request : IssueTypeAPIRequest, **kwargs) -> ApiResponse:  # noqa: E501
-        """Create a new issue type  # noqa: E501
-
-        Create a new issue type for a project  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.create_issue_type_with_http_info(project_id, slug, issue_type_api_request, async_req=True)
-        >>> result = thread.get()
+        Create a new issue type for a project
 
         :param project_id: Project ID (required)
         :type project_id: str
@@ -97,628 +67,982 @@ class WorkItemTypesApi:
         :type slug: str
         :param issue_type_api_request: (required)
         :type issue_type_api_request: IssueTypeAPIRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(IssueTypeAPI, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'project_id',
-            'slug',
-            'issue_type_api_request'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._create_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            issue_type_api_request=issue_type_api_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method create_issue_type" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
-
-        _collection_formats = {}
-
-        # process the path parameters
-        _path_params = {}
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
-        # process the query parameters
-        _query_params = []
-        # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
-        # process the form parameters
-        _form_params = []
-        _files = {}
-        # process the body parameter
-        _body_params = None
-        if _params['issue_type_api_request'] is not None:
-            _body_params = _params['issue_type_api_request']
-
-        # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
-
-        # set the HTTP header `Content-Type`
-        _content_types_list = _params.get('_content_type',
-            self.api_client.select_header_content_type(
-                ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data']))
-        if _content_types_list:
-                _header_params['Content-Type'] = _content_types_list
-
-        # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
-
-        _response_types_map = {
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '201': "IssueTypeAPI",
             '409': None,
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/', 'POST',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def delete_issue_type(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], type_id : StrictStr, **kwargs) -> None:  # noqa: E501
-        """Delete an issue type  # noqa: E501
 
-        Delete an issue type  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def create_issue_type_with_http_info(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_type_api_request: IssueTypeAPIRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[IssueTypeAPI]:
+        """Create a new issue type
 
-        >>> thread = api.delete_issue_type(project_id, slug, type_id, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param type_id: (required)
-        :type type_id: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the delete_issue_type_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.delete_issue_type_with_http_info(project_id, slug, type_id, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def delete_issue_type_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], type_id : StrictStr, **kwargs) -> ApiResponse:  # noqa: E501
-        """Delete an issue type  # noqa: E501
-
-        Delete an issue type  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.delete_issue_type_with_http_info(project_id, slug, type_id, async_req=True)
-        >>> result = thread.get()
+        Create a new issue type for a project
 
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param type_id: (required)
-        :type type_id: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
+        :param issue_type_api_request: (required)
+        :type issue_type_api_request: IssueTypeAPIRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: None
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'project_id',
-            'slug',
-            'type_id'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._create_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            issue_type_api_request=issue_type_api_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method delete_issue_type" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
-
-        _collection_formats = {}
-
-        # process the path parameters
-        _path_params = {}
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-        if _params['type_id'] is not None:
-            _path_params['type_id'] = _params['type_id']
-
-
-        # process the query parameters
-        _query_params = []
-        # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
-        # process the form parameters
-        _form_params = []
-        _files = {}
-        # process the body parameter
-        _body_params = None
-        # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
-
-        _response_types_map = {}
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/', 'DELETE',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '201': "IssueTypeAPI",
+            '409': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        )
 
-    @validate_arguments
-    def list_issue_types(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> List[IssueTypeAPI]:  # noqa: E501
-        """List issue types  # noqa: E501
 
-        List all issue types for a project  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def create_issue_type_without_preload_content(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_type_api_request: IssueTypeAPIRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Create a new issue type
 
-        >>> thread = api.list_issue_types(project_id, slug, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: List[IssueTypeAPI]
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the list_issue_types_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.list_issue_types_with_http_info(project_id, slug, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def list_issue_types_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], **kwargs) -> ApiResponse:  # noqa: E501
-        """List issue types  # noqa: E501
-
-        List all issue types for a project  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.list_issue_types_with_http_info(project_id, slug, async_req=True)
-        >>> result = thread.get()
+        Create a new issue type for a project
 
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
+        :param issue_type_api_request: (required)
+        :type issue_type_api_request: IssueTypeAPIRequest
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(List[IssueTypeAPI], status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'project_id',
-            'slug'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._create_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            issue_type_api_request=issue_type_api_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method list_issue_types" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '201': "IssueTypeAPI",
+            '409': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
 
-        _collection_formats = {}
+
+    def _create_issue_type_serialize(
+        self,
+        project_id,
+        slug,
+        issue_type_api_request,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
         # process the query parameters
-        _query_params = []
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
+        if issue_type_api_request is not None:
+            _body_params = issue_type_api_request
+
+
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json', 
+                        'application/x-www-form-urlencoded', 
+                        'multipart/form-data'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def delete_issue_type(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> None:
+        """Delete an issue type
+
+        Delete an issue type
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param type_id: (required)
+        :type type_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def delete_issue_type_with_http_info(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[None]:
+        """Delete an issue type
+
+        Delete an issue type
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param type_id: (required)
+        :type type_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def delete_issue_type_without_preload_content(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Delete an issue type
+
+        Delete an issue type
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param type_id: (required)
+        :type type_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._delete_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _delete_issue_type_serialize(
+        self,
+        project_id,
+        slug,
+        type_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        if type_id is not None:
+            _path_params['type_id'] = type_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='DELETE',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def list_issue_types(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> List[IssueTypeAPI]:
+        """List issue types
+
+        List all issue types for a project
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_issue_types_serialize(
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '200': "List[IssueTypeAPI]",
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/', 'GET',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def retrieve_issue_type(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], type_id : StrictStr, **kwargs) -> IssueTypeAPI:  # noqa: E501
-        """Retrieve an issue type by id  # noqa: E501
 
-        Retrieve an issue type by id  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def list_issue_types_with_http_info(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[List[IssueTypeAPI]]:
+        """List issue types
 
-        >>> thread = api.retrieve_issue_type(project_id, slug, type_id, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param type_id: (required)
-        :type type_id: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: IssueTypeAPI
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the retrieve_issue_type_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.retrieve_issue_type_with_http_info(project_id, slug, type_id, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def retrieve_issue_type_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], type_id : StrictStr, **kwargs) -> ApiResponse:  # noqa: E501
-        """Retrieve an issue type by id  # noqa: E501
-
-        Retrieve an issue type by id  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.retrieve_issue_type_with_http_info(project_id, slug, type_id, async_req=True)
-        >>> result = thread.get()
+        List all issue types for a project
 
         :param project_id: Project ID (required)
         :type project_id: str
         :param slug: Workspace slug (required)
         :type slug: str
-        :param type_id: (required)
-        :type type_id: str
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(IssueTypeAPI, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'project_id',
-            'slug',
-            'type_id'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._list_issue_types_serialize(
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method retrieve_issue_type" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "List[IssueTypeAPI]",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
 
-        _collection_formats = {}
+
+    @validate_call
+    def list_issue_types_without_preload_content(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List issue types
+
+        List all issue types for a project
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_issue_types_serialize(
+            project_id=project_id,
+            slug=slug,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "List[IssueTypeAPI]",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _list_issue_types_serialize(
+        self,
+        project_id,
+        slug,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-        if _params['type_id'] is not None:
-            _path_params['type_id'] = _params['type_id']
-
-
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
         # process the query parameters
-        _query_params = []
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
+
+
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def retrieve_issue_type(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> IssueTypeAPI:
+        """Retrieve an issue type by id
+
+        Retrieve an issue type by id
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param type_id: (required)
+        :type type_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._retrieve_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '200': "IssueTypeAPI",
         }
-
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/', 'GET',
-            _path_params,
-            _query_params,
-            _header_params,
-            body=_body_params,
-            post_params=_form_params,
-            files=_files,
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
             response_types_map=_response_types_map,
-            auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
-            collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+        ).data
 
-    @validate_arguments
-    def update_issue_type(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], type_id : StrictStr, patched_issue_type_api_request : Optional[PatchedIssueTypeAPIRequest] = None, **kwargs) -> IssueTypeAPI:  # noqa: E501
-        """Update an issue type  # noqa: E501
 
-        Update an issue type  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
+    @validate_call
+    def retrieve_issue_type_with_http_info(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[IssueTypeAPI]:
+        """Retrieve an issue type by id
 
-        >>> thread = api.update_issue_type(project_id, slug, type_id, patched_issue_type_api_request, async_req=True)
-        >>> result = thread.get()
-
-        :param project_id: Project ID (required)
-        :type project_id: str
-        :param slug: Workspace slug (required)
-        :type slug: str
-        :param type_id: (required)
-        :type type_id: str
-        :param patched_issue_type_api_request:
-        :type patched_issue_type_api_request: PatchedIssueTypeAPIRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _request_timeout: timeout setting for this request.
-               If one number provided, it will be total request
-               timeout. It can also be a pair (tuple) of
-               (connection, read) timeouts.
-        :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: IssueTypeAPI
-        """
-        kwargs['_return_http_data_only'] = True
-        if '_preload_content' in kwargs:
-            message = "Error! Please call the update_issue_type_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data"  # noqa: E501
-            raise ValueError(message)
-        return self.update_issue_type_with_http_info(project_id, slug, type_id, patched_issue_type_api_request, **kwargs)  # noqa: E501
-
-    @validate_arguments
-    def update_issue_type_with_http_info(self, project_id : Annotated[StrictStr, Field(..., description="Project ID")], slug : Annotated[StrictStr, Field(..., description="Workspace slug")], type_id : StrictStr, patched_issue_type_api_request : Optional[PatchedIssueTypeAPIRequest] = None, **kwargs) -> ApiResponse:  # noqa: E501
-        """Update an issue type  # noqa: E501
-
-        Update an issue type  # noqa: E501
-        This method makes a synchronous HTTP request by default. To make an
-        asynchronous HTTP request, please pass async_req=True
-
-        >>> thread = api.update_issue_type_with_http_info(project_id, slug, type_id, patched_issue_type_api_request, async_req=True)
-        >>> result = thread.get()
+        Retrieve an issue type by id
 
         :param project_id: Project ID (required)
         :type project_id: str
@@ -726,124 +1050,531 @@ class WorkItemTypesApi:
         :type slug: str
         :param type_id: (required)
         :type type_id: str
-        :param patched_issue_type_api_request:
-        :type patched_issue_type_api_request: PatchedIssueTypeAPIRequest
-        :param async_req: Whether to execute the request asynchronously.
-        :type async_req: bool, optional
-        :param _preload_content: if False, the ApiResponse.data will
-                                 be set to none and raw_data will store the
-                                 HTTP response body without reading/decoding.
-                                 Default is True.
-        :type _preload_content: bool, optional
-        :param _return_http_data_only: response data instead of ApiResponse
-                                       object with status code, headers, etc
-        :type _return_http_data_only: bool, optional
         :param _request_timeout: timeout setting for this request. If one
                                  number provided, it will be total request
                                  timeout. It can also be a pair (tuple) of
                                  (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
         :param _request_auth: set to override the auth_settings for an a single
-                              request; this effectively ignores the authentication
-                              in the spec for a single request.
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
         :type _request_auth: dict, optional
-        :type _content_type: string, optional: force content-type for the request
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
         :return: Returns the result object.
-                 If the method is called asynchronously,
-                 returns the request thread.
-        :rtype: tuple(IssueTypeAPI, status_code(int), headers(HTTPHeaderDict))
-        """
+        """ # noqa: E501
 
-        _params = locals()
-
-        _all_params = [
-            'project_id',
-            'slug',
-            'type_id',
-            'patched_issue_type_api_request'
-        ]
-        _all_params.extend(
-            [
-                'async_req',
-                '_return_http_data_only',
-                '_preload_content',
-                '_request_timeout',
-                '_request_auth',
-                '_content_type',
-                '_headers'
-            ]
+        _param = self._retrieve_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
         )
 
-        # validate the arguments
-        for _key, _val in _params['kwargs'].items():
-            if _key not in _all_params:
-                raise ApiTypeError(
-                    "Got an unexpected keyword argument '%s'"
-                    " to method update_issue_type" % _key
-                )
-            _params[_key] = _val
-        del _params['kwargs']
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "IssueTypeAPI",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
 
-        _collection_formats = {}
+
+    @validate_call
+    def retrieve_issue_type_without_preload_content(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Retrieve an issue type by id
+
+        Retrieve an issue type by id
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param type_id: (required)
+        :type type_id: str
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._retrieve_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "IssueTypeAPI",
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _retrieve_issue_type_serialize(
+        self,
+        project_id,
+        slug,
+        type_id,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
 
         # process the path parameters
-        _path_params = {}
-        if _params['project_id'] is not None:
-            _path_params['project_id'] = _params['project_id']
-
-        if _params['slug'] is not None:
-            _path_params['slug'] = _params['slug']
-
-        if _params['type_id'] is not None:
-            _path_params['type_id'] = _params['type_id']
-
-
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        if type_id is not None:
+            _path_params['type_id'] = type_id
         # process the query parameters
-        _query_params = []
         # process the header parameters
-        _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
-        _form_params = []
-        _files = {}
         # process the body parameter
-        _body_params = None
-        if _params['patched_issue_type_api_request'] is not None:
-            _body_params = _params['patched_issue_type_api_request']
+
 
         # set the HTTP header `Accept`
-        _header_params['Accept'] = self.api_client.select_header_accept(
-            ['application/json'])  # noqa: E501
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
 
-        # set the HTTP header `Content-Type`
-        _content_types_list = _params.get('_content_type',
-            self.api_client.select_header_content_type(
-                ['application/json', 'application/x-www-form-urlencoded', 'multipart/form-data']))
-        if _content_types_list:
-                _header_params['Content-Type'] = _content_types_list
 
         # authentication setting
-        _auth_settings = ['ApiKeyAuthentication', 'OAuth2Authentication', 'OAuth2Authentication']  # noqa: E501
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
 
-        _response_types_map = {
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def update_issue_type(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        patched_issue_type_api_request: Optional[PatchedIssueTypeAPIRequest] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> IssueTypeAPI:
+        """Update an issue type
+
+        Update an issue type
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param type_id: (required)
+        :type type_id: str
+        :param patched_issue_type_api_request:
+        :type patched_issue_type_api_request: PatchedIssueTypeAPIRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._update_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            patched_issue_type_api_request=patched_issue_type_api_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
             '401': None,
             '403': None,
             '404': None,
             '200': "IssueTypeAPI",
             '409': None,
         }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
 
-        return self.api_client.call_api(
-            '/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/', 'PATCH',
-            _path_params,
-            _query_params,
-            _header_params,
+
+    @validate_call
+    def update_issue_type_with_http_info(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        patched_issue_type_api_request: Optional[PatchedIssueTypeAPIRequest] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[IssueTypeAPI]:
+        """Update an issue type
+
+        Update an issue type
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param type_id: (required)
+        :type type_id: str
+        :param patched_issue_type_api_request:
+        :type patched_issue_type_api_request: PatchedIssueTypeAPIRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._update_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            patched_issue_type_api_request=patched_issue_type_api_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "IssueTypeAPI",
+            '409': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def update_issue_type_without_preload_content(
+        self,
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        type_id: StrictStr,
+        patched_issue_type_api_request: Optional[PatchedIssueTypeAPIRequest] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Update an issue type
+
+        Update an issue type
+
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param type_id: (required)
+        :type type_id: str
+        :param patched_issue_type_api_request:
+        :type patched_issue_type_api_request: PatchedIssueTypeAPIRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._update_issue_type_serialize(
+            project_id=project_id,
+            slug=slug,
+            type_id=type_id,
+            patched_issue_type_api_request=patched_issue_type_api_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "IssueTypeAPI",
+            '409': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _update_issue_type_serialize(
+        self,
+        project_id,
+        slug,
+        type_id,
+        patched_issue_type_api_request,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        if type_id is not None:
+            _path_params['type_id'] = type_id
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if patched_issue_type_api_request is not None:
+            _body_params = patched_issue_type_api_request
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json', 
+                        'application/x-www-form-urlencoded', 
+                        'multipart/form-data'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='PATCH',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
             body=_body_params,
             post_params=_form_params,
             files=_files,
-            response_types_map=_response_types_map,
             auth_settings=_auth_settings,
-            async_req=_params.get('async_req'),
-            _return_http_data_only=_params.get('_return_http_data_only'),  # noqa: E501
-            _preload_content=_params.get('_preload_content', True),
-            _request_timeout=_params.get('_request_timeout'),
             collection_formats=_collection_formats,
-            _request_auth=_params.get('_request_auth'))
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+

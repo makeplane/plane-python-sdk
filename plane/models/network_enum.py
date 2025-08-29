@@ -13,12 +13,10 @@
 """  # noqa: E501
 
 
+from __future__ import annotations
 import json
-import re  # noqa: F401
-from aenum import Enum
-
-
-
+from enum import Enum
+from typing_extensions import Self
 
 
 class NetworkEnum(int, Enum):
@@ -33,8 +31,8 @@ class NetworkEnum(int, Enum):
     NUMBER_2 = 2
 
     @classmethod
-    def from_json(cls, json_str: str) -> NetworkEnum: # noqa: F821
+    def from_json(cls, json_str: str) -> Self:
         """Create an instance of NetworkEnum from a JSON string"""
-        return NetworkEnum(json.loads(json_str))
+        return cls(json.loads(json_str))
 
 

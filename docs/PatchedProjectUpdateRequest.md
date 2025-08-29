@@ -3,6 +3,7 @@
 Serializer for updating projects with enhanced state and estimation management.  Extends project creation with update-specific validations including default state assignment, estimation configuration, and project setting modifications.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **str** |  | [optional] 
@@ -35,7 +36,7 @@ json = "{}"
 # create an instance of PatchedProjectUpdateRequest from a JSON string
 patched_project_update_request_instance = PatchedProjectUpdateRequest.from_json(json)
 # print the JSON string representation of the object
-print PatchedProjectUpdateRequest.to_json()
+print(PatchedProjectUpdateRequest.to_json())
 
 # convert the object into a dict
 patched_project_update_request_dict = patched_project_update_request_instance.to_dict()

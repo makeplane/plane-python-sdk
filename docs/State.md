@@ -3,6 +3,7 @@
 Serializer for work item states with default state management.  Handles state creation and updates including default state validation and automatic default state switching for workflow management.
 
 ## Properties
+
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
@@ -33,7 +34,7 @@ json = "{}"
 # create an instance of State from a JSON string
 state_instance = State.from_json(json)
 # print the JSON string representation of the object
-print State.to_json()
+print(State.to_json())
 
 # convert the object into a dict
 state_dict = state_instance.to_dict()
