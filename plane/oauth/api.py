@@ -81,9 +81,9 @@ class OAuthApi:
         try:
             response = self.api_client.call_api(
                 "POST",
-                "/auth/o/token/",
+                f"{self.base_url}/auth/o/token/",
                 header_params=headers,
-                body=data,
+                post_params=data,
             )
             response.read()
             json_response = json.loads(response.data)
@@ -112,15 +112,11 @@ class OAuthApi:
         }
 
         try:
-            response = self.rest_client.post_request(
-                url=f"{self.base_url}/auth/o/token/", headers=headers, post_params=data
-            )
-
             response = self.api_client.call_api(
                 "POST",
-                "/auth/o/token/",
+                f"{self.base_url}/auth/o/token/",
                 header_params=headers,
-                body=data,
+                post_params=data,
             )
             response.read()
             json_response = json.loads(response.data)
@@ -148,15 +144,11 @@ class OAuthApi:
         }
 
         try:
-            response = self.rest_client.post_request(
-                url=f"{self.base_url}/auth/o/token/", headers=headers, post_params=data
-            )
-
             response = self.api_client.call_api(
                 "POST",
-                "/auth/o/token/",
+                f"{self.base_url}/auth/o/token/",
                 header_params=headers,
-                body=data,
+                post_params=data,
             )
             response.read()
             json_response = json.loads(response.data)

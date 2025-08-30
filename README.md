@@ -4,7 +4,7 @@ The Plane REST API
 Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
 - API version: 0.0.1
-- Package version: 0.1.8
+- Package version: 0.1.9
 - Generator version: 7.13.0
 - Build package: org.openapitools.codegen.languages.PythonClientCodegen
 For more information, please visit [https://plane.so](https://plane.so)
