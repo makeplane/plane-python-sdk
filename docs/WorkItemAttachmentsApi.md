@@ -8,6 +8,7 @@ Method | HTTP request | Description
 [**delete_work_item_attachment**](WorkItemAttachmentsApi.md#delete_work_item_attachment) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
 [**list_work_item_attachments**](WorkItemAttachmentsApi.md#list_work_item_attachments) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
 [**retrieve_work_item_attachment**](WorkItemAttachmentsApi.md#retrieve_work_item_attachment) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
+[**upload_work_item_attachment**](WorkItemAttachmentsApi.md#upload_work_item_attachment) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
 
 
 # **create_work_item_attachment**
@@ -376,6 +377,100 @@ void (empty response body)
 **404** | Attachment not found |  -  |
 **302** | Redirect to presigned download URL |  -  |
 **400** | Asset not uploaded |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **upload_work_item_attachment**
+> upload_work_item_attachment(issue_id, pk, project_id, slug, body=body)
+
+Endpoints for issue attachment create/update/delete and fetch issue attachment details
+
+Mark an attachment as uploaded after successful file transfer to storage.
+
+### Example
+
+* Api Key Authentication (ApiKeyAuthentication):
+* OAuth Authentication (OAuth2Authentication):
+* OAuth Authentication (OAuth2Authentication):
+
+```python
+import plane
+from plane.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to https://api.plane.so
+# See configuration.py for a list of all supported configuration parameters.
+configuration = plane.Configuration(
+    host = "https://api.plane.so"
+)
+
+# The client must configure the authentication and authorization parameters
+# in accordance with the API server security policy.
+# Examples for each auth method are provided below, use the example that
+# satisfies your auth use case.
+
+# Configure API key authorization: ApiKeyAuthentication
+configuration.api_key['ApiKeyAuthentication'] = os.environ["API_KEY"]
+
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# configuration.api_key_prefix['ApiKeyAuthentication'] = 'Bearer'
+
+configuration.access_token = os.environ["ACCESS_TOKEN"]
+
+configuration.access_token = os.environ["ACCESS_TOKEN"]
+
+# Enter a context with an instance of the API client
+with plane.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = plane.WorkItemAttachmentsApi(api_client)
+    issue_id = 'issue_id_example' # str | 
+    pk = '550e8400-e29b-41d4-a716-446655440000' # str | Attachment ID
+    project_id = '550e8400-e29b-41d4-a716-446655440000' # str | Project ID
+    slug = 'my-workspace' # str | Workspace slug
+    body = {"is_uploaded":true} # object |  (optional)
+
+    try:
+        # Endpoints for issue attachment create/update/delete and fetch issue attachment details
+        api_instance.upload_work_item_attachment(issue_id, pk, project_id, slug, body=body)
+    except Exception as e:
+        print("Exception when calling WorkItemAttachmentsApi->upload_work_item_attachment: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **issue_id** | **str**|  | 
+ **pk** | **str**| Attachment ID | 
+ **project_id** | **str**| Project ID | 
+ **slug** | **str**| Workspace slug | 
+ **body** | **object**|  | [optional] 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[ApiKeyAuthentication](../README.md#ApiKeyAuthentication), [OAuth2Authentication](../README.md#OAuth2Authentication), [OAuth2Authentication](../README.md#OAuth2Authentication)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json, application/x-www-form-urlencoded, multipart/form-data
+ - **Accept**: Not defined
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**401** | Authentication credentials were not provided or are invalid. |  -  |
+**403** | Permission denied. User lacks required permissions. |  -  |
+**404** | Attachment not found |  -  |
+**204** | Work item attachment uploaded successfully |  -  |
+**400** | Invalid request data provided |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

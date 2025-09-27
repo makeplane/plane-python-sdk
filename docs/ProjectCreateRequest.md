@@ -23,6 +23,10 @@ Name | Type | Description | Notes
 **archive_in** | **int** |  | [optional] 
 **close_in** | **int** |  | [optional] 
 **timezone** | [**TimezoneEnum**](TimezoneEnum.md) |  | [optional] 
+**logo_props** | **object** |  | [optional] 
+**external_source** | **str** |  | [optional] 
+**external_id** | **str** |  | [optional] 
+**is_issue_type_enabled** | **bool** |  | [optional] 
 
 ## Example
 

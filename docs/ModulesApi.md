@@ -18,7 +18,7 @@ Method | HTTP request | Description
 
 
 # **add_module_work_items**
-> ModuleIssue add_module_work_items(module_id, project_id, slug, module_issue_request_request)
+> List[ModuleIssue] add_module_work_items(module_id, project_id, slug, module_issue_request_request)
 
 Add Work Items to Module
 
@@ -90,7 +90,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**ModuleIssue**](ModuleIssue.md)
+[**List[ModuleIssue]**](ModuleIssue.md)
 
 ### Authorization
 

@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**relation_type** | [**RelationTypeEnum**](RelationTypeEnum.md) |  | [optional] 
+**relation_type** | [**IssuePropertyAPIRelationTypeEnum**](IssuePropertyAPIRelationTypeEnum.md) |  | [optional] 
 **display_name** | **str** |  | [optional] 
 **description** | **str** |  | [optional] 
 **property_type** | [**PropertyTypeEnum**](PropertyTypeEnum.md) |  | [optional] 

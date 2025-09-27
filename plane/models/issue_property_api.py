@@ -5,7 +5,7 @@
 
     The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
-    The version of the API Spec: 0.0.1
+    The version of the API Spec: 0.0.2
     Contact: support@plane.so
     This class is auto generated.
 
@@ -22,8 +22,8 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing_extensions import Annotated
+from plane.models.issue_property_api_relation_type_enum import IssuePropertyAPIRelationTypeEnum
 from plane.models.property_type_enum import PropertyTypeEnum
-from plane.models.relation_type_enum import RelationTypeEnum
 from typing import Set
 from typing_extensions import Self
 
@@ -33,7 +33,7 @@ class IssuePropertyAPI(BaseModel):
     """ # noqa: E501
     id: Optional[StrictStr] = None
     deleted_at: Optional[datetime] = None
-    relation_type: Optional[RelationTypeEnum] = None
+    relation_type: Optional[IssuePropertyAPIRelationTypeEnum] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     name: Optional[StrictStr] = None
@@ -124,6 +124,11 @@ class IssuePropertyAPI(BaseModel):
         # and model_fields_set contains the field
         if self.deleted_at is None and "deleted_at" in self.model_fields_set:
             _dict['deleted_at'] = None
+
+        # set to None if relation_type (nullable) is None
+        # and model_fields_set contains the field
+        if self.relation_type is None and "relation_type" in self.model_fields_set:
+            _dict['relation_type'] = None
 
         # set to None if description (nullable) is None
         # and model_fields_set contains the field

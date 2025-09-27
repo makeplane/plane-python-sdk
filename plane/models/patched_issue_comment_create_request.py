@@ -5,7 +5,7 @@
 
     The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
-    The version of the API Spec: 0.0.1
+    The version of the API Spec: 0.0.2
     Contact: support@plane.so
     This class is auto generated.
 
@@ -21,7 +21,7 @@ import json
 from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
 from typing_extensions import Annotated
-from plane.models.access_enum import AccessEnum
+from plane.models.access_bd4_enum import AccessBd4Enum
 from typing import Set
 from typing_extensions import Self
 
@@ -31,7 +31,7 @@ class PatchedIssueCommentCreateRequest(BaseModel):
     """ # noqa: E501
     comment_json: Optional[Any] = None
     comment_html: Optional[StrictStr] = None
-    access: Optional[AccessEnum] = None
+    access: Optional[AccessBd4Enum] = None
     external_source: Optional[Annotated[str, Field(strict=True, max_length=255)]] = None
     external_id: Optional[Annotated[str, Field(strict=True, max_length=255)]] = None
     __properties: ClassVar[List[str]] = ["comment_json", "comment_html", "access", "external_source", "external_id"]

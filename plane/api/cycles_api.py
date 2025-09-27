@@ -5,7 +5,7 @@
 
     The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
-    The version of the API Spec: 0.0.1
+    The version of the API Spec: 0.0.2
     Contact: support@plane.so
     This class is auto generated.
 
@@ -64,7 +64,7 @@ class CyclesApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> CycleIssue:
+    ) -> List[CycleIssue]:
         """Add Work Items to Cycle
 
         Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.
@@ -114,7 +114,7 @@ class CyclesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "CycleIssue",
+            '200': "List[CycleIssue]",
             '400': None,
         }
         response_data = self.api_client.call_api(
@@ -147,7 +147,7 @@ class CyclesApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[CycleIssue]:
+    ) -> ApiResponse[List[CycleIssue]]:
         """Add Work Items to Cycle
 
         Assign multiple work items to a cycle. Automatically handles bulk creation and updates with activity tracking.
@@ -197,7 +197,7 @@ class CyclesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "CycleIssue",
+            '200': "List[CycleIssue]",
             '400': None,
         }
         response_data = self.api_client.call_api(
@@ -280,7 +280,7 @@ class CyclesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "CycleIssue",
+            '200': "List[CycleIssue]",
             '400': None,
         }
         response_data = self.api_client.call_api(

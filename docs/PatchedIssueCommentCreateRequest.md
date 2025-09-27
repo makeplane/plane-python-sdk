@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **comment_json** | **object** |  | [optional] 
 **comment_html** | **str** |  | [optional] 
-**access** | [**AccessEnum**](AccessEnum.md) |  | [optional] 
+**access** | [**AccessBd4Enum**](AccessBd4Enum.md) |  | [optional] 
 **external_source** | **str** |  | [optional] 
 **external_id** | **str** |  | [optional] 
 

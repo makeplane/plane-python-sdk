@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** |  | [optional] [readonly] 
 **deleted_at** | **datetime** |  | [optional] [readonly] 
-**relation_type** | [**RelationTypeEnum**](RelationTypeEnum.md) |  | [optional] 
+**relation_type** | [**IssuePropertyAPIRelationTypeEnum**](IssuePropertyAPIRelationTypeEnum.md) |  | [optional] 
 **created_at** | **datetime** |  | [optional] [readonly] 
 **updated_at** | **datetime** |  | [optional] [readonly] 
 **name** | **str** |  | [optional] [readonly] 

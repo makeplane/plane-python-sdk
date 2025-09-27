@@ -20,7 +20,7 @@ Method | HTTP request | Description
 
 
 # **add_cycle_work_items**
-> CycleIssue add_cycle_work_items(cycle_id, project_id, slug, cycle_issue_request_request)
+> List[CycleIssue] add_cycle_work_items(cycle_id, project_id, slug, cycle_issue_request_request)
 
 Add Work Items to Cycle
 
@@ -92,7 +92,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**CycleIssue**](CycleIssue.md)
+[**List[CycleIssue]**](CycleIssue.md)
 
 ### Authorization
 
