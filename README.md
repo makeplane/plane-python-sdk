@@ -3,8 +3,8 @@ The Plane REST API
 
 Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
-- API version: 0.0.1
-- Package version: 0.1.9
+- API version: 0.0.2
+- Package version: 0.1.10
 - Generator version: 7.13.0
 - Build package: org.openapitools.codegen.languages.PythonClientCodegen
 For more information, please visit [https://plane.so](https://plane.so)
@@ -111,6 +111,8 @@ Class | Method | HTTP request | Description
 *CyclesApi* | [**transfer_cycle_work_items**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/CyclesApi.md#transfer_cycle_work_items) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/transfer-issues/ | Transfer cycle work items
 *CyclesApi* | [**unarchive_cycle**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/CyclesApi.md#unarchive_cycle) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/archived-cycles/{pk}/unarchive/ | Unarchive cycle
 *CyclesApi* | [**update_cycle**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/CyclesApi.md#update_cycle) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/cycles/{pk}/ | Update cycle
+*EpicsApi* | [**list_epics**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/EpicsApi.md#list_epics) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/epics/ | List epics
+*EpicsApi* | [**retrieve_epic**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/EpicsApi.md#retrieve_epic) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/epics/{pk}/ | Retrieve an epic
 *IntakeApi* | [**create_intake_work_item**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IntakeApi.md#create_intake_work_item) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/ | Create intake work item
 *IntakeApi* | [**delete_intake_work_item**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IntakeApi.md#delete_intake_work_item) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/{issue_id}/ | Delete intake work item
 *IntakeApi* | [**get_intake_work_items_list**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IntakeApi.md#get_intake_work_items_list) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/intake-issues/ | List intake work items
@@ -134,6 +136,10 @@ Class | Method | HTTP request | Description
 *ModulesApi* | [**retrieve_module**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ModulesApi.md#retrieve_module) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/ | Retrieve module
 *ModulesApi* | [**unarchive_module**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ModulesApi.md#unarchive_module) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/archived-modules/{pk}/unarchive/ | Unarchive module
 *ModulesApi* | [**update_module**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ModulesApi.md#update_module) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/modules/{pk}/ | Update module
+*PagesApi* | [**create_project_page**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PagesApi.md#create_project_page) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/pages/ | Create a project page
+*PagesApi* | [**create_workspace_page**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PagesApi.md#create_workspace_page) | **POST** /api/v1/workspaces/{slug}/pages/ | Create a workspace page
+*PagesApi* | [**get_project_page_detail**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PagesApi.md#get_project_page_detail) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/pages/{pk}/ | Get a project page by ID
+*PagesApi* | [**get_workspace_page_detail**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PagesApi.md#get_workspace_page_detail) | **GET** /api/v1/workspaces/{slug}/pages/{pk}/ | Get a workspace page by ID
 *ProjectsApi* | [**archive_project**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ProjectsApi.md#archive_project) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/archive/ | Archive project
 *ProjectsApi* | [**create_project**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ProjectsApi.md#create_project) | **POST** /api/v1/workspaces/{slug}/projects/ | Create project
 *ProjectsApi* | [**delete_project**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ProjectsApi.md#delete_project) | **DELETE** /api/v1/workspaces/{slug}/projects/{pk}/ | Delete project
@@ -153,6 +159,7 @@ Class | Method | HTTP request | Description
 *WorkItemAttachmentsApi* | [**delete_work_item_attachment**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemAttachmentsApi.md#delete_work_item_attachment) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
 *WorkItemAttachmentsApi* | [**list_work_item_attachments**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemAttachmentsApi.md#list_work_item_attachments) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
 *WorkItemAttachmentsApi* | [**retrieve_work_item_attachment**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemAttachmentsApi.md#retrieve_work_item_attachment) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
+*WorkItemAttachmentsApi* | [**upload_work_item_attachment**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemAttachmentsApi.md#upload_work_item_attachment) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-attachments/{pk}/ | Endpoints for issue attachment create/update/delete and fetch issue attachment details
 *WorkItemCommentsApi* | [**create_work_item_comment**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemCommentsApi.md#create_work_item_comment) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/ | Endpoints for issue comment create/update/delete and fetch issue comment details
 *WorkItemCommentsApi* | [**delete_work_item_comment**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemCommentsApi.md#delete_work_item_comment) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/{pk}/ | Endpoints for issue comment create/update/delete and fetch issue comment details
 *WorkItemCommentsApi* | [**list_work_item_comments**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemCommentsApi.md#list_work_item_comments) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/comments/ | Endpoints for issue comment create/update/delete and fetch issue comment details
@@ -171,6 +178,7 @@ Class | Method | HTTP request | Description
 *WorkItemPropertiesApi* | [**list_issue_properties**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemPropertiesApi.md#list_issue_properties) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/issue-properties/ | List issue properties
 *WorkItemPropertiesApi* | [**list_issue_property_options**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemPropertiesApi.md#list_issue_property_options) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issue-properties/{property_id}/options/ | List issue property options
 *WorkItemPropertiesApi* | [**list_issue_property_values**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemPropertiesApi.md#list_issue_property_values) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-properties/{property_id}/values/ | List issue property values
+*WorkItemPropertiesApi* | [**list_issue_property_values_for_a_workitem**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemPropertiesApi.md#list_issue_property_values_for_a_workitem) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-properties/values/ | List issue property values for a workitem
 *WorkItemPropertiesApi* | [**retrieve_issue_property**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemPropertiesApi.md#retrieve_issue_property) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/issue-properties/{property_id}/ | Get issue property by id
 *WorkItemPropertiesApi* | [**retrieve_issue_property_option**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemPropertiesApi.md#retrieve_issue_property_option) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issue-properties/{property_id}/options/{option_id}/ | Get issue property option by id
 *WorkItemPropertiesApi* | [**update_issue_property**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemPropertiesApi.md#update_issue_property) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/issue-properties/{property_id}/ | Update an issue property
@@ -186,23 +194,28 @@ Class | Method | HTTP request | Description
 *WorkItemWorklogsApi* | [**list_issue_worklogs**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemWorklogsApi.md#list_issue_worklogs) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/worklogs/ | List worklog entries
 *WorkItemWorklogsApi* | [**update_issue_worklog**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemWorklogsApi.md#update_issue_worklog) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/worklogs/{pk}/ | Update a worklog entry
 *WorkItemsApi* | [**create_work_item**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#create_work_item) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/ | Create work item
+*WorkItemsApi* | [**create_work_item_relation**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#create_work_item_relation) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/ | Create work item relation
 *WorkItemsApi* | [**delete_work_item**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#delete_work_item) | **DELETE** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{pk}/ | Delete work item
 *WorkItemsApi* | [**get_workspace_work_item**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#get_workspace_work_item) | **GET** /api/v1/workspaces/{slug}/issues/{project_identifier}-{issue_identifier}/ | Retrieve work item by identifiers
+*WorkItemsApi* | [**list_work_item_relations**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#list_work_item_relations) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/ | List work item relations
 *WorkItemsApi* | [**list_work_items**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#list_work_items) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/ | List work items
+*WorkItemsApi* | [**remove_work_item_relation**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#remove_work_item_relation) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/remove/ | Remove work item relation
 *WorkItemsApi* | [**retrieve_work_item**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#retrieve_work_item) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{pk}/ | Retrieve work item
 *WorkItemsApi* | [**search_work_items**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#search_work_items) | **GET** /api/v1/workspaces/{slug}/issues/search/ | 
 *WorkItemsApi* | [**update_work_item**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkItemsApi.md#update_work_item) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{pk}/ | Partially update work item
+*WorkspacesApi* | [**workspaces_projects_members_create**](https://github.com/makeplane/plane-python-sdk/blob/main/docs/WorkspacesApi.md#workspaces_projects_members_create) | **POST** /api/v1/workspaces/{slug}/projects/{project_id}/members/ | 
 
 
 ## Documentation For Models
 
- - [AccessEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/AccessEnum.md)
+ - [AccessBd4Enum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/AccessBd4Enum.md)
  - [Cycle](https://github.com/makeplane/plane-python-sdk/blob/main/docs/Cycle.md)
  - [CycleCreateRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/CycleCreateRequest.md)
  - [CycleIssue](https://github.com/makeplane/plane-python-sdk/blob/main/docs/CycleIssue.md)
  - [CycleIssueRequestRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/CycleIssueRequestRequest.md)
  - [CycleLite](https://github.com/makeplane/plane-python-sdk/blob/main/docs/CycleLite.md)
  - [EntityTypeEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/EntityTypeEnum.md)
+ - [Epic](https://github.com/makeplane/plane-python-sdk/blob/main/docs/Epic.md)
  - [GenericAssetUploadRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/GenericAssetUploadRequest.md)
  - [GetWorkspaceMembers200ResponseInner](https://github.com/makeplane/plane-python-sdk/blob/main/docs/GetWorkspaceMembers200ResponseInner.md)
  - [GroupEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/GroupEnum.md)
@@ -221,12 +234,18 @@ Class | Method | HTTP request | Description
  - [IssueLink](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueLink.md)
  - [IssueLinkCreateRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueLinkCreateRequest.md)
  - [IssuePropertyAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyAPI.md)
+ - [IssuePropertyAPIRelationTypeEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyAPIRelationTypeEnum.md)
  - [IssuePropertyAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyAPIRequest.md)
  - [IssuePropertyOptionAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyOptionAPI.md)
  - [IssuePropertyOptionAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyOptionAPIRequest.md)
  - [IssuePropertyValueAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyValueAPI.md)
  - [IssuePropertyValueAPIDetail](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyValueAPIDetail.md)
  - [IssuePropertyValueAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssuePropertyValueAPIRequest.md)
+ - [IssueRelation](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueRelation.md)
+ - [IssueRelationCreateRelationTypeEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueRelationCreateRelationTypeEnum.md)
+ - [IssueRelationCreateRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueRelationCreateRequest.md)
+ - [IssueRelationRemoveRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueRelationRemoveRequest.md)
+ - [IssueRelationResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueRelationResponse.md)
  - [IssueRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueRequest.md)
  - [IssueSearch](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueSearch.md)
  - [IssueSearchItem](https://github.com/makeplane/plane-python-sdk/blob/main/docs/IssueSearchItem.md)
@@ -243,10 +262,15 @@ Class | Method | HTTP request | Description
  - [ModuleLite](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ModuleLite.md)
  - [ModuleStatusEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ModuleStatusEnum.md)
  - [NetworkEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/NetworkEnum.md)
+ - [PageCreateAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PageCreateAPI.md)
+ - [PageCreateAPIAccessEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PageCreateAPIAccessEnum.md)
+ - [PageCreateAPIRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PageCreateAPIRequest.md)
+ - [PageDetailAPI](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PageDetailAPI.md)
  - [PaginatedArchivedCycleResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PaginatedArchivedCycleResponse.md)
  - [PaginatedArchivedModuleResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PaginatedArchivedModuleResponse.md)
  - [PaginatedCycleIssueResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PaginatedCycleIssueResponse.md)
  - [PaginatedCycleResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PaginatedCycleResponse.md)
+ - [PaginatedEpicResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PaginatedEpicResponse.md)
  - [PaginatedIntakeIssueResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PaginatedIntakeIssueResponse.md)
  - [PaginatedIssueActivityDetailResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PaginatedIssueActivityDetailResponse.md)
  - [PaginatedIssueActivityResponse](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PaginatedIssueActivityResponse.md)
@@ -279,7 +303,6 @@ Class | Method | HTTP request | Description
  - [ProjectCreateRequest](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ProjectCreateRequest.md)
  - [ProjectWorklogSummary](https://github.com/makeplane/plane-python-sdk/blob/main/docs/ProjectWorklogSummary.md)
  - [PropertyTypeEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/PropertyTypeEnum.md)
- - [RelationTypeEnum](https://github.com/makeplane/plane-python-sdk/blob/main/docs/RelationTypeEnum.md)
  - [RetrieveWorkItemAttachment400Response](https://github.com/makeplane/plane-python-sdk/blob/main/docs/RetrieveWorkItemAttachment400Response.md)
  - [State](https://github.com/makeplane/plane-python-sdk/blob/main/docs/State.md)
  - [StateLite](https://github.com/makeplane/plane-python-sdk/blob/main/docs/StateLite.md)

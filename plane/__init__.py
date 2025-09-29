@@ -7,7 +7,7 @@
 
     The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
-    The version of the API Spec: 0.0.1
+    The version of the API Spec: 0.0.2
     Contact: support@plane.so
     This class is auto generated.
 
@@ -15,15 +15,17 @@
 """  # noqa: E501
 
 
-__version__ = "0.1.9"
+__version__ = "0.1.10"
 
 # import apis into sdk package
 from plane.api.assets_api import AssetsApi
 from plane.api.cycles_api import CyclesApi
+from plane.api.epics_api import EpicsApi
 from plane.api.intake_api import IntakeApi
 from plane.api.labels_api import LabelsApi
 from plane.api.members_api import MembersApi
 from plane.api.modules_api import ModulesApi
+from plane.api.pages_api import PagesApi
 from plane.api.projects_api import ProjectsApi
 from plane.api.states_api import StatesApi
 from plane.api.users_api import UsersApi
@@ -35,6 +37,7 @@ from plane.api.work_item_properties_api import WorkItemPropertiesApi
 from plane.api.work_item_types_api import WorkItemTypesApi
 from plane.api.work_item_worklogs_api import WorkItemWorklogsApi
 from plane.api.work_items_api import WorkItemsApi
+from plane.api.workspaces_api import WorkspacesApi
 
 # import ApiClient
 from plane.api_response import ApiResponse
@@ -48,13 +51,14 @@ from plane.exceptions import ApiAttributeError
 from plane.exceptions import ApiException
 
 # import models into sdk package
-from plane.models.access_enum import AccessEnum
+from plane.models.access_bd4_enum import AccessBd4Enum
 from plane.models.cycle import Cycle
 from plane.models.cycle_create_request import CycleCreateRequest
 from plane.models.cycle_issue import CycleIssue
 from plane.models.cycle_issue_request_request import CycleIssueRequestRequest
 from plane.models.cycle_lite import CycleLite
 from plane.models.entity_type_enum import EntityTypeEnum
+from plane.models.epic import Epic
 from plane.models.generic_asset_upload_request import GenericAssetUploadRequest
 from plane.models.get_workspace_members200_response_inner import GetWorkspaceMembers200ResponseInner
 from plane.models.group_enum import GroupEnum
@@ -73,12 +77,18 @@ from plane.models.issue_for_intake_request import IssueForIntakeRequest
 from plane.models.issue_link import IssueLink
 from plane.models.issue_link_create_request import IssueLinkCreateRequest
 from plane.models.issue_property_api import IssuePropertyAPI
+from plane.models.issue_property_api_relation_type_enum import IssuePropertyAPIRelationTypeEnum
 from plane.models.issue_property_api_request import IssuePropertyAPIRequest
 from plane.models.issue_property_option_api import IssuePropertyOptionAPI
 from plane.models.issue_property_option_api_request import IssuePropertyOptionAPIRequest
 from plane.models.issue_property_value_api import IssuePropertyValueAPI
 from plane.models.issue_property_value_api_detail import IssuePropertyValueAPIDetail
 from plane.models.issue_property_value_api_request import IssuePropertyValueAPIRequest
+from plane.models.issue_relation import IssueRelation
+from plane.models.issue_relation_create_relation_type_enum import IssueRelationCreateRelationTypeEnum
+from plane.models.issue_relation_create_request import IssueRelationCreateRequest
+from plane.models.issue_relation_remove_request import IssueRelationRemoveRequest
+from plane.models.issue_relation_response import IssueRelationResponse
 from plane.models.issue_request import IssueRequest
 from plane.models.issue_search import IssueSearch
 from plane.models.issue_search_item import IssueSearchItem
@@ -95,10 +105,15 @@ from plane.models.module_issue_request_request import ModuleIssueRequestRequest
 from plane.models.module_lite import ModuleLite
 from plane.models.module_status_enum import ModuleStatusEnum
 from plane.models.network_enum import NetworkEnum
+from plane.models.page_create_api import PageCreateAPI
+from plane.models.page_create_api_access_enum import PageCreateAPIAccessEnum
+from plane.models.page_create_api_request import PageCreateAPIRequest
+from plane.models.page_detail_api import PageDetailAPI
 from plane.models.paginated_archived_cycle_response import PaginatedArchivedCycleResponse
 from plane.models.paginated_archived_module_response import PaginatedArchivedModuleResponse
 from plane.models.paginated_cycle_issue_response import PaginatedCycleIssueResponse
 from plane.models.paginated_cycle_response import PaginatedCycleResponse
+from plane.models.paginated_epic_response import PaginatedEpicResponse
 from plane.models.paginated_intake_issue_response import PaginatedIntakeIssueResponse
 from plane.models.paginated_issue_activity_detail_response import PaginatedIssueActivityDetailResponse
 from plane.models.paginated_issue_activity_response import PaginatedIssueActivityResponse
@@ -131,7 +146,6 @@ from plane.models.project import Project
 from plane.models.project_create_request import ProjectCreateRequest
 from plane.models.project_worklog_summary import ProjectWorklogSummary
 from plane.models.property_type_enum import PropertyTypeEnum
-from plane.models.relation_type_enum import RelationTypeEnum
 from plane.models.retrieve_work_item_attachment400_response import RetrieveWorkItemAttachment400Response
 from plane.models.state import State
 from plane.models.state_lite import StateLite

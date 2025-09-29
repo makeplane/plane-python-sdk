@@ -5,7 +5,7 @@
 
     The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
-    The version of the API Spec: 0.0.1
+    The version of the API Spec: 0.0.2
     Contact: support@plane.so
     This class is auto generated.
 
@@ -62,7 +62,7 @@ class ModulesApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ModuleIssue:
+    ) -> List[ModuleIssue]:
         """Add Work Items to Module
 
         Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
@@ -112,7 +112,7 @@ class ModulesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "ModuleIssue",
+            '200': "List[ModuleIssue]",
             '400': None,
         }
         response_data = self.api_client.call_api(
@@ -145,7 +145,7 @@ class ModulesApi:
         _content_type: Optional[StrictStr] = None,
         _headers: Optional[Dict[StrictStr, Any]] = None,
         _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
-    ) -> ApiResponse[ModuleIssue]:
+    ) -> ApiResponse[List[ModuleIssue]]:
         """Add Work Items to Module
 
         Assign multiple work items to a module or move them from another module. Automatically handles bulk creation and updates with activity tracking.
@@ -195,7 +195,7 @@ class ModulesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "ModuleIssue",
+            '200': "List[ModuleIssue]",
             '400': None,
         }
         response_data = self.api_client.call_api(
@@ -278,7 +278,7 @@ class ModulesApi:
             '401': None,
             '403': None,
             '404': None,
-            '200': "ModuleIssue",
+            '200': "List[ModuleIssue]",
             '400': None,
         }
         response_data = self.api_client.call_api(

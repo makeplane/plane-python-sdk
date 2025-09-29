@@ -5,7 +5,7 @@
 
     The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
-    The version of the API Spec: 0.0.1
+    The version of the API Spec: 0.0.2
     Contact: support@plane.so
     This class is auto generated.
 
@@ -18,6 +18,10 @@ from typing_extensions import Annotated
 
 from plane.models.issue import Issue
 from plane.models.issue_detail import IssueDetail
+from plane.models.issue_relation import IssueRelation
+from plane.models.issue_relation_create_request import IssueRelationCreateRequest
+from plane.models.issue_relation_remove_request import IssueRelationRemoveRequest
+from plane.models.issue_relation_response import IssueRelationResponse
 from plane.models.issue_request import IssueRequest
 from plane.models.issue_search import IssueSearch
 from plane.models.paginated_work_item_response import PaginatedWorkItemResponse
@@ -349,6 +353,341 @@ class WorkItemsApi:
         return self.api_client.param_serialize(
             method='POST',
             resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issues/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def create_work_item_relation(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_relation_create_request: IssueRelationCreateRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> List[IssueRelation]:
+        """Create work item relation
+
+        Create relationships between work items. Supports various relation types including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param issue_relation_create_request: (required)
+        :type issue_relation_create_request: IssueRelationCreateRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._create_work_item_relation_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            issue_relation_create_request=issue_relation_create_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '201': "List[IssueRelation]",
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def create_work_item_relation_with_http_info(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_relation_create_request: IssueRelationCreateRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[List[IssueRelation]]:
+        """Create work item relation
+
+        Create relationships between work items. Supports various relation types including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param issue_relation_create_request: (required)
+        :type issue_relation_create_request: IssueRelationCreateRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._create_work_item_relation_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            issue_relation_create_request=issue_relation_create_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '201': "List[IssueRelation]",
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def create_work_item_relation_without_preload_content(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_relation_create_request: IssueRelationCreateRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Create work item relation
+
+        Create relationships between work items. Supports various relation types including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param issue_relation_create_request: (required)
+        :type issue_relation_create_request: IssueRelationCreateRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._create_work_item_relation_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            issue_relation_create_request=issue_relation_create_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '201': "List[IssueRelation]",
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _create_work_item_relation_serialize(
+        self,
+        issue_id,
+        project_id,
+        slug,
+        issue_relation_create_request,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if issue_id is not None:
+            _path_params['issue_id'] = issue_id
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if issue_relation_create_request is not None:
+            _body_params = issue_relation_create_request
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json', 
+                        'application/x-www-form-urlencoded', 
+                        'multipart/form-data'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,
@@ -956,6 +1295,396 @@ class WorkItemsApi:
 
 
     @validate_call
+    def list_work_item_relations(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> IssueRelationResponse:
+        """List work item relations
+
+        Retrieve all relationships for a work item including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after relations.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_work_item_relations_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "IssueRelationResponse",
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def list_work_item_relations_with_http_info(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[IssueRelationResponse]:
+        """List work item relations
+
+        Retrieve all relationships for a work item including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after relations.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_work_item_relations_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "IssueRelationResponse",
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def list_work_item_relations_without_preload_content(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        cursor: Annotated[Optional[StrictStr], Field(description="Pagination cursor for getting next set of results")] = None,
+        expand: Annotated[Optional[StrictStr], Field(description="Comma-separated list of related fields to expand in response")] = None,
+        fields: Annotated[Optional[StrictStr], Field(description="Comma-separated list of fields to include in response")] = None,
+        order_by: Annotated[Optional[StrictStr], Field(description="Field to order results by. Prefix with '-' for descending order")] = None,
+        per_page: Annotated[Optional[StrictInt], Field(description="Number of results per page (default: 20, max: 100)")] = None,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """List work item relations
+
+        Retrieve all relationships for a work item including blocking, blocked_by, duplicate, relates_to, start_before, start_after, finish_before, and finish_after relations.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param cursor: Pagination cursor for getting next set of results
+        :type cursor: str
+        :param expand: Comma-separated list of related fields to expand in response
+        :type expand: str
+        :param fields: Comma-separated list of fields to include in response
+        :type fields: str
+        :param order_by: Field to order results by. Prefix with '-' for descending order
+        :type order_by: str
+        :param per_page: Number of results per page (default: 20, max: 100)
+        :type per_page: int
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._list_work_item_relations_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            cursor=cursor,
+            expand=expand,
+            fields=fields,
+            order_by=order_by,
+            per_page=per_page,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '200': "IssueRelationResponse",
+            '400': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _list_work_item_relations_serialize(
+        self,
+        issue_id,
+        project_id,
+        slug,
+        cursor,
+        expand,
+        fields,
+        order_by,
+        per_page,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if issue_id is not None:
+            _path_params['issue_id'] = issue_id
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        if cursor is not None:
+            
+            _query_params.append(('cursor', cursor))
+            
+        if expand is not None:
+            
+            _query_params.append(('expand', expand))
+            
+        if fields is not None:
+            
+            _query_params.append(('fields', fields))
+            
+        if order_by is not None:
+            
+            _query_params.append(('order_by', order_by))
+            
+        if per_page is not None:
+            
+            _query_params.append(('per_page', per_page))
+            
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+
+
+        # set the HTTP header `Accept`
+        if 'Accept' not in _header_params:
+            _header_params['Accept'] = self.api_client.select_header_accept(
+                [
+                    'application/json'
+                ]
+            )
+
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='GET',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
     def list_work_items(
         self,
         project_id: Annotated[StrictStr, Field(description="Project ID")],
@@ -1349,6 +2078,331 @@ class WorkItemsApi:
         return self.api_client.param_serialize(
             method='GET',
             resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issues/',
+            path_params=_path_params,
+            query_params=_query_params,
+            header_params=_header_params,
+            body=_body_params,
+            post_params=_form_params,
+            files=_files,
+            auth_settings=_auth_settings,
+            collection_formats=_collection_formats,
+            _host=_host,
+            _request_auth=_request_auth
+        )
+
+
+
+
+    @validate_call
+    def remove_work_item_relation(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_relation_remove_request: IssueRelationRemoveRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> None:
+        """Remove work item relation
+
+        Remove a relationship between work items by specifying the related work item ID.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param issue_relation_remove_request: (required)
+        :type issue_relation_remove_request: IssueRelationRemoveRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._remove_work_item_relation_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            issue_relation_remove_request=issue_relation_remove_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        ).data
+
+
+    @validate_call
+    def remove_work_item_relation_with_http_info(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_relation_remove_request: IssueRelationRemoveRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> ApiResponse[None]:
+        """Remove work item relation
+
+        Remove a relationship between work items by specifying the related work item ID.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param issue_relation_remove_request: (required)
+        :type issue_relation_remove_request: IssueRelationRemoveRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._remove_work_item_relation_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            issue_relation_remove_request=issue_relation_remove_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        response_data.read()
+        return self.api_client.response_deserialize(
+            response_data=response_data,
+            response_types_map=_response_types_map,
+        )
+
+
+    @validate_call
+    def remove_work_item_relation_without_preload_content(
+        self,
+        issue_id: Annotated[StrictStr, Field(description="Issue ID")],
+        project_id: Annotated[StrictStr, Field(description="Project ID")],
+        slug: Annotated[StrictStr, Field(description="Workspace slug")],
+        issue_relation_remove_request: IssueRelationRemoveRequest,
+        _request_timeout: Union[
+            None,
+            Annotated[StrictFloat, Field(gt=0)],
+            Tuple[
+                Annotated[StrictFloat, Field(gt=0)],
+                Annotated[StrictFloat, Field(gt=0)]
+            ]
+        ] = None,
+        _request_auth: Optional[Dict[StrictStr, Any]] = None,
+        _content_type: Optional[StrictStr] = None,
+        _headers: Optional[Dict[StrictStr, Any]] = None,
+        _host_index: Annotated[StrictInt, Field(ge=0, le=0)] = 0,
+    ) -> RESTResponseType:
+        """Remove work item relation
+
+        Remove a relationship between work items by specifying the related work item ID.
+
+        :param issue_id: Issue ID (required)
+        :type issue_id: str
+        :param project_id: Project ID (required)
+        :type project_id: str
+        :param slug: Workspace slug (required)
+        :type slug: str
+        :param issue_relation_remove_request: (required)
+        :type issue_relation_remove_request: IssueRelationRemoveRequest
+        :param _request_timeout: timeout setting for this request. If one
+                                 number provided, it will be total request
+                                 timeout. It can also be a pair (tuple) of
+                                 (connection, read) timeouts.
+        :type _request_timeout: int, tuple(int, int), optional
+        :param _request_auth: set to override the auth_settings for an a single
+                              request; this effectively ignores the
+                              authentication in the spec for a single request.
+        :type _request_auth: dict, optional
+        :param _content_type: force content-type for the request.
+        :type _content_type: str, Optional
+        :param _headers: set to override the headers for a single
+                         request; this effectively ignores the headers
+                         in the spec for a single request.
+        :type _headers: dict, optional
+        :param _host_index: set to override the host_index for a single
+                            request; this effectively ignores the host_index
+                            in the spec for a single request.
+        :type _host_index: int, optional
+        :return: Returns the result object.
+        """ # noqa: E501
+
+        _param = self._remove_work_item_relation_serialize(
+            issue_id=issue_id,
+            project_id=project_id,
+            slug=slug,
+            issue_relation_remove_request=issue_relation_remove_request,
+            _request_auth=_request_auth,
+            _content_type=_content_type,
+            _headers=_headers,
+            _host_index=_host_index
+        )
+
+        _response_types_map: Dict[str, Optional[str]] = {
+            '401': None,
+            '403': None,
+            '404': None,
+            '204': None,
+        }
+        response_data = self.api_client.call_api(
+            *_param,
+            _request_timeout=_request_timeout
+        )
+        return response_data.response
+
+
+    def _remove_work_item_relation_serialize(
+        self,
+        issue_id,
+        project_id,
+        slug,
+        issue_relation_remove_request,
+        _request_auth,
+        _content_type,
+        _headers,
+        _host_index,
+    ) -> RequestSerialized:
+
+        _host = None
+
+        _collection_formats: Dict[str, str] = {
+        }
+
+        _path_params: Dict[str, str] = {}
+        _query_params: List[Tuple[str, str]] = []
+        _header_params: Dict[str, Optional[str]] = _headers or {}
+        _form_params: List[Tuple[str, str]] = []
+        _files: Dict[
+            str, Union[str, bytes, List[str], List[bytes], List[Tuple[str, bytes]]]
+        ] = {}
+        _body_params: Optional[bytes] = None
+
+        # process the path parameters
+        if issue_id is not None:
+            _path_params['issue_id'] = issue_id
+        if project_id is not None:
+            _path_params['project_id'] = project_id
+        if slug is not None:
+            _path_params['slug'] = slug
+        # process the query parameters
+        # process the header parameters
+        # process the form parameters
+        # process the body parameter
+        if issue_relation_remove_request is not None:
+            _body_params = issue_relation_remove_request
+
+
+
+        # set the HTTP header `Content-Type`
+        if _content_type:
+            _header_params['Content-Type'] = _content_type
+        else:
+            _default_content_type = (
+                self.api_client.select_header_content_type(
+                    [
+                        'application/json', 
+                        'application/x-www-form-urlencoded', 
+                        'multipart/form-data'
+                    ]
+                )
+            )
+            if _default_content_type is not None:
+                _header_params['Content-Type'] = _default_content_type
+
+        # authentication setting
+        _auth_settings: List[str] = [
+            'ApiKeyAuthentication', 
+            'OAuth2Authentication', 
+            'OAuth2Authentication'
+        ]
+
+        return self.api_client.param_serialize(
+            method='POST',
+            resource_path='/api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/relations/remove/',
             path_params=_path_params,
             query_params=_query_params,
             header_params=_header_params,

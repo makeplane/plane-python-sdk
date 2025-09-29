@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 **comment_stripped** | **str** |  | [optional] 
 **comment_html** | **str** |  | [optional] 
 **attachments** | **List[str]** |  | [optional] 
-**access** | [**AccessEnum**](AccessEnum.md) |  | [optional] 
+**access** | [**AccessBd4Enum**](AccessBd4Enum.md) |  | [optional] 
 **external_source** | **str** |  | [optional] 
 **external_id** | **str** |  | [optional] 
 **edited_at** | **datetime** |  | [optional] 

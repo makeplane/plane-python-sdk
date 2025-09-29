@@ -12,6 +12,7 @@ Method | HTTP request | Description
 [**list_issue_properties**](WorkItemPropertiesApi.md#list_issue_properties) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/issue-properties/ | List issue properties
 [**list_issue_property_options**](WorkItemPropertiesApi.md#list_issue_property_options) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issue-properties/{property_id}/options/ | List issue property options
 [**list_issue_property_values**](WorkItemPropertiesApi.md#list_issue_property_values) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-properties/{property_id}/values/ | List issue property values
+[**list_issue_property_values_for_a_workitem**](WorkItemPropertiesApi.md#list_issue_property_values_for_a_workitem) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-properties/values/ | List issue property values for a workitem
 [**retrieve_issue_property**](WorkItemPropertiesApi.md#retrieve_issue_property) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/issue-properties/{property_id}/ | Get issue property by id
 [**retrieve_issue_property_option**](WorkItemPropertiesApi.md#retrieve_issue_property_option) | **GET** /api/v1/workspaces/{slug}/projects/{project_id}/issue-properties/{property_id}/options/{option_id}/ | Get issue property option by id
 [**update_issue_property**](WorkItemPropertiesApi.md#update_issue_property) | **PATCH** /api/v1/workspaces/{slug}/projects/{project_id}/issue-types/{type_id}/issue-properties/{property_id}/ | Update an issue property
@@ -766,6 +767,100 @@ Name | Type | Description  | Notes
 **403** | Permission denied. User lacks required permissions. |  -  |
 **404** | The requested resource was not found. |  -  |
 **200** | Issue property values |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **list_issue_property_values_for_a_workitem**
+> IssuePropertyValueAPI list_issue_property_values_for_a_workitem(issue_id, project_id, property_id, slug)
+
+List issue property values for a workitem
+
+List issue property values for a workitem
+
+### Example
+
+* Api Key Authentication (ApiKeyAuthentication):
+* OAuth Authentication (OAuth2Authentication):
+* OAuth Authentication (OAuth2Authentication):
+
+```python
+import plane
+from plane.models.issue_property_value_api import IssuePropertyValueAPI
+from plane.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to https://api.plane.so
+# See configuration.py for a list of all supported configuration parameters.
+configuration = plane.Configuration(
+    host = "https://api.plane.so"
+)
+
+# The client must configure the authentication and authorization parameters
+# in accordance with the API server security policy.
+# Examples for each auth method are provided below, use the example that
+# satisfies your auth use case.
+
+# Configure API key authorization: ApiKeyAuthentication
+configuration.api_key['ApiKeyAuthentication'] = os.environ["API_KEY"]
+
+# Uncomment below to setup prefix (e.g. Bearer) for API key, if needed
+# configuration.api_key_prefix['ApiKeyAuthentication'] = 'Bearer'
+
+configuration.access_token = os.environ["ACCESS_TOKEN"]
+
+configuration.access_token = os.environ["ACCESS_TOKEN"]
+
+# Enter a context with an instance of the API client
+with plane.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = plane.WorkItemPropertiesApi(api_client)
+    issue_id = 'issue_id_example' # str | 
+    project_id = '550e8400-e29b-41d4-a716-446655440000' # str | Project ID
+    property_id = 'property_id_example' # str | Property ID
+    slug = 'my-workspace' # str | Workspace slug
+
+    try:
+        # List issue property values for a workitem
+        api_response = api_instance.list_issue_property_values_for_a_workitem(issue_id, project_id, property_id, slug)
+        print("The response of WorkItemPropertiesApi->list_issue_property_values_for_a_workitem:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling WorkItemPropertiesApi->list_issue_property_values_for_a_workitem: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **issue_id** | **str**|  | 
+ **project_id** | **str**| Project ID | 
+ **property_id** | **str**| Property ID | 
+ **slug** | **str**| Workspace slug | 
+
+### Return type
+
+[**IssuePropertyValueAPI**](IssuePropertyValueAPI.md)
+
+### Authorization
+
+[ApiKeyAuthentication](../README.md#ApiKeyAuthentication), [OAuth2Authentication](../README.md#OAuth2Authentication), [OAuth2Authentication](../README.md#OAuth2Authentication)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**401** | Authentication credentials were not provided or are invalid. |  -  |
+**403** | Permission denied. User lacks required permissions. |  -  |
+**404** | The requested resource was not found. |  -  |
+**200** | Issue property values for a workitem |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

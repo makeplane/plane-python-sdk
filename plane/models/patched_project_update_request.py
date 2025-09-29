@@ -5,7 +5,7 @@
 
     The Plane REST API  Visit our quick start guide and full API documentation at [developers.plane.so](https://developers.plane.so/api-reference/introduction).
 
-    The version of the API Spec: 0.0.1
+    The version of the API Spec: 0.0.2
     Contact: support@plane.so
     This class is auto generated.
 
@@ -46,9 +46,13 @@ class PatchedProjectUpdateRequest(BaseModel):
     archive_in: Optional[Annotated[int, Field(le=12, strict=True, ge=0)]] = None
     close_in: Optional[Annotated[int, Field(le=12, strict=True, ge=0)]] = None
     timezone: Optional[TimezoneEnum] = None
+    logo_props: Optional[Any] = None
+    external_source: Optional[Annotated[str, Field(strict=True, max_length=255)]] = None
+    external_id: Optional[Annotated[str, Field(strict=True, max_length=255)]] = None
+    is_issue_type_enabled: Optional[StrictBool] = None
     default_state: Optional[StrictStr] = None
     estimate: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["name", "description", "project_lead", "default_assignee", "identifier", "icon_prop", "emoji", "cover_image", "module_view", "cycle_view", "issue_views_view", "page_view", "intake_view", "guest_view_all_features", "archive_in", "close_in", "timezone", "default_state", "estimate"]
+    __properties: ClassVar[List[str]] = ["name", "description", "project_lead", "default_assignee", "identifier", "icon_prop", "emoji", "cover_image", "module_view", "cycle_view", "issue_views_view", "page_view", "intake_view", "guest_view_all_features", "archive_in", "close_in", "timezone", "logo_props", "external_source", "external_id", "is_issue_type_enabled", "default_state", "estimate"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -114,6 +118,21 @@ class PatchedProjectUpdateRequest(BaseModel):
         if self.cover_image is None and "cover_image" in self.model_fields_set:
             _dict['cover_image'] = None
 
+        # set to None if logo_props (nullable) is None
+        # and model_fields_set contains the field
+        if self.logo_props is None and "logo_props" in self.model_fields_set:
+            _dict['logo_props'] = None
+
+        # set to None if external_source (nullable) is None
+        # and model_fields_set contains the field
+        if self.external_source is None and "external_source" in self.model_fields_set:
+            _dict['external_source'] = None
+
+        # set to None if external_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.external_id is None and "external_id" in self.model_fields_set:
+            _dict['external_id'] = None
+
         # set to None if default_state (nullable) is None
         # and model_fields_set contains the field
         if self.default_state is None and "default_state" in self.model_fields_set:
@@ -153,6 +172,10 @@ class PatchedProjectUpdateRequest(BaseModel):
             "archive_in": obj.get("archive_in"),
             "close_in": obj.get("close_in"),
             "timezone": obj.get("timezone"),
+            "logo_props": obj.get("logo_props"),
+            "external_source": obj.get("external_source"),
+            "external_id": obj.get("external_id"),
+            "is_issue_type_enabled": obj.get("is_issue_type_enabled"),
             "default_state": obj.get("default_state"),
             "estimate": obj.get("estimate")
         })
