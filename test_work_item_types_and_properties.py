@@ -262,7 +262,7 @@ def main() -> None:
 
         # Set Is Critical (boolean property)
         critical_value_data = CreateWorkItemPropertyValue(
-            values=[CreateWorkItemPropertyValue.ValueItem(value="true")]
+            values=[CreateWorkItemPropertyValue.ValueItem(value=True)]
         )
         critical_value = client.work_item_properties.values.create(
             workspace_slug, project.id, work_item.id, critical_prop.id, critical_value_data
@@ -271,7 +271,7 @@ def main() -> None:
 
         # Set Estimated Hours (decimal property)
         hours_value_data = CreateWorkItemPropertyValue(
-            values=[CreateWorkItemPropertyValue.ValueItem(value="4.5")]
+            values=[CreateWorkItemPropertyValue.ValueItem(value=4.5)]
         )
         hours_value = client.work_item_properties.values.create(
             workspace_slug, project.id, work_item.id, hours_prop.id, hours_value_data

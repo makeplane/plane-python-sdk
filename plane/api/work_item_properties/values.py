@@ -3,52 +3,47 @@ from typing import Any
 
 from ...models.work_item_properties import (
     CreateWorkItemPropertyValue,
-    WorkItemPropertyValue,
     WorkItemPropertyValueDetail,
 )
 from ..base_resource import BaseResource
 
 
 class WorkItemPropertyValues(BaseResource):
+    """API resource for managing work item property values.
+
+    Note: Each work item can have only ONE value per property.
+    The POST method acts as an upsert operation (create or update).
+    """
+
     def __init__(self, config: Any) -> None:
         super().__init__(config, "/workspaces/")
 
-    def list(
+    def retrieve(
         self,
         workspace_slug: str,
         project_id: str,
         work_item_id: str,
-        params: Mapping[str, Any] | None = None,
-    ) -> list[WorkItemPropertyValueDetail]:
-        """Get work item property values.
+        property_id: str,
+    ) -> WorkItemPropertyValueDetail:
+        """Retrieve the property value for a work item's property.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             work_item_id: UUID of the work item
-            params: Optional query parameters
+            property_id: UUID of the property
+
+        Returns:
+            The property value for the work item
+
+        Raises:
+            HttpError: If the property value is not set (404)
         """
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/work-item-properties/values",
-            params=params,
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}"
+            f"/work-item-properties/{property_id}/values"
         )
-        return [WorkItemPropertyValueDetail.model_validate(item) for item in response]
-
-    def retrieve(
-        self, workspace_slug: str, project_id: str, work_item_id: str, value_id: str
-    ) -> WorkItemPropertyValue:
-        """Retrieve a work item property value.
-
-        Args:
-            workspace_slug: The workspace slug identifier
-            project_id: UUID of the project
-            work_item_id: UUID of the work item
-            value_id: UUID of the property value
-        """
-        response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/work-item-properties/values/{value_id}"
-        )
-        return WorkItemPropertyValue.model_validate(response)
+        return WorkItemPropertyValueDetail.model_validate(response)
 
     def create(
         self,
@@ -57,8 +52,12 @@ class WorkItemPropertyValues(BaseResource):
         work_item_id: str,
         property_id: str,
         data: CreateWorkItemPropertyValue,
-    ) -> WorkItemPropertyValue:
-        """Create a new work item property value.
+    ) -> WorkItemPropertyValueDetail:
+        """Create or update the property value for a work item.
+
+        Note: Since only one value is allowed per work item/property combination,
+        this acts as an upsert operation. If a value already exists, it will
+        be updated; otherwise, a new value will be created.
 
         Args:
             workspace_slug: The workspace slug identifier
@@ -66,47 +65,71 @@ class WorkItemPropertyValues(BaseResource):
             work_item_id: UUID of the work item
             property_id: UUID of the property
             data: Property value data
+
+        Returns:
+            The created or updated property value
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/work-item-properties/{property_id}/values",
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}"
+            f"/work-item-properties/{property_id}/values",
             data.model_dump(exclude_none=True),
         )
-        return WorkItemPropertyValue.model_validate(response)
+        return WorkItemPropertyValueDetail.model_validate(response)
 
     def update(
         self,
         workspace_slug: str,
         project_id: str,
         work_item_id: str,
-        value_id: str,
-        data: Mapping[str, Any],
-    ) -> WorkItemPropertyValue:
-        """Update a work item property value.
+        property_id: str,
+        data: Mapping[str, Any] | CreateWorkItemPropertyValue,
+    ) -> WorkItemPropertyValueDetail:
+        """Update an existing property value (partial update).
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             work_item_id: UUID of the work item
-            value_id: UUID of the property value
-            data: Updated property value data
+            property_id: UUID of the property
+            data: Updated property value data (partial)
+
+        Returns:
+            The updated property value
+
+        Raises:
+            HttpError: If the property value does not exist (404)
         """
-        response = self._patch(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/work-item-properties/values/{value_id}",
-            data,
+        payload = (
+            data.model_dump(exclude_none=True)
+            if isinstance(data, CreateWorkItemPropertyValue)
+            else data
         )
-        return WorkItemPropertyValue.model_validate(response)
+        response = self._patch(
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}"
+            f"/work-item-properties/{property_id}/values",
+            payload,
+        )
+        return WorkItemPropertyValueDetail.model_validate(response)
 
     def delete(
-        self, workspace_slug: str, project_id: str, work_item_id: str, value_id: str
+        self,
+        workspace_slug: str,
+        project_id: str,
+        work_item_id: str,
+        property_id: str,
     ) -> None:
-        """Delete a work item property value.
+        """Delete the property value for a work item.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             work_item_id: UUID of the work item
-            value_id: UUID of the property value
+            property_id: UUID of the property
+
+        Raises:
+            HttpError: If the property value does not exist (404)
         """
         return self._delete(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/work-item-properties/values/{value_id}"
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}"
+            f"/work-item-properties/{property_id}/values"
         )
