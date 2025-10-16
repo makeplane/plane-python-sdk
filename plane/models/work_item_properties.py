@@ -256,21 +256,30 @@ class WorkItemPropertyValue(BaseModel):
 
 
 class CreateWorkItemPropertyValue(BaseModel):
-    """Request model for creating/updating a single work item property value.
+    """Request model for creating/updating a work item property value.
 
-    The value must be provided as a string, formatted according to property type:
-    - TEXT/URL/EMAIL/FILE: any string
-    - DATETIME: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
-    - DECIMAL: string representation of a number (e.g., "123.45")
-    - BOOLEAN: "true" or "false"
-    - OPTION/RELATION: UUID string
+    The value type depends on the property type:
+    - TEXT/URL/EMAIL/FILE: string
+    - DATETIME: string (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
+    - DECIMAL: number (int or float)
+    - BOOLEAN: boolean (true/false)
+    - OPTION/RELATION (single): string (UUID)
+    - OPTION/RELATION (multi, when is_multi=True): list of strings (UUIDs) or single string
 
-    Note: Each work item can have only ONE value per property.
+    For multi-value properties (is_multi=True):
+    - Accept either a single UUID string or a list of UUID strings
+    - Multiple IssuePropertyValue records are created
+    - Response will be a list of values
+
+    For single-value properties:
+    - Only one value is allowed per work item/property combination
     """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    value: str = Field(..., description="The value to set for the property")
+    value: str | bool | int | float | list[str] = Field(
+        ..., description="The value to set for the property (type depends on property type)"
+    )
     external_id: str | None = Field(None, description="Optional external identifier for syncing")
     external_source: str | None = Field(
         None, description="Optional external source (e.g., 'github', 'jira')"

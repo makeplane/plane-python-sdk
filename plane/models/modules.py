@@ -118,7 +118,7 @@ class ModuleWorkItem(BaseModel):
     project: str | None = None
     workspace: str | None = None
     module: str | None = None
-    issue: str
+    issue: "WorkItemExpand"
 
 
 class AddWorkItemsToModuleRequest(BaseModel):

@@ -26,6 +26,7 @@ from plane.models.work_item_properties import (
     CreateWorkItemProperty,
     CreateWorkItemPropertyOption,
     CreateWorkItemPropertyValue,
+    WorkItemPropertyValueDetail,
 )
 from plane.models.work_item_property_configurations import (
     DateAttributeSettings,
@@ -50,6 +51,28 @@ def print_success(message: str) -> None:
 def print_error(message: str) -> None:
     """Print an error message."""
     print(f"✗ {message}", file=sys.stderr)
+
+
+def handle_property_value_response(
+    response: WorkItemPropertyValueDetail | list[WorkItemPropertyValueDetail],
+    property_name: str,
+) -> WorkItemPropertyValueDetail | list[WorkItemPropertyValueDetail]:
+    """Handle property value response that can be single value or list.
+
+    Args:
+        response: The response from the API (single value or list)
+        property_name: Name of the property for logging
+
+    Returns:
+        The response as-is for further processing
+    """
+    if isinstance(response, list):
+        print(f"  {property_name}: Multi-value property with {len(response)} values")
+        for i, value in enumerate(response):
+            print(f"    Value {i+1}: {value.value}")
+    else:
+        print(f"  {property_name}: {response.value}")
+    return response
 
 
 def main() -> None:
@@ -201,9 +224,25 @@ def main() -> None:
         properties["option"] = option_prop
         print_success(f"Option property created: {option_prop.display_name}")
 
+        # Multi-value option property for testing multi-value functionality
+        multi_option_prop_data = CreateWorkItemProperty(
+            display_name="Tags",
+            description="Multiple tags for the task",
+            property_type=PropertyType.OPTION.value,
+            is_required=False,
+            is_active=True,
+            is_multi=True,  # Enable multi-value support
+        )
+        multi_option_prop = client.work_item_properties.create(
+            workspace_slug, project.id, task_type.id, multi_option_prop_data
+        )
+        properties["multi_option"] = multi_option_prop
+        print_success(f"Multi-value option property created: {multi_option_prop.display_name}")
+
         # Create options for the option property
         print_step(5, "Creating property options")
         status_options = []
+        tag_options = []
 
         statuses = ["Not Started", "In Progress", "Review", "Completed", "Cancelled"]
         for status in statuses:
@@ -217,6 +256,20 @@ def main() -> None:
             )
             status_options.append(option)
             print_success(f"Status option created: {option.name}")
+
+        # Create options for the multi-value property
+        tags = ["Frontend", "Backend", "Database", "UI/UX", "Testing", "Documentation"]
+        for tag in tags:
+            option_data = CreateWorkItemPropertyOption(
+                name=tag,
+                description=f"Tag: {tag}",
+                is_active=True,
+            )
+            option = client.work_item_properties.options.create(
+                workspace_slug, project.id, multi_option_prop.id, option_data
+            )
+            tag_options.append(option)
+            print_success(f"Tag option created: {option.name}")
 
         # Create work items for testing
         print_step(6, "Creating work items for property value testing")
@@ -237,6 +290,13 @@ def main() -> None:
         print_step(7, "Testing property value operations")
 
         # Create property values for the first work item
+        # Note: Value types must match property types:
+        # - TEXT: string
+        # - BOOLEAN: boolean (True/False)
+        # - DECIMAL: float/int
+        # - DATETIME: string (YYYY-MM-DD format)
+        # - OPTION: string (UUID of the option)
+        # - Multi-value OPTION: list of strings (UUIDs)
         main_work_item = work_items[0]
         property_values = {}
 
@@ -248,23 +308,23 @@ def main() -> None:
             workspace_slug, project.id, main_work_item.id, text_prop.id, text_value_data
         )
         property_values["text"] = text_value
-        print_success(f"Text value created: {text_value.value}")
+        handle_property_value_response(text_value, "Text value created")
 
         # Boolean value
-        bool_value_data = CreateWorkItemPropertyValue(value="false")
+        bool_value_data = CreateWorkItemPropertyValue(value=False)
         bool_value = client.work_item_properties.values.create(
             workspace_slug, project.id, main_work_item.id, bool_prop.id, bool_value_data
         )
         property_values["boolean"] = bool_value
-        print_success(f"Boolean value created: {bool_value.value}")
+        handle_property_value_response(bool_value, "Boolean value created")
 
         # Decimal value
-        decimal_value_data = CreateWorkItemPropertyValue(value="25.5")
+        decimal_value_data = CreateWorkItemPropertyValue(value=25.5)
         decimal_value = client.work_item_properties.values.create(
             workspace_slug, project.id, main_work_item.id, decimal_prop.id, decimal_value_data
         )
         property_values["decimal"] = decimal_value
-        print_success(f"Decimal value created: {decimal_value.value}")
+        handle_property_value_response(decimal_value, "Decimal value created")
 
         # DateTime value
         start_date = datetime.now() - timedelta(days=2)
@@ -273,7 +333,7 @@ def main() -> None:
             workspace_slug, project.id, main_work_item.id, datetime_prop.id, datetime_value_data
         )
         property_values["datetime"] = datetime_value
-        print_success(f"DateTime value created: {datetime_value.value}")
+        handle_property_value_response(datetime_value, "DateTime value created")
 
         # Option value
         in_progress_option = next(opt for opt in status_options if opt.name == "In Progress")
@@ -282,7 +342,22 @@ def main() -> None:
             workspace_slug, project.id, main_work_item.id, option_prop.id, option_value_data
         )
         property_values["option"] = option_value
-        print_success(f"Option value created: {in_progress_option.name}")
+        handle_property_value_response(
+            option_value, f"Option value created: {in_progress_option.name}"
+        )
+
+        # Test multi-value property
+        print_step(7.5, "Testing multi-value property operations")
+
+        # Create multi-value tags for the main work item
+        # Frontend, Database, Testing
+        selected_tags = [tag_options[0].id, tag_options[2].id, tag_options[4].id]
+        multi_value_data = CreateWorkItemPropertyValue(value=selected_tags)
+        multi_value = client.work_item_properties.values.create(
+            workspace_slug, project.id, main_work_item.id, multi_option_prop.id, multi_value_data
+        )
+        property_values["multi_option"] = multi_value
+        handle_property_value_response(multi_value, "Multi-value tags created")
 
         # Test retrieving property values
         print_step(8, "Testing property value retrieval")
@@ -291,27 +366,33 @@ def main() -> None:
         retrieved_text = client.work_item_properties.values.retrieve(
             workspace_slug, project.id, main_work_item.id, text_prop.id
         )
-        print_success(f"Retrieved text value: {retrieved_text.value}")
+        handle_property_value_response(retrieved_text, "Retrieved text value")
 
         retrieved_bool = client.work_item_properties.values.retrieve(
             workspace_slug, project.id, main_work_item.id, bool_prop.id
         )
-        print_success(f"Retrieved boolean value: {retrieved_bool.value}")
+        handle_property_value_response(retrieved_bool, "Retrieved boolean value")
 
         retrieved_decimal = client.work_item_properties.values.retrieve(
             workspace_slug, project.id, main_work_item.id, decimal_prop.id
         )
-        print_success(f"Retrieved decimal value: {retrieved_decimal.value}")
+        handle_property_value_response(retrieved_decimal, "Retrieved decimal value")
 
         retrieved_datetime = client.work_item_properties.values.retrieve(
             workspace_slug, project.id, main_work_item.id, datetime_prop.id
         )
-        print_success(f"Retrieved datetime value: {retrieved_datetime.value}")
+        handle_property_value_response(retrieved_datetime, "Retrieved datetime value")
 
         retrieved_option = client.work_item_properties.values.retrieve(
             workspace_slug, project.id, main_work_item.id, option_prop.id
         )
-        print_success(f"Retrieved option value: {retrieved_option.value}")
+        handle_property_value_response(retrieved_option, "Retrieved option value")
+
+        # Retrieve multi-value property
+        retrieved_multi = client.work_item_properties.values.retrieve(
+            workspace_slug, project.id, main_work_item.id, multi_option_prop.id
+        )
+        handle_property_value_response(retrieved_multi, "Retrieved multi-value tags")
 
         # Test updating property values
         print_step(9, "Testing property value updates")
@@ -323,20 +404,20 @@ def main() -> None:
         updated_text = client.work_item_properties.values.update(
             workspace_slug, project.id, main_work_item.id, text_prop.id, updated_text_data
         )
-        print_success(f"Text value updated: {updated_text.value}")
+        handle_property_value_response(updated_text, "Text value updated")
 
         # Update boolean value using dict
         updated_bool = client.work_item_properties.values.update(
-            workspace_slug, project.id, main_work_item.id, bool_prop.id, {"value": "true"}
+            workspace_slug, project.id, main_work_item.id, bool_prop.id, {"value": True}
         )
-        print_success(f"Boolean value updated to: {updated_bool.value}")
+        handle_property_value_response(updated_bool, "Boolean value updated")
 
         # Update decimal value
-        updated_decimal_data = CreateWorkItemPropertyValue(value="75.25")
+        updated_decimal_data = CreateWorkItemPropertyValue(value=75.25)
         updated_decimal = client.work_item_properties.values.update(
             workspace_slug, project.id, main_work_item.id, decimal_prop.id, updated_decimal_data
         )
-        print_success(f"Decimal value updated to: {updated_decimal.value}")
+        handle_property_value_response(updated_decimal, "Decimal value updated")
 
         # Update option value to a different status
         completed_option = next(opt for opt in status_options if opt.name == "Completed")
@@ -344,7 +425,18 @@ def main() -> None:
         updated_option = client.work_item_properties.values.update(
             workspace_slug, project.id, main_work_item.id, option_prop.id, updated_option_data
         )
-        print_success(f"Option value updated to: {completed_option.name}")
+        handle_property_value_response(
+            updated_option, f"Option value updated to: {completed_option.name}"
+        )
+
+        # Update multi-value property (replace all values)
+        # Backend, UI/UX, Documentation
+        new_tags = [tag_options[1].id, tag_options[3].id, tag_options[5].id]
+        updated_multi_data = CreateWorkItemPropertyValue(value=new_tags)
+        updated_multi = client.work_item_properties.values.update(
+            workspace_slug, project.id, main_work_item.id, multi_option_prop.id, updated_multi_data
+        )
+        handle_property_value_response(updated_multi, "Multi-value tags updated")
 
         # Test creating property values for other work items
         print_step(10, "Testing property values for multiple work items")
@@ -357,15 +449,13 @@ def main() -> None:
             )
 
             bool_value_data = CreateWorkItemPropertyValue(
-                value="true" if i % 2 == 0 else "false"  # Alternate true/false
+                value=True if i % 2 == 0 else False  # Alternate true/false
             )
             client.work_item_properties.values.create(
                 workspace_slug, project.id, work_item.id, bool_prop.id, bool_value_data
             )
 
-            decimal_value_data = CreateWorkItemPropertyValue(
-                value=str(float(i * 30))  # "30.0", "60.0"
-            )
+            decimal_value_data = CreateWorkItemPropertyValue(value=float(i * 30))  # 30.0, 60.0
             client.work_item_properties.values.create(
                 workspace_slug, project.id, work_item.id, decimal_prop.id, decimal_value_data
             )
@@ -403,8 +493,14 @@ def main() -> None:
                 value = client.work_item_properties.values.retrieve(
                     workspace_slug, project.id, main_work_item.id, prop.id
                 )
-                remaining_values.append((prop_name, value.value))
-                print(f"  {prop.display_name}: {value.value}")
+                if isinstance(value, list):
+                    remaining_values.extend([(prop_name, v.value) for v in value])
+                    print(f"  {prop.display_name}: Multi-value property with {len(value)} values")
+                    for i, v in enumerate(value):
+                        print(f"    Value {i+1}: {v.value}")
+                else:
+                    remaining_values.append((prop_name, value.value))
+                    print(f"  {prop.display_name}: {value.value}")
             except Exception as e:
                 if "404" in str(e):
                     print(f"  {prop.display_name}: (not set)")
@@ -417,12 +513,12 @@ def main() -> None:
         print_step(13, "Test Summary")
         print(f"✓ Project created: {project.name}")
         print(f"✓ Work item type created: {task_type.name}")
-        print(f"✓ Properties created: {len(properties)} different types")
-        print(f"✓ Property options created: {len(status_options)}")
+        print(f"✓ Properties created: {len(properties)} different types (including multi-value)")
+        print(f"✓ Property options created: {len(status_options)} status + {len(tag_options)} tags")
         print(f"✓ Work items created: {len(work_items)}")
-        print("✓ Property values created: Text, Boolean, Decimal, DateTime, and Option types")
-        print("✓ Property value retrieval tested")
-        print("✓ Property value updates tested")
+        print("✓ Property values created: Text, Boolean, Decimal, DateTime, Option, Multi-value")
+        print("✓ Property value retrieval tested (single and multi-value)")
+        print("✓ Property value updates tested (single and multi-value)")
         print("✓ Property value deletion tested")
         print("\nAll property value CRUD operations completed successfully!")
         print(f"\nView your project at: {base_url}/w/{workspace_slug}/p/{project.id}")

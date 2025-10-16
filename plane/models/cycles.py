@@ -3,6 +3,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from .pagination import PaginatedResponse
+from .work_items import WorkItemExpand
 
 
 class Cycle(BaseModel):
@@ -85,6 +86,7 @@ class CreateCycle(BaseModel):
     external_source: str | None = None
     external_id: str | None = None
     timezone: str | None = None
+    project_id: str
 
 
 class UpdateCycle(BaseModel):
@@ -116,7 +118,7 @@ class CycleWorkItem(BaseModel):
     updated_by: str | None = None
     project: str | None = None
     workspace: str | None = None
-    issue: str
+    issue: WorkItemExpand
     cycle: str | None = None
 
 

@@ -25,5 +25,5 @@ class Users(BaseResource):
 
     def get_me(self) -> UserLite:
         """Get current user information."""
-        response = self._get("me/")
+        response = self._get("me")
         return UserLite.model_validate(response)
