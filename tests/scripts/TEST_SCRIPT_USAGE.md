@@ -40,14 +40,14 @@ The test scripts in this directory provide comprehensive testing for various Pla
 You must set the following environment variables:
 
 ```bash
-export BASE_URL="https://api.plane.so"     # Your Plane instance URL (required)
+export PLANE_BASE_URL="https://api.plane.so"     # Your Plane instance URL (required)
 export WORKSPACE_SLUG="your-workspace"     # Your workspace slug (required)
-export API_KEY="your_api_key"              # Your API key (required if not using ACCESS_TOKEN)
+export PLANE_API_KEY="your_api_key"              # Your API key (required if not using PLANE_ACCESS_TOKEN)
 # OR
-export ACCESS_TOKEN="your_token"           # Your access token (required if not using API_KEY)
+export PLANE_ACCESS_TOKEN="your_token"           # Your access token (required if not using PLANE_API_KEY)
 ```
 
-**Note**: You must provide either `API_KEY` or `ACCESS_TOKEN`, but not necessarily both.
+**Note**: You must provide either `PLANE_API_KEY` or `PLANE_ACCESS_TOKEN`, but not necessarily both.
 
 ### 2. Install Dependencies
 
@@ -80,8 +80,8 @@ python test_labels.py
 ### Example with Inline Environment Variables
 
 ```bash
-BASE_URL="https://api.plane.so" \
-API_KEY="your_api_key" \
+PLANE_BASE_URL="https://api.plane.so" \
+PLANE_API_KEY="your_api_key" \
 WORKSPACE_SLUG="my-workspace" \
 python test_work_items.py
 ```
@@ -93,8 +93,8 @@ You can use a `.env` file with a tool like `python-dotenv`:
 1. Create a `.env` file in the `tests/scripts/` directory:
 
 ```bash
-BASE_URL=https://api.plane.so
-API_KEY=your_api_key_here
+PLANE_BASE_URL=https://api.plane.so
+PLANE_API_KEY=your_api_key_here
 WORKSPACE_SLUG=your-workspace-slug
 ```
 
@@ -157,14 +157,14 @@ The cleanup section handles resource deletion in the correct order (child resour
 If you see this error:
 
 ```
-✗ BASE_URL environment variable is required
+✗ PLANE_BASE_URL environment variable is required
 ```
 
 **All environment variables must be explicitly set.** The scripts no longer use default values. Make sure you have set:
 
-- `BASE_URL`
+- `PLANE_BASE_URL`
 - `WORKSPACE_SLUG`
-- Either `API_KEY` or `ACCESS_TOKEN`
+- Either `PLANE_API_KEY` or `PLANE_ACCESS_TOKEN`
 
 ### Authentication Errors
 
@@ -178,7 +178,7 @@ If you see HTTP 401 or 403 errors:
 
 If you see connection errors:
 
-- Verify the `BASE_URL` is correct and includes the protocol (`https://` or `http://`)
+- Verify the `PLANE_BASE_URL` is correct and includes the protocol (`https://` or `http://`)
 - Check that the Plane instance is accessible from your network
 - Ensure there are no network/firewall issues blocking the connection
 

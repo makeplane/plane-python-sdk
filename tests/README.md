@@ -30,9 +30,9 @@ Pytest-based unit tests that make real HTTP requests (no mocking) and function a
 **Shared Fixtures (`conftest.py`):**
 
 - `client` - Initialized Plane client with authentication
-- `base_url` - Base URL from environment
-- `api_key` / `access_token` - Authentication credentials
-- `workspace_slug` - Workspace identifier
+- `base_url` - Base URL from environment (PLANE_BASE_URL)
+- `api_key` / `access_token` - Authentication credentials (PLANE_API_KEY / PLANE_ACCESS_TOKEN)
+- `workspace_slug` - Workspace identifier (WORKSPACE_SLUG)
 
 ### Integration/Script Tests (`tests/scripts/`)
 
@@ -56,8 +56,8 @@ See `tests/scripts/TEST_SCRIPT_USAGE.md` for detailed usage instructions for scr
 Set the following environment variables:
 
 ```bash
-export BASE_URL="http://127.0.0.1:8000"  # or https://api.plane.so
-export API_KEY="your_api_key"              # or ACCESS_TOKEN
+export PLANE_BASE_URL="http://127.0.0.1:8000"  # or https://api.plane.so
+export PLANE_API_KEY="your_api_key"              # or PLANE_ACCESS_TOKEN
 export WORKSPACE_SLUG="your_workspace"
 ```
 
@@ -151,7 +151,7 @@ All tests automatically clean up resources they create:
 These tests require:
 
 1. A running Plane instance (local or hosted)
-2. Valid API credentials (API_KEY or ACCESS_TOKEN)
+2. Valid API credentials (PLANE_API_KEY or PLANE_ACCESS_TOKEN)
 3. Appropriate workspace permissions
 4. Network access to the Plane API endpoint
 

@@ -10,8 +10,8 @@ Usage:
     python test_property_values.py
 
 Requirements:
-    - Set BASE_URL environment variable (e.g., https://api.plane.so)
-    - Set either API_KEY or ACCESS_TOKEN environment variable
+    - Set PLANE_BASE_URL environment variable (e.g., https://api.plane.so)
+    - Set either PLANE_API_KEY or PLANE_ACCESS_TOKEN environment variable
     - Set WORKSPACE_SLUG environment variable
 """
 
@@ -83,18 +83,18 @@ def handle_property_value_response(
 def main() -> None:
     """Main test function."""
     # Get configuration from environment
-    base_url = os.getenv("BASE_URL")
-    api_key = os.getenv("API_KEY")
-    access_token = os.getenv("ACCESS_TOKEN")
+    base_url = os.getenv("PLANE_BASE_URL")
+    api_key = os.getenv("PLANE_API_KEY")
+    access_token = os.getenv("PLANE_ACCESS_TOKEN")
     workspace_slug = os.getenv("WORKSPACE_SLUG")
 
     # Validate required environment variables
     if not base_url:
-        print_error("BASE_URL environment variable is required")
+        print_error("PLANE_BASE_URL environment variable is required")
         sys.exit(1)
 
     if not api_key and not access_token:
-        print_error("Either API_KEY or ACCESS_TOKEN environment variable is required")
+        print_error("Either PLANE_API_KEY or PLANE_ACCESS_TOKEN environment variable is required")
         sys.exit(1)
 
     if not workspace_slug:

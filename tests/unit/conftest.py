@@ -12,22 +12,22 @@ from plane.models.projects import CreateProject, Project
 @pytest.fixture(scope="session")
 def base_url() -> str:
     """Get base URL from environment variable."""
-    url = os.getenv("BASE_URL")
+    url = os.getenv("PLANE_BASE_URL")
     if not url:
-        pytest.skip("BASE_URL environment variable not set")
+        pytest.skip("PLANE_BASE_URL environment variable not set")
     return url
 
 
 @pytest.fixture(scope="session")
 def api_key() -> str | None:
     """Get API key from environment variable."""
-    return os.getenv("API_KEY")
+    return os.getenv("PLANE_API_KEY")
 
 
 @pytest.fixture(scope="session")
 def access_token() -> str | None:
     """Get access token from environment variable."""
-    return os.getenv("ACCESS_TOKEN")
+    return os.getenv("PLANE_ACCESS_TOKEN")
 
 
 @pytest.fixture(scope="session")
@@ -43,7 +43,7 @@ def workspace_slug() -> str:
 def client(base_url: str, api_key: str | None, access_token: str | None) -> PlaneClient:
     """Create and return a configured PlaneClient instance."""
     if not api_key and not access_token:
-        pytest.skip("Either API_KEY or ACCESS_TOKEN environment variable must be set")
+        pytest.skip("Either PLANE_API_KEY or PLANE_ACCESS_TOKEN environment variable must be set")
 
     return PlaneClient(
         base_url=base_url,
