@@ -447,7 +447,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field, ConfigDict
 
 class Project(BaseModel):
-  model_config = ConfigDict(extra="ignore", populate_by_name=True)
+  model_config = ConfigDict(extra="allow", populate_by_name=True)
   id: str
   name: str
   description: str | None = None
@@ -456,15 +456,18 @@ class Project(BaseModel):
   updated_at: str
 
 class CreateProject(BaseModel):
+  model_config = ConfigDict(extra="ignore", populate_by_name=True)
   name: str
   description: str | None = None
   workspace: str
 
 class UpdateProject(BaseModel):
+  model_config = ConfigDict(extra="ignore", populate_by_name=True)
   name: str | None = None
   description: str | None = None
 
 class ListProjectsParams(BaseModel):
+  model_config = ConfigDict(extra="ignore", populate_by_name=True)
   workspace: str | None = None
   limit: int | None = Field(default=20, ge=1, le=100)
   offset: int | None = Field(default=0, ge=0)
@@ -520,7 +523,7 @@ This section defines the rules and conventions that all AI agents and models mus
 #### Python Best Practices
 
 - **Strict Type Annotations**: Use Python 3.10+ with precise typings; avoid `Any` where possible
-- **Models**: Use Pydantic v2 for request/response models; set `extra="ignore"`
+- **Models**: Use Pydantic v2 with: response models `extra="allow"`; Create*/Update* DTOs `extra="ignore"` (response models use `extra="allow"` for forward compatibility with new API fields)
 - **Single Responsibility**: Each class/function has one well-defined purpose
 - **Base Class**: All API resources extend `BaseResource`
 - **Consistent Naming**: snake_case for functions/methods, PascalCase for classes, lowercase modules
