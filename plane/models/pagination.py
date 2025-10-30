@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 class PaginatedResponse(BaseModel):
     """Base class for all paginated responses with common pagination properties."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     grouped_by: str | None = None
     sub_grouped_by: str | None = None

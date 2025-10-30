@@ -6,7 +6,7 @@ from .enums import EntityTypeEnum, TypeMimeEnum
 class UserLite(BaseModel):
     """Lite user information."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     first_name: str | None = None

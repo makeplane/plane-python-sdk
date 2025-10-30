@@ -41,3 +41,21 @@ __all__ = [
     "RetrieveQueryParams",
     "WorkItemQueryParams",
 ]
+
+
+# Rebuild models with forward references after all imports
+def _rebuild_forward_references() -> None:
+    """Rebuild Pydantic models to resolve forward references after circular imports."""
+    # Import both modules - now they won't have circular import issues
+    # because we're using TYPE_CHECKING and string forward references
+    from .modules import ModuleLite, ModuleWorkItem, PaginatedModuleWorkItemResponse
+    from .work_items import WorkItemExpand, WorkItem
+
+    # Rebuild models that have forward references to each other
+    WorkItemExpand.model_rebuild()  # Has forward ref to ModuleLite
+    ModuleWorkItem.model_rebuild()  # Has forward ref to WorkItemExpand
+    PaginatedModuleWorkItemResponse.model_rebuild()  # Contains ModuleWorkItem
+
+
+# Call rebuild when models package is imported
+_rebuild_forward_references()

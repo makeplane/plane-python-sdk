@@ -1,6 +1,11 @@
 from collections.abc import Mapping
 from typing import Any
 
+from ...models.work_items import (
+    UpdateWorkItemAttachment,
+    WorkItemAttachment,
+    WorkItemAttachmentUploadRequest,
+)
 from ..base_resource import BaseResource
 
 
@@ -14,7 +19,7 @@ class WorkItemAttachments(BaseResource):
         project_id: str,
         work_item_id: str,
         params: Mapping[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[WorkItemAttachment]:
         """Get attachments for a work item.
 
         Args:
@@ -27,11 +32,13 @@ class WorkItemAttachments(BaseResource):
             f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/attachments",
             params=params,
         )
-        return response if isinstance(response, list) else []
+        if isinstance(response, list):
+            return [WorkItemAttachment.model_validate(item) for item in response]
+        return []
 
     def retrieve(
         self, workspace_slug: str, project_id: str, work_item_id: str, attachment_id: str
-    ) -> dict[str, Any]:
+    ) -> WorkItemAttachment:
         """Retrieve a specific attachment for a work item.
 
         Args:
@@ -43,11 +50,15 @@ class WorkItemAttachments(BaseResource):
         response = self._get(
             f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/attachments/{attachment_id}"
         )
-        return response if isinstance(response, dict) else {}
+        return WorkItemAttachment.model_validate(response)
 
     def create(
-        self, workspace_slug: str, project_id: str, work_item_id: str, data: Mapping[str, Any]
-    ) -> dict[str, Any]:
+        self,
+        workspace_slug: str,
+        project_id: str,
+        work_item_id: str,
+        data: WorkItemAttachmentUploadRequest,
+    ) -> WorkItemAttachment:
         """Create an attachment for a work item.
 
         Args:
@@ -57,9 +68,10 @@ class WorkItemAttachments(BaseResource):
             data: Attachment data
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/attachments", data
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/attachments",
+            data.model_dump(exclude_none=True),
         )
-        return response if isinstance(response, dict) else {}
+        return WorkItemAttachment.model_validate(response)
 
     def update(
         self,
@@ -67,8 +79,8 @@ class WorkItemAttachments(BaseResource):
         project_id: str,
         work_item_id: str,
         attachment_id: str,
-        data: Mapping[str, Any],
-    ) -> dict[str, Any]:
+        data: UpdateWorkItemAttachment,
+    ) -> WorkItemAttachment:
         """Update an attachment for a work item.
 
         Args:
@@ -80,9 +92,9 @@ class WorkItemAttachments(BaseResource):
         """
         response = self._patch(
             f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/attachments/{attachment_id}",
-            data,
+            data.model_dump(exclude_none=True),
         )
-        return response if isinstance(response, dict) else {}
+        return WorkItemAttachment.model_validate(response)
 
     def delete(
         self, workspace_slug: str, project_id: str, work_item_id: str, attachment_id: str

@@ -2,7 +2,6 @@ from collections.abc import Mapping
 from typing import Any
 
 from ..models.modules import (
-    AddWorkItemsToModuleRequest,
     CreateModule,
     Module,
     PaginatedArchivedModuleResponse,
@@ -102,7 +101,7 @@ class Modules(BaseResource):
         workspace_slug: str,
         project_id: str,
         module_id: str,
-        data: AddWorkItemsToModuleRequest,
+        issue_ids: [str],
     ) -> None:
         """Add work items to a module.
 
@@ -110,11 +109,11 @@ class Modules(BaseResource):
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             module_id: UUID of the module
-            data: Work items to add
+            issue_ids: List of issue IDs to add to the module
         """
         return self._post(
             f"{workspace_slug}/projects/{project_id}/modules/{module_id}/module-issues",
-            data.model_dump(exclude_none=True),
+            {"issues": issue_ids},
         )
 
     def remove_work_item(
@@ -153,28 +152,30 @@ class Modules(BaseResource):
         )
         return PaginatedModuleWorkItemResponse.model_validate(response)
 
-    def archive(self, workspace_slug: str, project_id: str, module_id: str) -> Module:
+    def archive(self, workspace_slug: str, project_id: str, module_id: str) -> None:
         """Archive a module.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             module_id: UUID of the module
-        """
-        response = self._post(
-            f"{workspace_slug}/projects/{project_id}/modules/{module_id}/archive", {}
-        )
-        return Module.model_validate(response)
 
-    def unarchive(self, workspace_slug: str, project_id: str, module_id: str) -> Module:
+        Returns:
+            None (HTTP 204 No Content)
+        """
+        self._post(f"{workspace_slug}/projects/{project_id}/modules/{module_id}/archive", {})
+
+    def unarchive(self, workspace_slug: str, project_id: str, module_id: str) -> None:
         """Unarchive a module.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             module_id: UUID of the module
+
+        Returns:
+            None (HTTP 204 No Content)
         """
-        response = self._post(
-            f"{workspace_slug}/projects/{project_id}/archived-modules/{module_id}/unarchive", {}
+        self._delete(
+            f"{workspace_slug}/projects/{project_id}/archived-modules/{module_id}/unarchive"
         )
-        return Module.model_validate(response)

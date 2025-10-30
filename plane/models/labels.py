@@ -6,7 +6,7 @@ from .pagination import PaginatedResponse
 class Label(BaseModel):
     """Label model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     created_at: str | None = None
@@ -56,6 +56,6 @@ class UpdateLabel(BaseModel):
 class PaginatedLabelResponse(PaginatedResponse):
     """Paginated response for labels."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Label]

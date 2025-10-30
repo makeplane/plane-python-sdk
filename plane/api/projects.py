@@ -8,6 +8,7 @@ from ..models.projects import (
     ProjectWorklogSummary,
     UpdateProject,
 )
+from ..models.query_params import PaginatedQueryParams
 from ..models.users import UserLite
 from .base_resource import BaseResource
 
@@ -59,7 +60,7 @@ class Projects(BaseResource):
         return self._delete(f"{workspace_slug}/projects/{project_id}")
 
     def list(
-        self, workspace_slug: str, params: Mapping[str, Any] | None = None
+        self, workspace_slug: str, params: PaginatedQueryParams | None = None
     ) -> PaginatedProjectResponse:
         """List projects with optional filtering parameters.
 
@@ -67,7 +68,8 @@ class Projects(BaseResource):
             workspace_slug: The workspace slug identifier
             params: Optional query parameters
         """
-        response = self._get(f"{workspace_slug}/projects", params=params)
+        query_params = params.model_dump(exclude_none=True) if params else None
+        response = self._get(f"{workspace_slug}/projects", params=query_params)
         return PaginatedProjectResponse.model_validate(response)
 
     def get_worklog_summary(self, workspace_slug: str, project_id: str) -> [ProjectWorklogSummary]:

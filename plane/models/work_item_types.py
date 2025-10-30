@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 class WorkItemType(BaseModel):
     """Work item type model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     deleted_at: str | None = None

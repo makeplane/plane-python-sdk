@@ -1,9 +1,15 @@
 from collections.abc import Mapping
 from typing import Any
 
-from ..base_resource import BaseResource
-from .properties import CustomerProperties
-from .requests import CustomerRequests
+from plane.api.base_resource import BaseResource
+from plane.api.customers.properties import CustomerProperties
+from plane.api.customers.requests import CustomerRequests
+from plane.models.customers import (
+    CreateCustomer,
+    Customer,
+    PaginatedCustomerResponse,
+    UpdateCustomer,
+)
 
 
 class Customers(BaseResource):
@@ -16,7 +22,7 @@ class Customers(BaseResource):
 
     def list(
         self, workspace_slug: str, params: Mapping[str, Any] | None = None
-    ) -> list[dict[str, Any]]:
+    ) -> PaginatedCustomerResponse:
         """List customers in a workspace.
 
         Args:
@@ -24,11 +30,11 @@ class Customers(BaseResource):
             params: Optional query parameters
         """
         response = self._get(f"{workspace_slug}/customers", params=params)
-        return response if isinstance(response, list) else []
+        return PaginatedCustomerResponse.model_validate(response)
 
     def retrieve(
         self, workspace_slug: str, customer_id: str, params: Mapping[str, Any] | None = None
-    ) -> dict[str, Any]:
+    ) -> Customer:
         """Retrieve a customer by ID.
 
         Args:
@@ -37,21 +43,19 @@ class Customers(BaseResource):
             params: Optional query parameters
         """
         response = self._get(f"{workspace_slug}/customers/{customer_id}", params=params)
-        return response if isinstance(response, dict) else {}
+        return Customer.model_validate(response)
 
-    def create(self, workspace_slug: str, data: Mapping[str, Any]) -> dict[str, Any]:
+    def create(self, workspace_slug: str, data: CreateCustomer) -> Customer:
         """Create a new customer.
 
         Args:
             workspace_slug: The workspace slug identifier
             data: Customer data
         """
-        response = self._post(f"{workspace_slug}/customers", data)
-        return response if isinstance(response, dict) else {}
+        response = self._post(f"{workspace_slug}/customers", data.model_dump(exclude_none=True))
+        return Customer.model_validate(response)
 
-    def update(
-        self, workspace_slug: str, customer_id: str, data: Mapping[str, Any]
-    ) -> dict[str, Any]:
+    def update(self, workspace_slug: str, customer_id: str, data: UpdateCustomer) -> Customer:
         """Update a customer by ID.
 
         Args:
@@ -59,8 +63,10 @@ class Customers(BaseResource):
             customer_id: UUID of the customer
             data: Updated customer data
         """
-        response = self._patch(f"{workspace_slug}/customers/{customer_id}", data)
-        return response if isinstance(response, dict) else {}
+        response = self._patch(
+            f"{workspace_slug}/customers/{customer_id}", data.model_dump(exclude_none=True)
+        )
+        return Customer.model_validate(response)
 
     def delete(self, workspace_slug: str, customer_id: str) -> None:
         """Delete a customer by ID.

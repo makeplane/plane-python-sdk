@@ -1,7 +1,11 @@
 from collections.abc import Mapping
 from typing import Any
 
-from ..base_resource import BaseResource
+from plane.api.base_resource import BaseResource
+from plane.models.customers import (
+    CustomerRequest,
+    UpdateCustomerRequest,
+)
 
 
 class CustomerRequests(BaseResource):
@@ -13,7 +17,7 @@ class CustomerRequests(BaseResource):
         workspace_slug: str,
         customer_id: str,
         params: Mapping[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[CustomerRequest]:
         """List customer requests.
 
         Args:
@@ -22,9 +26,11 @@ class CustomerRequests(BaseResource):
             params: Optional query parameters
         """
         response = self._get(f"{workspace_slug}/customers/{customer_id}/requests", params=params)
-        return response if isinstance(response, list) else []
+        if isinstance(response, list):
+            return [CustomerRequest.model_validate(item) for item in response]
+        return []
 
-    def retrieve(self, workspace_slug: str, customer_id: str, request_id: str) -> dict[str, Any]:
+    def retrieve(self, workspace_slug: str, customer_id: str, request_id: str) -> CustomerRequest:
         """Retrieve a customer request by ID.
 
         Args:
@@ -33,11 +39,11 @@ class CustomerRequests(BaseResource):
             request_id: UUID of the customer request
         """
         response = self._get(f"{workspace_slug}/customers/{customer_id}/requests/{request_id}")
-        return response if isinstance(response, dict) else {}
+        return CustomerRequest.model_validate(response)
 
     def create(
-        self, workspace_slug: str, customer_id: str, data: Mapping[str, Any]
-    ) -> dict[str, Any]:
+        self, workspace_slug: str, customer_id: str, data: CustomerRequest
+    ) -> CustomerRequest:
         """Create a new customer request.
 
         Args:
@@ -45,16 +51,19 @@ class CustomerRequests(BaseResource):
             customer_id: UUID of the customer
             data: Customer request data
         """
-        response = self._post(f"{workspace_slug}/customers/{customer_id}/requests", data)
-        return response if isinstance(response, dict) else {}
+        response = self._post(
+            f"{workspace_slug}/customers/{customer_id}/requests",
+            data.model_dump(exclude_none=True),
+        )
+        return CustomerRequest.model_validate(response)
 
     def update(
         self,
         workspace_slug: str,
         customer_id: str,
         request_id: str,
-        data: Mapping[str, Any],
-    ) -> dict[str, Any]:
+        data: UpdateCustomerRequest,
+    ) -> CustomerRequest:
         """Update a customer request by ID.
 
         Args:
@@ -64,9 +73,10 @@ class CustomerRequests(BaseResource):
             data: Updated request data
         """
         response = self._patch(
-            f"{workspace_slug}/customers/{customer_id}/requests/{request_id}", data
+            f"{workspace_slug}/customers/{customer_id}/requests/{request_id}",
+            data.model_dump(exclude_none=True),
         )
-        return response if isinstance(response, dict) else {}
+        return CustomerRequest.model_validate(response)
 
     def delete(self, workspace_slug: str, customer_id: str, request_id: str) -> None:
         """Delete a customer request by ID.

@@ -31,7 +31,7 @@ class WorkItemProperties(BaseResource):
             data: Work item property data
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/issue-properties",
+            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/work-item-properties",
             data.model_dump(exclude_none=True),
         )
         return WorkItemProperty.model_validate(response)
@@ -48,7 +48,7 @@ class WorkItemProperties(BaseResource):
             work_item_property_id: UUID of the property
         """
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/issue-properties/{work_item_property_id}"
+            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/work-item-properties/{work_item_property_id}"
         )
         return WorkItemProperty.model_validate(response)
 
@@ -70,7 +70,7 @@ class WorkItemProperties(BaseResource):
             data: Updated property data
         """
         response = self._patch(
-            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/issue-properties/{work_item_property_id}",
+            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/work-item-properties/{work_item_property_id}",
             data.model_dump(exclude_none=True),
         )
         return WorkItemProperty.model_validate(response)
@@ -87,7 +87,7 @@ class WorkItemProperties(BaseResource):
             work_item_property_id: UUID of the property
         """
         return self._delete(
-            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/issue-properties/{work_item_property_id}"
+            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/work-item-properties/{work_item_property_id}"
         )
 
     def list(
@@ -106,7 +106,7 @@ class WorkItemProperties(BaseResource):
             params: Optional query parameters
         """
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/issue-properties",
+            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/work-item-properties",
             params=params,
         )
         return [WorkItemProperty.model_validate(item) for item in response]

@@ -9,7 +9,7 @@ from .pagination import PaginatedResponse
 class Epic(BaseModel):
     """Epic model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     deleted_at: str | None = None
@@ -46,6 +46,6 @@ class Epic(BaseModel):
 class PaginatedEpicResponse(PaginatedResponse):
     """Paginated response for epics."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Epic]

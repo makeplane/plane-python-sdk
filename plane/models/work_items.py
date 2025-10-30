@@ -1,19 +1,21 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from .enums import AccessEnum, PriorityEnum, WorkItemRelationTypeEnum
 from .labels import Label
-from .modules import ModuleLite
 from .pagination import PaginatedResponse
 from .states import StateLite
 from .users import UserLite
+
+if TYPE_CHECKING:
+    from .modules import ModuleLite
 
 
 class WorkItem(BaseModel):
     """Work item model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     type_id: str | None = None
@@ -48,7 +50,7 @@ class WorkItem(BaseModel):
 class WorkItemDetail(BaseModel):
     """Detailed work item with expanded relationships."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     assignees: list[UserLite]
@@ -77,7 +79,7 @@ class WorkItemDetail(BaseModel):
     project: str | None = None
     workspace: str | None = None
     parent: str | None = None
-    state: str | None = None
+    state: str | StateLite | None = None
     estimate_point: str | None = None
     type: str | None = None
 
@@ -85,13 +87,13 @@ class WorkItemDetail(BaseModel):
 class WorkItemExpand(BaseModel):
     """Expanded work item with nested objects."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     cycle: Any | None = None  # historical placeholder
-    module: ModuleLite | None = None
-    labels: str | None = None
-    assignees: str | None = None
+    module: "ModuleLite | None" = None
+    labels: list[str] | list[Label] | None = None
+    assignees: list[str] | list[UserLite] | None = None
     state: StateLite | None = None
     created_at: str | None = None
     updated_at: str | None = None
@@ -195,7 +197,7 @@ class WorkItemForIntakeRequest(BaseModel):
 class WorkItemSearchItem(BaseModel):
     """Work item search result item."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str = Field(..., description="Issue ID")
     name: str = Field(..., description="Issue name")
@@ -208,7 +210,7 @@ class WorkItemSearchItem(BaseModel):
 class WorkItemSearch(BaseModel):
     """Work item search results."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     issues: list[WorkItemSearchItem]
 
@@ -216,7 +218,7 @@ class WorkItemSearch(BaseModel):
 class WorkItemActivity(BaseModel):
     """Work item activity model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     created_at: str | None = None
@@ -241,7 +243,7 @@ class WorkItemActivity(BaseModel):
 class WorkItemComment(BaseModel):
     """Work item comment model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     is_member: bool | None = None
@@ -290,7 +292,7 @@ class UpdateWorkItemComment(BaseModel):
 class WorkItemLink(BaseModel):
     """Work item link model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     created_at: str | None = None
@@ -325,7 +327,7 @@ class UpdateWorkItemLink(BaseModel):
 class WorkItemAttachment(BaseModel):
     """Work item attachment model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     created_at: str | None = None
@@ -371,10 +373,21 @@ class WorkItemAttachmentUploadRequest(BaseModel):
     )
 
 
+class UpdateWorkItemAttachment(BaseModel):
+    """Request model for updating a work item attachment."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    is_uploaded: bool | None = Field(
+        None,
+        description="Mark attachment as uploaded",
+    )
+
+
 class WorkItemRelation(BaseModel):
     """Work item relation model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     project_id: str | None = None
@@ -420,7 +433,7 @@ class RemoveWorkItemRelation(BaseModel):
 class WorkItemRelationResponse(BaseModel):
     """Response model for work item relations."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     blocking: list[str] = Field(
         ...,
@@ -459,7 +472,7 @@ class WorkItemRelationResponse(BaseModel):
 class WorkItemWorkLog(BaseModel):
     """Work item work log model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     created_at: str | None = None
@@ -498,7 +511,7 @@ class UpdateWorkItemWorkLog(BaseModel):
 class PaginatedWorkItemResponse(PaginatedResponse):
     """Paginated response for work items."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[WorkItem]
 
@@ -506,7 +519,7 @@ class PaginatedWorkItemResponse(PaginatedResponse):
 class PaginatedWorkItemActivityResponse(PaginatedResponse):
     """Paginated response for work item activities."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[WorkItemActivity]
 
@@ -514,7 +527,7 @@ class PaginatedWorkItemActivityResponse(PaginatedResponse):
 class PaginatedWorkItemCommentResponse(PaginatedResponse):
     """Paginated response for work item comments."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[WorkItemComment]
 
@@ -522,6 +535,6 @@ class PaginatedWorkItemCommentResponse(PaginatedResponse):
 class PaginatedWorkItemLinkResponse(PaginatedResponse):
     """Paginated response for work item links."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[WorkItemLink]

@@ -7,7 +7,7 @@ from .pagination import PaginatedResponse
 class State(BaseModel):
     """State model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     created_at: str | None = None
@@ -31,7 +31,7 @@ class State(BaseModel):
 class StateLite(BaseModel):
     """Lite state information."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     name: str | None = None
@@ -74,6 +74,6 @@ class UpdateState(BaseModel):
 class PaginatedStateResponse(PaginatedResponse):
     """Paginated response for states."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[State]

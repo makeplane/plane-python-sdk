@@ -2,7 +2,6 @@ from collections.abc import Mapping
 from typing import Any
 
 from ..models.cycles import (
-    AddWorkItemsToCycleRequest,
     CreateCycle,
     Cycle,
     PaginatedArchivedCycleResponse,
@@ -103,7 +102,7 @@ class Cycles(BaseResource):
         workspace_slug: str,
         project_id: str,
         cycle_id: str,
-        data: AddWorkItemsToCycleRequest,
+        issue_ids: [str],
     ) -> None:
         """Add work items to a cycle.
 
@@ -111,11 +110,11 @@ class Cycles(BaseResource):
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             cycle_id: UUID of the cycle
-            data: Work items to add
+            issue_ids: List of issue IDs to add to the cycle
         """
         return self._post(
             f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues",
-            data.model_dump(exclude_none=True),
+            {"issues": issue_ids},
         )
 
     def remove_work_item(
@@ -173,7 +172,7 @@ class Cycles(BaseResource):
             data.model_dump(exclude_none=True),
         )
 
-    def archive(self, workspace_slug: str, project_id: str, cycle_id: str) -> Cycle:
+    def archive(self, workspace_slug: str, project_id: str, cycle_id: str) -> bool:
         """Archive a cycle.
 
         Args:
@@ -181,12 +180,12 @@ class Cycles(BaseResource):
             project_id: UUID of the project
             cycle_id: UUID of the cycle
         """
-        response = self._post(
+        self._post(
             f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/archive", {}
         )
-        return Cycle.model_validate(response)
+        return True
 
-    def unarchive(self, workspace_slug: str, project_id: str, cycle_id: str) -> Cycle:
+    def unarchive(self, workspace_slug: str, project_id: str, cycle_id: str) -> bool:
         """Unarchive a cycle.
 
         Args:
@@ -194,7 +193,7 @@ class Cycles(BaseResource):
             project_id: UUID of the project
             cycle_id: UUID of the cycle
         """
-        response = self._post(
-            f"{workspace_slug}/projects/{project_id}/archived-cycles/{cycle_id}/unarchive", {}
+        self._delete(
+            f"{workspace_slug}/projects/{project_id}/archived-cycles/{cycle_id}/unarchive"
         )
-        return Cycle.model_validate(response)
+        return True

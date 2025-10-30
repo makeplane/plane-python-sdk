@@ -3,7 +3,6 @@ from .api.cycles import Cycles
 from .api.epics import Epics
 from .api.intake import Intake
 from .api.labels import Labels
-from .api.members import Members
 from .api.modules import Modules
 from .api.pages import Pages
 from .api.projects import Projects
@@ -54,4 +53,3 @@ class PlaneClient:
         self.work_item_properties = WorkItemProperties(self.config)
         self.customers = Customers(self.config)
         self.intake = Intake(self.config)
-        self.members = Members(self.config)

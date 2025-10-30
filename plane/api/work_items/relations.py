@@ -54,7 +54,7 @@ class WorkItemRelations(BaseResource):
             work_item_id: UUID of the work item
             data: Relation removal data
         """
-        return self._delete(
+        return self._post(
             f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/relations/remove",
             data.model_dump(exclude_none=True),
         )

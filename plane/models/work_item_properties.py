@@ -15,7 +15,7 @@ PropertySettings = TextAttributeSettings | DateAttributeSettings | None
 class WorkItemProperty(BaseModel):
     """Work item property model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     deleted_at: str | None = None
@@ -180,7 +180,7 @@ class UpdateWorkItemProperty(BaseModel):
 class WorkItemPropertyOption(BaseModel):
     """Work item property option model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     deleted_at: str | None = None
@@ -233,7 +233,7 @@ class UpdateWorkItemPropertyOption(BaseModel):
 class WorkItemPropertyValue(BaseModel):
     """Work item property value model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     deleted_at: str | None = None
@@ -293,7 +293,7 @@ class WorkItemPropertyValueDetail(BaseModel):
     and formatted according to property type.
     """
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str = Field(..., description="Unique identifier for this property value")
     property_id: str = Field(..., description="ID of the property")

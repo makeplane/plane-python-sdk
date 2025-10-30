@@ -30,22 +30,6 @@ class WorkLogs(BaseResource):
         )
         return [WorkItemWorkLog.model_validate(item) for item in response]
 
-    def retrieve(
-        self, workspace_slug: str, project_id: str, work_item_id: str, work_log_id: str
-    ) -> WorkItemWorkLog:
-        """Retrieve a specific work log for a work item.
-
-        Args:
-            workspace_slug: The workspace slug identifier
-            project_id: UUID of the project
-            work_item_id: UUID of the work item
-            work_log_id: UUID of the work log
-        """
-        response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/worklogs/{work_log_id}"
-        )
-        return WorkItemWorkLog.model_validate(response)
-
     def create(
         self,
         workspace_slug: str,

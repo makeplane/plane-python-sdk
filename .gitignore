@@ -64,3 +64,9 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+# Misc
+.DS_Store
+*.pem
+.history
+tsconfig.tsbuildinfo

@@ -1,7 +1,7 @@
 from .api.cycles import Cycles
 from .api.labels import Labels
-from .api.members import Members
 from .api.modules import Modules
+from .api.pages import Pages
 from .api.projects import Projects
 from .api.states import States
 from .api.users import Users
@@ -22,9 +22,9 @@ __all__ = [
     "Labels",
     "States",
     "Users",
-    "Members",
     "Modules",
     "Cycles",
+    "Pages",
     "PlaneError",
     "ConfigurationError",
     "HttpError",

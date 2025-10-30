@@ -3,17 +3,19 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, field_serializer, model_validator
 
 from .enums import PropertyType, RelationType
+from .pagination import PaginatedResponse
 from .work_item_property_configurations import (
     DateAttributeSettings,
-    PropertySettings,
     TextAttributeSettings,
 )
+
+PropertySettings = TextAttributeSettings | DateAttributeSettings | None
 
 
 class Customer(BaseModel):
     """Customer model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     deleted_at: str | None = None
@@ -87,7 +89,7 @@ class UpdateCustomer(BaseModel):
 class CustomerProperty(BaseModel):
     """Customer property model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     deleted_at: str | None = None
@@ -126,6 +128,7 @@ class CreateCustomerProperty(BaseModel):
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
+    name: str
     display_name: str
     description: str | None = None
     logo_props: Any | None = None
@@ -256,8 +259,9 @@ class UpdateCustomerProperty(BaseModel):
 class CustomerRequest(BaseModel):
     """Customer request model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
+    id: str | None = None
     name: str
     description: Any | None = None
     description_html: str | None = None
@@ -275,3 +279,27 @@ class UpdateCustomerRequest(BaseModel):
     description_html: str | None = None
     link: str | None = None
     work_item_ids: list[str] | None = None
+
+
+class PaginatedCustomerResponse(PaginatedResponse):
+    """Paginated response for customers list endpoint.
+
+    All pagination fields from PaginatedResponse are required.
+    The results field contains the list of Customer objects.
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[Customer]
+
+
+class PaginatedCustomerPropertyResponse(PaginatedResponse):
+    """Paginated response for customer properties list endpoint.
+
+    All pagination fields from PaginatedResponse are required.
+    The results field contains the list of CustomerProperty objects.
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[CustomerProperty]

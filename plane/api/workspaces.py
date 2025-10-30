@@ -10,13 +10,12 @@ class Workspaces(BaseResource):
         super().__init__(config, "/workspaces/")
 
     def get_members(
-        self, workspace_slug: str, params: Mapping[str, Any] | None = None
+        self, workspace_slug: str
     ) -> [UserLite]:
         """Get all members of a workspace.
 
         Args:
             workspace_slug: The workspace slug identifier
-            params: Optional query parameters
         """
-        response = self._get(f"{workspace_slug}/members", params=params)
+        response = self._get(f"{workspace_slug}/members")
         return [UserLite.model_validate(item) for item in response or []]

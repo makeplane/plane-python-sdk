@@ -18,22 +18,27 @@ Requirements:
 import os
 import sys
 from datetime import datetime, timedelta
+from pathlib import Path
 
-from plane.client import PlaneClient
-from plane.models.enums import PropertyType
-from plane.models.projects import CreateProject
-from plane.models.work_item_properties import (
+# Add project root to Python path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from plane.client import PlaneClient  # noqa: E402
+from plane.models.enums import PropertyType  # noqa: E402
+from plane.models.projects import CreateProject  # noqa: E402
+from plane.models.work_item_properties import (  # noqa: E402
     CreateWorkItemProperty,
     CreateWorkItemPropertyOption,
     CreateWorkItemPropertyValue,
     WorkItemPropertyValueDetail,
 )
-from plane.models.work_item_property_configurations import (
+from plane.models.work_item_property_configurations import (  # noqa: E402
     DateAttributeSettings,
     TextAttributeSettings,
 )
-from plane.models.work_item_types import CreateWorkItemType
-from plane.models.work_items import CreateWorkItem
+from plane.models.work_item_types import CreateWorkItemType  # noqa: E402
+from plane.models.work_items import CreateWorkItem  # noqa: E402
 
 
 def print_step(step_num: int, message: str) -> None:
@@ -78,10 +83,10 @@ def handle_property_value_response(
 def main() -> None:
     """Main test function."""
     # Get configuration from environment
-    base_url = os.getenv("BASE_URL", "http://127.0.0.1:8000")
-    api_key = os.getenv("API_KEY", "plane_api_cb7c33dbf12348988e5e745040bbac84")
+    base_url = os.getenv("BASE_URL")
+    api_key = os.getenv("API_KEY")
     access_token = os.getenv("ACCESS_TOKEN")
-    workspace_slug = os.getenv("WORKSPACE_SLUG", "plane")
+    workspace_slug = os.getenv("WORKSPACE_SLUG")
 
     # Validate required environment variables
     if not base_url:
@@ -509,8 +514,29 @@ def main() -> None:
 
         print_success(f"Final property values verified: {len(remaining_values)} values found")
 
+        # Cleanup: Delete created resources (optional)
+        print_step(13, "Cleanup (optional)")
+        choice = input("Delete test resources? (y/N): ").strip().lower()
+        if choice == "y":
+            # Delete work items
+            for work_item in work_items:
+                try:
+                    client.work_items.delete(workspace_slug, project.id, work_item.id)
+                    print_success(f"Deleted work item: {work_item.id}")
+                except Exception as e:
+                    print_error(f"Failed to delete work item {work_item.id}: {e}")
+
+            # Delete project
+            try:
+                client.projects.delete(workspace_slug, project.id)
+                print_success("Deleted test project")
+            except Exception as e:
+                print_error(f"Failed to delete project: {e}")
+        else:
+            print_success("Keeping test resources for inspection")
+
         # Summary
-        print_step(13, "Test Summary")
+        print_step(14, "Test Summary")
         print(f"✓ Project created: {project.name}")
         print(f"✓ Work item type created: {task_type.name}")
         print(f"✓ Properties created: {len(properties)} different types (including multi-value)")
@@ -524,7 +550,6 @@ def main() -> None:
         print(f"\nView your project at: {base_url}/w/{workspace_slug}/p/{project.id}")
 
     except Exception as e:
-        raise
         print_error(f"Test failed with error: {e}")
         import traceback
 

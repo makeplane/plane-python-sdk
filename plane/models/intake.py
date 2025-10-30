@@ -4,13 +4,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .enums import IntakeWorkItemStatusEnum
 from .pagination import PaginatedResponse
-from .work_items import WorkItemForIntakeRequest, WorkItemExpand
+from .projects import Project
+from .work_items import WorkItemExpand, WorkItemForIntakeRequest
 
 
 class IntakeWorkItem(BaseModel):
     """Intake work item model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     issue_detail: WorkItemExpand | None = None
@@ -27,9 +28,9 @@ class IntakeWorkItem(BaseModel):
     extra: Any | None = None
     created_by: str | None = None
     updated_by: str | None = None
-    project: str | None = None
+    project: str | Project | None = None
     workspace: str | None = None
-    intake: str
+    intake: str | None = None
     issue: str | None = None
     duplicate_to: str | None = None
 
@@ -43,12 +44,6 @@ class CreateIntakeWorkItem(BaseModel):
         ...,
         description="Issue data for the intake issue",
     )
-    intake: str
-    status: IntakeWorkItemStatusEnum | None = None
-    snoozed_till: str | None = None
-    duplicate_to: str | None = None
-    source: str | None = None
-    source_email: str | None = None
 
 
 class UpdateIntakeWorkItem(BaseModel):
@@ -70,6 +65,6 @@ class UpdateIntakeWorkItem(BaseModel):
 class PaginatedIntakeWorkItemResponse(PaginatedResponse):
     """Paginated response for intake work items."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[IntakeWorkItem]

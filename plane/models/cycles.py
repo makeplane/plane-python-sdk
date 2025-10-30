@@ -3,13 +3,13 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 from .pagination import PaginatedResponse
-from .work_items import WorkItemExpand
+from .work_items import WorkItem
 
 
 class Cycle(BaseModel):
     """Cycle model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     total_issues: int | None = None
@@ -47,7 +47,7 @@ class Cycle(BaseModel):
 class CycleLite(BaseModel):
     """Lite cycle information."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     created_at: str | None = None
@@ -107,30 +107,19 @@ class UpdateCycle(BaseModel):
 class CycleWorkItem(BaseModel):
     """Work item in a cycle."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     sub_issues_count: int | None = None
     created_at: str | None = None
     updated_at: str | None = None
-    deleted_at: str
+    deleted_at: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
     project: str | None = None
     workspace: str | None = None
-    issue: WorkItemExpand
+    issue: str | None = None
     cycle: str | None = None
-
-
-class AddWorkItemsToCycleRequest(BaseModel):
-    """Request model for adding work items to a cycle."""
-
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
-
-    issues: list[str] = Field(
-        ...,
-        description="List of issue IDs to add to the cycle",
-    )
 
 
 class TransferCycleWorkItemsRequest(BaseModel):
@@ -147,7 +136,7 @@ class TransferCycleWorkItemsRequest(BaseModel):
 class PaginatedCycleResponse(PaginatedResponse):
     """Paginated response for cycles."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Cycle]
 
@@ -155,7 +144,7 @@ class PaginatedCycleResponse(PaginatedResponse):
 class PaginatedArchivedCycleResponse(PaginatedResponse):
     """Paginated response for archived cycles."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Cycle]
 
@@ -163,6 +152,6 @@ class PaginatedArchivedCycleResponse(PaginatedResponse):
 class PaginatedCycleWorkItemResponse(PaginatedResponse):
     """Paginated response for cycle work items."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-    results: list[CycleWorkItem]
+    results: list[WorkItem]

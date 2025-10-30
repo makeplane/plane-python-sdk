@@ -1,15 +1,18 @@
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from .enums import ModuleStatusEnum
 from .pagination import PaginatedResponse
 
+if TYPE_CHECKING:
+    from .work_items import WorkItemExpand, WorkItem
+
 
 class Module(BaseModel):
     """Module model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     total_issues: int | None = None
@@ -44,7 +47,7 @@ class Module(BaseModel):
 class ModuleLite(BaseModel):
     """Lite module information."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     created_at: str | None = None
@@ -106,7 +109,7 @@ class UpdateModule(BaseModel):
 class ModuleWorkItem(BaseModel):
     """Work item in a module."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     sub_issues_count: int | None = None
@@ -121,21 +124,10 @@ class ModuleWorkItem(BaseModel):
     issue: "WorkItemExpand"
 
 
-class AddWorkItemsToModuleRequest(BaseModel):
-    """Request model for adding work items to a module."""
-
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
-
-    issues: list[str] = Field(
-        ...,
-        description="List of issue IDs to add to the module",
-    )
-
-
 class PaginatedModuleResponse(PaginatedResponse):
     """Paginated response for modules."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Module]
 
@@ -143,7 +135,7 @@ class PaginatedModuleResponse(PaginatedResponse):
 class PaginatedArchivedModuleResponse(PaginatedResponse):
     """Paginated response for archived modules."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Module]
 
@@ -151,6 +143,6 @@ class PaginatedArchivedModuleResponse(PaginatedResponse):
 class PaginatedModuleWorkItemResponse(PaginatedResponse):
     """Paginated response for module work items."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-    results: list[ModuleWorkItem]
+    results: list["WorkItem"]

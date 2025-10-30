@@ -32,7 +32,7 @@ ignore = []
 known-first-party = ["plane"]
 
 [tool.pytest.ini_options]
-addopts = "-q"
+addopts = "-q --ignore=tests/scripts"
 testpaths = ["tests"]
 
 [tool.mypy]

@@ -1,4 +1,4 @@
-# Plane Python SDK v1
+# Plane Python SDK
 
 A comprehensive, type-annotated Python SDK for interacting with the Plane API. This SDK provides a clean, modern interface for all Plane API operations, following Python best practices with full type safety and Pydantic v2 integration.
 
@@ -10,11 +10,89 @@ A comprehensive, type-annotated Python SDK for interacting with the Plane API. T
 - 🔄 **Retry Logic**: Built-in retry mechanism with configurable backoff
 - 📦 **Resource-Based**: Clean resource-based API organization
 - 🎯 **Comprehensive**: Support for all major Plane API endpoints
+- ⚡ **Synchronous**: Uses `requests` with connection pooling
+
+## Breaking Changes (v0.2.0 vs v0.1.x)
+
+This SDK (v0.2.0) replaces the v0.1.x OpenAPI-generated client and introduces intentional breaking changes for a cleaner, type-safe developer experience.
+
+- Authentication and client
+
+  - New `PlaneClient(base_url, api_key | access_token)` replaces OpenAPI `Configuration`/`ApiClient` usage
+  - Exactly one of `api_key` or `access_token` is required; providing both raises a `ConfigurationError`
+  - `base_url` should NOT include `/api/v1`; the SDK appends `/api/v1` automatically
+
+- HTTP headers
+
+  - API key header standardized to `X-Api-Key`; access tokens use `Authorization: Bearer <token>`
+
+- Resource paths and naming
+
+  - All paths use `work-items` instead of v0.1.x `issues`
+  - Sub-resources are grouped under `client.work_items.<subresource>`
+
+- Method names
+
+  - Methods are standardized across resources: `list`, `create`, `retrieve`, `update`, `delete`
+  - Replaces verbose, OpenAPI-generated method names
+
+- Models and DTOs
+
+  - Uses Pydantic v2 with: response models `extra="allow"`; Create*/Update* DTOs `extra="ignore"`
+  - Separate DTOs for create/update: `Create*` and `Update*`
+  - Field naming is normalized
+
+- Pagination shape
+
+  - Paginated responses now expose: `results`, `total_count`, `next_page_number`, `prev_page_number`
+  - This replaces v0.1.x shapes that included different field names
+
+- Query parameters
+
+  - Typed query params via models like `WorkItemQueryParams` and `RetrieveQueryParams`
+  - Common fields include `per_page`, `page`, `order_by`, `expand`
+
+- Errors
+
+  - Raises `HttpError(message, status_code, response)` on non-2xx responses
+  - Configuration validation errors raise `ConfigurationError`
+
+- Imports and organization
+
+  - Import models from `plane.models.<resource>`
+  - No OpenAPI `*Api` classes; use resource objects from `PlaneClient`
+
+- Trailing slashes
+  - All endpoints include trailing `/` by design; the SDK enforces this consistently
+
+Migration example (v0.1.x → v0.2.0):
+
+```python
+# v0.1.x (OpenAPI-generated)
+from plane import Configuration, ApiClient
+from plane.apis import WorkItemsApi
+
+cfg = Configuration(host="https://api.plane.so")
+cfg.api_key['X-API-Key'] = "<api-key>"
+api = WorkItemsApi(ApiClient(cfg))
+api.list_work_items(slug, project_id=project_id)
+
+# v0.2.0 (this SDK)
+from plane.client import PlaneClient
+from plane.models.query_params import WorkItemQueryParams
+
+client = PlaneClient(base_url="https://api.plane.so", api_key="<api-key>")
+client.work_items.list(
+    workspace_slug=slug,
+    project_id=project_id,
+    params=WorkItemQueryParams(per_page=20, order_by="-created_at")
+)
+```
 
 ## Installation
 
 ```bash
-pip install plane-python-sdk
+pip install plane-sdk
 ```
 
 ## Quick Start
@@ -47,28 +125,34 @@ client = PlaneClient(
 
 ```python
 # List projects in a workspace
-projects = client.projects.list(workspace_slug="my-workspace")
+projects = client.projects.list("my-workspace")
 
 # Create a work item
-from plane.models.schemas import CreateWorkItem
+from plane.models.work_items import CreateWorkItem
 
 work_item = client.work_items.create(
     workspace_slug="my-workspace",
     project_id="project-id",
-    data=CreateWorkItem(name="New task", state="state-id")
+    data=CreateWorkItem(name="New task", state_id="state-id")
 )
 
-# Query with typed parameters
-from plane.models.schemas import WorkItemQueryParams
+# Retrieve a work item with parameters
+from plane.models.query_params import RetrieveQueryParams
+
+work_item = client.work_items.retrieve(
+    workspace_slug="my-workspace",
+    project_id="project-id",
+    work_item_id="work-item-id",
+    params=RetrieveQueryParams(expand="assignees,labels,state")
+)
+
+# List work items with pagination and filtering
+from plane.models.query_params import WorkItemQueryParams
 
 work_items = client.work_items.list(
     workspace_slug="my-workspace",
     project_id="project-id",
-    params=WorkItemQueryParams(
-        expand="assignees,labels",
-        order_by="-created_at",
-        per_page=50
-    )
+    params=WorkItemQueryParams(per_page=50, order_by="-created_at")
 )
 ```
 
@@ -87,12 +171,20 @@ client = PlaneClient(
 )
 
 # Access different resources
-client.work_items      # Work item operations
-client.projects        # Project management
-client.users           # User management
-client.cycles          # Cycle management
-client.modules         # Module management
-# ... and more
+client.users              # User management
+client.workspaces        # Workspace operations
+client.projects          # Project management
+client.work_items        # Work item operations
+client.cycles            # Cycle management
+client.modules           # Module management
+client.labels            # Label management
+client.states            # State/workflow management
+client.work_item_types   # Work item type management
+client.work_item_properties  # Custom properties
+client.epics             # Epic management
+client.intake            # Intake management
+client.pages             # Page management
+client.customers         # Customer management
 ```
 
 ### Resource Organization
@@ -101,86 +193,232 @@ All API resources extend a shared `BaseResource` class that handles:
 
 - HTTP request/response logic
 - Authentication headers
-- Error handling
-- Retry logic
-- URL building
+- Error handling and retry logic
+- URL building with proper path formatting
 
 ### Type Safety
 
 The SDK uses Pydantic v2 models for all data structures:
 
-- Request models (e.g., `CreateWorkItem`, `UpdateProject`)
-- Response models (e.g., `WorkItem`, `Project`)
-- Query parameter models (e.g., `WorkItemQueryParams`)
+- Request models
+- Response models
+- Query parameter models
+
+Note: Response models are configured with `extra="allow"` to be forward-compatible with new fields. Create*/Update* DTOs and query parameter models use `extra="ignore"`.
 
 ## Available Resources
 
 ### Core Resources
 
-#### Work Items
-
-```python
-# Create, read, update, delete work items
-client.work_items.create(workspace_slug, project_id, data)
-client.work_items.retrieve(workspace_slug, project_id, work_item_id)
-client.work_items.update(workspace_slug, project_id, work_item_id, data)
-client.work_items.delete(workspace_slug, project_id, work_item_id)
-client.work_items.list(workspace_slug, project_id, params)
-
-# Search work items
-client.work_items.search(workspace_slug, query, params)
-
-# Sub-resources
-client.work_items.comments      # Work item comments
-client.work_items.attachments   # Work item attachments
-client.work_items.links         # Work item links
-client.work_items.relations     # Work item relations
-client.work_items.activities    # Work item activities
-client.work_items.work_logs     # Work item work logs
-```
-
-#### Projects
-
-```python
-client.projects.create(workspace_slug, data)
-client.projects.retrieve(workspace_slug, project_id)
-client.projects.update(workspace_slug, project_id, data)
-client.projects.delete(workspace_slug, project_id)
-client.projects.list(workspace_slug, params)
-client.projects.get_worklog_summary(workspace_slug, project_id)
-client.projects.get_members(workspace_slug, project_id, params)
-```
-
 #### Users
 
 ```python
-client.users.retrieve(user_id)
-client.users.list(params)
-client.users.get_me()
-client.users.upload_asset(data)
+# Get current user
+me = client.users.get_me()
+
+# Retrieve a specific user
+user = client.users.retrieve(user_id)
+
+# List all users
+users = client.users.list()
 ```
 
 #### Workspaces
 
 ```python
-client.workspaces.get_members(workspace_slug, params)
+# Get workspace members
+members = client.workspaces.get_members(workspace_slug)
 ```
 
-### Project Management Resources
+### Project Management
+
+#### Projects
+
+```python
+# Create a project
+from plane.models.projects import CreateProject
+
+project = client.projects.create(
+    workspace_slug="my-workspace",
+    data=CreateProject(
+        name="My Project",
+        identifier="MP",
+        description="Project description"
+    )
+)
+
+# List projects
+projects = client.projects.list(workspace_slug="my-workspace")
+
+# Retrieve a project
+project = client.projects.retrieve(workspace_slug, project_id)
+
+# Update a project
+from plane.models.projects import UpdateProject
+
+project = client.projects.update(
+    workspace_slug, project_id,
+    data=UpdateProject(name="Updated Name")
+)
+
+# Delete a project
+client.projects.delete(workspace_slug, project_id)
+
+# Get worklog summary
+worklog_summary = client.projects.get_worklog_summary(workspace_slug, project_id)
+
+# Get project members
+members = client.projects.get_members(workspace_slug, project_id)
+```
+
+#### Work Items
+
+```python
+# Create a work item
+from plane.models.work_items import CreateWorkItem
+
+work_item = client.work_items.create(
+    workspace_slug="my-workspace",
+    project_id="project-id",
+    data=CreateWorkItem(
+        name="Fix login bug",
+        description_html="<p>Fix the login issue</p>",
+        state_id="state-id",
+        priority="high"
+    )
+)
+
+# Retrieve a work item
+from plane.models.query_params import RetrieveQueryParams
+
+work_item = client.work_items.retrieve(
+    workspace_slug, project_id, work_item_id,
+    params=RetrieveQueryParams(expand="assignees,labels,state")
+)
+
+# List work items
+from plane.models.query_params import WorkItemQueryParams
+
+work_items = client.work_items.list(
+    workspace_slug, project_id,
+    params=WorkItemQueryParams(per_page=50, order_by="-created_at")
+)
+
+# Update a work item
+from plane.models.work_items import UpdateWorkItem
+
+work_item = client.work_items.update(
+    workspace_slug, project_id, work_item_id,
+    data=UpdateWorkItem(priority="low", state_id="new-state-id")
+)
+
+# Delete a work item
+client.work_items.delete(workspace_slug, project_id, work_item_id)
+
+# Search work items
+results = client.work_items.search(
+    workspace_slug, project_id,
+    query="bug fix"
+)
+```
+
+#### Work Item Sub-Resources
+
+```python
+# Comments
+comments = client.work_items.comments.list(workspace_slug, project_id, work_item_id)
+comment = client.work_items.comments.create(workspace_slug, project_id, work_item_id, data)
+comment = client.work_items.comments.retrieve(workspace_slug, project_id, work_item_id, comment_id)
+comment = client.work_items.comments.update(workspace_slug, project_id, work_item_id, comment_id, data)
+client.work_items.comments.delete(workspace_slug, project_id, work_item_id, comment_id)
+
+# Attachments
+attachments = client.work_items.attachments.list(workspace_slug, project_id, work_item_id)
+attachment = client.work_items.attachments.create(workspace_slug, project_id, work_item_id, data)
+attachment = client.work_items.attachments.retrieve(workspace_slug, project_id, work_item_id, attachment_id)
+client.work_items.attachments.delete(workspace_slug, project_id, work_item_id, attachment_id)
+
+# Links
+links = client.work_items.links.list(workspace_slug, project_id, work_item_id)
+link = client.work_items.links.create(workspace_slug, project_id, work_item_id, data)
+link = client.work_items.links.retrieve(workspace_slug, project_id, work_item_id, link_id)
+link = client.work_items.links.update(workspace_slug, project_id, work_item_id, link_id, data)
+client.work_items.links.delete(workspace_slug, project_id, work_item_id, link_id)
+
+# Relations
+relations = client.work_items.relations.list(workspace_slug, project_id, work_item_id)
+relation = client.work_items.relations.create(workspace_slug, project_id, work_item_id, data)
+
+# Activities
+activities = client.work_items.activities.list(workspace_slug, project_id, work_item_id)
+
+# Work Logs
+work_logs = client.work_items.work_logs.list(workspace_slug, project_id, work_item_id)
+work_log = client.work_items.work_logs.create(workspace_slug, project_id, work_item_id, data)
+work_log = client.work_items.work_logs.retrieve(workspace_slug, project_id, work_item_id, work_log_id)
+work_log = client.work_items.work_logs.update(workspace_slug, project_id, work_item_id, work_log_id, data)
+client.work_items.work_logs.delete(workspace_slug, project_id, work_item_id, work_log_id)
+```
 
 #### Cycles
 
 ```python
-client.cycles.create(workspace_slug, project_id, data)
-client.cycles.retrieve(workspace_slug, project_id, cycle_id)
-client.cycles.update(workspace_slug, project_id, cycle_id, data)
+# Create a cycle
+from plane.models.cycles import CreateCycle
+
+cycle = client.cycles.create(
+    workspace_slug, project_id,
+    data=CreateCycle(
+        name="Sprint 1",
+        start_date="2024-01-01",
+        end_date="2024-01-15",
+        owned_by="user-id"
+    )
+)
+
+# List cycles
+cycles = client.cycles.list(workspace_slug, project_id)
+
+# Retrieve a cycle
+cycle = client.cycles.retrieve(workspace_slug, project_id, cycle_id)
+
+# Update a cycle
+from plane.models.cycles import UpdateCycle
+
+cycle = client.cycles.update(
+    workspace_slug, project_id, cycle_id,
+    data=UpdateCycle(name="Updated Sprint")
+)
+
+# Delete a cycle
 client.cycles.delete(workspace_slug, project_id, cycle_id)
-client.cycles.list(workspace_slug, project_id, params)
-client.cycles.list_archived(workspace_slug, project_id, params)
-client.cycles.add_work_items(workspace_slug, project_id, cycle_id, data)
+
+# List archived cycles
+archived = client.cycles.list_archived(workspace_slug, project_id)
+
+# Add work items to cycle
+from plane.models.cycles import AddWorkItemsToCycleRequest
+
+client.cycles.add_work_items(
+    workspace_slug, project_id, cycle_id,
+    data=AddWorkItemsToCycleRequest(issues=[work_item_id])
+)
+
+# Remove work item from cycle
 client.cycles.remove_work_item(workspace_slug, project_id, cycle_id, work_item_id)
-client.cycles.list_work_items(workspace_slug, project_id, cycle_id, params)
-client.cycles.transfer_work_items(workspace_slug, project_id, cycle_id, data)
+
+# List work items in cycle
+cycle_items = client.cycles.list_work_items(workspace_slug, project_id, cycle_id)
+
+# Transfer work items between cycles
+from plane.models.cycles import TransferCycleWorkItemsRequest
+
+client.cycles.transfer_work_items(
+    workspace_slug, project_id, cycle_id,
+    data=TransferCycleWorkItemsRequest(new_cycle_id="other-cycle-id")
+)
+
+# Archive/unarchive cycles
 client.cycles.archive(workspace_slug, project_id, cycle_id)
 client.cycles.unarchive(workspace_slug, project_id, cycle_id)
 ```
@@ -188,15 +426,49 @@ client.cycles.unarchive(workspace_slug, project_id, cycle_id)
 #### Modules
 
 ```python
-client.modules.create(workspace_slug, project_id, data)
-client.modules.retrieve(workspace_slug, project_id, module_id)
-client.modules.update(workspace_slug, project_id, module_id, data)
+# Create a module
+from plane.models.modules import CreateModule
+
+module = client.modules.create(
+    workspace_slug, project_id,
+    data=CreateModule(name="Auth Module")
+)
+
+# List modules
+modules = client.modules.list(workspace_slug, project_id)
+
+# Retrieve a module
+module = client.modules.retrieve(workspace_slug, project_id, module_id)
+
+# Update a module
+from plane.models.modules import UpdateModule
+
+module = client.modules.update(
+    workspace_slug, project_id, module_id,
+    data=UpdateModule(name="Updated Module")
+)
+
+# Delete a module
 client.modules.delete(workspace_slug, project_id, module_id)
-client.modules.list(workspace_slug, project_id, params)
-client.modules.list_archived(workspace_slug, project_id, params)
-client.modules.add_work_items(workspace_slug, project_id, module_id, data)
+
+# List archived modules
+archived = client.modules.list_archived(workspace_slug, project_id)
+
+# Add work items to module
+from plane.models.modules import AddWorkItemsToModuleRequest
+
+client.modules.add_work_items(
+    workspace_slug, project_id, module_id,
+    data=AddWorkItemsToModuleRequest(issues=[work_item_id])
+)
+
+# Remove work item from module
 client.modules.remove_work_item(workspace_slug, project_id, module_id, work_item_id)
-client.modules.list_work_items(workspace_slug, project_id, module_id, params)
+
+# List work items in module
+module_items = client.modules.list_work_items(workspace_slug, project_id, module_id)
+
+# Archive/unarchive modules
 client.modules.archive(workspace_slug, project_id, module_id)
 client.modules.unarchive(workspace_slug, project_id, module_id)
 ```
@@ -204,63 +476,123 @@ client.modules.unarchive(workspace_slug, project_id, module_id)
 #### States
 
 ```python
-client.states.create(workspace_slug, project_id, data)
-client.states.retrieve(workspace_slug, project_id, state_id)
-client.states.update(workspace_slug, project_id, state_id, data)
+# Create a state
+from plane.models.states import CreateState
+
+state = client.states.create(
+    workspace_slug, project_id,
+    data=CreateState(
+        name="In Progress",
+        color="#3b82f6",
+        group="started"
+    )
+)
+
+# List states
+states = client.states.list(workspace_slug, project_id)
+
+# Retrieve a state
+state = client.states.retrieve(workspace_slug, project_id, state_id)
+
+# Update a state
+from plane.models.states import UpdateState
+
+state = client.states.update(
+    workspace_slug, project_id, state_id,
+    data=UpdateState(name="Updated Status")
+)
+
+# Delete a state
 client.states.delete(workspace_slug, project_id, state_id)
-client.states.list(workspace_slug, project_id, params)
 ```
 
 #### Labels
 
 ```python
-client.labels.create(workspace_slug, project_id, data)
-client.labels.retrieve(workspace_slug, project_id, label_id)
-client.labels.update(workspace_slug, project_id, label_id, data)
+# Create a label
+from plane.models.labels import CreateLabel
+
+label = client.labels.create(
+    workspace_slug, project_id,
+    data=CreateLabel(name="Bug", color="#ef4444")
+)
+
+# List labels
+labels = client.labels.list(workspace_slug, project_id)
+
+# Retrieve a label
+label = client.labels.retrieve(workspace_slug, project_id, label_id)
+
+# Update a label
+from plane.models.labels import UpdateLabel
+
+label = client.labels.update(
+    workspace_slug, project_id, label_id,
+    data=UpdateLabel(name="Updated Label")
+)
+
+# Delete a label
 client.labels.delete(workspace_slug, project_id, label_id)
-client.labels.list(workspace_slug, project_id, params)
 ```
 
-### Work Item Management
+### Work Item Configuration
 
 #### Work Item Types
 
 ```python
-client.work_item_types.create(workspace_slug, project_id, data)
-client.work_item_types.retrieve(workspace_slug, project_id, work_item_type_id)
-client.work_item_types.update(workspace_slug, project_id, work_item_type_id, data)
-client.work_item_types.delete(workspace_slug, project_id, work_item_type_id)
-client.work_item_types.list(workspace_slug, project_id, params)
+# Create a work item type
+from plane.models.work_item_types import CreateWorkItemType
+
+wit = client.work_item_types.create(
+    workspace_slug, project_id,
+    data=CreateWorkItemType(name="Story")
+)
+
+# List work item types
+types = client.work_item_types.list(workspace_slug, project_id)
+
+# Retrieve a work item type
+wit = client.work_item_types.retrieve(workspace_slug, project_id, type_id)
+
+# Update a work item type
+from plane.models.work_item_types import UpdateWorkItemType
+
+wit = client.work_item_types.update(
+    workspace_slug, project_id, type_id,
+    data=UpdateWorkItemType(name="Updated Type")
+)
+
+# Delete a work item type
+client.work_item_types.delete(workspace_slug, project_id, type_id)
 ```
 
 #### Work Item Properties
 
 ```python
-client.work_item_properties.create(workspace_slug, project_id, type_id, data)
-client.work_item_properties.retrieve(workspace_slug, project_id, type_id, property_id)
-client.work_item_properties.update(workspace_slug, project_id, type_id, property_id, data)
-client.work_item_properties.delete(workspace_slug, project_id, type_id, property_id)
-client.work_item_properties.list(workspace_slug, project_id, type_id, params)
-```
+# Create a property
+from plane.models.work_item_properties import CreateWorkItemProperty
 
-#### Work Item Property Options
+prop = client.work_item_properties.create(
+    workspace_slug, project_id, work_item_type_id,
+    data=CreateWorkItemProperty(name="Severity")
+)
 
-```python
-client.work_item_property_options.list(workspace_slug, project_id, property_id, params)
-client.work_item_property_options.retrieve(workspace_slug, project_id, property_id, option_id)
-client.work_item_property_options.create(workspace_slug, project_id, property_id, data)
-client.work_item_property_options.update(workspace_slug, project_id, property_id, option_id, data)
-client.work_item_property_options.delete(workspace_slug, project_id, property_id, option_id)
-```
+# List properties
+properties = client.work_item_properties.list(workspace_slug, project_id, work_item_type_id)
 
-#### Work Item Property Values
+# Retrieve a property
+prop = client.work_item_properties.retrieve(workspace_slug, project_id, work_item_type_id, property_id)
 
-```python
-client.work_item_property_values.list(workspace_slug, project_id, work_item_id, params)
-client.work_item_property_values.retrieve(workspace_slug, project_id, work_item_id, value_id)
-client.work_item_property_values.create(workspace_slug, project_id, work_item_id, property_id, data)
-client.work_item_property_values.update(workspace_slug, project_id, work_item_id, value_id, data)
-client.work_item_property_values.delete(workspace_slug, project_id, work_item_id, value_id)
+# Update a property
+from plane.models.work_item_properties import UpdateWorkItemProperty
+
+prop = client.work_item_properties.update(
+    workspace_slug, project_id, work_item_type_id, property_id,
+    data=UpdateWorkItemProperty(name="Updated Property")
+)
+
+# Delete a property
+client.work_item_properties.delete(workspace_slug, project_id, work_item_type_id, property_id)
 ```
 
 ### Additional Resources
@@ -268,79 +600,113 @@ client.work_item_property_values.delete(workspace_slug, project_id, work_item_id
 #### Epics
 
 ```python
-client.epics.list(workspace_slug, project_id, params)
-client.epics.retrieve(workspace_slug, project_id, epic_id, params)
+# List epics
+epics = client.epics.list(workspace_slug, project_id)
+
+# Retrieve an epic
+epic = client.epics.retrieve(workspace_slug, project_id, epic_id)
 ```
 
 #### Intake
 
 ```python
-client.intake.list(workspace_slug, project_id, params)
-client.intake.retrieve(workspace_slug, project_id, intake_issue_id, params)
-client.intake.create(workspace_slug, project_id, data)
-client.intake.update(workspace_slug, project_id, intake_issue_id, data)
-client.intake.delete(workspace_slug, project_id, intake_issue_id)
+# Create intake issue
+from plane.models.intake import CreateIntake
+
+intake = client.intake.create(
+    workspace_slug, project_id,
+    data=CreateIntake(name="Customer request")
+)
+
+# List intake issues
+intake_items = client.intake.list(workspace_slug, project_id)
+
+# Retrieve intake issue
+intake = client.intake.retrieve(workspace_slug, project_id, intake_id)
+
+# Update intake issue
+from plane.models.intake import UpdateIntake
+
+intake = client.intake.update(
+    workspace_slug, project_id, intake_id,
+    data=UpdateIntake(status="completed")
+)
+
+# Delete intake issue
+client.intake.delete(workspace_slug, project_id, intake_id)
 ```
 
 #### Pages
 
 ```python
-client.pages.retrieve_workspace_page(workspace_slug, page_id, params)
-client.pages.retrieve_project_page(workspace_slug, project_id, page_id, params)
-client.pages.list_workspace_pages(workspace_slug, params)
-client.pages.list_project_pages(workspace_slug, project_id, params)
-```
+# List workspace pages
+pages = client.pages.list_workspace_pages(workspace_slug)
 
-#### Members
+# List project pages
+pages = client.pages.list_project_pages(workspace_slug, project_id)
 
-```python
-client.members.list_project_members(workspace_slug, project_id, params)
-client.members.add_to_project(workspace_slug, project_id, user_id)
-client.members.remove_from_project(workspace_slug, project_id, user_id)
+# Retrieve a workspace page
+page = client.pages.retrieve_workspace_page(workspace_slug, page_id)
+
+# Retrieve a project page
+page = client.pages.retrieve_project_page(workspace_slug, project_id, page_id)
 ```
 
 #### Customers
 
 ```python
-client.customers.list(workspace_slug, params)
-client.customers.retrieve(workspace_slug, customer_id, params)
-client.customers.create(workspace_slug, data)
-client.customers.update(workspace_slug, customer_id, data)
+# List customers
+customers = client.customers.list(workspace_slug)
+
+# Create a customer
+from plane.models.customers import CreateCustomer
+
+customer = client.customers.create(
+    workspace_slug,
+    data=CreateCustomer(name="Acme Inc")
+)
+
+# Retrieve a customer
+customer = client.customers.retrieve(workspace_slug, customer_id)
+
+# Update a customer
+from plane.models.customers import UpdateCustomer
+
+customer = client.customers.update(
+    workspace_slug, customer_id,
+    data=UpdateCustomer(name="Updated Name")
+)
+
+# Delete a customer
 client.customers.delete(workspace_slug, customer_id)
 
-# Sub-resources
-client.customers.properties  # Customer properties
-client.customers.requests    # Customer requests
+# Customer properties
+properties = client.customers.properties.list(workspace_slug, customer_id)
+property = client.customers.properties.create(workspace_slug, customer_id, data)
+
+# Customer requests
+requests = client.customers.requests.list(workspace_slug, customer_id)
 ```
 
 ## Data Models
 
-The SDK provides comprehensive Pydantic models for all API operations:
-
-### Core Models
-
-- `WorkItem`, `CreateWorkItem`, `UpdateWorkItem`
-- `Project`, `CreateProject`, `UpdateProject`
-- `UserLite`, `UserAssetUploadRequest`
-- `State`, `CreateState`, `UpdateState`
-- `Label`, `CreateLabel`, `UpdateLabel`
-- `Cycle`, `CreateCycle`, `UpdateCycle`
-- `Module`, `CreateModule`, `UpdateModule`
+The SDK provides comprehensive Pydantic v2 models for all API operations.
 
 ### Query Parameters
 
 - `BaseQueryParams` - Base query parameters
-- `PaginatedQueryParams` - Pagination support
-- `WorkItemQueryParams` - Work item specific queries
-- `RetrieveQueryParams` - Retrieve operations
+- `PaginatedQueryParams` - Pagination support (per_page, page)
+- `WorkItemQueryParams` - Work item specific queries (expand, order_by, etc.)
+- `RetrieveQueryParams` - Retrieve operations (expand, fields, etc.)
 
 ### Response Models
 
-- `PaginatedWorkItemResponse`
-- `PaginatedProjectResponse`
-- `PaginatedCycleResponse`
-- `PaginatedModuleResponse`
-- And many more paginated response types
+Paginated responses follow the pattern `Paginated<Resource>Response` and include:
+
+- `results` - Array of resource objects
+- `total_count` - Total number of results
+- `next_page_number` - Next page number (if applicable)
+- `prev_page_number` - Previous page number (if applicable)
 
 ## Error Handling
 
@@ -349,11 +715,14 @@ The SDK provides comprehensive error handling with specific exception types:
 ```python
 from plane.errors import PlaneError, ConfigurationError, HttpError
 
+# Configuration errors
 try:
-    client = PlaneClient(base_url="https://api.plane.so", api_key="invalid")
+    client = PlaneClient(base_url="https://api.plane.so")
+    # Missing both api_key and access_token
 except ConfigurationError as e:
     print(f"Configuration error: {e}")
 
+# HTTP errors
 try:
     work_item = client.work_items.retrieve("workspace", "project", "invalid-id")
 except HttpError as e:
@@ -363,9 +732,9 @@ except HttpError as e:
 
 ### Error Types
 
-- `PlaneError` - Base exception class
-- `ConfigurationError` - Invalid client configuration
-- `HttpError` - HTTP request/response errors
+- `PlaneError` - Base exception class with optional status_code
+- `ConfigurationError` - Invalid client configuration (missing credentials or both auth methods provided)
+- `HttpError` - HTTP request/response errors with status code and response body
 
 ## Configuration
 
@@ -388,40 +757,43 @@ from plane.client import PlaneClient
 
 # Custom retry configuration
 retry_config = RetryConfig(
-    total=5,
-    backoff_factor=0.5,
-    status_forcelist=(429, 500, 502, 503, 504)
+    total=5,                                    # Number of retries
+    backoff_factor=0.5,                         # Backoff multiplier
+    status_forcelist=(429, 500, 502, 503, 504) # Retry on these status codes
 )
 
-# Custom configuration
-config = Configuration(
-    base_path="https://api.plane.so",
+# Create client with custom config
+client = PlaneClient(
+    base_url="https://api.plane.so",
     api_key="your-api-key",
-    timeout=60.0,
-    retry=retry_config
+    timeout=60.0,                               # Request timeout in seconds
+    retry=retry_config                          # Optional retry config
 )
-
-client = PlaneClient(config=config)
 ```
 
 ### Configuration Options
 
-- `base_path` - API base URL
-- `api_key` - API key for authentication
-- `access_token` - Access token for authentication
-- `timeout` - Request timeout (default: 30.0 seconds)
-- `retry` - Retry configuration
+| Option         | Type                           | Default  | Description                     |
+| -------------- | ------------------------------ | -------- | ------------------------------- |
+| `base_url`     | `str`                          | Required | API base URL                    |
+| `api_key`      | `str`                          | Optional | API key for authentication      |
+| `access_token` | `str`                          | Optional | Access token for authentication |
+| `timeout`      | `float \| tuple[float, float]` | `30.0`   | Request timeout in seconds      |
+| `retry`        | `RetryConfig`                  | None     | Retry configuration             |
+
+**Note**: Provide exactly one of `api_key` or `access_token`.
 
 ## Examples
 
-### Creating a Complete Workflow
+### Complete Workflow Example
 
 ```python
 from plane.client import PlaneClient
-from plane.models.schemas import (
-    CreateProject, CreateWorkItem, CreateState, CreateLabel,
-    WorkItemQueryParams
-)
+from plane.models.projects import CreateProject
+from plane.models.work_items import CreateWorkItem
+from plane.models.states import CreateState
+from plane.models.labels import CreateLabel
+from plane.models.query_params import WorkItemQueryParams
 
 client = PlaneClient(
     base_url="https://api.plane.so",
@@ -433,8 +805,8 @@ project = client.projects.create(
     workspace_slug="my-workspace",
     data=CreateProject(
         name="My New Project",
-        description="A project created with the Python SDK",
-        identifier="MNP"
+        identifier="MNP",
+        description="A project created with the Python SDK"
     )
 )
 
@@ -453,10 +825,7 @@ state = client.states.create(
 label = client.labels.create(
     workspace_slug="my-workspace",
     project_id=project.id,
-    data=CreateLabel(
-        name="Bug",
-        color="#ef4444"
-    )
+    data=CreateLabel(name="Bug", color="#ef4444")
 )
 
 # Create a work item
@@ -467,30 +836,26 @@ work_item = client.work_items.create(
         name="Fix authentication bug",
         description_html="<p>Fix the authentication issue in the login flow</p>",
         priority="high",
-        state=state.id,
+        state_id=state.id,
         labels=[label.id]
     )
 )
 
-# List work items with filtering
+# List work items with filters
 work_items = client.work_items.list(
     workspace_slug="my-workspace",
     project_id=project.id,
-    params=WorkItemQueryParams(
-        expand="assignees,labels,state",
-        order_by="-created_at",
-        per_page=20
-    )
+    params=WorkItemQueryParams(per_page=20, order_by="-created_at")
 )
 
 print(f"Created work item: {work_item.name}")
-print(f"Total work items: {work_items.total_results}")
+print(f"Total work items: {len(work_items.results)}")
 ```
 
 ### Working with Cycles
 
 ```python
-from plane.models.schemas import CreateCycle, AddWorkItemsToCycleRequest
+from plane.models.cycles import CreateCycle, AddWorkItemsToCycleRequest
 
 # Create a cycle
 cycle = client.cycles.create(
@@ -519,12 +884,15 @@ cycle_work_items = client.cycles.list_work_items(
     project_id=project.id,
     cycle_id=cycle.id
 )
+
+print(f"Cycle: {cycle.name}")
+print(f"Work items in cycle: {len(cycle_work_items.results)}")
 ```
 
 ### Working with Comments and Attachments
 
 ```python
-from plane.models.schemas import CreateWorkItemComment
+from plane.models.work_items import CreateWorkItemComment
 
 # Add a comment
 comment = client.work_items.comments.create(
@@ -544,17 +912,20 @@ comments = client.work_items.comments.list(
     work_item_id=work_item.id
 )
 
+print(f"Total comments: {len(comments.results)}")
+
 # Upload an attachment
 attachment = client.work_items.attachments.create(
     workspace_slug="my-workspace",
     project_id=project.id,
     work_item_id=work_item.id,
     data={
-        "name": "screenshot.png",
-        "type": "image/png",
-        "size": 1024
+        "asset": "file",  # URL to file or file path
+        "attributes": {"name": "screenshot.png"}
     }
 )
+
+print(f"Attachment ID: {attachment.id}")
 ```
 
 ## Requirements
@@ -570,13 +941,20 @@ attachment = client.work_items.attachments.create(
 ```bash
 git clone <repository-url>
 cd plane-python-sdk
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 ### Running Tests
 
 ```bash
+# Run all tests
 pytest
+
+# Run specific test file
+pytest tests/unit/test_work_items.py
+
+# Run with coverage
+pytest --cov=plane tests/
 ```
 
 ### Code Quality
@@ -584,9 +962,45 @@ pytest
 The project uses:
 
 - **Black** for code formatting
-- **Ruff** for linting
+- **Ruff** for linting (rules: E, F, I, UP, B)
 - **MyPy** for type checking
 - **Pytest** for testing
+
+Run pre-commit checks:
+
+```bash
+pre-commit run --all-files
+```
+
+### Project Structure
+
+```
+plane-python-sdk/
+├── plane/
+│   ├── __init__.py
+│   ├── client.py              # Main PlaneClient
+│   ├── config.py              # Configuration classes
+│   ├── api/                   # API resource classes
+│   │   ├── base_resource.py   # Base class for all resources
+│   │   ├── work_items/        # Work item sub-resources
+│   │   ├── work_item_properties/
+│   │   ├── customers/
+│   │   └── ...
+│   ├── models/                # Pydantic models
+│   │   ├── work_items.py
+│   │   ├── projects.py
+│   │   ├── query_params.py
+│   │   ├── enums.py
+│   │   └── ...
+│   └── errors/                # Exception classes
+│       └── errors.py
+├── tests/
+│   ├── unit/                  # Unit tests
+│   └── scripts/               # Integration test scripts
+├── pyproject.toml
+├── README.md
+└── requirements.txt
+```
 
 ## License
 
@@ -597,7 +1011,7 @@ MIT License - see LICENSE file for details.
 For issues and questions:
 
 - GitHub Issues: [Repository Issues]
-- Documentation: [Plane Documentation]
+- Documentation: [Plane Documentation](https://docs.plane.so)
 - Email: dev@plane.so
 
 ---

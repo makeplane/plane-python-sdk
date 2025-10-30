@@ -9,7 +9,7 @@ from .pagination import PaginatedResponse
 class Project(BaseModel):
     """Project model."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
     total_members: int | None = None
@@ -111,6 +111,7 @@ class UpdateProject(BaseModel):
     external_source: str | None = None
     external_id: str | None = None
     is_issue_type_enabled: bool | None = None
+    is_time_tracking_enabled: bool | None = None
     default_state: str | None = None
     estimate: str | None = None
 
@@ -118,7 +119,7 @@ class UpdateProject(BaseModel):
 class ProjectWorklogSummary(BaseModel):
     """Summary of work log for a project."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     issue_id: str = Field(..., description="ID of the work item")
     duration: int = Field(
@@ -130,6 +131,6 @@ class ProjectWorklogSummary(BaseModel):
 class PaginatedProjectResponse(PaginatedResponse):
     """Paginated response for projects."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Project]
