@@ -53,14 +53,15 @@ def authorization_code_flow_example():
     print(f"Expires In: {token.expires_in} seconds")
 
     # Step 3: Use the access token with PlaneClient
+    workspace_slug = os.environ.get("WORKSPACE_SLUG", "your-workspace-slug")
     plane_client = PlaneClient(
         base_url=os.environ.get("PLANE_BASE_URL", "https://api.plane.so"),
         access_token=token.access_token,
     )
 
     # Now you can use the plane_client to make API calls
-    workspaces = plane_client.workspaces.list()
-    print(f"Found {len(workspaces)} workspaces")
+    projects = plane_client.projects.list(workspace_slug)
+    print(f"Found {len(projects.results)} projects")
 
     # Step 4: Refresh token when it expires
     if token.refresh_token:
@@ -96,14 +97,15 @@ def client_credentials_flow_example():
     print(f"Expires In: {token.expires_in} seconds")
 
     # Use the access token with PlaneClient
+    workspace_slug = os.environ.get("WORKSPACE_SLUG", "your-workspace-slug")
     plane_client = PlaneClient(
         base_url=os.environ.get("PLANE_BASE_URL", "https://api.plane.so"),
         access_token=token.access_token,
     )
 
     # Make API calls
-    workspaces = plane_client.workspaces.list()
-    print(f"Found {len(workspaces)} workspaces")
+    projects = plane_client.projects.list(workspace_slug)
+    print(f"Found {len(projects.results)} projects")
 
 
 # ============================================================================
@@ -132,14 +134,15 @@ def bot_token_example():
     print(f"Bot Access Token: {token.access_token}")
 
     # Use bot token with PlaneClient
+    workspace_slug = os.environ.get("WORKSPACE_SLUG", "your-workspace-slug")
     plane_client = PlaneClient(
         base_url=os.environ.get("PLANE_BASE_URL", "https://api.plane.so"),
         access_token=token.access_token,
     )
 
     # Bot can now perform actions on behalf of the workspace app
-    projects = plane_client.projects.list()
-    print(f"Bot can access {len(projects)} projects")
+    projects = plane_client.projects.list(workspace_slug)
+    print(f"Bot can access {len(projects.results)} projects")
 
 
 # ============================================================================
@@ -196,13 +199,14 @@ def context_manager_example():
         token = oauth_client.get_client_credentials_token()
 
         # Use token
+        workspace_slug = os.environ.get("WORKSPACE_SLUG", "your-workspace-slug")
         plane_client = PlaneClient(
             base_url=os.environ.get("PLANE_BASE_URL", "https://api.plane.so"),
             access_token=token.access_token,
         )
 
-        workspaces = plane_client.workspaces.list()
-        print(f"Found {len(workspaces)} workspaces")
+        projects = plane_client.projects.list(workspace_slug)
+        print(f"Found {len(projects.results)} projects")
 
     # Session is automatically closed when exiting context
 
@@ -259,5 +263,6 @@ if __name__ == "__main__":
     print("  - PLANE_BASE_URL (optional, defaults to https://api.plane.so)")
     print("  - OAUTH_CLIENT_ID")
     print("  - OAUTH_CLIENT_SECRET")
+    print("  - WORKSPACE_SLUG (required for API calls)")
     print("  - APP_INSTALLATION_ID (for bot token example)")
 
