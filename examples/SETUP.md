@@ -213,7 +213,7 @@ python test_setup.py
 ## Additional Resources
 
 - [Plane Python SDK Documentation](../README.md)
-- [Plane API Documentation](https://docs.plane.so)
+- [Plane API Documentation](https://developers.plane.so/api-reference/introduction)
 - [Plane Website](https://plane.so)
 
 ## Getting Help
@@ -224,4 +224,3 @@ If you encounter issues:
 2. Review the examples README.md
 3. Check the main SDK README.md
 4. File an issue on GitHub
-5. Contact support at dev@plane.so

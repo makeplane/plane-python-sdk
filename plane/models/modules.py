@@ -52,7 +52,7 @@ class ModuleLite(BaseModel):
     id: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
-    deleted_at: str
+    deleted_at: str | None = None
     name: str
     description: str | None = None
     description_text: Any | None = None
@@ -115,7 +115,7 @@ class ModuleWorkItem(BaseModel):
     sub_issues_count: int | None = None
     created_at: str | None = None
     updated_at: str | None = None
-    deleted_at: str
+    deleted_at: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
     project: str | None = None

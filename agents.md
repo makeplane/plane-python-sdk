@@ -289,7 +289,7 @@ Run `pre-commit` locally to auto-fix formatting and imports, and to surface Ruff
 ```python
 # plane/config.py
 from __future__ import annotations
-from collections.abc import Iterable, FrozenSet
+from collections.abc import Iterable
 from dataclasses import dataclass
 
 @dataclass(frozen=True)
@@ -297,7 +297,7 @@ class RetryConfig:
   total: int = 3
   backoff_factor: float = 0.3
   status_forcelist: Iterable[int] = (429, 500, 502, 503, 504)
-  allowed_methods: FrozenSet[str] = frozenset({"GET", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"})
+  allowed_methods: frozenset[str] = frozenset({"GET", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"})
 
 class Configuration:
   def __init__(
@@ -490,8 +490,7 @@ from .models.project import Project, CreateProject, UpdateProject, ListProjectsP
 # from .models.work_item import WorkItem, ...
 
 # Errors
-from .errors.plane_error import PlaneError
-from .errors.http_error import HttpError
+from .errors.errors import PlaneError, HttpError
 
 __all__ = [
   "PlaneClient",
