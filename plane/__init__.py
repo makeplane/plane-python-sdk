@@ -8,12 +8,21 @@ from .api.users import Users
 from .api.work_item_properties import WorkItemProperties
 from .api.work_item_types import WorkItemTypes
 from .api.work_items import WorkItems
-from .client import PlaneClient
+from .client import (
+    OAuthAuthorizationParams,
+    OAuthClient,
+    OAuthClientCredentialsParams,
+    OAuthRefreshTokenParams,
+    OAuthToken,
+    OAuthTokenExchangeParams,
+    PlaneClient,
+)
 from .config import Configuration
 from .errors.errors import ConfigurationError, HttpError, PlaneError
 
 __all__ = [
     "PlaneClient",
+    "OAuthClient",
     "Configuration",
     "WorkItems",
     "WorkItemTypes",
@@ -28,4 +37,9 @@ __all__ = [
     "PlaneError",
     "ConfigurationError",
     "HttpError",
+    "OAuthToken",
+    "OAuthAuthorizationParams",
+    "OAuthTokenExchangeParams",
+    "OAuthRefreshTokenParams",
+    "OAuthClientCredentialsParams",
 ]

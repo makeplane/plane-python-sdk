@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from .enums import ModuleStatusEnum
 from .pagination import PaginatedResponse
 
 if TYPE_CHECKING:
-    from .work_items import WorkItemExpand, WorkItem
+    from .work_items import WorkItem, WorkItemExpand
 
 
 class Module(BaseModel):

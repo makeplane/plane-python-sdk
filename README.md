@@ -121,6 +121,55 @@ client = PlaneClient(
 # Raises ConfigurationError if neither or both are provided
 ```
 
+### OAuth Authentication
+
+The SDK also supports OAuth 2.0 authentication for more advanced use cases:
+
+```python
+from plane import OAuthClient
+
+# Initialize OAuth client
+oauth_client = OAuthClient(
+    base_url="https://api.plane.so",
+    client_id="your_client_id",
+    client_secret="your_client_secret"
+)
+
+# Authorization Code Flow (for web applications)
+# Step 1: Get authorization URL
+auth_url = oauth_client.get_authorization_url(
+    redirect_uri="https://your-app.com/callback",
+    scope="read write",
+    state="random_state_string"
+)
+
+# Step 2: Exchange authorization code for token
+token = oauth_client.exchange_code(
+    code="authorization_code_from_callback",
+    redirect_uri="https://your-app.com/callback"
+)
+
+# Step 3: Use the access token
+client = PlaneClient(
+    base_url="https://api.plane.so",
+    access_token=token.access_token
+)
+
+# Client Credentials Flow (for server-to-server)
+token = oauth_client.get_client_credentials_token(
+    scope="read write",
+    app_installation_id="optional_workspace_app_installation_id"
+)
+
+# Refresh expired tokens
+new_token = oauth_client.refresh_token(token.refresh_token)
+
+# Revoke tokens
+oauth_client.revoke_token(token.access_token)
+```
+
+For detailed OAuth examples, see [examples/oauth_example.py](examples/oauth_example.py).
+
 ### Basic Usage
 
 ```python

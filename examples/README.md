@@ -67,6 +67,34 @@ python examples/create_work_items.py
 - You need to create and track work items
 - Getting started with the SDK
 
+### 3. OAuth Authentication (`oauth_example.py`)
+
+Demonstrates OAuth 2.0 authentication flows:
+
+- Authorization code flow (for web applications)
+- Client credentials flow (for server-to-server)
+- Bot token generation (for workspace app installations)
+- Token refresh and revocation
+- Error handling with OAuth
+
+**Run:**
+
+```bash
+# Set OAuth environment variables
+export OAUTH_CLIENT_ID="your_client_id"
+export OAUTH_CLIENT_SECRET="your_client_secret"
+export APP_INSTALLATION_ID="optional_installation_id"  # For bot token
+
+python examples/oauth_example.py
+```
+
+**Use this when:**
+
+- Building web applications that need user authorization
+- Implementing server-to-server authentication
+- Creating workspace app integrations with bot tokens
+- Managing OAuth token lifecycle
+
 ## Quick Start
 
 1. **Set up environment variables** (see [SETUP.md](SETUP.md)):
