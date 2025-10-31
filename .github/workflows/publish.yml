@@ -35,7 +35,7 @@ jobs:
       - name: Get version from setup.py
         id: package-version
         run: |
-          VERSION=$(grep "VERSION = " setup.py | cut -d'"' -f2)
+          VERSION=$(grep "version = " pyproject.toml | cut -d'"' -f2 | head -1)
           if [ -z "$VERSION" ]; then
             echo "Error: Could not extract version from setup.py"
             exit 1
