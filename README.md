@@ -234,6 +234,9 @@ client.epics             # Epic management
 client.intake            # Intake management
 client.pages             # Page management
 client.customers         # Customer management
+client.teamspaces        # Teamspace management
+client.stickies         # Sticky management
+client.initiatives      # Initiative management
 ```
 
 ### Resource Organization

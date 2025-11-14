@@ -81,6 +81,15 @@ class Priority(Enum):
     NONE = "none"
 
 
+class InitiativeState(Enum):
+    """Initiative state enumeration."""
+
+    DRAFT = "DRAFT"
+    PLANNED = "PLANNED"
+    ACTIVE = "ACTIVE"
+    COMPLETED = "COMPLETED"
+    CLOSED = "CLOSED"
+
 class WorkItemRelationType(Enum):
     """Work item relation type enumeration."""
 

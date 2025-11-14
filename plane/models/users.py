@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 from .enums import EntityTypeEnum, TypeMimeEnum
+from .pagination import PaginatedResponse
 
 
 class UserLite(BaseModel):
@@ -15,6 +16,14 @@ class UserLite(BaseModel):
     avatar: str | None = None
     avatar_url: str | None = Field(None, description="Avatar URL")
     display_name: str | None = None
+
+
+class PaginatedUserLiteResponse(PaginatedResponse):
+    """Paginated response for user lite."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[UserLite]
 
 
 class UserAssetUploadRequest(BaseModel):

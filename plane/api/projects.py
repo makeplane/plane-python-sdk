@@ -5,6 +5,7 @@ from ..models.projects import (
     CreateProject,
     PaginatedProjectResponse,
     Project,
+    ProjectFeature,
     ProjectWorklogSummary,
     UpdateProject,
 )
@@ -94,3 +95,28 @@ class Projects(BaseResource):
         """
         response = self._get(f"{workspace_slug}/projects/{project_id}/members", params=params)
         return [UserLite.model_validate(item) for item in response or []]
+
+    def get_features(self, workspace_slug: str, project_id: str) -> ProjectFeature:
+        """Get features of a project.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+        """
+        response = self._get(f"{workspace_slug}/projects/{project_id}/features")
+        return ProjectFeature.model_validate(response)
+
+    def update_features(
+        self, workspace_slug: str, project_id: str, data: ProjectFeature
+    ) -> ProjectFeature:
+        """Update features of a project.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            data: Updated project features
+        """
+        response = self._patch(
+            f"{workspace_slug}/projects/{project_id}/features", data.model_dump(exclude_none=True)
+        )
+        return ProjectFeature.model_validate(response)
