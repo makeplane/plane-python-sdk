@@ -6,7 +6,7 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.cycles import CreateCycle, UpdateCycle
-from plane.models.projects import Project
+from plane.models.projects import Project, ProjectFeature
 
 
 class TestCyclesAPI:
@@ -60,6 +60,7 @@ class TestCyclesAPICRUD:
         cycle_data: CreateCycle,
     ):
         """Create a test cycle and yield it, then delete it."""
+        client.projects.update_features(workspace_slug, project.id, ProjectFeature(cycles=True))
         cycle = client.cycles.create(workspace_slug, project.id, cycle_data)
         yield cycle
         try:
@@ -75,6 +76,7 @@ class TestCyclesAPICRUD:
         cycle_data: CreateCycle,
     ) -> None:
         """Test creating a cycle."""
+        client.projects.update_features(workspace_slug, project.id, ProjectFeature(cycles=True))
         cycle = client.cycles.create(workspace_slug, project.id, cycle_data)
         assert cycle is not None
         assert cycle.id is not None
