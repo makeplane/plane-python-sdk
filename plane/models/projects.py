@@ -140,10 +140,10 @@ class ProjectFeature(BaseModel):
 
   model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-  epics: bool
-  modules: bool
-  cycles: bool
-  views: bool
-  pages: bool
-  intakes: bool
-  work_item_types: bool
+  epics: bool | None = None
+  modules: bool | None = None
+  cycles: bool | None = None
+  views: bool | None = None
+  pages: bool | None = None
+  intakes: bool | None = None
+  work_item_types: bool | None = None

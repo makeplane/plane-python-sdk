@@ -4,7 +4,7 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.intake import CreateIntakeWorkItem
-from plane.models.projects import Project
+from plane.models.projects import Project, ProjectFeature
 
 
 class TestIntakeAPI:
