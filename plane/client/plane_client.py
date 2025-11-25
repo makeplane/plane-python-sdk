@@ -1,12 +1,15 @@
 from ..api.customers import Customers
 from ..api.cycles import Cycles
 from ..api.epics import Epics
+from ..api.initiatives import Initiatives
 from ..api.intake import Intake
 from ..api.labels import Labels
 from ..api.modules import Modules
 from ..api.pages import Pages
 from ..api.projects import Projects
 from ..api.states import States
+from ..api.stickies import Stickies
+from ..api.teamspaces import Teamspaces
 from ..api.users import Users
 from ..api.work_item_properties import WorkItemProperties
 from ..api.work_item_types import WorkItemTypes
@@ -53,4 +56,7 @@ class PlaneClient:
         self.work_item_properties = WorkItemProperties(self.config)
         self.customers = Customers(self.config)
         self.intake = Intake(self.config)
+        self.stickies = Stickies(self.config)
+        self.initiatives = Initiatives(self.config)
+        self.teamspaces = Teamspaces(self.config)
 

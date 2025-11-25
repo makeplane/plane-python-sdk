@@ -57,9 +57,11 @@ class BaseResource:
         )
         return self._handle_response(response)
 
-    def _delete(self, endpoint: str) -> None:
+    def _delete(self, endpoint: str, data: Mapping[str, Any] | None = None) -> None:
         url = self._build_url(endpoint)
-        response = self.session.delete(url, headers=self._headers(), timeout=self.config.timeout)
+        response = self.session.delete(
+            url, headers=self._headers(), json=data, timeout=self.config.timeout
+        )
         self._handle_response(response)
 
     # Helpers
