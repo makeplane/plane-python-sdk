@@ -215,21 +215,31 @@ def main() -> None:
         properties["datetime"] = datetime_prop
         print_success(f"DateTime property created: {datetime_prop.display_name}")
 
-        # Option property
+        # Option property (with inline options)
         option_prop_data = CreateWorkItemProperty(
             display_name="Status",
             description="Current status of the task",
             property_type=PropertyType.OPTION.value,
             is_required=False,
             is_active=True,
+            options=[
+                CreateWorkItemPropertyOption(name="Not Started", description="Status: Not Started"),
+                CreateWorkItemPropertyOption(name="In Progress", description="Status: In Progress"),
+                CreateWorkItemPropertyOption(name="Review", description="Status: Review"),
+                CreateWorkItemPropertyOption(name="Completed", description="Status: Completed"),
+                CreateWorkItemPropertyOption(name="Cancelled", description="Status: Cancelled"),
+            ],
         )
         option_prop = client.work_item_properties.create(
             workspace_slug, project.id, task_type.id, option_prop_data
         )
         properties["option"] = option_prop
-        print_success(f"Option property created: {option_prop.display_name}")
+        print_success(
+            f"Option property created: {option_prop.display_name} "
+            f"(with {len(option_prop.options)} inline options)"
+        )
 
-        # Multi-value option property for testing multi-value functionality
+        # Multi-value option property for testing multi-value functionality (with inline options)
         multi_option_prop_data = CreateWorkItemProperty(
             display_name="Tags",
             description="Multiple tags for the task",
@@ -237,44 +247,66 @@ def main() -> None:
             is_required=False,
             is_active=True,
             is_multi=True,  # Enable multi-value support
+            options=[
+                CreateWorkItemPropertyOption(name="Frontend", description="Tag: Frontend"),
+                CreateWorkItemPropertyOption(name="Backend", description="Tag: Backend"),
+                CreateWorkItemPropertyOption(name="Database", description="Tag: Database"),
+                CreateWorkItemPropertyOption(name="UI/UX", description="Tag: UI/UX"),
+                CreateWorkItemPropertyOption(name="Testing", description="Tag: Testing"),
+                CreateWorkItemPropertyOption(
+                    name="Documentation", description="Tag: Documentation"
+                ),
+            ],
         )
         multi_option_prop = client.work_item_properties.create(
             workspace_slug, project.id, task_type.id, multi_option_prop_data
         )
         properties["multi_option"] = multi_option_prop
-        print_success(f"Multi-value option property created: {multi_option_prop.display_name}")
+        print_success(
+            f"Multi-value option property created: {multi_option_prop.display_name} "
+            f"(with {len(multi_option_prop.options)} inline options)"
+        )
 
-        # Create options for the option property
-        print_step(5, "Creating property options")
-        status_options = []
-        tag_options = []
+        # Get options from the properties (created inline)
+        print_step(5, "Verifying inline property options")
+        status_options = option_prop.options
+        tag_options = multi_option_prop.options
 
-        statuses = ["Not Started", "In Progress", "Review", "Completed", "Cancelled"]
-        for status in statuses:
-            option_data = CreateWorkItemPropertyOption(
-                name=status,
-                description=f"Status: {status}",
-                is_active=True,
-            )
-            option = client.work_item_properties.options.create(
-                workspace_slug, project.id, option_prop.id, option_data
-            )
-            status_options.append(option)
-            print_success(f"Status option created: {option.name}")
+        print_success(f"Status options verified: {len(status_options)} options")
+        for opt in status_options:
+            print(f"  - {opt.name}")
 
-        # Create options for the multi-value property
-        tags = ["Frontend", "Backend", "Database", "UI/UX", "Testing", "Documentation"]
-        for tag in tags:
-            option_data = CreateWorkItemPropertyOption(
-                name=tag,
-                description=f"Tag: {tag}",
-                is_active=True,
-            )
-            option = client.work_item_properties.options.create(
-                workspace_slug, project.id, multi_option_prop.id, option_data
-            )
-            tag_options.append(option)
-            print_success(f"Tag option created: {option.name}")
+        print_success(f"Tag options verified: {len(tag_options)} options")
+        for opt in tag_options:
+            print(f"  - {opt.name}")
+
+        # Verify options are included in list/retrieve responses
+        print_step(5.5, "Verifying options in list/retrieve responses")
+
+        # Test list response includes options
+        all_properties = client.work_item_properties.list(workspace_slug, project.id, task_type.id)
+        print_success(f"Listed {len(all_properties)} properties")
+
+        # Find option properties in list and verify options are included
+        listed_status_prop = next((p for p in all_properties if p.id == option_prop.id), None)
+        assert listed_status_prop is not None, "Status property should be in list"
+        assert listed_status_prop.options is not None, "Options should be in list response"
+        assert len(listed_status_prop.options) == 5, "Should have 5 status options in list"
+        print_success("List response includes options for Status property ✓")
+
+        listed_tags_prop = next((p for p in all_properties if p.id == multi_option_prop.id), None)
+        assert listed_tags_prop is not None, "Tags property should be in list"
+        assert listed_tags_prop.options is not None, "Options should be in list response"
+        assert len(listed_tags_prop.options) == 6, "Should have 6 tag options in list"
+        print_success("List response includes options for Tags property ✓")
+
+        # Test retrieve response includes options
+        retrieved_status_prop = client.work_item_properties.retrieve(
+            workspace_slug, project.id, task_type.id, option_prop.id
+        )
+        assert retrieved_status_prop.options is not None, "Options should be in retrieve response"
+        assert len(retrieved_status_prop.options) == 5, "Should have 5 options in retrieve"
+        print_success("Retrieve response includes options ✓")
 
         # Create work items for testing
         print_step(6, "Creating work items for property value testing")
