@@ -5,7 +5,11 @@ import pytest
 from plane.client import PlaneClient
 from plane.models.enums import PropertyType, RelationType
 from plane.models.projects import Project
-from plane.models.work_item_properties import CreateWorkItemProperty, UpdateWorkItemProperty
+from plane.models.work_item_properties import (
+    CreateWorkItemProperty,
+    CreateWorkItemPropertyOption,
+    UpdateWorkItemProperty,
+)
 from plane.models.work_item_property_configurations import (
     DateAttributeSettings,
     TextAttributeSettings,
@@ -16,21 +20,19 @@ class TestWorkItemPropertiesAPI:
     """Test WorkItemProperties API resource."""
 
     @pytest.fixture
-    def work_item_type(
-        self, client: PlaneClient, workspace_slug: str, project: Project
-    ):
+    def work_item_type(self, client: PlaneClient, workspace_slug: str, project: Project):
         """Get or create a work item type."""
         import time
 
         from plane.models.work_item_types import CreateWorkItemType
-        
+
         # Try to get an existing work item type
         types = client.work_item_types.list(workspace_slug, project.id)
         if types:
             work_item_type = types[0]
             yield work_item_type
             return
-        
+
         # Create a new work item type
         type_data = CreateWorkItemType(
             name=f"Test Type {int(time.time())}",
@@ -53,30 +55,80 @@ class TestWorkItemPropertiesAPI:
         work_item_type,
     ) -> None:
         """Test listing work item properties."""
-        properties = client.work_item_properties.list(
-            workspace_slug, project.id, work_item_type.id
-        )
+        properties = client.work_item_properties.list(workspace_slug, project.id, work_item_type.id)
         assert isinstance(properties, list)
+
+    def test_list_work_item_properties_includes_options(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+        project: Project,
+        work_item_type,
+    ) -> None:
+        """Test that listing work item properties includes options in the response."""
+        import time
+
+        # Create a property with inline options
+        property_data = CreateWorkItemProperty(
+            display_name=f"List Test Property {int(time.time())}",
+            description="Property to test list includes options",
+            property_type=PropertyType.OPTION,
+            is_required=False,
+            is_active=True,
+            options=[
+                CreateWorkItemPropertyOption(name="Option A"),
+                CreateWorkItemPropertyOption(name="Option B"),
+                CreateWorkItemPropertyOption(name="Option C"),
+            ],
+        )
+        created_prop = client.work_item_properties.create(
+            workspace_slug, project.id, work_item_type.id, property_data
+        )
+
+        try:
+            # List all properties
+            properties = client.work_item_properties.list(
+                workspace_slug, project.id, work_item_type.id
+            )
+            assert isinstance(properties, list)
+
+            # Find the created property in the list
+            found_prop = next((p for p in properties if p.id == created_prop.id), None)
+            assert found_prop is not None, "Created property should be in the list"
+
+            # Verify options are included in the list response
+            assert found_prop.options is not None, "Options should be included in list response"
+            assert len(found_prop.options) == 3, "Should have 3 options"
+            option_names = [opt.name for opt in found_prop.options]
+            assert "Option A" in option_names
+            assert "Option B" in option_names
+            assert "Option C" in option_names
+        finally:
+            # Cleanup
+            try:
+                client.work_item_properties.delete(
+                    workspace_slug, project.id, work_item_type.id, created_prop.id
+                )
+            except Exception:
+                pass
 
 
 class TestWorkItemPropertiesAPICRUD:
     """Test WorkItemProperties API CRUD operations."""
 
     @pytest.fixture
-    def work_item_type(
-        self, client: PlaneClient, workspace_slug: str, project: Project
-    ):
+    def work_item_type(self, client: PlaneClient, workspace_slug: str, project: Project):
         """Get or create a work item type."""
         import time
 
         from plane.models.work_item_types import CreateWorkItemType
-        
+
         types = client.work_item_types.list(workspace_slug, project.id)
         if types:
             work_item_type = types[0]
             yield work_item_type
             return
-        
+
         type_data = CreateWorkItemType(
             name=f"Test Type {int(time.time())}",
             description="Test type",
@@ -94,6 +146,7 @@ class TestWorkItemPropertiesAPICRUD:
     def property_data(self) -> CreateWorkItemProperty:
         """Create test property data."""
         import time
+
         return CreateWorkItemProperty(
             display_name=f"Test Property {int(time.time())}",
             description="Test property",
@@ -139,7 +192,7 @@ class TestWorkItemPropertiesAPICRUD:
         assert prop is not None
         assert prop.id is not None
         assert prop.display_name == property_data.display_name
-        
+
         # Cleanup
         try:
             client.work_item_properties.delete(
@@ -164,6 +217,55 @@ class TestWorkItemPropertiesAPICRUD:
         assert retrieved.id == work_item_property.id
         assert retrieved.display_name == work_item_property.display_name
 
+    def test_retrieve_work_item_property_includes_options(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+        project: Project,
+        work_item_type,
+    ) -> None:
+        """Test that retrieving a work item property includes options in the response."""
+        import time
+
+        # Create a property with inline options
+        property_data = CreateWorkItemProperty(
+            display_name=f"Retrieve Test Property {int(time.time())}",
+            description="Property to test retrieve includes options",
+            property_type=PropertyType.OPTION,
+            is_required=False,
+            is_active=True,
+            options=[
+                CreateWorkItemPropertyOption(name="Choice 1", is_default=True),
+                CreateWorkItemPropertyOption(name="Choice 2"),
+            ],
+        )
+        created_prop = client.work_item_properties.create(
+            workspace_slug, project.id, work_item_type.id, property_data
+        )
+
+        try:
+            # Retrieve the property
+            retrieved = client.work_item_properties.retrieve(
+                workspace_slug, project.id, work_item_type.id, created_prop.id
+            )
+            assert retrieved is not None
+            assert retrieved.id == created_prop.id
+
+            # Verify options are included in the retrieve response
+            assert retrieved.options is not None, "Options should be in retrieve response"
+            assert len(retrieved.options) == 2, "Should have 2 options"
+            option_names = [opt.name for opt in retrieved.options]
+            assert "Choice 1" in option_names
+            assert "Choice 2" in option_names
+        finally:
+            # Cleanup
+            try:
+                client.work_item_properties.delete(
+                    workspace_slug, project.id, work_item_type.id, created_prop.id
+                )
+            except Exception:
+                pass
+
     def test_update_work_item_property(
         self,
         client: PlaneClient,
@@ -186,9 +288,7 @@ class TestWorkItemPropertyTypes:
     """Test creating work item properties of different types."""
 
     @pytest.fixture
-    def work_item_type(
-        self, client: PlaneClient, workspace_slug: str, project: Project
-    ):
+    def work_item_type(self, client: PlaneClient, workspace_slug: str, project: Project):
         """Create a work item type."""
         import time
 
@@ -467,6 +567,52 @@ class TestWorkItemPropertyTypes:
         except Exception:
             pass
 
+    def test_create_option_property_with_inline_options(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+        project: Project,
+        work_item_type,
+    ) -> None:
+        """Test creating an OPTION property with inline options."""
+        import time
+
+        property_data = CreateWorkItemProperty(
+            display_name=f"Priority Property {int(time.time())}",
+            description="Test option property with inline options",
+            property_type=PropertyType.OPTION,
+            is_required=False,
+            is_active=True,
+            options=[
+                CreateWorkItemPropertyOption(name="Low", is_default=False),
+                CreateWorkItemPropertyOption(name="Medium", is_default=True),
+                CreateWorkItemPropertyOption(name="High", is_default=False),
+                CreateWorkItemPropertyOption(name="Critical", is_default=False),
+            ],
+        )
+        prop = client.work_item_properties.create(
+            workspace_slug, project.id, work_item_type.id, property_data
+        )
+        assert prop is not None
+        assert prop.property_type == PropertyType.OPTION
+        assert prop.display_name == property_data.display_name
+        # Verify options were created
+        assert prop.options is not None
+        assert len(prop.options) == 4
+        option_names = [opt.name for opt in prop.options]
+        assert "Low" in option_names
+        assert "Medium" in option_names
+        assert "High" in option_names
+        assert "Critical" in option_names
+
+        # Cleanup
+        try:
+            client.work_item_properties.delete(
+                workspace_slug, project.id, work_item_type.id, prop.id
+            )
+        except Exception:
+            pass
+
     def test_create_file_property(
         self,
         client: PlaneClient,
@@ -498,4 +644,3 @@ class TestWorkItemPropertyTypes:
             )
         except Exception:
             pass
-
