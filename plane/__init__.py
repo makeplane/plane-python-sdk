@@ -1,3 +1,4 @@
+from .api.agent_runs import AgentRuns
 from .api.cycles import Cycles
 from .api.labels import Labels
 from .api.modules import Modules
@@ -24,6 +25,7 @@ __all__ = [
     "PlaneClient",
     "OAuthClient",
     "Configuration",
+    "AgentRuns",
     "WorkItems",
     "WorkItemTypes",
     "WorkItemProperties",
