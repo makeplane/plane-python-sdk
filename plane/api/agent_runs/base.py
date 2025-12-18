@@ -53,21 +53,3 @@ class AgentRuns(BaseResource):
         """
         response = self._get(f"{workspace_slug}/runs/{run_id}")
         return AgentRun.model_validate(response)
-
-    def resume(
-        self,
-        workspace_slug: str,
-        run_id: str,
-    ) -> AgentRun:
-        """Resume an agent run.
-
-        Args:
-            workspace_slug: The workspace slug identifier
-            run_id: UUID of the agent run
-
-        Returns:
-            The resumed agent run
-        """
-        response = self._post(f"{workspace_slug}/runs/{run_id}")
-        return AgentRun.model_validate(response)
-

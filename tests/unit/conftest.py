@@ -6,7 +6,9 @@ from datetime import datetime
 import pytest
 
 from plane.client import PlaneClient
+from plane.models.agent_runs import AgentRun, CreateAgentRun
 from plane.models.projects import CreateProject, Project
+from plane.models.work_items import CreateWorkItem, CreateWorkItemComment
 
 
 @pytest.fixture(scope="session")
@@ -73,3 +75,31 @@ def project(client: PlaneClient, workspace_slug: str) -> Project:
         client.projects.delete(workspace_slug, project.id)
     except Exception:
         pass
+
+
+@pytest.fixture(scope="session")
+def agent_run(client: PlaneClient, workspace_slug: str, project: Project) -> AgentRun:
+    agent_slug = os.getenv("AGENT_SLUG")
+    if not agent_slug:
+        pytest.skip("AGENT_SLUG environment variable not set")
+    """Create a test agent run and yield it."""
+    work_item = client.work_items.create(
+        workspace_slug,
+        project.id,
+        CreateWorkItem(name="Test Work Item"),
+    )
+    comment = client.work_items.comments.create(
+        workspace_slug,
+        project.id,
+        work_item.id,
+        CreateWorkItemComment(comment_html="<p>This is a test comment</p>"),
+    )
+    agent_run = client.agent_runs.create(
+        workspace_slug,
+        CreateAgentRun(
+            agent_slug=agent_slug,
+            project=project.id,
+            comment=comment.id,
+        ),
+    )
+    yield agent_run
