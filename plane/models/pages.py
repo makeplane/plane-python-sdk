@@ -14,6 +14,9 @@ class Page(BaseModel):
     id: str | None = None
     name: str | None = None
     description_stripped: str | None = None
+    description_html: str | None = None
+    description_binary: str | None = None
+    description: dict | str | None = None
     created_at: str | None = None
     updated_at: str | None = None
     owned_by: str | None = None
