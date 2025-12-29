@@ -7,7 +7,7 @@ import pytest
 from plane.client import PlaneClient
 from plane.models.enums import ModuleStatus
 from plane.models.modules import CreateModule, UpdateModule
-from plane.models.projects import Project
+from plane.models.projects import Project, ProjectFeature
 
 
 class TestModulesAPI:
@@ -61,6 +61,7 @@ class TestModulesAPICRUD:
         module_data: CreateModule,
     ):
         """Create a test module and yield it, then delete it."""
+        client.projects.update_features(workspace_slug, project.id, ProjectFeature(modules=True))
         module = client.modules.create(workspace_slug, project.id, module_data)
         yield module
         try:
@@ -76,6 +77,7 @@ class TestModulesAPICRUD:
         module_data: CreateModule,
     ) -> None:
         """Test creating a module."""
+        client.projects.update_features(workspace_slug, project.id, ProjectFeature(modules=True))
         module = client.modules.create(workspace_slug, project.id, module_data)
         assert module is not None
         assert module.id is not None

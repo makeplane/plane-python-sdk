@@ -29,6 +29,9 @@ from plane.models.work_item_properties import (  # noqa: E402
     CreateWorkItemPropertyOption,
     CreateWorkItemPropertyValue,
 )
+from plane.models.work_item_property_configurations import (  # noqa: E402
+    TextAttributeSettings,
+)
 from plane.models.work_item_types import CreateWorkItemType  # noqa: E402
 from plane.models.work_items import CreateWorkItem  # noqa: E402
 
@@ -162,6 +165,7 @@ def main() -> None:
             property_type=PropertyType.TEXT.value,
             is_required=True,
             is_active=True,
+            settings=TextAttributeSettings(display_format="single-line"),
         )
         severity_prop = client.work_item_properties.create(
             workspace_slug, project.id, bug_type.id, severity_prop_data
@@ -169,19 +173,46 @@ def main() -> None:
         bug_properties.append(severity_prop)
         print_success(f"Property created: {severity_prop.display_name} (ID: {severity_prop.id})")
 
-        # Option property - Priority
+        # Option property - Priority (with inline options)
         priority_prop_data = CreateWorkItemProperty(
             display_name="Priority",
             description="Priority level for this bug",
             property_type=PropertyType.OPTION.value,
             is_required=True,
             is_active=True,
+            options=[
+                CreateWorkItemPropertyOption(
+                    name="Critical",
+                    description="Priority level: Critical",
+                    is_active=True,
+                    is_default=False,
+                ),
+                CreateWorkItemPropertyOption(
+                    name="High",
+                    description="Priority level: High",
+                    is_active=True,
+                    is_default=False,
+                ),
+                CreateWorkItemPropertyOption(
+                    name="Medium",
+                    description="Priority level: Medium",
+                    is_active=True,
+                    is_default=True,  # Set Medium as default
+                ),
+                CreateWorkItemPropertyOption(
+                    name="Low",
+                    description="Priority level: Low",
+                    is_active=True,
+                    is_default=False,
+                ),
+            ],
         )
         priority_prop = client.work_item_properties.create(
             workspace_slug, project.id, bug_type.id, priority_prop_data
         )
         bug_properties.append(priority_prop)
         print_success(f"Property created: {priority_prop.display_name} (ID: {priority_prop.id})")
+        print(f"  Options created inline: {len(priority_prop.options)} options")
 
         # Boolean property - Is Critical
         critical_prop_data = CreateWorkItemProperty(
@@ -211,23 +242,36 @@ def main() -> None:
         bug_properties.append(hours_prop)
         print_success(f"Property created: {hours_prop.display_name} (ID: {hours_prop.id})")
 
-        # Create options for the Priority property
-        print_step(5, "Creating property options for Priority")
-        priority_options = []
+        # Get options from the Priority property (created inline)
+        print_step(5, "Verifying inline options for Priority property")
+        priority_options = priority_prop.options
+        print_success(f"Priority property has {len(priority_options)} options (created inline)")
+        for option in priority_options:
+            print(f"  - {option.name} (ID: {option.id})")
 
-        priority_levels = ["Critical", "High", "Medium", "Low"]
-        for level in priority_levels:
-            option_data = CreateWorkItemPropertyOption(
-                name=level,
-                description=f"Priority level: {level}",
-                is_active=True,
-                is_default=(level == "Medium"),  # Set Medium as default
-            )
-            option = client.work_item_properties.options.create(
-                workspace_slug, project.id, priority_prop.id, option_data
-            )
-            priority_options.append(option)
-            print_success(f"Option created: {option.name} (ID: {option.id})")
+        # Verify options are included in list and retrieve responses
+        print_step(5.5, "Verifying options in list/retrieve responses")
+
+        # Test list response includes options
+        all_properties = client.work_item_properties.list(workspace_slug, project.id, bug_type.id)
+        print_success(f"Listed {len(all_properties)} properties for Bug type")
+
+        # Find the priority property in the list
+        listed_priority_prop = next((p for p in all_properties if p.id == priority_prop.id), None)
+        assert listed_priority_prop is not None, "Priority property should be in list"
+        assert listed_priority_prop.options is not None, "Options should be in list response"
+        assert len(listed_priority_prop.options) == 4, "Should have 4 options in list response"
+        print_success("List response includes options ✓")
+        for opt in listed_priority_prop.options:
+            print(f"  - {opt.name}")
+
+        # Test retrieve response includes options
+        retrieved_priority_prop = client.work_item_properties.retrieve(
+            workspace_slug, project.id, bug_type.id, priority_prop.id
+        )
+        assert retrieved_priority_prop.options is not None, "Options in retrieve response"
+        assert len(retrieved_priority_prop.options) == 4, "Should have 4 options in retrieve"
+        print_success("Retrieve response includes options ✓")
 
         # Create a work item with the Bug type
         print_step(6, "Creating a work item with Bug type and custom properties")
@@ -247,55 +291,61 @@ def main() -> None:
         print_step(7, "Assigning custom property values to work item")
 
         # Set Severity (text property)
-        severity_value_data = CreateWorkItemPropertyValue(
-            values=[CreateWorkItemPropertyValue.ValueItem(value="High")]
-        )
+        severity_value_data = CreateWorkItemPropertyValue(value="High")
         severity_value = client.work_item_properties.values.create(
             workspace_slug, project.id, work_item.id, severity_prop.id, severity_value_data
         )
-        print_success(f"Severity value set: {severity_value.values[0].value}")
+        print_success(f"Severity value set: {severity_value.value}")
 
         # Set Priority (option property) - use the High option
         high_option = next(opt for opt in priority_options if opt.name == "High")
-        priority_value_data = CreateWorkItemPropertyValue(
-            values=[CreateWorkItemPropertyValue.ValueItem(value=high_option.id)]
-        )
+        priority_value_data = CreateWorkItemPropertyValue(value=high_option.id)
         client.work_item_properties.values.create(
             workspace_slug, project.id, work_item.id, priority_prop.id, priority_value_data
         )
         print_success(f"Priority value set: {high_option.name}")
 
         # Set Is Critical (boolean property)
-        critical_value_data = CreateWorkItemPropertyValue(
-            values=[CreateWorkItemPropertyValue.ValueItem(value=True)]
-        )
+        critical_value_data = CreateWorkItemPropertyValue(value=True)
         critical_value = client.work_item_properties.values.create(
             workspace_slug, project.id, work_item.id, critical_prop.id, critical_value_data
         )
-        print_success(f"Critical value set: {critical_value.values[0].value}")
+        print_success(f"Critical value set: {critical_value.value}")
 
         # Set Estimated Hours (decimal property)
-        hours_value_data = CreateWorkItemPropertyValue(
-            values=[CreateWorkItemPropertyValue.ValueItem(value=4.5)]
-        )
+        hours_value_data = CreateWorkItemPropertyValue(value=4.5)
         hours_value = client.work_item_properties.values.create(
             workspace_slug, project.id, work_item.id, hours_prop.id, hours_value_data
         )
-        print_success(f"Estimated hours value set: {hours_value.values[0].value}")
+        print_success(f"Estimated hours value set: {hours_value.value}")
 
         # Retrieve and verify the work item with its property values
         print_step(8, "Verifying work item and property values")
         retrieved_work_item = client.work_items.retrieve(workspace_slug, project.id, work_item.id)
         print_success(f"Work item retrieved: {retrieved_work_item.name}")
 
-        # Get all property values for the work item
-        property_values = client.work_item_properties.values.list(
-            workspace_slug, project.id, work_item.id
+        # Retrieve individual property values to verify they were set correctly
+        retrieved_severity = client.work_item_properties.values.retrieve(
+            workspace_slug, project.id, work_item.id, severity_prop.id
         )
-        print_success(f"Retrieved {len(property_values)} property values")
+        print(f"  Severity: {retrieved_severity.value}")
 
-        for prop_value in property_values:
-            print(f"  Property {prop_value.property_id}: {prop_value.values}")
+        retrieved_priority = client.work_item_properties.values.retrieve(
+            workspace_slug, project.id, work_item.id, priority_prop.id
+        )
+        print(f"  Priority: {retrieved_priority.value}")
+
+        retrieved_critical = client.work_item_properties.values.retrieve(
+            workspace_slug, project.id, work_item.id, critical_prop.id
+        )
+        print(f"  Is Critical: {retrieved_critical.value}")
+
+        retrieved_hours = client.work_item_properties.values.retrieve(
+            workspace_slug, project.id, work_item.id, hours_prop.id
+        )
+        print(f"  Estimated Hours: {retrieved_hours.value}")
+
+        print_success("All property values retrieved successfully")
 
         # Test creating a work item with Feature type
         print_step(9, "Creating a work item with Feature type")

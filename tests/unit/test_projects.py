@@ -65,7 +65,7 @@ class TestProjectsAPICRUD:
         assert project is not None
         assert project.id is not None
         assert project.name == project_data.name
-        
+
         # Cleanup
         try:
             client.projects.delete(workspace_slug, project.id)
@@ -91,10 +91,37 @@ class TestProjectsAPICRUD:
         assert updated.id == project.id
         assert updated.description == "Updated description"
 
-    def test_get_members(
-        self, client: PlaneClient, workspace_slug: str, project: Project
-    ) -> None:
+    def test_get_members(self, client: PlaneClient, workspace_slug: str, project: Project) -> None:
         """Test getting project members."""
         members = client.projects.get_members(workspace_slug, project.id)
         assert isinstance(members, list)
 
+    def test_get_features(self, client: PlaneClient, workspace_slug: str, project: Project) -> None:
+        """Test getting project features."""
+        features = client.projects.get_features(workspace_slug, project.id)
+        assert features is not None
+        assert hasattr(features, "cycles")
+        assert hasattr(features, "modules")
+        assert hasattr(features, "views")
+        assert hasattr(features, "pages")
+        assert hasattr(features, "intakes")
+        assert hasattr(features, "work_item_types")
+
+    def test_update_features(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """Test updating project features."""
+        # Get current features first
+        features = client.projects.get_features(workspace_slug, project.id)
+
+        # Update features
+        features.cycles = True
+        updated = client.projects.update_features(workspace_slug, project.id, features)
+        assert updated is not None
+        assert updated.cycles is True
+        assert hasattr(updated, "cycles")
+        assert hasattr(updated, "modules")
+        assert hasattr(updated, "views")
+        assert hasattr(updated, "pages")
+        assert hasattr(updated, "intakes")
+        assert hasattr(updated, "work_item_types")

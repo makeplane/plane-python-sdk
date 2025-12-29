@@ -41,6 +41,7 @@ class WorkItemProperty(BaseModel):
     workspace: str | None = None
     project: str | None = None
     issue_type: str | None = None
+    options: list["WorkItemPropertyOption"] | None = None
 
     @field_serializer("property_type")
     def serialize_property_type(self, value: PropertyType) -> str:
@@ -68,6 +69,7 @@ class CreateWorkItemProperty(BaseModel):
     validation_rules: Any | None = None
     external_source: str | None = None
     external_id: str | None = None
+    options: list["CreateWorkItemPropertyOption"] | None = None
 
     @field_serializer("property_type")
     def serialize_property_type(self, value: PropertyType) -> str:

@@ -134,3 +134,16 @@ class PaginatedProjectResponse(PaginatedResponse):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Project]
+
+class ProjectFeature(BaseModel):
+  """Project feature model."""
+
+  model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+  epics: bool | None = None
+  modules: bool | None = None
+  cycles: bool | None = None
+  views: bool | None = None
+  pages: bool | None = None
+  intakes: bool | None = None
+  work_item_types: bool | None = None
