@@ -49,6 +49,7 @@ venv/
 .env
 .python-version
 .pytest_cache
+.env
 
 # Translations
 *.mo

@@ -1,3 +1,4 @@
+from ..api.agent_runs import AgentRuns
 from ..api.customers import Customers
 from ..api.cycles import Cycles
 from ..api.epics import Epics
@@ -56,6 +57,7 @@ class PlaneClient:
         self.work_item_properties = WorkItemProperties(self.config)
         self.customers = Customers(self.config)
         self.intake = Intake(self.config)
+        self.agent_runs = AgentRuns(self.config)
         self.stickies = Stickies(self.config)
         self.initiatives = Initiatives(self.config)
         self.teamspaces = Teamspaces(self.config)
