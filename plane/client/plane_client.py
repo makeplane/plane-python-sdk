@@ -5,6 +5,7 @@ from ..api.epics import Epics
 from ..api.initiatives import Initiatives
 from ..api.intake import Intake
 from ..api.labels import Labels
+from ..api.milestones import Milestones
 from ..api.modules import Modules
 from ..api.pages import Pages
 from ..api.projects import Projects
@@ -51,6 +52,7 @@ class PlaneClient:
         self.pages = Pages(self.config)
         self.labels = Labels(self.config)
         self.states = States(self.config)
+        self.milestones = Milestones(self.config)
         self.modules = Modules(self.config)
         self.cycles = Cycles(self.config)
         self.work_item_types = WorkItemTypes(self.config)
