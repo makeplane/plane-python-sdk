@@ -72,3 +72,5 @@ target/
 *.pem
 .history
 tsconfig.tsbuildinfo
+
+test.py
