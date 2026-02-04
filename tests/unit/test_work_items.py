@@ -5,7 +5,7 @@ import pytest
 from plane.client import PlaneClient
 from plane.models.projects import Project
 from plane.models.query_params import PaginatedQueryParams
-from plane.models.work_items import CreateWorkItem, UpdateWorkItem
+from plane.models.work_items import AdvancedSearchWorkItem, CreateWorkItem, UpdateWorkItem
 
 
 class TestWorkItemsAPI:
@@ -37,6 +37,56 @@ class TestWorkItemsAPI:
         assert response is not None
         assert hasattr(response, "issues")
         assert isinstance(response.issues, list)
+
+    def test_advanced_search_work_items(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test advanced search with query only."""
+        data = AdvancedSearchWorkItem(query="test", limit=10)
+        results = client.work_items.advanced_search(workspace_slug, data)
+        assert isinstance(results, list)
+        for item in results:
+            assert item.id is not None
+            assert item.name is not None
+            assert item.sequence_id is not None
+            assert item.project_id is not None
+            assert item.workspace_id is not None
+
+    def test_advanced_search_with_filters(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test advanced search with filters."""
+        data = AdvancedSearchWorkItem(
+            filters={
+                "and": [
+                    {"priority": "high"},
+                ]
+            },
+            limit=10,
+        )
+        results = client.work_items.advanced_search(workspace_slug, data)
+        assert isinstance(results, list)
+        for item in results:
+            assert item.id is not None
+            assert item.priority == "high"
+
+    def test_advanced_search_with_nested_filters(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test advanced search with nested AND/OR filters."""
+        data = AdvancedSearchWorkItem(
+            filters={
+                "or": [
+                    {"priority": "high"},
+                    {"priority": "urgent"},
+                ]
+            },
+            limit=10,
+        )
+        results = client.work_items.advanced_search(workspace_slug, data)
+        assert isinstance(results, list)
+        for item in results:
+            assert item.priority in ("high", "urgent")
 
 
 class TestWorkItemsAPICRUD:

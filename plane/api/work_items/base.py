@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 from typing import Any
 
 from ...models.query_params import RetrieveQueryParams, WorkItemQueryParams
 from ...models.work_items import (
+    AdvancedSearchResult,
+    AdvancedSearchWorkItem,
     CreateWorkItem,
     PaginatedWorkItemResponse,
     UpdateWorkItem,
@@ -189,3 +193,44 @@ class WorkItems(BaseResource):
             search_params.update(params.model_dump(exclude_none=True))
         response = self._get(f"{workspace_slug}/work-items/search", params=search_params)
         return WorkItemSearch.model_validate(response)
+
+    def advanced_search(
+        self,
+        workspace_slug: str,
+        data: AdvancedSearchWorkItem,
+    ) -> list[AdvancedSearchResult]:
+        """Perform advanced search on work items with filters.
+
+        Supports text-based search via ``query`` and/or structured filters
+        using recursive AND/OR groups.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            data: Advanced search request with query, filters, and limit
+
+        Example::
+
+            from plane.models.work_items import AdvancedSearchWorkItem
+
+            results = client.work_items.advanced_search(
+                "my-workspace",
+                AdvancedSearchWorkItem(
+                    query="new",
+                    filters={
+                        "and": [
+                            {"state_id": "state-uuid"},
+                            {"or": [
+                                {"priority": "high"},
+                                {"state_id": "other-state-uuid"},
+                            ]},
+                        ]
+                    },
+                    limit=100,
+                ),
+            )
+        """
+        response = self._post(
+            f"{workspace_slug}/work-items/advanced-search",
+            data.model_dump(exclude_none=True),
+        )
+        return [AdvancedSearchResult.model_validate(item) for item in response]
