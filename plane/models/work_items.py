@@ -42,7 +42,7 @@ class WorkItem(BaseModel):
     project: str | None = None
     workspace: str | None = None
     parent: str | None = None
-    state: str | None = None
+    state: str | StateLite | None = None
     estimate_point: str | None = None
     type: str | None = None
 

@@ -16,7 +16,7 @@ class State(BaseModel):
     name: str
     description: str | None = None
     color: str
-    sequence: int | None = None
+    sequence: float | None = None
     group: GroupEnum | None = None
     is_triage: bool | None = None
     default: bool | None = None
@@ -47,7 +47,7 @@ class CreateState(BaseModel):
     name: str
     description: str | None = None
     color: str
-    sequence: int | None = None
+    sequence: float | None = None
     group: GroupEnum | None = None
     is_triage: bool | None = None
     default: bool | None = None
@@ -63,7 +63,7 @@ class UpdateState(BaseModel):
     name: str | None = None
     description: str | None = None
     color: str | None = None
-    sequence: int | None = None
+    sequence: float | None = None
     group: GroupEnum | None = None
     is_triage: bool | None = None
     default: bool | None = None
