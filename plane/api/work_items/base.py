@@ -216,6 +216,8 @@ class WorkItems(BaseResource):
                 "my-workspace",
                 AdvancedSearchWorkItem(
                     query="new",
+                    project_id="project-uuid",
+                    workspace_search=True,
                     filters={
                         "and": [
                             {"state_id": "state-uuid"},
