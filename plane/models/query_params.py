@@ -1,6 +1,6 @@
 """Query parameter DTOs for list/retrieve endpoints."""
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_serializer
 
 
 class BaseQueryParams(BaseModel):
@@ -61,6 +61,48 @@ class WorkItemQueryParams(PaginatedQueryParams):
     """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    assignee_id__in: list[str] | None = Field(
+        None,
+        description="Filter by assignee UUIDs",
+    )
+    state_id__in: list[str] | None = Field(
+        None,
+        description="Filter by state UUIDs",
+    )
+    state_group__in: list[str] | None = Field(
+        None,
+        description="Filter by state groups (backlog, unstarted, started, completed, cancelled)",
+    )
+    priority__in: list[str] | None = Field(
+        None,
+        description="Filter by priority levels (urgent, high, medium, low, none)",
+    )
+    label_id__in: list[str] | None = Field(
+        None,
+        description="Filter by label UUIDs",
+    )
+    created_by_id__in: list[str] | None = Field(
+        None,
+        description="Filter by creator user UUIDs",
+    )
+    is_draft: bool | None = Field(
+        None,
+        description="Filter by draft status",
+    )
+    is_archived: bool | None = Field(
+        None,
+        description="Filter by archived status",
+    )
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler):  # type: ignore[no-untyped-def]
+        """Serialize list fields as comma-separated strings for django-filters."""
+        data = handler(self)
+        for key, value in data.items():
+            if isinstance(value, list):
+                data[key] = ",".join(str(v) for v in value)
+        return data
 
 
 class RetrieveQueryParams(BaseQueryParams):

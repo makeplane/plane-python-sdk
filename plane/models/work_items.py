@@ -245,6 +245,8 @@ class AdvancedSearchWorkItem(BaseModel):
     query: str | None = None
     filters: dict[str, Any] | None = None
     limit: int | None = None
+    project_id: str | None = None
+    workspace_search: bool | None = None
 
 
 class AdvancedSearchResult(BaseModel):
