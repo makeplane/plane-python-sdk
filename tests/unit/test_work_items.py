@@ -35,13 +35,22 @@ class TestWorkItemsAPI:
         self, client: PlaneClient, workspace_slug: str, project: Project
     ) -> None:
         """Test listing work items with a PQL filter."""
+        created_item = client.work_items.create(
+            workspace_slug,
+            project.id,
+            CreateWorkItem(
+                name="pql-filter-high-priority-item",
+                priority="high",
+            ),
+        )
         params = WorkItemQueryParams(pql='priority IN ("high")')
         response = client.work_items.list(workspace_slug, project.id, params=params)
         assert response is not None
         assert hasattr(response, "results")
         assert isinstance(response.results, list)
-        for item in response.results:
-            assert item.priority == "high"
+        assert len(response.results) > 0
+        result_ids = [item.id for item in response.results]
+        assert created_item.id in result_ids
 
     def test_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test searching work items."""
@@ -50,9 +59,7 @@ class TestWorkItemsAPI:
         assert hasattr(response, "issues")
         assert isinstance(response.issues, list)
 
-    def test_advanced_search_work_items(
-        self, client: PlaneClient, workspace_slug: str
-    ) -> None:
+    def test_advanced_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test advanced search with query only."""
         data = AdvancedSearchWorkItem(query="test", limit=10)
         results = client.work_items.advanced_search(workspace_slug, data)
@@ -64,9 +71,7 @@ class TestWorkItemsAPI:
             assert item.project_id is not None
             assert item.workspace_id is not None
 
-    def test_advanced_search_with_filters(
-        self, client: PlaneClient, workspace_slug: str
-    ) -> None:
+    def test_advanced_search_with_filters(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test advanced search with filters."""
         data = AdvancedSearchWorkItem(
             filters={
@@ -108,6 +113,7 @@ class TestWorkItemsAPICRUD:
     def work_item_data(self) -> CreateWorkItem:
         """Create test work item data."""
         import time
+
         return CreateWorkItem(
             name=f"Test Work Item {int(time.time())}",
             description_html="<p>Test work item description</p>",
@@ -142,7 +148,7 @@ class TestWorkItemsAPICRUD:
         assert work_item is not None
         assert work_item.id is not None
         assert work_item.name == work_item_data.name
-        
+
         # Cleanup
         try:
             client.work_items.delete(workspace_slug, project.id, work_item.id)
@@ -172,14 +178,12 @@ class TestWorkItemsSubResources:
     """Test WorkItems sub-resources (comments, links, relations, etc.)."""
 
     @pytest.fixture
-    def work_item(
-        self, client: PlaneClient, workspace_slug: str, project: Project
-    ):
+    def work_item(self, client: PlaneClient, workspace_slug: str, project: Project):
         """Create a test work item."""
         import time
 
         from plane.models.work_items import CreateWorkItem
-        
+
         work_item_data = CreateWorkItem(
             name=f"Test Work Item {int(time.time())}",
             description_html="<p>Test work item</p>",
@@ -229,4 +233,3 @@ class TestWorkItemsSubResources:
         response = client.work_items.attachments.list(workspace_slug, project.id, work_item.id)
         assert response is not None
         assert isinstance(response, list)
-

@@ -28,7 +28,6 @@ class BaseQueryParams(BaseModel):
         None,
         description="Field to order results by. Prefix with '-' for descending order",
     )
-    pql: str | None = Field(None, description="Field to apply PQL filters")
 
 
 class PaginatedQueryParams(BaseQueryParams):
@@ -62,6 +61,8 @@ class WorkItemQueryParams(PaginatedQueryParams):
     """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    pql: str | None = Field(None, description="PQL filters ")
 
 
 class RetrieveQueryParams(BaseQueryParams):
