@@ -4,7 +4,7 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.projects import Project
-from plane.models.query_params import PaginatedQueryParams
+from plane.models.query_params import PaginatedQueryParams, WorkItemQueryParams
 from plane.models.work_items import AdvancedSearchWorkItem, CreateWorkItem, UpdateWorkItem
 
 
@@ -30,6 +30,18 @@ class TestWorkItemsAPI:
         assert response is not None
         assert hasattr(response, "results")
         assert len(response.results) <= 10
+
+    def test_list_work_items_with_pql_filter(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """Test listing work items with a PQL filter."""
+        params = WorkItemQueryParams(pql='priority IN ("high")')
+        response = client.work_items.list(workspace_slug, project.id, params=params)
+        assert response is not None
+        assert hasattr(response, "results")
+        assert isinstance(response.results, list)
+        for item in response.results:
+            assert item.priority == "high"
 
     def test_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test searching work items."""
