@@ -35,36 +35,42 @@ class TestWorkItemsAPI:
         self, client: PlaneClient, workspace_slug: str, project: Project
     ) -> None:
         """Test listing work items with a PQL filter."""
-        created_item = client.work_items.create(
-            workspace_slug,
-            project.id,
-            CreateWorkItem(
-                name="pql-filter-high-priority-item",
-                priority="high",
-            ),
-        )
+        created_item = None
+        created_item_2 = None
 
-        created_item_2 = client.work_items.create(
-            workspace_slug,
-            project.id,
-            CreateWorkItem(
-                name="pql-filter-low-priority-item",
-                priority="low",
-            ),
-        )
-        params = WorkItemQueryParams(pql='priority IN ("high")')
-        response = client.work_items.list(workspace_slug, project.id, params=params)
-        assert response is not None
-        assert hasattr(response, "results")
-        assert isinstance(response.results, list)
-        assert len(response.results) > 0
-        result_ids = [item.id for item in response.results]
+        try:
+            created_item = client.work_items.create(
+                workspace_slug,
+                project.id,
+                CreateWorkItem(
+                    name="pql-filter-high-priority-item",
+                    priority="high",
+                ),
+            )
 
-        assert created_item.id in result_ids
-        assert created_item_2.id not in result_ids
+            created_item_2 = client.work_items.create(
+                workspace_slug,
+                project.id,
+                CreateWorkItem(
+                    name="pql-filter-low-priority-item",
+                    priority="low",
+                ),
+            )
+            params = WorkItemQueryParams(pql='priority IN ("high")')
+            response = client.work_items.list(workspace_slug, project.id, params=params)
+            assert response is not None
+            assert hasattr(response, "results")
+            assert isinstance(response.results, list)
+            assert len(response.results) > 0
+            result_ids = [item.id for item in response.results]
 
-        client.work_items.delete(workspace_slug, project.id, created_item.id)
-        client.work_items.delete(workspace_slug, project.id, created_item_2.id)
+            assert created_item.id in result_ids
+            assert created_item_2.id not in result_ids
+        finally:
+            if created_item is not None:
+                client.work_items.delete(workspace_slug, project.id, created_item.id)
+            if created_item_2 is not None:
+                client.work_items.delete(workspace_slug, project.id, created_item_2.id)
 
     def test_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test searching work items."""
