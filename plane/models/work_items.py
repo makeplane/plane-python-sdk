@@ -53,8 +53,8 @@ class WorkItemDetail(BaseModel):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
-    assignees: list[UserLite]
-    labels: list[Label]
+    assignees: list[str] | list[UserLite] = []
+    labels: list[str] | list[Label] = []
     type_id: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
