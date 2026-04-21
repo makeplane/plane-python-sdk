@@ -36,7 +36,7 @@ class Initiatives(BaseResource):
         """
         response = self._post(
             f"{workspace_slug}/initiatives",
-            data.model_dump(exclude_none=True),
+            data.model_dump(exclude_none=True, mode="json"),
         )
         return Initiative.model_validate(response)
 
@@ -53,9 +53,7 @@ class Initiatives(BaseResource):
         response = self._get(f"{workspace_slug}/initiatives/{initiative_id}")
         return Initiative.model_validate(response)
 
-    def update(
-        self, workspace_slug: str, initiative_id: str, data: UpdateInitiative
-    ) -> Initiative:
+    def update(self, workspace_slug: str, initiative_id: str, data: UpdateInitiative) -> Initiative:
         """Update an initiative by ID.
 
         Args:
@@ -68,7 +66,7 @@ class Initiatives(BaseResource):
         """
         response = self._patch(
             f"{workspace_slug}/initiatives/{initiative_id}",
-            data.model_dump(exclude_none=True),
+            data.model_dump(exclude_none=True, mode="json"),
         )
         return Initiative.model_validate(response)
 
@@ -95,4 +93,3 @@ class Initiatives(BaseResource):
         """
         response = self._get(f"{workspace_slug}/initiatives", params=params)
         return PaginatedInitiativeResponse.model_validate(response)
-
