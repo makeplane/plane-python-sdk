@@ -58,9 +58,12 @@ class WorkItemQueryParams(PaginatedQueryParams):
     - fields: Comma-separated fields to include
     - order_by: Field to order by (prefix with '-' for descending)
     - per_page: Number of results per page (1-100)
+    - pql: PQL filters
     """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    pql: str | None = Field(None, description="PQL filters")
 
 
 class RetrieveQueryParams(BaseQueryParams):
