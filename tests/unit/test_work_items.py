@@ -4,7 +4,7 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.projects import Project
-from plane.models.query_params import PaginatedQueryParams
+from plane.models.query_params import PaginatedQueryParams, WorkItemQueryParams
 from plane.models.work_items import AdvancedSearchWorkItem, CreateWorkItem, UpdateWorkItem
 
 
@@ -31,6 +31,47 @@ class TestWorkItemsAPI:
         assert hasattr(response, "results")
         assert len(response.results) <= 10
 
+    def test_list_work_items_with_pql_filter(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """Test listing work items with a PQL filter."""
+        created_item = None
+        created_item_2 = None
+
+        try:
+            created_item = client.work_items.create(
+                workspace_slug,
+                project.id,
+                CreateWorkItem(
+                    name="pql-filter-high-priority-item",
+                    priority="high",
+                ),
+            )
+
+            created_item_2 = client.work_items.create(
+                workspace_slug,
+                project.id,
+                CreateWorkItem(
+                    name="pql-filter-low-priority-item",
+                    priority="low",
+                ),
+            )
+            params = WorkItemQueryParams(pql='priority IN ("high")')
+            response = client.work_items.list(workspace_slug, project.id, params=params)
+            assert response is not None
+            assert hasattr(response, "results")
+            assert isinstance(response.results, list)
+            assert len(response.results) > 0
+            result_ids = [item.id for item in response.results]
+
+            assert created_item.id in result_ids
+            assert created_item_2.id not in result_ids
+        finally:
+            if created_item is not None:
+                client.work_items.delete(workspace_slug, project.id, created_item.id)
+            if created_item_2 is not None:
+                client.work_items.delete(workspace_slug, project.id, created_item_2.id)
+
     def test_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test searching work items."""
         response = client.work_items.search(workspace_slug, "test")
@@ -38,9 +79,7 @@ class TestWorkItemsAPI:
         assert hasattr(response, "issues")
         assert isinstance(response.issues, list)
 
-    def test_advanced_search_work_items(
-        self, client: PlaneClient, workspace_slug: str
-    ) -> None:
+    def test_advanced_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test advanced search with query only."""
         data = AdvancedSearchWorkItem(query="test", limit=10)
         results = client.work_items.advanced_search(workspace_slug, data)
@@ -52,9 +91,7 @@ class TestWorkItemsAPI:
             assert item.project_id is not None
             assert item.workspace_id is not None
 
-    def test_advanced_search_with_filters(
-        self, client: PlaneClient, workspace_slug: str
-    ) -> None:
+    def test_advanced_search_with_filters(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test advanced search with filters."""
         data = AdvancedSearchWorkItem(
             filters={
@@ -96,6 +133,7 @@ class TestWorkItemsAPICRUD:
     def work_item_data(self) -> CreateWorkItem:
         """Create test work item data."""
         import time
+
         return CreateWorkItem(
             name=f"Test Work Item {int(time.time())}",
             description_html="<p>Test work item description</p>",
@@ -130,7 +168,7 @@ class TestWorkItemsAPICRUD:
         assert work_item is not None
         assert work_item.id is not None
         assert work_item.name == work_item_data.name
-        
+
         # Cleanup
         try:
             client.work_items.delete(workspace_slug, project.id, work_item.id)
@@ -160,14 +198,12 @@ class TestWorkItemsSubResources:
     """Test WorkItems sub-resources (comments, links, relations, etc.)."""
 
     @pytest.fixture
-    def work_item(
-        self, client: PlaneClient, workspace_slug: str, project: Project
-    ):
+    def work_item(self, client: PlaneClient, workspace_slug: str, project: Project):
         """Create a test work item."""
         import time
 
         from plane.models.work_items import CreateWorkItem
-        
+
         work_item_data = CreateWorkItem(
             name=f"Test Work Item {int(time.time())}",
             description_html="<p>Test work item</p>",
@@ -217,4 +253,3 @@ class TestWorkItemsSubResources:
         response = client.work_items.attachments.list(workspace_slug, project.id, work_item.id)
         assert response is not None
         assert isinstance(response, list)
-
