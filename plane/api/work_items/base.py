@@ -236,3 +236,35 @@ class WorkItems(BaseResource):
             data.model_dump(exclude_none=True),
         )
         return [AdvancedSearchResult.model_validate(item) for item in response]
+
+    def archive(self, workspace_slug: str, project_id: str, work_item_id: str) -> None:
+        """Archive a work item.
+
+        Only work items in a completed or cancelled state can be archived.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            work_item_id: UUID of the work item
+        """
+        self._post(
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/archive",
+            {},
+        )
+
+    def unarchive(self, workspace_slug: str, project_id: str, work_item_id: str) -> None:
+        """Unarchive a work item.
+
+        Restore an archived work item to active status.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            work_item_id: UUID of the work item
+
+        Returns:
+            None (HTTP 204 No Content)
+        """
+        self._delete(
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/unarchive"
+        )
