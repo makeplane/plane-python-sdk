@@ -29,9 +29,6 @@ class Estimates(BaseResource):
     ) -> Estimate:
         """Create a new estimate for a project.
 
-        After creation the estimate is automatically linked to the project
-        so that it appears as an active (non-archived) estimate in the UI.
-
         Args:
             workspace_slug: The workspace slug identifier.
             project_id: UUID of the project.
@@ -41,16 +38,30 @@ class Estimates(BaseResource):
             f"{workspace_slug}/projects/{project_id}/estimates",
             data.model_dump(exclude_none=True),
         )
-        estimate = Estimate.model_validate(response)
+        return Estimate.model_validate(response)
 
-        # Link the estimate to the project so it shows as active
-        if estimate.id:
-            self._patch(
-                f"{workspace_slug}/projects/{project_id}",
-                {"estimate": estimate.id},
-            )
+    def link_to_project(
+        self,
+        workspace_slug: str,
+        project_id: str,
+        estimate_id: str,
+    ) -> Any:
+        """Link an estimate to a project so that it becomes the active estimate system.
 
-        return estimate
+        Args:
+            workspace_slug: The workspace slug identifier.
+            project_id: UUID of the project.
+            estimate_id: UUID of the estimate to link.
+        """
+        from ..models.projects import UpdateProject
+        from .projects import Projects
+
+        projects_client = Projects(self.config)
+        return projects_client.update(
+            workspace_slug,
+            project_id,
+            UpdateProject(estimate=estimate_id),
+        )
 
     def retrieve(
         self,
