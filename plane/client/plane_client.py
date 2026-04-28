@@ -2,6 +2,7 @@ from ..api.agent_runs import AgentRuns
 from ..api.customers import Customers
 from ..api.cycles import Cycles
 from ..api.epics import Epics
+from ..api.estimates import Estimates
 from ..api.initiatives import Initiatives
 from ..api.intake import Intake
 from ..api.labels import Labels
@@ -55,6 +56,7 @@ class PlaneClient:
         self.milestones = Milestones(self.config)
         self.modules = Modules(self.config)
         self.cycles = Cycles(self.config)
+        self.estimates = Estimates(self.config)
         self.work_item_types = WorkItemTypes(self.config)
         self.work_item_properties = WorkItemProperties(self.config)
         self.customers = Customers(self.config)
