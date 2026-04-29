@@ -5,7 +5,7 @@ import pytest
 from plane.client import PlaneClient
 from plane.models.projects import Project
 from plane.models.query_params import PaginatedQueryParams, WorkItemQueryParams
-from plane.models.work_items import AdvancedSearchWorkItem, CreateWorkItem, UpdateWorkItem
+from plane.models.work_items import AdvancedSearchWorkItem, CreateWorkItem, CreateWorkItemLink, UpdateWorkItem, UpdateWorkItemLink
 
 
 class TestWorkItemsAPI:
@@ -235,6 +235,49 @@ class TestWorkItemsSubResources:
         assert hasattr(response, "results")
         assert hasattr(response, "count")
         assert isinstance(response.results, list)
+
+    def test_create_link_with_title(
+        self, client: PlaneClient, workspace_slug: str, project: Project, work_item
+    ) -> None:
+        """Test creating a work item link with title."""
+        link = None
+        try:
+            link = client.work_items.links.create(
+                workspace_slug,
+                project.id,
+                work_item.id,
+                CreateWorkItemLink(url="https://example.com", title="Example"),
+            )
+            assert link is not None
+            assert link.url == "https://example.com"
+            assert link.title == "Example"
+        finally:
+            if link is not None:
+                client.work_items.links.delete(workspace_slug, project.id, work_item.id, link.id)
+
+    def test_update_link_title(
+        self, client: PlaneClient, workspace_slug: str, project: Project, work_item
+    ) -> None:
+        """Test updating a work item link title."""
+        link = None
+        try:
+            link = client.work_items.links.create(
+                workspace_slug,
+                project.id,
+                work_item.id,
+                CreateWorkItemLink(url="https://example.com", title="Original"),
+            )
+            updated = client.work_items.links.update(
+                workspace_slug,
+                project.id,
+                work_item.id,
+                link.id,
+                UpdateWorkItemLink(title="Updated"),
+            )
+            assert updated.title == "Updated"
+        finally:
+            if link is not None:
+                client.work_items.links.delete(workspace_slug, project.id, work_item.id, link.id)
 
     def test_list_activities(
         self, client: PlaneClient, workspace_slug: str, project: Project, work_item
