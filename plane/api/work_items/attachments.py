@@ -4,6 +4,7 @@ from typing import Any
 from ...models.work_items import (
     UpdateWorkItemAttachment,
     WorkItemAttachment,
+    WorkItemAttachmentCreateResponse,
     WorkItemAttachmentUploadRequest,
 )
 from ..base_resource import BaseResource
@@ -58,20 +59,30 @@ class WorkItemAttachments(BaseResource):
         project_id: str,
         work_item_id: str,
         data: WorkItemAttachmentUploadRequest,
-    ) -> WorkItemAttachment:
+    ) -> WorkItemAttachmentCreateResponse:
         """Create an attachment for a work item.
+
+        Plane returns a wrapper containing both the created attachment record
+        and an S3 multipart-POST policy in ``upload_data``. The caller posts
+        the file as ``multipart/form-data`` to ``upload_data["url"]`` with the
+        ``upload_data["fields"]`` plus a ``file`` part, then calls ``update``
+        with ``is_uploaded=True`` to mark the attachment ready.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             work_item_id: UUID of the work item
-            data: Attachment data
+            data: Attachment data (filename, size, MIME type, etc.)
+
+        Returns:
+            WorkItemAttachmentCreateResponse with ``attachment`` record and
+            ``upload_data`` S3 policy.
         """
         response = self._post(
             f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/attachments",
             data.model_dump(exclude_none=True),
         )
-        return WorkItemAttachment.model_validate(response)
+        return WorkItemAttachmentCreateResponse.model_validate(response)
 
     def update(
         self,
@@ -83,18 +94,39 @@ class WorkItemAttachments(BaseResource):
     ) -> WorkItemAttachment:
         """Update an attachment for a work item.
 
+        The Plane API responds to attachment PATCH with ``204 No Content``
+        and exposes no metadata-by-id endpoint (GET on a single attachment
+        URL serves the file via S3 redirect). To return the updated record
+        per CRUD convention, this method follows the PATCH with a ``list``
+        call and filters by id.
+
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             work_item_id: UUID of the work item
             attachment_id: UUID of the attachment
             data: Updated attachment data
+
+        Returns:
+            Updated WorkItemAttachment record.
+
+        Raises:
+            ValueError: If the attachment cannot be found after the update.
+                Plane only includes attachments with ``is_uploaded=True``
+                in list responses, so updating an unuploaded attachment to
+                stay unuploaded will raise.
         """
-        response = self._patch(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/attachments/{attachment_id}",
+        self._patch(
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/attachments/{attachment_id}/",
             data.model_dump(exclude_none=True),
         )
-        return WorkItemAttachment.model_validate(response)
+        for attachment in self.list(workspace_slug, project_id, work_item_id):
+            if attachment.id == attachment_id:
+                return attachment
+        raise ValueError(
+            f"Attachment {attachment_id} not found after update; "
+            "Plane only lists attachments with is_uploaded=True."
+        )
 
     def delete(
         self, workspace_slug: str, project_id: str, work_item_id: str, attachment_id: str
