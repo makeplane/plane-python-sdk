@@ -43,7 +43,7 @@ class WorkItems(BaseResource):
             data: Work item data
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/work-items",
+            f"{workspace_slug}/projects/{project_id}/issues",
             data.model_dump(exclude_none=True),
         )
         return WorkItem.model_validate(response)
@@ -84,7 +84,7 @@ class WorkItems(BaseResource):
         """
         query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}",
+            f"{workspace_slug}/projects/{project_id}/issues/{work_item_id}",
             params=query_params,
         )
         return WorkItemDetail.model_validate(response)
@@ -106,7 +106,7 @@ class WorkItems(BaseResource):
         """
         query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(
-            f"{workspace_slug}/work-items/{project_identifier}-{issue_identifier}",
+            f"{workspace_slug}/issues/{project_identifier}-{issue_identifier}",
             params=query_params,
         )
         return WorkItemDetail.model_validate(response)
@@ -127,7 +127,7 @@ class WorkItems(BaseResource):
             data: Updated work item data
         """
         response = self._patch(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}",
+            f"{workspace_slug}/projects/{project_id}/issues/{work_item_id}",
             data.model_dump(exclude_none=True),
         )
         return WorkItem.model_validate(response)
@@ -140,7 +140,7 @@ class WorkItems(BaseResource):
             project_id: UUID of the project
             work_item_id: UUID of the work item
         """
-        return self._delete(f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}")
+        return self._delete(f"{workspace_slug}/projects/{project_id}/issues/{work_item_id}")
 
     def list(
         self,
@@ -171,7 +171,7 @@ class WorkItems(BaseResource):
         """
         query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-items", params=query_params
+            f"{workspace_slug}/projects/{project_id}/issues", params=query_params
         )
         return PaginatedWorkItemResponse.model_validate(response)
 
@@ -191,7 +191,7 @@ class WorkItems(BaseResource):
         search_params = {"q": query}
         if params:
             search_params.update(params.model_dump(exclude_none=True))
-        response = self._get(f"{workspace_slug}/work-items/search", params=search_params)
+        response = self._get(f"{workspace_slug}/issues/search", params=search_params)
         return WorkItemSearch.model_validate(response)
 
     def advanced_search(
