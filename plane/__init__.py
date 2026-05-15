@@ -1,7 +1,9 @@
 from .api.agent_runs import AgentRuns
 from .api.cycles import Cycles
+from .api.estimates import Estimates
 from .api.initiatives import Initiatives
 from .api.labels import Labels
+from .api.milestones import Milestones
 from .api.modules import Modules
 from .api.pages import Pages
 from .api.projects import Projects
@@ -40,8 +42,10 @@ __all__ = [
     "Initiatives",
     "Teamspaces",
     "Users",
+    "Milestones",
     "Modules",
     "Cycles",
+    "Estimates",
     "Pages",
     "Workspaces",
     "PlaneError",

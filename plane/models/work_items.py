@@ -42,7 +42,7 @@ class WorkItem(BaseModel):
     project: str | None = None
     workspace: str | None = None
     parent: str | None = None
-    state: str | None = None
+    state: str | StateLite | None = None
     estimate_point: str | None = None
     type: str | None = None
 
@@ -213,6 +213,60 @@ class WorkItemSearch(BaseModel):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     issues: list[WorkItemSearchItem]
+
+
+class AdvancedSearchWorkItem(BaseModel):
+    """Request model for advanced work item search with filters.
+
+    Filters support recursive AND/OR groups. Each filter condition is a
+    single key-value dict (e.g. ``{"state_id": "..."}``). Groups are nested
+    using ``"and"`` / ``"or"`` keys whose values are lists of conditions or
+    sub-groups.
+
+    Example::
+
+        AdvancedSearchWorkItem(
+            query="new",
+            project_id="project-uuid",
+            workspace_search=True,
+            filters={
+                "and": [
+                    {"state_id": "abc-123"},
+                    {"or": [
+                        {"priority": "high"},
+                        {"state_id": "def-456"},
+                    ]},
+                ]
+            },
+            limit=100,
+        )
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    query: str | None = None
+    filters: dict[str, Any] | None = None
+    limit: int | None = None
+    project_id: str | None = None
+    workspace_search: bool | None = None
+
+
+class AdvancedSearchResult(BaseModel):
+    """Advanced search result item."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str
+    name: str
+    sequence_id: int
+    project_identifier: str
+    project_id: str
+    workspace_id: str
+    type_id: str | None = None
+    state_id: str | None = None
+    priority: str | None = None
+    target_date: str | None = None
+    start_date: str | None = None
 
 
 class WorkItemActivity(BaseModel):

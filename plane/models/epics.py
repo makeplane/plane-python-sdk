@@ -43,9 +43,101 @@ class Epic(BaseModel):
     labels: list[str] | None = None
 
 
+class CreateEpic(BaseModel):
+    """Request model for creating an epic."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    name: str
+    description_html: str | None = None
+    state_id: str | None = None
+    parent_id: str | None = None
+    assignee_ids: list[str] | None = None
+    label_ids: list[str] | None = None
+    priority: PriorityEnum | None = None
+    start_date: str | None = None
+    target_date: str | None = None
+    estimate_point: str | None = None
+    external_source: str | None = None
+    external_id: str | None = None
+
+
+class UpdateEpic(BaseModel):
+    """Request model for updating an epic."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    name: str | None = None
+    description_html: str | None = None
+    state_id: str | None = None
+    parent_id: str | None = None
+    assignee_ids: list[str] | None = None
+    label_ids: list[str] | None = None
+    priority: PriorityEnum | None = None
+    start_date: str | None = None
+    target_date: str | None = None
+    estimate_point: str | None = None
+    external_source: str | None = None
+    external_id: str | None = None
+
+
+class AddEpicWorkItems(BaseModel):
+    """Request model for adding work items to an epic."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    work_item_ids: list[str]
+
+
+class EpicIssue(BaseModel):
+    """Response model for an epic's work item."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str
+    type_id: str | None = None
+    parent: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    deleted_at: str | None = None
+    point: int | None = None
+    name: str
+    description_html: str | None = None
+    description_stripped: str | None = None
+    description_binary: str | None = None
+    priority: PriorityEnum | None = None
+    start_date: str | None = None
+    target_date: str | None = None
+    sequence_id: int | None = None
+    sort_order: float | None = None
+    completed_at: str | None = None
+    archived_at: str | None = None
+    last_activity_at: str | None = None
+    is_draft: bool | None = None
+    external_source: str | None = None
+    external_id: str | None = None
+    created_by: str | None = None
+    updated_by: str | None = None
+    project: str | None = None
+    workspace: str | None = None
+    state: str | None = None
+    estimate_point: str | None = None
+    type: str | None = None
+    assignees: list[str] | None = None
+    labels: list[str] | None = None
+
+
 class PaginatedEpicResponse(PaginatedResponse):
     """Paginated response for epics."""
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Epic]
+
+
+class PaginatedEpicIssueResponse(PaginatedResponse):
+    """Paginated response for epic issues."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[EpicIssue]

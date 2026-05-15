@@ -120,3 +120,32 @@ class Projects(BaseResource):
             f"{workspace_slug}/projects/{project_id}/features", data.model_dump(exclude_none=True)
         )
         return ProjectFeature.model_validate(response)
+
+    def archive(self, workspace_slug: str, project_id: str) -> None:
+        """Archive a project.
+
+        Move a project to archived status, hiding it from active project lists.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+
+        Returns:
+            None (HTTP 204 No Content)
+        """
+        self._post(f"{workspace_slug}/projects/{project_id}/archive", {})
+
+    def unarchive(self, workspace_slug: str, project_id: str) -> None:
+        """Unarchive a project.
+
+        Restore an archived project to active status, making it available
+        in regular workflows.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+
+        Returns:
+            None (HTTP 204 No Content)
+        """
+        self._delete(f"{workspace_slug}/projects/{project_id}/archive")
