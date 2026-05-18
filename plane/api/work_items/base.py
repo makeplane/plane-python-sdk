@@ -18,6 +18,7 @@ from .activities import WorkItemActivities
 from .attachments import WorkItemAttachments
 from .comments import WorkItemComments
 from .links import WorkItemLinks
+from .pages import WorkItemPages
 from .relations import WorkItemRelations
 from .work_logs import WorkLogs
 
@@ -33,6 +34,7 @@ class WorkItems(BaseResource):
         self.comments = WorkItemComments(config)
         self.activities = WorkItemActivities(config)
         self.work_logs = WorkLogs(config)
+        self.pages = WorkItemPages(config)
 
     def create(self, workspace_slug: str, project_id: str, data: CreateWorkItem) -> WorkItem:
         """Create a new work item.
