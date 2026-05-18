@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Any
 
 from ...models.work_item_pages import (
@@ -17,7 +18,7 @@ class WorkItemPages(BaseResource):
         workspace_slug: str,
         project_id: str,
         work_item_id: str,
-        params: dict | None = None,
+        params: Mapping[str, Any] | None = None,
     ) -> PaginatedWorkItemPageResponse:
         """List page links for a work item.
 
