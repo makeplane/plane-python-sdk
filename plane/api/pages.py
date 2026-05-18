@@ -1,4 +1,3 @@
-from collections.abc import Mapping
 from typing import Any
 
 from ..models.pages import CreatePage, Page, PaginatedPageResponse
@@ -9,6 +8,40 @@ from .base_resource import BaseResource
 class Pages(BaseResource):
     def __init__(self, config: Any) -> None:
         super().__init__(config, "/workspaces/")
+
+    def list_workspace_pages(
+        self,
+        workspace_slug: str,
+        params: PaginatedQueryParams | None = None,
+    ) -> PaginatedPageResponse:
+        """List all workspace pages.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            params: Optional pagination/query parameters
+        """
+        query_params = params.model_dump(exclude_none=True) if params else None
+        response = self._get(f"{workspace_slug}/pages", params=query_params)
+        return PaginatedPageResponse.model_validate(response)
+
+    def list_project_pages(
+        self,
+        workspace_slug: str,
+        project_id: str,
+        params: PaginatedQueryParams | None = None,
+    ) -> PaginatedPageResponse:
+        """List all pages in a project.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            params: Optional pagination/query parameters
+        """
+        query_params = params.model_dump(exclude_none=True) if params else None
+        response = self._get(
+            f"{workspace_slug}/projects/{project_id}/pages", params=query_params
+        )
+        return PaginatedPageResponse.model_validate(response)
 
     def retrieve_workspace_page(
         self,
