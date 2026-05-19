@@ -94,6 +94,28 @@ class Intake(BaseResource):
         )
         return IntakeWorkItem.model_validate(response)
 
+    def update_status(
+        self,
+        workspace_slug: str,
+        project_id: str,
+        work_item_id: str,
+        data: UpdateIntakeWorkItem,
+    ) -> IntakeWorkItem:
+        """Update the triage status of an intake work item.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            work_item_id: UUID of the work item (use the issue field from
+                IntakeWorkItem response, not the intake work item ID)
+            data: Triage data — status, snoozed_till, duplicate_to
+        """
+        response = self._patch(
+            f"{workspace_slug}/projects/{project_id}/intake-issues/{work_item_id}/status",
+            data.model_dump(exclude_none=True),
+        )
+        return IntakeWorkItem.model_validate(response)
+
     def delete(self, workspace_slug: str, project_id: str, work_item_id: str) -> None:
         """Delete an intake work item by work item ID.
 
