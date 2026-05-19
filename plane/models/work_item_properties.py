@@ -44,11 +44,11 @@ class WorkItemProperty(BaseModel):
     options: list["WorkItemPropertyOption"] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
 
@@ -72,11 +72,11 @@ class CreateWorkItemProperty(BaseModel):
     options: list["CreateWorkItemPropertyOption"] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
     @model_validator(mode="after")
@@ -131,11 +131,11 @@ class UpdateWorkItemProperty(BaseModel):
     external_id: str | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
     @model_validator(mode="after")

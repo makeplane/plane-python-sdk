@@ -45,8 +45,9 @@ PropertyTypeEnum = Literal[
     "URL",
     "EMAIL",
     "FILE",
+    "FORMULA",
 ]
-RelationTypeEnum = Literal["ISSUE", "USER"]
+RelationTypeEnum = Literal["ISSUE", "USER", "RELEASE"]
 
 
 # Proper Enum classes for better type safety and IDE support
@@ -62,6 +63,7 @@ class PropertyType(Enum):
     URL = "URL"
     EMAIL = "EMAIL"
     FILE = "FILE"
+    FORMULA = "FORMULA"
 
 
 class RelationType(Enum):
@@ -69,6 +71,7 @@ class RelationType(Enum):
 
     ISSUE = "ISSUE"
     USER = "USER"
+    RELEASE = "RELEASE"
 
 
 class Priority(Enum):

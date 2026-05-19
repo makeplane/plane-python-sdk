@@ -4,7 +4,7 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.intake import CreateIntakeWorkItem
-from plane.models.projects import Project, ProjectFeature
+from plane.models.projects import Project
 
 
 class TestIntakeAPI:
@@ -112,4 +112,38 @@ class TestIntakeAPICRUD:
             )
             assert retrieved is not None
             assert hasattr(retrieved, "issue")
+
+    def test_update_intake_status_accepted(
+        self, client: PlaneClient, workspace_slug: str, project_with_intake, intake_work_item
+    ) -> None:
+        """Test accepting an intake work item (status=1)."""
+        if not (hasattr(intake_work_item, "issue") and intake_work_item.issue):
+            return
+        from plane.models.intake import UpdateIntakeWorkItem
+
+        updated = client.intake.update_status(
+            workspace_slug,
+            project_with_intake.id,
+            intake_work_item.issue,
+            UpdateIntakeWorkItem(status=1),
+        )
+        assert updated is not None
+        assert updated.status == 1
+
+    def test_update_intake_status_declined(
+        self, client: PlaneClient, workspace_slug: str, project_with_intake, intake_work_item
+    ) -> None:
+        """Test declining an intake work item (status=-1)."""
+        if not (hasattr(intake_work_item, "issue") and intake_work_item.issue):
+            return
+        from plane.models.intake import UpdateIntakeWorkItem
+
+        updated = client.intake.update_status(
+            workspace_slug,
+            project_with_intake.id,
+            intake_work_item.issue,
+            UpdateIntakeWorkItem(status=-1),
+        )
+        assert updated is not None
+        assert updated.status == -1
 

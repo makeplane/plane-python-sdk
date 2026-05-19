@@ -253,3 +253,66 @@ class TestWorkItemsSubResources:
         response = client.work_items.attachments.list(workspace_slug, project.id, work_item.id)
         assert response is not None
         assert isinstance(response, list)
+
+
+class TestWorkItemsArchive:
+    """Test archive, unarchive, and list_archived operations."""
+
+    def test_list_archived_work_items(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """Test listing archived work items returns paginated response."""
+        response = client.work_items.list_archived(workspace_slug, project.id)
+        assert response is not None
+        assert hasattr(response, "results")
+        assert hasattr(response, "count")
+        assert isinstance(response.results, list)
+
+    def test_archive_and_unarchive_work_item(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """Test archiving and unarchiving a work item.
+
+        Archiving requires a completed or cancelled state, so we look up an
+        appropriate state before creating the work item.
+        """
+        import time
+
+        # Find a completed or cancelled state
+        states = client.states.list(workspace_slug, project.id)
+        target_state = next(
+            (s for s in states.results if s.group in ("completed", "cancelled")),
+            None,
+        )
+        if target_state is None:
+            pytest.skip("No completed or cancelled state found in project")
+
+        wi = client.work_items.create(
+            workspace_slug,
+            project.id,
+            CreateWorkItem(
+                name=f"Archive Test WI {int(time.time())}",
+                state=target_state.id,
+            ),
+        )
+        try:
+            # Archive
+            client.work_items.archive(workspace_slug, project.id, wi.id)
+
+            # Verify appears in archived list
+            archived = client.work_items.list_archived(workspace_slug, project.id)
+            archived_ids = [w.id for w in archived.results]
+            assert wi.id in archived_ids
+
+            # Unarchive
+            client.work_items.unarchive(workspace_slug, project.id, wi.id)
+
+            # Verify absent from archived list
+            archived_after = client.work_items.list_archived(workspace_slug, project.id)
+            archived_ids_after = [w.id for w in archived_after.results]
+            assert wi.id not in archived_ids_after
+        finally:
+            try:
+                client.work_items.delete(workspace_slug, project.id, wi.id)
+            except Exception:
+                pass
