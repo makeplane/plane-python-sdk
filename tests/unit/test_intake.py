@@ -118,7 +118,7 @@ class TestIntakeAPICRUD:
     ) -> None:
         """Test accepting an intake work item (status=1)."""
         if not (hasattr(intake_work_item, "issue") and intake_work_item.issue):
-            return
+            pytest.skip("intake_work_item has no issue field")
         from plane.models.intake import UpdateIntakeWorkItem
 
         updated = client.intake.update_status(
@@ -135,7 +135,7 @@ class TestIntakeAPICRUD:
     ) -> None:
         """Test declining an intake work item (status=-1)."""
         if not (hasattr(intake_work_item, "issue") and intake_work_item.issue):
-            return
+            pytest.skip("intake_work_item has no issue field")
         from plane.models.intake import UpdateIntakeWorkItem
 
         updated = client.intake.update_status(

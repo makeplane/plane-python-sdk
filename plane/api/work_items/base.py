@@ -20,7 +20,6 @@ from .comments import WorkItemComments
 from .links import WorkItemLinks
 from .pages import WorkItemPages
 from .relations import WorkItemRelations
-from .pages import WorkItemPages
 from .work_logs import WorkLogs
 
 

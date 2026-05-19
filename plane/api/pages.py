@@ -116,3 +116,22 @@ class Pages(BaseResource):
             data.model_dump(exclude_none=True),
         )
         return Page.model_validate(response)
+
+    def delete_workspace_page(self, workspace_slug: str, page_id: str) -> None:
+        """Delete a workspace page by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            page_id: UUID of the page
+        """
+        return self._delete(f"{workspace_slug}/pages/{page_id}")
+
+    def delete_project_page(self, workspace_slug: str, project_id: str, page_id: str) -> None:
+        """Delete a project page by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            page_id: UUID of the page
+        """
+        return self._delete(f"{workspace_slug}/projects/{project_id}/pages/{page_id}")

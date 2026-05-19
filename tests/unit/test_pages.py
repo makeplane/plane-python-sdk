@@ -54,10 +54,15 @@ class TestPagesAPI:
             description_html="<p>list test</p>",
         )
         created = client.pages.create_workspace_page(workspace_slug, page_data)
-
-        response = client.pages.list_workspace_pages(workspace_slug)
-        page_ids = [p.id for p in response.results]
-        assert created.id in page_ids
+        try:
+            response = client.pages.list_workspace_pages(workspace_slug)
+            page_ids = [p.id for p in response.results]
+            assert created.id in page_ids
+        finally:
+            try:
+                client.pages.delete_workspace_page(workspace_slug, created.id)
+            except Exception:
+                pass
 
     def test_list_project_pages(
         self, client: PlaneClient, workspace_slug: str, project: Project
@@ -77,8 +82,13 @@ class TestPagesAPI:
             description_html="<p>list test</p>",
         )
         created = client.pages.create_project_page(workspace_slug, project.id, page_data)
-
-        response = client.pages.list_project_pages(workspace_slug, project.id)
-        page_ids = [p.id for p in response.results]
-        assert created.id in page_ids
+        try:
+            response = client.pages.list_project_pages(workspace_slug, project.id)
+            page_ids = [p.id for p in response.results]
+            assert created.id in page_ids
+        finally:
+            try:
+                client.pages.delete_project_page(workspace_slug, project.id, created.id)
+            except Exception:
+                pass
 

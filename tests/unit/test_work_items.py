@@ -5,7 +5,13 @@ import pytest
 from plane.client import PlaneClient
 from plane.models.projects import Project
 from plane.models.query_params import PaginatedQueryParams, WorkItemQueryParams
-from plane.models.work_items import AdvancedSearchWorkItem, CreateWorkItem, CreateWorkItemLink, UpdateWorkItem, UpdateWorkItemLink
+from plane.models.work_items import (
+    AdvancedSearchWorkItem,
+    CreateWorkItem,
+    CreateWorkItemLink,
+    UpdateWorkItem,
+    UpdateWorkItemLink,
+)
 
 
 class TestWorkItemsAPI:
