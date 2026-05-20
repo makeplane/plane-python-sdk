@@ -368,6 +368,7 @@ class CreateWorkItemLink(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     url: str
+    title: str | None = None
 
 
 class UpdateWorkItemLink(BaseModel):
@@ -376,6 +377,7 @@ class UpdateWorkItemLink(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     url: str | None = None
+    title: str | None = None
 
 
 class WorkItemAttachment(BaseModel):

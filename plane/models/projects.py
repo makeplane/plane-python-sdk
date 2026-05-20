@@ -92,6 +92,7 @@ class UpdateProject(BaseModel):
 
     name: str | None = None
     description: str | None = None
+    network: NetworkEnum | None = None
     project_lead: str | None = None
     default_assignee: str | None = None
     identifier: str | None = None
