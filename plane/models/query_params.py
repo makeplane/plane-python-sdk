@@ -1,5 +1,7 @@
 """Query parameter DTOs for list/retrieve endpoints."""
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -58,12 +60,28 @@ class WorkItemQueryParams(PaginatedQueryParams):
     - fields: Comma-separated fields to include
     - order_by: Field to order by (prefix with '-' for descending)
     - per_page: Number of results per page (1-100)
-    - pql: PQL filters
+    - pql: Plane Query Language expression for structured filtering
+    - filters: JSON-serializable filter expression for structured filtering
     """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    pql: str | None = Field(None, description="PQL filters")
+    pql: str | None = Field(
+        None,
+        description=(
+            "Plane Query Language expression. Human-readable alternative to "
+            '`filters`. Example: `priority = "urgent" AND assignee = currentUser()`.'
+        ),
+    )
+    filters: dict[str, Any] | None = Field(
+        None,
+        description=(
+            "Structured filter expression. Supports nested `and`/`or`/`not` groups "
+            "and field comparisons with operators like `__in`, `__gte`, `__range`, "
+            "`__isnull`, `__icontains`, etc. JSON-encoded into the `filters=` "
+            "query param by the client."
+        ),
+    )
 
 
 class RetrieveQueryParams(BaseQueryParams):

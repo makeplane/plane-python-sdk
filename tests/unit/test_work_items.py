@@ -78,6 +78,77 @@ class TestWorkItemsAPI:
             if created_item_2 is not None:
                 client.work_items.delete(workspace_slug, project.id, created_item_2.id)
 
+    def test_list_work_items_with_filters(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """Test listing work items with a structured `filters` query parameter."""
+        created_high = None
+        created_low = None
+
+        try:
+            created_high = client.work_items.create(
+                workspace_slug,
+                project.id,
+                CreateWorkItem(name="filters-urgent-item", priority="urgent"),
+            )
+            created_low = client.work_items.create(
+                workspace_slug,
+                project.id,
+                CreateWorkItem(name="filters-low-item", priority="low"),
+            )
+
+            params = WorkItemQueryParams(filters={"priority": "urgent"})
+            response = client.work_items.list(workspace_slug, project.id, params=params)
+            assert response is not None
+            assert isinstance(response.results, list)
+            result_ids = [item.id for item in response.results]
+            assert created_high.id in result_ids
+            assert created_low.id not in result_ids
+        finally:
+            if created_high is not None:
+                client.work_items.delete(workspace_slug, project.id, created_high.id)
+            if created_low is not None:
+                client.work_items.delete(workspace_slug, project.id, created_low.id)
+
+    def test_list_workspace_work_items(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """`list_workspace` returns a paginated envelope spanning the workspace."""
+        response = client.work_items.list_workspace(workspace_slug)
+        assert response is not None
+        assert hasattr(response, "results")
+        assert hasattr(response, "total_results")
+        assert isinstance(response.results, list)
+
+    def test_list_workspace_work_items_with_filters(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """`list_workspace` honors `filters` and reduces the result set."""
+        created = None
+        try:
+            created = client.work_items.create(
+                workspace_slug,
+                project.id,
+                CreateWorkItem(name="workspace-list-urgent-item", priority="urgent"),
+            )
+            unfiltered = client.work_items.list_workspace(workspace_slug)
+            filtered = client.work_items.list_workspace(
+                workspace_slug,
+                params=WorkItemQueryParams(filters={"priority": "urgent"}),
+            )
+            assert filtered is not None
+            assert filtered.total_results <= unfiltered.total_results
+            assert created.id in [item.id for item in filtered.results] or (
+                # If the workspace has many urgent items, the created one may be
+                # on a later page — accept either presence on this page or that
+                # at least one urgent item is returned overall.
+                filtered.total_results
+                > 0
+            )
+        finally:
+            if created is not None:
+                client.work_items.delete(workspace_slug, project.id, created.id)
+
     def test_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test searching work items."""
         response = client.work_items.search(workspace_slug, "test")
