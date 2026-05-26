@@ -747,7 +747,7 @@ The SDK provides comprehensive Pydantic v2 models for all API operations.
 ### Query Parameters
 
 - `BaseQueryParams` - Base query parameters
-- `PaginatedQueryParams` - Pagination support (per_page, page)
+- `PaginatedQueryParams` - Cursor-based pagination support (cursor, per_page)
 - `WorkItemQueryParams` - Work item specific queries (expand, order_by, `filters`, `pql`, etc.)
 - `RetrieveQueryParams` - Retrieve operations (expand, fields, etc.)
 

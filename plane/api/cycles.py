@@ -12,7 +12,7 @@ from ..models.cycles import (
 )
 from ..models.query_params import WorkItemQueryParams
 from .base_resource import BaseResource
-from .work_items.base import _prepare_work_item_params
+from .work_items.base import prepare_work_item_params
 
 
 class Cycles(BaseResource):
@@ -144,23 +144,20 @@ class Cycles(BaseResource):
         """List work items in a cycle.
 
         Supports the same ``filters`` and ``pql`` query parameters as
-        :meth:`WorkItems.list`.
+        :meth:`WorkItems.list`. ``filters`` is JSON-encoded into the query
+        string for both the DTO and the mapping path, so callers can pass
+        a dict either way.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             cycle_id: UUID of the cycle
             params: Optional query parameters. Prefer ``WorkItemQueryParams``;
-                a plain mapping is also accepted for backwards compatibility
-                and is passed through unchanged.
+                a plain mapping is also accepted for backwards compatibility.
         """
-        if isinstance(params, WorkItemQueryParams):
-            query_params: Mapping[str, Any] | None = _prepare_work_item_params(params)
-        else:
-            query_params = params
         response = self._get(
             f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues",
-            params=query_params,
+            params=prepare_work_item_params(params),
         )
         return PaginatedCycleWorkItemResponse.model_validate(response)
 

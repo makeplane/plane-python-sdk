@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import Any
 
 from ...models.query_params import RetrieveQueryParams, WorkItemQueryParams
@@ -24,16 +25,23 @@ from .relations import WorkItemRelations
 from .work_logs import WorkLogs
 
 
-def _prepare_work_item_params(params: WorkItemQueryParams | None) -> dict[str, Any] | None:
-    """Serialize WorkItemQueryParams for use as HTTP query params.
+def prepare_work_item_params(
+    params: WorkItemQueryParams | Mapping[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Serialize work-item query params for use as HTTP query params.
 
-    The ``filters`` field is a structured object but the API expects it as a
-    JSON string in a single ``filters=`` query parameter. Everything else is
-    passed through as-is by ``requests``' query-string encoder.
+    Accepts either a :class:`WorkItemQueryParams` DTO or a plain mapping,
+    and normalises the ``filters`` field: the API expects it as a JSON
+    string in a single ``filters=`` query parameter, but callers are free
+    to pass it as a dict for ergonomics. Everything else is passed through
+    as-is by ``requests``' query-string encoder.
     """
     if params is None:
         return None
-    payload = params.model_dump(exclude_none=True)
+    if isinstance(params, WorkItemQueryParams):
+        payload: dict[str, Any] = params.model_dump(exclude_none=True)
+    else:
+        payload = {k: v for k, v in params.items() if v is not None}
     if "filters" in payload and isinstance(payload["filters"], dict):
         payload["filters"] = json.dumps(payload["filters"], separators=(",", ":"))
     return payload
@@ -198,7 +206,7 @@ class WorkItems(BaseResource):
         """
         response = self._get(
             f"{workspace_slug}/projects/{project_id}/work-items",
-            params=_prepare_work_item_params(params),
+            params=prepare_work_item_params(params),
         )
         return PaginatedWorkItemResponse.model_validate(response)
 
@@ -233,7 +241,7 @@ class WorkItems(BaseResource):
         """
         response = self._get(
             f"{workspace_slug}/work-items",
-            params=_prepare_work_item_params(params),
+            params=prepare_work_item_params(params),
         )
         return PaginatedWorkItemResponse.model_validate(response)
 
@@ -317,7 +325,7 @@ class WorkItems(BaseResource):
         """
         response = self._get(
             f"{workspace_slug}/projects/{project_id}/archived-work-items",
-            params=_prepare_work_item_params(params),
+            params=prepare_work_item_params(params),
         )
         return PaginatedWorkItemResponse.model_validate(response)
 
