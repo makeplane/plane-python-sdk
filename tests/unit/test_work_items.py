@@ -138,13 +138,11 @@ class TestWorkItemsAPI:
             )
             assert filtered is not None
             assert filtered.total_results <= unfiltered.total_results
-            assert created.id in [item.id for item in filtered.results] or (
-                # If the workspace has many urgent items, the created one may be
-                # on a later page — accept either presence on this page or that
-                # at least one urgent item is returned overall.
-                filtered.total_results
-                > 0
-            )
+            # Every returned item must satisfy the filter — this is the
+            # assertion that actually proves filtering worked.
+            assert len(filtered.results) > 0
+            for item in filtered.results:
+                assert item.priority == "urgent"
         finally:
             if created is not None:
                 client.work_items.delete(workspace_slug, project.id, created.id)
