@@ -1,6 +1,5 @@
 """Unit tests for Releases API resource (smoke tests with real HTTP requests)."""
 
-import warnings
 from uuid import uuid4
 
 import pytest
@@ -34,16 +33,13 @@ class TestReleases:
         assert created.id is not None
         assert created.name == name
 
-        try:
-            updated = client.releases.update(
-                workspace_slug,
-                created.id,
-                UpdateRelease(description="Updated release description"),
-            )
-            assert updated.id == created.id
-            assert updated.description == "Updated release description"
-        except Exception as exc:
-            warnings.warn(f"Update failed for release {created.id}: {exc}", stacklevel=1)
+        updated = client.releases.update(
+            workspace_slug,
+            created.id,
+            UpdateRelease(description="Updated release description"),
+        )
+        assert updated.id == created.id
+        assert updated.description == "Updated release description"
 
 
 class TestReleaseTags:
@@ -94,6 +90,7 @@ class TestReleaseItemLabels:
             pytest.skip("No releases available to test item labels listing")
 
         release = releases[0]
+        assert release.id is not None
         labels = client.releases.item_labels.list(workspace_slug, release.id)
         assert isinstance(labels, list)
 
@@ -107,6 +104,7 @@ class TestReleaseItemLabels:
             workspace_slug, CreateRelease(name=release_name)
         )
         assert release is not None
+        assert release.id is not None
 
         # Create a label
         label_name = f"label-{uuid4().hex[:6]}"
@@ -114,17 +112,12 @@ class TestReleaseItemLabels:
             workspace_slug, CreateReleaseLabel(name=label_name)
         )
         assert label is not None
+        assert label.id is not None
 
-        try:
-            # Add label to release
-            add_data = AddReleaseItemLabel(label_ids=[label.id])
-            result = client.releases.item_labels.add(workspace_slug, release.id, add_data)
-            assert isinstance(result, list)
+        # Add label to release
+        add_data = AddReleaseItemLabel(label_ids=[label.id])
+        result = client.releases.item_labels.create(workspace_slug, release.id, add_data)
+        assert isinstance(result, list)
 
-            # Remove label from release
-            try:
-                client.releases.item_labels.remove(workspace_slug, release.id, label.id)
-            except Exception as exc:
-                warnings.warn(f"Remove label failed for release {release.id}: {exc}", stacklevel=1)
-        except Exception as exc:
-            warnings.warn(f"Add label failed for release {release.id}: {exc}", stacklevel=1)
+        # Remove label from release
+        client.releases.item_labels.delete(workspace_slug, release.id, label.id)

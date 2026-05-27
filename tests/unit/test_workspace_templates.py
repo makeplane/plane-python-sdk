@@ -4,6 +4,7 @@ import warnings
 from uuid import uuid4
 
 from plane.client import PlaneClient
+from plane.errors.errors import HttpError
 from plane.models.workspace_templates import (
     CreatePageTemplate,
     CreateProjectTemplate,
@@ -46,7 +47,7 @@ class TestWorkspaceWorkItemTemplates:
         finally:
             try:
                 client.workspace_templates.work_items.delete(workspace_slug, created.id)
-            except Exception as exc:
+            except HttpError as exc:
                 warnings.warn(
                     f"Teardown failed for work item template {created.id}: {exc}",
                     stacklevel=1,
@@ -85,7 +86,7 @@ class TestWorkspaceProjectTemplates:
         finally:
             try:
                 client.workspace_templates.projects.delete(workspace_slug, created.id)
-            except Exception as exc:
+            except HttpError as exc:
                 warnings.warn(
                     f"Teardown failed for project template {created.id}: {exc}",
                     stacklevel=1,
@@ -124,7 +125,7 @@ class TestWorkspacePageTemplates:
         finally:
             try:
                 client.workspace_templates.pages.delete(workspace_slug, created.id)
-            except Exception as exc:
+            except HttpError as exc:
                 warnings.warn(
                     f"Teardown failed for page template {created.id}: {exc}",
                     stacklevel=1,

@@ -22,7 +22,7 @@ class ReleaseItemLabels(BaseResource):
         response = self._get(f"{workspace_slug}/releases/{release_id}/labels/")
         return [ReleaseLabel.model_validate(item) for item in response]
 
-    def add(
+    def create(
         self, workspace_slug: str, release_id: str, data: AddReleaseItemLabel
     ) -> list[ReleaseLabel]:
         """Add labels to a release.
@@ -38,7 +38,7 @@ class ReleaseItemLabels(BaseResource):
         )
         return [ReleaseLabel.model_validate(item) for item in response]
 
-    def remove(self, workspace_slug: str, release_id: str, label_id: str) -> None:
+    def delete(self, workspace_slug: str, release_id: str, label_id: str) -> None:
         """Remove a label from a release.
 
         Args:

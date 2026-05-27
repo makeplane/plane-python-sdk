@@ -23,24 +23,23 @@ class WorkspaceWorkItemTypeProperties(BaseResource):
         )
         return [WorkItemProperty.model_validate(item) for item in response]
 
-    def link(
-        self, workspace_slug: str, type_id: str, property_id: str
+    def create(
+        self, workspace_slug: str, type_id: str, data: WorkspaceWorkItemTypePropertyLink
     ) -> WorkItemProperty:
         """Link a property to a workspace work item type.
 
         Args:
             workspace_slug: The workspace slug identifier
             type_id: UUID of the work item type
-            property_id: UUID of the property to link
+            data: DTO containing the property_id to link
         """
-        data = WorkspaceWorkItemTypePropertyLink(property_id=property_id)
         response = self._post(
             f"{workspace_slug}/work-item-types/{type_id}/properties/",
             data.model_dump(exclude_none=True),
         )
         return WorkItemProperty.model_validate(response)
 
-    def unlink(self, workspace_slug: str, type_id: str, property_id: str) -> None:
+    def delete(self, workspace_slug: str, type_id: str, property_id: str) -> None:
         """Unlink a property from a workspace work item type.
 
         Args:

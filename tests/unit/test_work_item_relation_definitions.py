@@ -4,6 +4,7 @@ import warnings
 from uuid import uuid4
 
 from plane.client import PlaneClient
+from plane.errors.errors import HttpError
 from plane.models.work_item_relation_definitions import (
     CreateWorkItemRelationDefinition,
     UpdateWorkItemRelationDefinition,
@@ -56,7 +57,7 @@ class TestWorkItemRelationDefinitions:
         finally:
             try:
                 client.work_item_relation_definitions.delete(workspace_slug, created.id)
-            except Exception as exc:
+            except HttpError as exc:
                 warnings.warn(
                     f"Teardown failed for relation definition {created.id}: {exc}", stacklevel=1
                 )

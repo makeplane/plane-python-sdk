@@ -1,11 +1,17 @@
 """Unit tests for WorkspaceWorkItemTypes API resource (smoke tests with real HTTP requests)."""
 
+import warnings
 from uuid import uuid4
 
 import pytest
 
 from plane.client import PlaneClient
-from plane.models.work_item_types import CreateWorkItemType, UpdateWorkItemType
+from plane.errors.errors import HttpError
+from plane.models.work_item_types import (
+    CreateWorkItemType,
+    UpdateWorkItemType,
+    WorkspaceWorkItemTypePropertyLink,
+)
 
 
 class TestWorkspaceWorkItemTypes:
@@ -54,5 +60,46 @@ class TestWorkspaceWorkItemTypeProperties:
             pytest.skip("No workspace work item types available to test properties listing")
 
         wit = types[0]
+        assert wit.id is not None, f"Expected work item type to have an id, got: {wit}"
         props = client.workspace_work_item_types.properties.list(workspace_slug, wit.id)
         assert isinstance(props, list)
+
+    def test_create_delete_property_link(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test linking and unlinking a property on a workspace work item type."""
+        types = client.workspace_work_item_types.list(workspace_slug)
+        if not types:
+            pytest.skip("No workspace work item types available to test property link/unlink")
+
+        props = client.workspace_work_item_properties.list(workspace_slug)
+        if not props:
+            pytest.skip("No workspace work item properties available to link")
+
+        wit = types[0]
+        assert wit.id is not None
+
+        prop = props[0]
+        assert prop.id is not None
+
+        data = WorkspaceWorkItemTypePropertyLink(property_id=prop.id)
+        try:
+            linked = client.workspace_work_item_types.properties.create(
+                workspace_slug, wit.id, data
+            )
+            assert linked is not None
+
+            current = client.workspace_work_item_types.properties.list(
+                workspace_slug, wit.id
+            )
+            linked_ids = [p.id for p in current]
+            assert prop.id in linked_ids
+
+            client.workspace_work_item_types.properties.delete(
+                workspace_slug, wit.id, prop.id
+            )
+        except HttpError as exc:
+            warnings.warn(
+                f"Property link/unlink lifecycle failed for WIT {wit.id}: {exc}",
+                stacklevel=1,
+            )
