@@ -440,6 +440,23 @@ class UpdateWorkItemAttachment(BaseModel):
     )
 
 
+class WorkItemAttachmentCreateResponse(BaseModel):
+    """Response from creating a work item attachment.
+
+    Plane returns a wrapper containing both the created attachment record and
+    the S3 multipart-POST policy needed to upload the file bytes. After the
+    upload completes, the caller should call ``WorkItemAttachments.update``
+    with ``is_uploaded=True`` to mark the attachment ready.
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    attachment: WorkItemAttachment
+    upload_data: dict[str, Any]
+    asset_id: str | None = None
+    asset_url: str | None = None
+
+
 class WorkItemRelation(BaseModel):
     """Work item relation model."""
 
