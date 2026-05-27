@@ -149,3 +149,4 @@ class Projects(BaseResource):
             None (HTTP 204 No Content)
         """
         self._delete(f"{workspace_slug}/projects/{project_id}/archive")
+

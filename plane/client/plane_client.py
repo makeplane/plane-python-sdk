@@ -9,6 +9,7 @@ from ..api.labels import Labels
 from ..api.milestones import Milestones
 from ..api.modules import Modules
 from ..api.pages import Pages
+from ..api.project_templates import ProjectTemplates
 from ..api.projects import Projects
 from ..api.states import States
 from ..api.stickies import Stickies
@@ -17,6 +18,7 @@ from ..api.users import Users
 from ..api.work_item_properties import WorkItemProperties
 from ..api.work_item_types import WorkItemTypes
 from ..api.work_items import WorkItems
+from ..api.workflows import Workflows
 from ..api.workspaces import Workspaces
 from ..config import Configuration
 from ..errors import ConfigurationError
@@ -65,4 +67,5 @@ class PlaneClient:
         self.stickies = Stickies(self.config)
         self.initiatives = Initiatives(self.config)
         self.teamspaces = Teamspaces(self.config)
-
+        self.workflows = Workflows(self.config)
+        self.project_templates = ProjectTemplates(self.config)
