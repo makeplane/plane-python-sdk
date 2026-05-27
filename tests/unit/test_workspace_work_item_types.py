@@ -1,12 +1,10 @@
 """Unit tests for WorkspaceWorkItemTypes API resource (smoke tests with real HTTP requests)."""
 
-import warnings
 from uuid import uuid4
 
 import pytest
 
 from plane.client import PlaneClient
-from plane.errors.errors import HttpError
 from plane.models.work_item_types import (
     CreateWorkItemType,
     UpdateWorkItemType,
@@ -35,17 +33,14 @@ class TestWorkspaceWorkItemTypes:
         assert created.id is not None
         assert created.name == name
 
-        try:
-            updated = client.workspace_work_item_types.update(
-                workspace_slug,
-                created.id,
-                UpdateWorkItemType(description="Updated description"),
-            )
-            assert updated.id == created.id
-            assert updated.description == "Updated description"
-        finally:
-            # No delete endpoint on workspace WITs per spec — log a warning if needed
-            pass
+        updated = client.workspace_work_item_types.update(
+            workspace_slug,
+            created.id,
+            UpdateWorkItemType(description="Updated description"),
+        )
+        assert updated.id == created.id
+        assert updated.description == "Updated description"
+        # No delete endpoint on workspace WITs per spec.
 
 
 class TestWorkspaceWorkItemTypeProperties:
@@ -83,23 +78,13 @@ class TestWorkspaceWorkItemTypeProperties:
         assert prop.id is not None
 
         data = WorkspaceWorkItemTypePropertyLink(property_id=prop.id)
-        try:
-            linked = client.workspace_work_item_types.properties.create(
-                workspace_slug, wit.id, data
-            )
-            assert linked is not None
+        linked = client.workspace_work_item_types.properties.create(
+            workspace_slug, wit.id, data
+        )
+        assert linked is not None
 
-            current = client.workspace_work_item_types.properties.list(
-                workspace_slug, wit.id
-            )
-            linked_ids = [p.id for p in current]
-            assert prop.id in linked_ids
+        current = client.workspace_work_item_types.properties.list(workspace_slug, wit.id)
+        linked_ids = [p.id for p in current]
+        assert prop.id in linked_ids
 
-            client.workspace_work_item_types.properties.delete(
-                workspace_slug, wit.id, prop.id
-            )
-        except HttpError as exc:
-            warnings.warn(
-                f"Property link/unlink lifecycle failed for WIT {wit.id}: {exc}",
-                stacklevel=1,
-            )
+        client.workspace_work_item_types.properties.delete(workspace_slug, wit.id, prop.id)
