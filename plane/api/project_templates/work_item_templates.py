@@ -24,7 +24,7 @@ class ProjectWorkItemTemplates(BaseResource):
         Returns:
             List of work item templates
         """
-        data = self._get(f"{workspace_slug}/projects/{project_id}/workitems/templates")
+        data = self._get(f"{workspace_slug}/projects/{project_id}/workitems/templates/")
         items = data.get("results", data) if isinstance(data, dict) else data
         return [WorkItemTemplate.model_validate(item) for item in items]
 
@@ -45,7 +45,7 @@ class ProjectWorkItemTemplates(BaseResource):
             The created work item template
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/workitems/templates",
+            f"{workspace_slug}/projects/{project_id}/workitems/templates/",
             data.model_dump(exclude_none=True),
         )
         return WorkItemTemplate.model_validate(response)
@@ -87,4 +87,4 @@ class ProjectWorkItemTemplates(BaseResource):
             project_id: UUID of the project
             template_id: UUID of the template
         """
-        self._delete(f"{workspace_slug}/projects/{project_id}/workitems/templates/{template_id}")
+        self._delete(f"{workspace_slug}/projects/{project_id}/workitems/templates/{template_id}/")

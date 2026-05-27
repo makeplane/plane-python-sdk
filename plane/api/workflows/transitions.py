@@ -31,7 +31,7 @@ class WorkflowTransitions(BaseResource):
             List of workflow transitions
         """
         data = self._get(
-            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/state-transitions"
+            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/state-transitions/"
         )
         items = data.get("results", data) if isinstance(data, dict) else data
         return [WorkflowTransition.model_validate(item) for item in items]
@@ -60,7 +60,7 @@ class WorkflowTransitions(BaseResource):
 
         try:
             response = self._post(
-                f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/state-transitions",
+                f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/state-transitions/",
                 data.model_dump(exclude_none=True),
             )
         except HttpError as exc:
@@ -88,7 +88,7 @@ class WorkflowTransitions(BaseResource):
         """
         self._patch(
             f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}"
-            f"/state-transitions/{transition_id}",
+            f"/state-transitions/{transition_id}/",
             data.model_dump(exclude_none=True),
         )
 
@@ -109,5 +109,5 @@ class WorkflowTransitions(BaseResource):
         """
         self._delete(
             f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}"
-            f"/state-transitions/{transition_id}"
+            f"/state-transitions/{transition_id}/"
         )

@@ -1,5 +1,8 @@
 """Unit tests for Project Templates API resources (smoke tests with real HTTP requests)."""
 
+import warnings
+from uuid import uuid4
+
 import pytest
 
 from plane.client import PlaneClient
@@ -30,10 +33,8 @@ class TestProjectWorkItemTemplatesAPICRUD:
     @pytest.fixture
     def template_data(self) -> CreateWorkItemTemplate:
         """Create test work item template data."""
-        import time
-
         return CreateWorkItemTemplate(
-            name=f"Test WI Template {int(time.time())}",
+            name=f"Test WI Template {uuid4().hex}",
             short_description="A test work item template",
         )
 
@@ -52,8 +53,8 @@ class TestProjectWorkItemTemplatesAPICRUD:
         yield tmpl
         try:
             client.project_templates.work_item_templates.delete(workspace_slug, project.id, tmpl.id)
-        except Exception:
-            pass
+        except Exception as exc:
+            warnings.warn(f"Cleanup failed for work item template {tmpl.id}: {exc}", stacklevel=1)
 
     def test_create_work_item_template(
         self,
@@ -72,8 +73,8 @@ class TestProjectWorkItemTemplatesAPICRUD:
         # Cleanup
         try:
             client.project_templates.work_item_templates.delete(workspace_slug, project.id, tmpl.id)
-        except Exception:
-            pass
+        except Exception as exc:
+            warnings.warn(f"Cleanup failed for work item template {tmpl.id}: {exc}", stacklevel=1)
 
     def test_update_work_item_template(
         self,
@@ -101,9 +102,7 @@ class TestProjectWorkItemTemplatesAPICRUD:
         template_data: CreateWorkItemTemplate,
     ) -> None:
         """Test deleting a work item template."""
-        import time
-
-        data = CreateWorkItemTemplate(name=f"Delete Me WI {int(time.time())}")
+        data = CreateWorkItemTemplate(name=f"Delete Me WI {uuid4().hex}")
         tmpl = client.project_templates.work_item_templates.create(workspace_slug, project.id, data)
         assert tmpl.id is not None
         client.project_templates.work_item_templates.delete(workspace_slug, project.id, tmpl.id)
@@ -127,10 +126,8 @@ class TestProjectPageTemplatesAPICRUD:
     @pytest.fixture
     def page_template_data(self) -> CreatePageTemplate:
         """Create test page template data."""
-        import time
-
         return CreatePageTemplate(
-            name=f"Test Page Template {int(time.time())}",
+            name=f"Test Page Template {uuid4().hex}",
             short_description="A test page template",
         )
 
@@ -149,8 +146,8 @@ class TestProjectPageTemplatesAPICRUD:
         yield tmpl
         try:
             client.project_templates.page_templates.delete(workspace_slug, project.id, tmpl.id)
-        except Exception:
-            pass
+        except Exception as exc:
+            warnings.warn(f"Cleanup failed for page template {tmpl.id}: {exc}", stacklevel=1)
 
     def test_create_page_template(
         self,
@@ -169,8 +166,8 @@ class TestProjectPageTemplatesAPICRUD:
         # Cleanup
         try:
             client.project_templates.page_templates.delete(workspace_slug, project.id, tmpl.id)
-        except Exception:
-            pass
+        except Exception as exc:
+            warnings.warn(f"Cleanup failed for page template {tmpl.id}: {exc}", stacklevel=1)
 
     def test_update_page_template(
         self,
@@ -197,9 +194,7 @@ class TestProjectPageTemplatesAPICRUD:
         project: Project,
     ) -> None:
         """Test deleting a page template."""
-        import time
-
-        data = CreatePageTemplate(name=f"Delete Me Page {int(time.time())}")
+        data = CreatePageTemplate(name=f"Delete Me Page {uuid4().hex}")
         tmpl = client.project_templates.page_templates.create(workspace_slug, project.id, data)
         assert tmpl.id is not None
         client.project_templates.page_templates.delete(workspace_slug, project.id, tmpl.id)

@@ -26,7 +26,7 @@ class WorkflowStates(BaseResource):
             data: Request body containing the list of state IDs to attach
         """
         self._post(
-            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/states",
+            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/states/",
             data.model_dump(exclude_none=True),
         )
 
@@ -46,5 +46,5 @@ class WorkflowStates(BaseResource):
             state_id: UUID of the state to detach
         """
         self._delete(
-            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/states/{state_id}"
+            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/states/{state_id}/"
         )

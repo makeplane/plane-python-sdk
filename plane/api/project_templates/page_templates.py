@@ -24,7 +24,7 @@ class ProjectPageTemplates(BaseResource):
         Returns:
             List of page templates
         """
-        data = self._get(f"{workspace_slug}/projects/{project_id}/pages/templates")
+        data = self._get(f"{workspace_slug}/projects/{project_id}/pages/templates/")
         items = data.get("results", data) if isinstance(data, dict) else data
         return [PageTemplate.model_validate(item) for item in items]
 
@@ -45,7 +45,7 @@ class ProjectPageTemplates(BaseResource):
             The created page template
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/pages/templates",
+            f"{workspace_slug}/projects/{project_id}/pages/templates/",
             data.model_dump(exclude_none=True),
         )
         return PageTemplate.model_validate(response)
@@ -69,7 +69,7 @@ class ProjectPageTemplates(BaseResource):
             The updated page template
         """
         response = self._patch(
-            f"{workspace_slug}/projects/{project_id}/pages/templates/{template_id}",
+            f"{workspace_slug}/projects/{project_id}/pages/templates/{template_id}/",
             data.model_dump(exclude_none=True),
         )
         return PageTemplate.model_validate(response)
@@ -87,4 +87,4 @@ class ProjectPageTemplates(BaseResource):
             project_id: UUID of the project
             template_id: UUID of the template
         """
-        self._delete(f"{workspace_slug}/projects/{project_id}/pages/templates/{template_id}")
+        self._delete(f"{workspace_slug}/projects/{project_id}/pages/templates/{template_id}/")

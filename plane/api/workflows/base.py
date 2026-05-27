@@ -25,7 +25,7 @@ class Workflows(BaseResource):
         Returns:
             List of workflows
         """
-        data = self._get(f"{workspace_slug}/projects/{project_id}/workflows")
+        data = self._get(f"{workspace_slug}/projects/{project_id}/workflows/")
         items = data.get("results", data) if isinstance(data, dict) else data
         return [Workflow.model_validate(item) for item in items]
 
@@ -46,7 +46,7 @@ class Workflows(BaseResource):
             The created workflow
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/workflows",
+            f"{workspace_slug}/projects/{project_id}/workflows/",
             data.model_dump(exclude_none=True),
         )
         return Workflow.model_validate(response)
@@ -70,7 +70,7 @@ class Workflows(BaseResource):
             The updated workflow
         """
         response = self._patch(
-            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}",
+            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}/",
             data.model_dump(exclude_none=True),
         )
         return Workflow.model_validate(response)
