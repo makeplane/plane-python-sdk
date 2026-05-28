@@ -748,7 +748,15 @@ class TestProjectLevelWorkItemPropertiesAPI:
             is_active=True,
             settings=TextAttributeSettings(display_format="multi-line"),
         )
-        prop = client.work_item_properties.create_project(workspace_slug, project.id, prop_data)
+        try:
+            prop = client.work_item_properties.create_project(workspace_slug, project.id, prop_data)
+        except HttpError as e:
+            if e.status_code == 400:
+                client.work_item_types.delete(workspace_slug, project.id, wit.id)
+                pytest.skip(
+                    "Workspace has IS_WORK_ITEM_TYPES_ENABLED — project-level property creation blocked"
+                )
+            raise
 
         try:
             result = client.work_item_properties.attach_to_type(
