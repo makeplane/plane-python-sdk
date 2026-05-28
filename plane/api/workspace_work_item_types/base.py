@@ -36,6 +36,16 @@ class WorkspaceWorkItemTypes(BaseResource):
         )
         return WorkItemType.model_validate(response)
 
+    def retrieve(self, workspace_slug: str, type_id: str) -> WorkItemType:
+        """Retrieve a workspace work item type by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            type_id: UUID of the work item type
+        """
+        response = self._get(f"{workspace_slug}/work-item-types/{type_id}/")
+        return WorkItemType.model_validate(response)
+
     def update(
         self, workspace_slug: str, type_id: str, data: UpdateWorkItemType
     ) -> WorkItemType:
@@ -51,3 +61,12 @@ class WorkspaceWorkItemTypes(BaseResource):
             data.model_dump(exclude_none=True),
         )
         return WorkItemType.model_validate(response)
+
+    def delete(self, workspace_slug: str, type_id: str) -> None:
+        """Delete a workspace work item type by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            type_id: UUID of the work item type
+        """
+        return self._delete(f"{workspace_slug}/work-item-types/{type_id}/")

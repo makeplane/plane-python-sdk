@@ -11,8 +11,12 @@ class WorkspaceWorkItemTypeProperties(BaseResource):
     def __init__(self, config: Any) -> None:
         super().__init__(config, "/workspaces/")
 
-    def list(self, workspace_slug: str, type_id: str) -> list[WorkItemProperty]:
-        """List properties linked to a workspace work item type.
+    def list(self, workspace_slug: str, type_id: str) -> list[str]:
+        """List property UUIDs linked to a workspace work item type.
+
+        The API returns a flat list of UUID strings, not full property objects.
+        To get full WorkItemProperty objects, resolve these UUIDs via
+        workspace_work_item_properties.list() or .retrieve().
 
         Args:
             workspace_slug: The workspace slug identifier
@@ -21,7 +25,7 @@ class WorkspaceWorkItemTypeProperties(BaseResource):
         response = self._get(
             f"{workspace_slug}/work-item-types/{type_id}/properties/"
         )
-        return [WorkItemProperty.model_validate(item) for item in response]
+        return list(response)
 
     def create(
         self, workspace_slug: str, type_id: str, data: WorkspaceWorkItemTypePropertyLink
