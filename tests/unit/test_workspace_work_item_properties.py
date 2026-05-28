@@ -26,6 +26,19 @@ class TestWorkspaceWorkItemProperties:
         props = client.workspace_work_item_properties.list(workspace_slug)
         assert isinstance(props, list)
 
+    def test_retrieve_workspace_work_item_property(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test retrieving a single workspace work item property by ID."""
+        props = client.workspace_work_item_properties.list(workspace_slug)
+        if not props:
+            pytest.skip("No workspace properties available to test retrieve")
+
+        prop = props[0]
+        retrieved = client.workspace_work_item_properties.retrieve(workspace_slug, prop.id)
+        assert retrieved is not None
+        assert retrieved.id == prop.id
+
     def test_create_update_delete_workspace_property(
         self, client: PlaneClient, workspace_slug: str
     ) -> None:
@@ -111,6 +124,51 @@ class TestWorkspaceWorkItemPropertyOptions:
             )
             assert updated_opt.id == opt.id
             assert updated_opt.name == f"{option_name}-updated"
+        finally:
+            try:
+                client.workspace_work_item_properties.delete(workspace_slug, prop.id)
+            except Exception as exc:
+                warnings.warn(
+                    f"Teardown failed for workspace property {prop.id}: {exc}",
+                    stacklevel=1,
+                )
+
+    def test_retrieve_and_delete_option_for_workspace_property(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test retrieve and delete on a workspace property option."""
+        display_name = f"test-del-opt-prop-{uuid4().hex[:8]}"
+        prop_data = CreateWorkItemProperty(
+            display_name=display_name,
+            description="Test option property for retrieve/delete",
+            property_type=PropertyType.OPTION,
+            is_active=True,
+        )
+        prop = client.workspace_work_item_properties.create(workspace_slug, prop_data)
+        assert prop is not None
+
+        try:
+            opt = client.workspace_work_item_properties.options.create(
+                workspace_slug,
+                prop.id,
+                CreateWorkItemPropertyOption(name=f"opt-{uuid4().hex[:6]}"),
+            )
+            assert opt is not None
+            assert opt.id is not None
+
+            retrieved = client.workspace_work_item_properties.options.retrieve(
+                workspace_slug, prop.id, opt.id
+            )
+            assert retrieved.id == opt.id
+            assert retrieved.name == opt.name
+
+            client.workspace_work_item_properties.options.delete(
+                workspace_slug, prop.id, opt.id
+            )
+            remaining = client.workspace_work_item_properties.options.list(
+                workspace_slug, prop.id
+            )
+            assert all(o.id != opt.id for o in remaining)
         finally:
             try:
                 client.workspace_work_item_properties.delete(workspace_slug, prop.id)
