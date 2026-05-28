@@ -20,7 +20,7 @@ class WorkspaceWorkItemTypes(BaseResource):
         Args:
             workspace_slug: The workspace slug identifier
         """
-        response = self._get(f"{workspace_slug}/work-item-types/")
+        response = self._get(f"{workspace_slug}/work-item-types")
         return [WorkItemType.model_validate(item) for item in response]
 
     def create(self, workspace_slug: str, data: CreateWorkItemType) -> WorkItemType:
@@ -31,9 +31,19 @@ class WorkspaceWorkItemTypes(BaseResource):
             data: Work item type data
         """
         response = self._post(
-            f"{workspace_slug}/work-item-types/",
+            f"{workspace_slug}/work-item-types",
             data.model_dump(exclude_none=True),
         )
+        return WorkItemType.model_validate(response)
+
+    def retrieve(self, workspace_slug: str, type_id: str) -> WorkItemType:
+        """Retrieve a workspace work item type by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            type_id: UUID of the work item type
+        """
+        response = self._get(f"{workspace_slug}/work-item-types/{type_id}")
         return WorkItemType.model_validate(response)
 
     def update(
@@ -47,7 +57,16 @@ class WorkspaceWorkItemTypes(BaseResource):
             data: Updated work item type data
         """
         response = self._patch(
-            f"{workspace_slug}/work-item-types/{type_id}/",
+            f"{workspace_slug}/work-item-types/{type_id}",
             data.model_dump(exclude_none=True),
         )
         return WorkItemType.model_validate(response)
+
+    def delete(self, workspace_slug: str, type_id: str) -> None:
+        """Delete a workspace work item type by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            type_id: UUID of the work item type
+        """
+        return self._delete(f"{workspace_slug}/work-item-types/{type_id}")

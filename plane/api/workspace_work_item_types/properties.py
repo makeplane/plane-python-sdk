@@ -1,6 +1,6 @@
 from typing import Any
 
-from ...models.work_item_properties import WorkItemProperty
+from ...models.work_item_properties import WorkItemProperty  # used for create/delete return types
 from ...models.work_item_types import WorkspaceWorkItemTypePropertyLink
 from ..base_resource import BaseResource
 
@@ -11,17 +11,21 @@ class WorkspaceWorkItemTypeProperties(BaseResource):
     def __init__(self, config: Any) -> None:
         super().__init__(config, "/workspaces/")
 
-    def list(self, workspace_slug: str, type_id: str) -> list[WorkItemProperty]:
-        """List properties linked to a workspace work item type.
+    def list(self, workspace_slug: str, type_id: str) -> list[str]:
+        """List property UUIDs linked to a workspace work item type.
+
+        The API returns a flat list of UUID strings, not full property objects.
+        To get full WorkItemProperty objects, resolve these UUIDs via
+        workspace_work_item_properties.list() or .retrieve().
 
         Args:
             workspace_slug: The workspace slug identifier
             type_id: UUID of the work item type
         """
         response = self._get(
-            f"{workspace_slug}/work-item-types/{type_id}/properties/"
+            f"{workspace_slug}/work-item-types/{type_id}/properties"
         )
-        return [WorkItemProperty.model_validate(item) for item in response]
+        return list(response)
 
     def create(
         self, workspace_slug: str, type_id: str, data: WorkspaceWorkItemTypePropertyLink
@@ -34,7 +38,7 @@ class WorkspaceWorkItemTypeProperties(BaseResource):
             data: DTO containing the property_id to link
         """
         response = self._post(
-            f"{workspace_slug}/work-item-types/{type_id}/properties/",
+            f"{workspace_slug}/work-item-types/{type_id}/properties",
             data.model_dump(exclude_none=True),
         )
         return WorkItemProperty.model_validate(response)
@@ -48,5 +52,5 @@ class WorkspaceWorkItemTypeProperties(BaseResource):
             property_id: UUID of the property to unlink
         """
         return self._delete(
-            f"{workspace_slug}/work-item-types/{type_id}/properties/{property_id}/"
+            f"{workspace_slug}/work-item-types/{type_id}/properties/{property_id}"
         )

@@ -24,7 +24,7 @@ class WorkspaceWorkItemProperties(BaseResource):
         Args:
             workspace_slug: The workspace slug identifier
         """
-        response = self._get(f"{workspace_slug}/work-item-properties/")
+        response = self._get(f"{workspace_slug}/work-item-properties")
         return [WorkItemProperty.model_validate(item) for item in response]
 
     def create(
@@ -37,7 +37,7 @@ class WorkspaceWorkItemProperties(BaseResource):
             data: Work item property data
         """
         response = self._post(
-            f"{workspace_slug}/work-item-properties/",
+            f"{workspace_slug}/work-item-properties",
             data.model_dump(exclude_none=True),
         )
         return WorkItemProperty.model_validate(response)
@@ -53,9 +53,19 @@ class WorkspaceWorkItemProperties(BaseResource):
             data: Updated property data
         """
         response = self._patch(
-            f"{workspace_slug}/work-item-properties/{property_id}/",
+            f"{workspace_slug}/work-item-properties/{property_id}",
             data.model_dump(exclude_none=True),
         )
+        return WorkItemProperty.model_validate(response)
+
+    def retrieve(self, workspace_slug: str, property_id: str) -> WorkItemProperty:
+        """Retrieve a workspace work item property by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            property_id: UUID of the work item property
+        """
+        response = self._get(f"{workspace_slug}/work-item-properties/{property_id}")
         return WorkItemProperty.model_validate(response)
 
     def delete(self, workspace_slug: str, property_id: str) -> None:
@@ -65,4 +75,4 @@ class WorkspaceWorkItemProperties(BaseResource):
             workspace_slug: The workspace slug identifier
             property_id: UUID of the work item property
         """
-        return self._delete(f"{workspace_slug}/work-item-properties/{property_id}/")
+        return self._delete(f"{workspace_slug}/work-item-properties/{property_id}")
