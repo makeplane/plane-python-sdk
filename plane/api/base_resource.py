@@ -68,8 +68,8 @@ class BaseResource:
 
     # Helpers
     def _build_url(self, endpoint: str) -> str:
-        endpoint = endpoint.lstrip("/")
-        base = f"{self.config.base_path}{self.base_path}/"
+        endpoint = endpoint.strip("/")
+        base = f"{self.config.base_path.rstrip('/')}{self.base_path}/"
         return f"{base}{endpoint}/" if endpoint else base
 
     def _headers(self) -> dict[str, str]:
