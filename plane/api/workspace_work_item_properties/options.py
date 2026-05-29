@@ -65,3 +65,30 @@ class WorkspaceWorkItemPropertyOptions(BaseResource):
             data.model_dump(exclude_none=True),
         )
         return WorkItemPropertyOption.model_validate(response)
+
+    def retrieve(
+        self, workspace_slug: str, property_id: str, option_id: str
+    ) -> WorkItemPropertyOption:
+        """Retrieve an option for a workspace work item property.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            property_id: UUID of the work item property
+            option_id: UUID of the option
+        """
+        response = self._get(
+            f"{workspace_slug}/work-item-properties/{property_id}/options/{option_id}/"
+        )
+        return WorkItemPropertyOption.model_validate(response)
+
+    def delete(self, workspace_slug: str, property_id: str, option_id: str) -> None:
+        """Delete an option from a workspace work item property.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            property_id: UUID of the work item property
+            option_id: UUID of the option
+        """
+        return self._delete(
+            f"{workspace_slug}/work-item-properties/{property_id}/options/{option_id}/"
+        )

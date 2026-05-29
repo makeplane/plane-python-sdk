@@ -78,6 +78,27 @@ class TestWorkItemsAPI:
             if created_item_2 is not None:
                 client.work_items.delete(workspace_slug, project.id, created_item_2.id)
 
+    def test_list_workspace_work_items(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test listing work items across the entire workspace (no project_id)."""
+        response = client.work_items.list_workspace(workspace_slug)
+        assert response is not None
+        assert hasattr(response, "results")
+        assert hasattr(response, "count")
+        assert isinstance(response.results, list)
+
+    def test_list_workspace_work_items_with_pagination(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test workspace work item listing respects per_page param."""
+        from plane.models.query_params import WorkItemQueryParams
+
+        params = WorkItemQueryParams(per_page=5)
+        response = client.work_items.list_workspace(workspace_slug, params=params)
+        assert response is not None
+        assert len(response.results) <= 5
+
     def test_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test searching work items."""
         response = client.work_items.search(workspace_slug, "test")

@@ -58,6 +58,16 @@ class WorkspaceWorkItemProperties(BaseResource):
         )
         return WorkItemProperty.model_validate(response)
 
+    def retrieve(self, workspace_slug: str, property_id: str) -> WorkItemProperty:
+        """Retrieve a workspace work item property by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            property_id: UUID of the work item property
+        """
+        response = self._get(f"{workspace_slug}/work-item-properties/{property_id}/")
+        return WorkItemProperty.model_validate(response)
+
     def delete(self, workspace_slug: str, property_id: str) -> None:
         """Delete a work item property in the workspace.
 

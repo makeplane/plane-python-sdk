@@ -177,6 +177,23 @@ class WorkItems(BaseResource):
         )
         return PaginatedWorkItemResponse.model_validate(response)
 
+    def list_workspace(
+        self,
+        workspace_slug: str,
+        params: WorkItemQueryParams | None = None,
+    ) -> PaginatedWorkItemResponse:
+        """List work items across the entire workspace.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            params: Optional query parameters for filtering, ordering, and pagination
+        """
+        query_params = params.model_dump(exclude_none=True) if params else None
+        response = self._get(
+            f"{workspace_slug}/work-items", params=query_params
+        )
+        return PaginatedWorkItemResponse.model_validate(response)
+
     def search(
         self,
         workspace_slug: str,

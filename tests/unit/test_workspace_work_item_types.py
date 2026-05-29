@@ -40,7 +40,39 @@ class TestWorkspaceWorkItemTypes:
         )
         assert updated.id == created.id
         assert updated.description == "Updated description"
-        # No delete endpoint on workspace WITs per spec.
+
+        try:
+            client.workspace_work_item_types.delete(workspace_slug, created.id)
+        except Exception:
+            pass
+
+    def test_retrieve_workspace_work_item_type(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test retrieving a workspace work item type by ID."""
+        types = client.workspace_work_item_types.list(workspace_slug)
+        if not types:
+            pytest.skip("No workspace work item types available to test retrieve")
+
+        wit = types[0]
+        retrieved = client.workspace_work_item_types.retrieve(workspace_slug, wit.id)
+        assert retrieved is not None
+        assert retrieved.id == wit.id
+        assert retrieved.name == wit.name
+
+    def test_delete_workspace_work_item_type(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test deleting a workspace work item type."""
+        name = f"test-del-wit-{uuid4().hex[:8]}"
+        data = CreateWorkItemType(name=name, description="To be deleted", is_active=True)
+        created = client.workspace_work_item_types.create(workspace_slug, data)
+        assert created is not None
+        assert created.id is not None
+
+        client.workspace_work_item_types.delete(workspace_slug, created.id)
+        types_after = client.workspace_work_item_types.list(workspace_slug)
+        assert all(t.id != created.id for t in types_after)
 
 
 class TestWorkspaceWorkItemTypeProperties:
@@ -84,7 +116,7 @@ class TestWorkspaceWorkItemTypeProperties:
         assert linked is not None
 
         current = client.workspace_work_item_types.properties.list(workspace_slug, wit.id)
-        linked_ids = [p.id for p in current]
-        assert prop.id in linked_ids
+        # API returns flat list of UUID strings
+        assert prop.id in list(current)
 
         client.workspace_work_item_types.properties.delete(workspace_slug, wit.id, prop.id)
