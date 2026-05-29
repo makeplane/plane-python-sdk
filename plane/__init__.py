@@ -8,14 +8,21 @@ from .api.modules import Modules
 from .api.pages import Pages
 from .api.project_templates import ProjectPageTemplates, ProjectTemplates, ProjectWorkItemTemplates
 from .api.projects import Projects
+from .api.releases import Releases
 from .api.states import States
 from .api.stickies import Stickies
 from .api.teamspaces import Teamspaces
 from .api.users import Users
 from .api.work_item_properties import WorkItemProperties
+from .api.work_item_relation_definitions import WorkItemRelationDefinitions
 from .api.work_item_types import WorkItemTypes
 from .api.work_items import WorkItems
 from .api.workflows import Workflows, WorkflowStates, WorkflowTransitions
+from .api.workspace_project_labels import WorkspaceProjectLabels
+from .api.workspace_project_states import WorkspaceProjectStates
+from .api.workspace_templates import WorkspaceTemplates
+from .api.workspace_work_item_properties import WorkspaceWorkItemProperties
+from .api.workspace_work_item_types import WorkspaceWorkItemTypes
 from .api.workspaces import Workspaces
 from .client import (
     OAuthAuthorizationParams,
@@ -55,6 +62,7 @@ __all__ = [
     "WorkItems",
     "WorkItemTypes",
     "WorkItemProperties",
+    "WorkItemRelationDefinitions",
     "Projects",
     "Labels",
     "States",
@@ -74,6 +82,12 @@ __all__ = [
     "ProjectTemplates",
     "ProjectWorkItemTemplates",
     "ProjectPageTemplates",
+    "Releases",
+    "WorkspaceTemplates",
+    "WorkspaceWorkItemTypes",
+    "WorkspaceWorkItemProperties",
+    "WorkspaceProjectLabels",
+    "WorkspaceProjectStates",
     "PlaneError",
     "ConfigurationError",
     "HttpError",

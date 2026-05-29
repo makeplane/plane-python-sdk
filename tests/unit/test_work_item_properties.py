@@ -644,3 +644,135 @@ class TestWorkItemPropertyTypes:
             )
         except Exception:
             pass
+
+
+class TestProjectLevelWorkItemPropertiesAPI:
+    """Test project-level (type-agnostic) work item property endpoints."""
+
+    def test_list_project_work_item_properties(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+        project: Project,
+    ) -> None:
+        """Test listing all work item properties for a project regardless of type."""
+        properties = client.work_item_properties.list_project(workspace_slug, project.id)
+        assert isinstance(properties, list)
+
+    def test_create_retrieve_update_delete_project_property(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+        project: Project,
+    ) -> None:
+        """Test full CRUD for a project-level work item property."""
+        import time
+
+        from plane.errors.errors import HttpError
+        from plane.models.work_item_property_configurations import TextAttributeSettings
+
+        display_name = f"Project Prop {int(time.time())}"
+        data = CreateWorkItemProperty(
+            display_name=display_name,
+            description="Project-level property",
+            property_type=PropertyType.TEXT,
+            is_required=False,
+            is_active=True,
+            settings=TextAttributeSettings(display_format="multi-line"),
+        )
+        try:
+            created = client.work_item_properties.create_project(workspace_slug, project.id, data)
+        except HttpError as e:
+            if e.status_code == 400:
+                pytest.skip(
+                    "Workspace has IS_WORK_ITEM_TYPES_ENABLED — project-level property creation blocked"
+                )
+            raise
+        assert created is not None
+        assert created.id is not None
+        assert created.display_name == display_name
+
+        try:
+            retrieved = client.work_item_properties.retrieve_project(
+                workspace_slug, project.id, created.id
+            )
+            assert retrieved.id == created.id
+            assert retrieved.display_name == display_name
+
+            updated = client.work_item_properties.update_project(
+                workspace_slug,
+                project.id,
+                created.id,
+                UpdateWorkItemProperty(description="Updated project property"),
+            )
+            assert updated.id == created.id
+            assert updated.description == "Updated project property"
+        finally:
+            try:
+                client.work_item_properties.delete_project(
+                    workspace_slug, project.id, created.id
+                )
+            except Exception:
+                pass
+
+    def test_attach_detach_property_to_type(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+        project: Project,
+    ) -> None:
+        """Test attaching and detaching a project-level property to/from a work item type."""
+        import time
+
+        from plane.models.work_item_property_configurations import TextAttributeSettings
+        from plane.models.work_item_types import CreateWorkItemType
+
+        from plane.errors.errors import HttpError
+
+        type_data = CreateWorkItemType(
+            name=f"Attach Test Type {int(time.time())}",
+            is_active=True,
+        )
+        try:
+            wit = client.work_item_types.create(workspace_slug, project.id, type_data)
+        except HttpError as e:
+            if e.status_code == 400:
+                pytest.skip(
+                    "Workspace has IS_WORK_ITEM_TYPES_ENABLED — project-level type creation blocked"
+                )
+            raise
+
+        prop_data = CreateWorkItemProperty(
+            display_name=f"Attach Test Prop {int(time.time())}",
+            property_type=PropertyType.TEXT,
+            is_active=True,
+            settings=TextAttributeSettings(display_format="multi-line"),
+        )
+        try:
+            prop = client.work_item_properties.create_project(workspace_slug, project.id, prop_data)
+        except HttpError as e:
+            if e.status_code == 400:
+                client.work_item_types.delete(workspace_slug, project.id, wit.id)
+                pytest.skip(
+                    "Workspace has IS_WORK_ITEM_TYPES_ENABLED — project-level property creation blocked"
+                )
+            raise
+
+        try:
+            result = client.work_item_properties.attach_to_type(
+                workspace_slug, project.id, wit.id, [prop.id]
+            )
+            assert isinstance(result, list)
+
+            client.work_item_properties.detach_from_type(
+                workspace_slug, project.id, wit.id, prop.id
+            )
+        finally:
+            try:
+                client.work_item_properties.delete_project(workspace_slug, project.id, prop.id)
+            except Exception:
+                pass
+            try:
+                client.work_item_types.delete(workspace_slug, project.id, wit.id)
+            except Exception:
+                pass
