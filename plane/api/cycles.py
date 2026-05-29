@@ -10,7 +10,9 @@ from ..models.cycles import (
     TransferCycleWorkItemsRequest,
     UpdateCycle,
 )
+from ..models.query_params import WorkItemQueryParams
 from .base_resource import BaseResource
+from .work_items.base import prepare_work_item_params
 
 
 class Cycles(BaseResource):
@@ -137,18 +139,25 @@ class Cycles(BaseResource):
         workspace_slug: str,
         project_id: str,
         cycle_id: str,
-        params: Mapping[str, Any] | None = None,
+        params: WorkItemQueryParams | Mapping[str, Any] | None = None,
     ) -> PaginatedCycleWorkItemResponse:
         """List work items in a cycle.
+
+        Supports the same ``filters`` and ``pql`` query parameters as
+        :meth:`WorkItems.list`. ``filters`` is JSON-encoded into the query
+        string for both the DTO and the mapping path, so callers can pass
+        a dict either way.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             cycle_id: UUID of the cycle
-            params: Optional query parameters
+            params: Optional query parameters. Prefer ``WorkItemQueryParams``;
+                a plain mapping is also accepted for backwards compatibility.
         """
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues", params=params
+            f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues",
+            params=prepare_work_item_params(params),
         )
         return PaginatedCycleWorkItemResponse.model_validate(response)
 
@@ -180,9 +189,7 @@ class Cycles(BaseResource):
             project_id: UUID of the project
             cycle_id: UUID of the cycle
         """
-        self._post(
-            f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/archive", {}
-        )
+        self._post(f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/archive", {})
         return True
 
     def unarchive(self, workspace_slug: str, project_id: str, cycle_id: str) -> bool:
@@ -193,7 +200,5 @@ class Cycles(BaseResource):
             project_id: UUID of the project
             cycle_id: UUID of the cycle
         """
-        self._delete(
-            f"{workspace_slug}/projects/{project_id}/archived-cycles/{cycle_id}/unarchive"
-        )
+        self._delete(f"{workspace_slug}/projects/{project_id}/archived-cycles/{cycle_id}/unarchive")
         return True

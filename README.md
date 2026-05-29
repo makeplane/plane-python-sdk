@@ -747,9 +747,55 @@ The SDK provides comprehensive Pydantic v2 models for all API operations.
 ### Query Parameters
 
 - `BaseQueryParams` - Base query parameters
-- `PaginatedQueryParams` - Pagination support (per_page, page)
-- `WorkItemQueryParams` - Work item specific queries (expand, order_by, etc.)
+- `PaginatedQueryParams` - Cursor-based pagination support (cursor, per_page)
+- `WorkItemQueryParams` - Work item specific queries (expand, order_by, `filters`, `pql`, etc.)
 - `RetrieveQueryParams` - Retrieve operations (expand, fields, etc.)
+
+#### Filtering work items
+
+`WorkItemQueryParams` accepts two filter inputs that map to the same backend filter engine:
+
+- **`filters`** — a structured filter expression (dict). Supports nested
+  `and` / `or` / `not` groups and field operators (`__in`, `__gte`,
+  `__range`, `__icontains`, etc.). The SDK JSON-encodes this into the
+  `filters=` query parameter.
+- **`pql`** — a Plane Query Language string. Human-readable alternative
+  with the same expressive power.
+
+```python
+from plane.models.query_params import WorkItemQueryParams
+
+# Project-scoped, structured filters
+client.work_items.list(
+    "my-workspace",
+    "project-id",
+    params=WorkItemQueryParams(
+        filters={"and": [
+            {"priority": "urgent"},
+            {"state_group__in": ["unstarted", "started"]},
+        ]},
+        order_by="-created_at",
+        per_page=50,
+    ),
+)
+
+# Project-scoped, PQL
+client.work_items.list(
+    "my-workspace",
+    "project-id",
+    params=WorkItemQueryParams(pql='priority = "urgent" AND assignee = currentUser()'),
+)
+
+# Workspace-scoped — spans every project the caller can view, with
+# per-project authorization honored server-side
+client.work_items.list_workspace(
+    "my-workspace",
+    params=WorkItemQueryParams(filters={"priority": "urgent"}),
+)
+```
+
+The same `filters` and `pql` query parameters also work on `list_archived`,
+`cycles.list_work_items`, and `modules.list_work_items`.
 
 ### Response Models
 

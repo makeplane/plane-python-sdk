@@ -9,7 +9,9 @@ from ..models.modules import (
     PaginatedModuleWorkItemResponse,
     UpdateModule,
 )
+from ..models.query_params import WorkItemQueryParams
 from .base_resource import BaseResource
+from .work_items.base import prepare_work_item_params
 
 
 class Modules(BaseResource):
@@ -136,19 +138,25 @@ class Modules(BaseResource):
         workspace_slug: str,
         project_id: str,
         module_id: str,
-        params: Mapping[str, Any] | None = None,
+        params: WorkItemQueryParams | Mapping[str, Any] | None = None,
     ) -> PaginatedModuleWorkItemResponse:
         """List work items in a module.
+
+        Supports the same ``filters`` and ``pql`` query parameters as
+        :meth:`WorkItems.list`. ``filters`` is JSON-encoded into the query
+        string for both the DTO and the mapping path, so callers can pass
+        a dict either way.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             module_id: UUID of the module
-            params: Optional query parameters
+            params: Optional query parameters. Prefer ``WorkItemQueryParams``;
+                a plain mapping is also accepted for backwards compatibility.
         """
         response = self._get(
             f"{workspace_slug}/projects/{project_id}/modules/{module_id}/module-issues",
-            params=params,
+            params=prepare_work_item_params(params),
         )
         return PaginatedModuleWorkItemResponse.model_validate(response)
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from collections.abc import Mapping
 from typing import Any
 
 from ...models.query_params import RetrieveQueryParams, WorkItemQueryParams
@@ -21,6 +23,28 @@ from .links import WorkItemLinks
 from .pages import WorkItemPages
 from .relations import WorkItemRelations
 from .work_logs import WorkLogs
+
+
+def prepare_work_item_params(
+    params: WorkItemQueryParams | Mapping[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Serialize work-item query params for use as HTTP query params.
+
+    Accepts either a :class:`WorkItemQueryParams` DTO or a plain mapping,
+    and normalises the ``filters`` field: the API expects it as a JSON
+    string in a single ``filters=`` query parameter, but callers are free
+    to pass it as a dict for ergonomics. Everything else is passed through
+    as-is by ``requests``' query-string encoder.
+    """
+    if params is None:
+        return None
+    if isinstance(params, WorkItemQueryParams):
+        payload: dict[str, Any] = params.model_dump(exclude_none=True)
+    else:
+        payload = {k: v for k, v in params.items() if v is not None}
+    if "filters" in payload and isinstance(payload["filters"], dict):
+        payload["filters"] = json.dumps(payload["filters"], separators=(",", ":"))
+    return payload
 
 
 class WorkItems(BaseResource):
@@ -157,23 +181,67 @@ class WorkItems(BaseResource):
             project_id: UUID of the project
             params: Optional query parameters for filtering, ordering, and pagination
 
-        Example:
-            from plane.models.schemas import WorkItemQueryParams
+        Example::
 
-            # List work items with filters
+            from plane.models.query_params import WorkItemQueryParams
+
+            # PQL filter (human-readable)
+            work_items = client.work_items.list(
+                "my-workspace",
+                "project-id",
+                params=WorkItemQueryParams(pql='priority = "urgent"'),
+            )
+
+            # Structured `filters` (JSON-encoded into the query string)
             work_items = client.work_items.list(
                 "my-workspace",
                 "project-id",
                 params=WorkItemQueryParams(
-                    priority="high",
-                    state="state-id",
-                    expand="assignees,labels"
-                )
+                    filters={"and": [
+                        {"priority": "urgent"},
+                        {"state_group__in": ["unstarted", "started"]},
+                    ]},
+                ),
             )
         """
-        query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-items", params=query_params
+            f"{workspace_slug}/projects/{project_id}/work-items",
+            params=prepare_work_item_params(params),
+        )
+        return PaginatedWorkItemResponse.model_validate(response)
+
+    def list_workspace(
+        self,
+        workspace_slug: str,
+        params: WorkItemQueryParams | None = None,
+    ) -> PaginatedWorkItemResponse:
+        """List work items across an entire workspace.
+
+        Returns a paginated envelope of work items the caller can view,
+        spanning every project in the workspace (per-project authorization
+        and conditional grants are honored server-side).
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            params: Optional query parameters — supports ``filters``, ``pql``,
+                ``order_by``, ``cursor``, ``per_page``, ``fields``, ``expand``.
+
+        Example::
+
+            from plane.models.query_params import WorkItemQueryParams
+
+            results = client.work_items.list_workspace(
+                "my-workspace",
+                params=WorkItemQueryParams(
+                    filters={"priority": "urgent"},
+                    order_by="-created_at",
+                    per_page=50,
+                ),
+            )
+        """
+        response = self._get(
+            f"{workspace_slug}/work-items",
+            params=prepare_work_item_params(params),
         )
         return PaginatedWorkItemResponse.model_validate(response)
 
@@ -264,14 +332,17 @@ class WorkItems(BaseResource):
     ) -> PaginatedWorkItemResponse:
         """List archived work items in a project.
 
+        Supports the same ``filters`` and ``pql`` query parameters as
+        :meth:`list`.
+
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             params: Optional query parameters for filtering, ordering, and pagination
         """
-        query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/archived-work-items", params=query_params
+            f"{workspace_slug}/projects/{project_id}/archived-work-items",
+            params=prepare_work_item_params(params),
         )
         return PaginatedWorkItemResponse.model_validate(response)
 
@@ -303,6 +374,4 @@ class WorkItems(BaseResource):
         Returns:
             None (HTTP 204 No Content)
         """
-        self._delete(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/unarchive"
-        )
+        self._delete(f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/unarchive")
