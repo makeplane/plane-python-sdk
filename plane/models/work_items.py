@@ -23,7 +23,7 @@ class WorkItem(BaseModel):
     updated_at: str | None = None
     deleted_at: str | None = None
     point: int | None = None
-    name: str
+    name: str | None = None
     description_html: str | None = None
     description_stripped: str | None = None
     description_binary: str | None = None
@@ -39,12 +39,12 @@ class WorkItem(BaseModel):
     external_id: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
-    project: str | None = None
+    project: str | dict | None = None
     workspace: str | None = None
     parent: str | None = None
     state: str | StateLite | None = None
     estimate_point: str | None = None
-    type: str | None = None
+    type: str | dict | None = None
 
 
 class WorkItemDetail(BaseModel):
@@ -53,14 +53,14 @@ class WorkItemDetail(BaseModel):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
-    assignees: list[UserLite]
-    labels: list[Label]
+    assignees: list[UserLite] = Field(default_factory=list)
+    labels: list[Label] = Field(default_factory=list)
     type_id: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
     deleted_at: str | None = None
     point: int | None = None
-    name: str
+    name: str | None = None
     description_html: str | None = None
     description_stripped: str | None = None
     description_binary: str | None = None
@@ -76,12 +76,12 @@ class WorkItemDetail(BaseModel):
     external_id: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
-    project: str | None = None
+    project: str | dict | None = None
     workspace: str | None = None
     parent: str | None = None
     state: str | StateLite | None = None
     estimate_point: str | None = None
-    type: str | None = None
+    type: str | dict | None = None
 
 
 class WorkItemExpand(BaseModel):
@@ -99,7 +99,7 @@ class WorkItemExpand(BaseModel):
     updated_at: str | None = None
     deleted_at: str | None = None
     point: int | None = None
-    name: str
+    name: str | None = None
     description: Any | None = None
     description_html: str | None = None
     description_stripped: str | None = None
@@ -116,11 +116,11 @@ class WorkItemExpand(BaseModel):
     external_id: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
-    project: str | None = None
+    project: str | dict | None = None
     workspace: str | None = None
     parent: str | None = None
     estimate_point: str | None = None
-    type: str | None = None
+    type: str | dict | None = None
 
 
 class CreateWorkItem(BaseModel):

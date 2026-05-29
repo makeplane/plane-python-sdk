@@ -35,6 +35,7 @@ class CreateWorkItemType(BaseModel):
     project_ids: list[str] | None = None
     name: str
     description: str | None = None
+    logo_props: Any | None = None
     is_epic: bool | None = None
     is_active: bool | None = None
     external_source: str | None = None
@@ -49,7 +50,16 @@ class UpdateWorkItemType(BaseModel):
     project_ids: list[str] | None = None
     name: str | None = None
     description: str | None = None
+    logo_props: Any | None = None
     is_epic: bool | None = None
     is_active: bool | None = None
     external_source: str | None = None
     external_id: str | None = None
+
+
+class WorkspaceWorkItemTypePropertyLink(BaseModel):
+    """Request model for linking a property to a workspace work item type."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    property_id: str
