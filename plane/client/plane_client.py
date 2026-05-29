@@ -9,6 +9,7 @@ from ..api.labels import Labels
 from ..api.milestones import Milestones
 from ..api.modules import Modules
 from ..api.pages import Pages
+from ..api.project_templates import ProjectTemplates
 from ..api.projects import Projects
 from ..api.releases import Releases
 from ..api.states import States
@@ -19,6 +20,7 @@ from ..api.work_item_properties import WorkItemProperties
 from ..api.work_item_relation_definitions import WorkItemRelationDefinitions
 from ..api.work_item_types import WorkItemTypes
 from ..api.work_items import WorkItems
+from ..api.workflows import Workflows
 from ..api.workspace_project_labels import WorkspaceProjectLabels
 from ..api.workspace_project_states import WorkspaceProjectStates
 from ..api.workspace_templates import WorkspaceTemplates
@@ -72,6 +74,8 @@ class PlaneClient:
         self.stickies = Stickies(self.config)
         self.initiatives = Initiatives(self.config)
         self.teamspaces = Teamspaces(self.config)
+        self.workflows = Workflows(self.config)
+        self.project_templates = ProjectTemplates(self.config)
         self.workspace_templates = WorkspaceTemplates(self.config)
         self.workspace_work_item_types = WorkspaceWorkItemTypes(self.config)
         self.workspace_work_item_properties = WorkspaceWorkItemProperties(self.config)
@@ -79,4 +83,3 @@ class PlaneClient:
         self.workspace_project_states = WorkspaceProjectStates(self.config)
         self.work_item_relation_definitions = WorkItemRelationDefinitions(self.config)
         self.releases = Releases(self.config)
-

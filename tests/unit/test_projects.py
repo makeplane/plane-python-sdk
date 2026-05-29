@@ -105,7 +105,11 @@ class TestProjectsAPICRUD:
         assert hasattr(features, "views")
         assert hasattr(features, "pages")
         assert hasattr(features, "intakes")
+        assert hasattr(features, "epics")
         assert hasattr(features, "work_item_types")
+        assert hasattr(features, "workflows")
+        assert hasattr(features, "parallel_cycles")
+        assert hasattr(features, "project_updates")
 
     def test_update_features(
         self, client: PlaneClient, workspace_slug: str, project: Project
@@ -124,4 +128,8 @@ class TestProjectsAPICRUD:
         assert hasattr(updated, "views")
         assert hasattr(updated, "pages")
         assert hasattr(updated, "intakes")
+        assert hasattr(updated, "epics")
         assert hasattr(updated, "work_item_types")
+        assert hasattr(updated, "workflows")
+        assert hasattr(updated, "parallel_cycles")
+        assert hasattr(updated, "project_updates")
