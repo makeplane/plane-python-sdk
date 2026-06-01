@@ -87,3 +87,24 @@ class WorkItemTypes(BaseResource):
             f"{workspace_slug}/projects/{project_id}/work-item-types", params=params
         )
         return [WorkItemType.model_validate(item) for item in response]
+
+    def import_to_project(
+        self,
+        workspace_slug: str,
+        project_id: str,
+        work_item_type_ids: list[str],
+    ) -> None:
+        """Bulk-link workspace-level work item types to a project.
+
+        Imports one or more workspace-scoped work item types into a project so
+        that they become available for use within that project.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            work_item_type_ids: List of workspace work item type UUIDs to import
+        """
+        self._post(
+            f"{workspace_slug}/projects/{project_id}/import-work-item-types",
+            {"work_item_types": work_item_type_ids},
+        )

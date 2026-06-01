@@ -1,19 +1,22 @@
 """Unit tests for Workspaces API resource (smoke tests with real HTTP requests)."""
 
 from plane.client import PlaneClient
+from plane.models.workspaces import WorkspaceMember
 
 
 class TestWorkspacesAPI:
     """Test Workspaces API resource."""
 
     def test_get_members(self, client: PlaneClient, workspace_slug: str) -> None:
-        """Test getting workspace members."""
+        """Test getting workspace members returns WorkspaceMember objects with role fields."""
         members = client.workspaces.get_members(workspace_slug)
         assert isinstance(members, list)
-        if members:
-            member = members[0]
+        for member in members:
+            assert isinstance(member, WorkspaceMember)
             assert hasattr(member, "id")
             assert hasattr(member, "display_name")
+            assert hasattr(member, "role")
+            assert hasattr(member, "role_slug")
 
     def test_get_features(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test getting workspace features."""

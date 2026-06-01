@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 
 from plane.client import PlaneClient
-from plane.models.projects import CreateProject, Project, UpdateProject
+from plane.models.projects import CreateProject, Project, ProjectMember, UpdateProject
 from plane.models.query_params import PaginatedQueryParams
 
 
@@ -92,9 +92,16 @@ class TestProjectsAPICRUD:
         assert updated.description == "Updated description"
 
     def test_get_members(self, client: PlaneClient, workspace_slug: str, project: Project) -> None:
-        """Test getting project members."""
+        """Test getting project members returns ProjectMember objects with role fields."""
         members = client.projects.get_members(workspace_slug, project.id)
         assert isinstance(members, list)
+        for member in members:
+            assert isinstance(member, ProjectMember)
+            # role and role_slug should be present (may be None only on very old servers)
+            assert hasattr(member, "role")
+            assert hasattr(member, "role_slug")
+            assert hasattr(member, "id")
+            assert hasattr(member, "email")
 
     def test_get_features(self, client: PlaneClient, workspace_slug: str, project: Project) -> None:
         """Test getting project features."""

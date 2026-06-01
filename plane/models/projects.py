@@ -137,6 +137,26 @@ class PaginatedProjectResponse(PaginatedResponse):
     results: list[Project]
 
 
+class ProjectMember(BaseModel):
+    """Project member model.
+
+    Returned by Projects.get_members(). Includes the member's role within the
+    project — fields that UserLite does not carry.
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str | None = None
+    email: str | None = None
+    display_name: str | None = None
+    avatar: str | None = None
+    avatar_url: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    role: int | None = None
+    role_slug: str | None = None
+
+
 class ProjectFeature(BaseModel):
     """Project feature model."""
 
