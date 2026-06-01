@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .enums import NetworkEnum, TimezoneEnum
 from .pagination import PaginatedResponse
+from .users import UserLite
 
 
 class Project(BaseModel):
@@ -137,22 +138,14 @@ class PaginatedProjectResponse(PaginatedResponse):
     results: list[Project]
 
 
-class ProjectMember(BaseModel):
+class ProjectMember(UserLite):
     """Project member model.
 
-    Returned by Projects.get_members(). Includes the member's role within the
-    project — fields that UserLite does not carry.
+    Extends UserLite with project-scoped role fields. Returned by
+    Projects.get_members(). isinstance(member, UserLite) remains True,
+    so existing callers that type-check against UserLite are unaffected.
     """
 
-    model_config = ConfigDict(extra="allow", populate_by_name=True)
-
-    id: str | None = None
-    email: str | None = None
-    display_name: str | None = None
-    avatar: str | None = None
-    avatar_url: str | None = None
-    first_name: str | None = None
-    last_name: str | None = None
     role: int | None = None
     role_slug: str | None = None
 
