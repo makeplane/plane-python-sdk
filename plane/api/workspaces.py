@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 from typing import Any
 
-from ..models.users import UserLite
-from ..models.workspaces import WorkspaceFeature
+from ..models.workspaces import WorkspaceFeature, WorkspaceMember
 from .base_resource import BaseResource
 
 
@@ -11,14 +12,17 @@ class Workspaces(BaseResource):
 
     def get_members(
         self, workspace_slug: str
-    ) -> [UserLite]:
+    ) -> list[WorkspaceMember]:
         """Get all members of a workspace.
+
+        Returns a list of WorkspaceMember objects that include role (int) and
+        role_slug (str) fields in addition to basic identity fields.
 
         Args:
             workspace_slug: The workspace slug identifier
         """
         response = self._get(f"{workspace_slug}/members")
-        return [UserLite.model_validate(item) for item in response or []]
+        return [WorkspaceMember.model_validate(item) for item in response or []]
 
     def get_features(self, workspace_slug: str) -> WorkspaceFeature:
         """Get features of a workspace.

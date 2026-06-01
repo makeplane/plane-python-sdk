@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import Any
 
@@ -6,11 +8,11 @@ from ..models.projects import (
     PaginatedProjectResponse,
     Project,
     ProjectFeature,
+    ProjectMember,
     ProjectWorklogSummary,
     UpdateProject,
 )
 from ..models.query_params import PaginatedQueryParams
-from ..models.users import UserLite
 from .base_resource import BaseResource
 
 
@@ -85,8 +87,11 @@ class Projects(BaseResource):
 
     def get_members(
         self, workspace_slug: str, project_id: str, params: Mapping[str, Any] | None = None
-    ) -> [UserLite]:
+    ) -> list[ProjectMember]:
         """Get all members of a project.
+
+        Returns a list of ProjectMember objects that include role (int) and
+        role_slug (str) fields in addition to basic identity fields.
 
         Args:
             workspace_slug: The workspace slug identifier
@@ -94,7 +99,7 @@ class Projects(BaseResource):
             params: Optional query parameters
         """
         response = self._get(f"{workspace_slug}/projects/{project_id}/members", params=params)
-        return [UserLite.model_validate(item) for item in response or []]
+        return [ProjectMember.model_validate(item) for item in response or []]
 
     def get_features(self, workspace_slug: str, project_id: str) -> ProjectFeature:
         """Get features of a project.
