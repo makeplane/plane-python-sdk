@@ -371,12 +371,12 @@ def main() -> None:
         choice = input("Delete test resources? (y/N): ").strip().lower()
         if choice == "y":
             # Delete work items
-            for work_item in [work_item, feature_work_item]:
+            for wi in [work_item, feature_work_item]:
                 try:
-                    client.work_items.delete(workspace_slug, project.id, work_item.id)
-                    print_success(f"Deleted work item: {work_item.id}")
+                    client.work_items.delete(workspace_slug, project.id, wi.id)
+                    print_success(f"Deleted work item: {wi.id}")
                 except Exception as e:
-                    print_error(f"Failed to delete work item {work_item.id}: {e}")
+                    print_error(f"Failed to delete work item {wi.id}: {e}")
 
             # Delete project
             try:

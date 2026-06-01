@@ -6,6 +6,7 @@ from ...models.work_item_properties import (
     WorkItemProperty,
 )
 from ..base_resource import BaseResource
+from .contexts import WorkspaceWorkItemPropertyContexts
 from .options import WorkspaceWorkItemPropertyOptions
 
 
@@ -17,6 +18,7 @@ class WorkspaceWorkItemProperties(BaseResource):
 
         # Initialize sub-resources
         self.options = WorkspaceWorkItemPropertyOptions(config)
+        self.contexts = WorkspaceWorkItemPropertyContexts(config)
 
     def list(self, workspace_slug: str) -> list[WorkItemProperty]:
         """List all work item properties in the workspace.

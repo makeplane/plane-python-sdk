@@ -6,7 +6,6 @@ from typing import Any
 from ..models.milestones import (
     CreateMilestone,
     Milestone,
-    MilestoneWorkItem,
     PaginatedMilestoneResponse,
     PaginatedMilestoneWorkItemResponse,
     UpdateMilestone,

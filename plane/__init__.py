@@ -44,6 +44,11 @@ from .models.project_templates import (
     WorkItemTemplate,
 )
 from .models.projects import ProjectFeature
+from .models.work_item_property_context import (
+    CreateWorkItemPropertyContext,
+    UpdateWorkItemPropertyContext,
+    WorkItemPropertyContext,
+)
 from .models.workflows import (
     AttachWorkflowStates,
     CreateWorkflow,
@@ -112,4 +117,8 @@ __all__ = [
     "PageTemplate",
     "CreatePageTemplate",
     "UpdatePageTemplate",
+    # Work item property context models
+    "WorkItemPropertyContext",
+    "CreateWorkItemPropertyContext",
+    "UpdateWorkItemPropertyContext",
 ]

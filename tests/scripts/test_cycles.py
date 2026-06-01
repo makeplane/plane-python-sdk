@@ -30,7 +30,11 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from plane.client import PlaneClient  # noqa: E402
-from plane.models.cycles import CreateCycle, TransferCycleWorkItemsRequest, UpdateCycle  # noqa: E402
+from plane.models.cycles import (  # noqa: E402
+    CreateCycle,
+    TransferCycleWorkItemsRequest,
+    UpdateCycle,
+)
 from plane.models.projects import CreateProject  # noqa: E402
 from plane.models.work_items import CreateWorkItem  # noqa: E402
 

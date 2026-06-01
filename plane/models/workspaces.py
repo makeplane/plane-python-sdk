@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
+
 class WorkspaceFeature(BaseModel):
   """Workspace feature model."""
 

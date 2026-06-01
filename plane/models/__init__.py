@@ -48,8 +48,10 @@ def _rebuild_forward_references() -> None:
     """Rebuild Pydantic models to resolve forward references after circular imports."""
     # Import both modules - now they won't have circular import issues
     # because we're using TYPE_CHECKING and string forward references
-    from .modules import ModuleLite, ModuleWorkItem, PaginatedModuleWorkItemResponse
-    from .work_items import WorkItemExpand, WorkItem
+    from .modules import ModuleLite as ModuleLite
+    from .modules import ModuleWorkItem, PaginatedModuleWorkItemResponse
+    from .work_items import WorkItem as WorkItem
+    from .work_items import WorkItemExpand
 
     # Rebuild models that have forward references to each other
     WorkItemExpand.model_rebuild()  # Has forward ref to ModuleLite
