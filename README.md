@@ -230,6 +230,7 @@ client.labels            # Label management
 client.states            # State/workflow management
 client.work_item_types   # Work item type management
 client.work_item_properties  # Custom properties
+client.workspace_work_item_properties  # Workspace-level custom properties
 client.epics             # Epic management
 client.intake            # Intake management
 client.pages             # Page management
@@ -645,6 +646,74 @@ prop = client.work_item_properties.update(
 
 # Delete a property
 client.work_item_properties.delete(workspace_slug, project_id, work_item_type_id, property_id)
+```
+
+#### Workspace Work Item Properties
+
+```python
+# Create a workspace-level property
+from plane.models.work_item_properties import CreateWorkItemProperty
+
+prop = client.workspace_work_item_properties.create(
+    workspace_slug="my-workspace",
+    data=CreateWorkItemProperty(
+        display_name="Severity",
+        property_type="text",
+        is_active=True
+    )
+)
+
+# List workspace-level properties
+properties = client.workspace_work_item_properties.list(workspace_slug="my-workspace")
+
+# Retrieve a workspace-level property
+prop = client.workspace_work_item_properties.retrieve(workspace_slug, property_id)
+
+# Update a workspace-level property
+from plane.models.work_item_properties import UpdateWorkItemProperty
+
+prop = client.workspace_work_item_properties.update(
+    workspace_slug, property_id,
+    data=UpdateWorkItemProperty(description="Updated description")
+)
+
+# Delete a workspace-level property
+client.workspace_work_item_properties.delete(workspace_slug, property_id)
+
+# Options sub-resource (for option property type)
+from plane.models.work_item_properties import (
+    CreateWorkItemPropertyOption,
+    UpdateWorkItemPropertyOption
+)
+
+option = client.workspace_work_item_properties.options.create(
+    workspace_slug, property_id,
+    data=CreateWorkItemPropertyOption(name="Critical")
+)
+options = client.workspace_work_item_properties.options.list(workspace_slug, property_id)
+option = client.workspace_work_item_properties.options.retrieve(workspace_slug, property_id, option_id)
+option = client.workspace_work_item_properties.options.update(workspace_slug, property_id, option_id, data)
+client.workspace_work_item_properties.options.delete(workspace_slug, property_id, option_id)
+
+# Contexts sub-resource (for configuring visibility, required status per project/type)
+from plane.models.work_item_property_context import (
+    CreateWorkItemPropertyContext,
+    UpdateWorkItemPropertyContext
+)
+
+context = client.workspace_work_item_properties.contexts.create(
+    workspace_slug, property_id,
+    data=CreateWorkItemPropertyContext(
+        name="Bug Context",
+        applies_to_all_projects=True,
+        applies_to_all_work_item_types=False,
+        issue_type_ids=["type-uuid"]
+    )
+)
+contexts = client.workspace_work_item_properties.contexts.list(workspace_slug, property_id)
+context = client.workspace_work_item_properties.contexts.retrieve(workspace_slug, property_id, context_id)
+context = client.workspace_work_item_properties.contexts.update(workspace_slug, property_id, context_id, data)
+client.workspace_work_item_properties.contexts.delete(workspace_slug, property_id, context_id)
 ```
 
 ### Additional Resources

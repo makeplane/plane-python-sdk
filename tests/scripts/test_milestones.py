@@ -217,7 +217,10 @@ def main() -> None:
         milestones["v1_1"] = client.milestones.create(
             workspace_slug, project.id, v1_1_milestone_data
         )
-        print_success(f"Created milestone: {milestones['v1_1'].title} (ID: {milestones['v1_1'].id})")
+        print_success(
+            f"Created milestone: {milestones['v1_1'].title} "
+            f"(ID: {milestones['v1_1'].id})"
+        )
 
         # Milestone 3: v2.0 Release
         v2_milestone_data = CreateMilestone(

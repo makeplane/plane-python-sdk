@@ -1,4 +1,5 @@
 """Test script for verifying all Estimate API methods."""
+# ruff: noqa: E402
 import os
 import sys
 import time
@@ -20,7 +21,7 @@ from plane.models.projects import CreateProject
 def run_test():
     base_url = os.getenv("PLANE_BASE_URL")
     api_key = os.getenv("PLANE_API_KEY")
-    access_token = os.getenv("PLANE_ACCESS_TOKEN")
+    os.getenv("PLANE_ACCESS_TOKEN")
     slug = os.getenv("WORKSPACE_SLUG")
 
     client = PlaneClient(base_url=base_url, api_key=api_key)

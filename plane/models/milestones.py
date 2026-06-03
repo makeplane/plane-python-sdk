@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict
 
 from .pagination import PaginatedResponse
 
 if TYPE_CHECKING:
-    from .work_items import WorkItem
+    pass
 
 
 class Milestone(BaseModel):

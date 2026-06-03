@@ -685,7 +685,8 @@ class TestProjectLevelWorkItemPropertiesAPI:
         except HttpError as e:
             if e.status_code == 400:
                 pytest.skip(
-                    "Workspace has IS_WORK_ITEM_TYPES_ENABLED — project-level property creation blocked"
+                    "Workspace has IS_WORK_ITEM_TYPES_ENABLED — "
+                    "project-level property creation blocked"
                 )
             raise
         assert created is not None
@@ -724,10 +725,9 @@ class TestProjectLevelWorkItemPropertiesAPI:
         """Test attaching and detaching a project-level property to/from a work item type."""
         import time
 
+        from plane.errors.errors import HttpError
         from plane.models.work_item_property_configurations import TextAttributeSettings
         from plane.models.work_item_types import CreateWorkItemType
-
-        from plane.errors.errors import HttpError
 
         type_data = CreateWorkItemType(
             name=f"Attach Test Type {int(time.time())}",
@@ -754,7 +754,8 @@ class TestProjectLevelWorkItemPropertiesAPI:
             if e.status_code == 400:
                 client.work_item_types.delete(workspace_slug, project.id, wit.id)
                 pytest.skip(
-                    "Workspace has IS_WORK_ITEM_TYPES_ENABLED — project-level property creation blocked"
+                    "Workspace has IS_WORK_ITEM_TYPES_ENABLED — "
+                    "project-level property creation blocked"
                 )
             raise
 
