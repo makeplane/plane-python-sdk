@@ -43,12 +43,12 @@ from .models.project_templates import (
     UpdateWorkItemTemplate,
     WorkItemTemplate,
 )
-from .models.projects import ProjectFeature
 from .models.work_item_property_context import (
     CreateWorkItemPropertyContext,
     UpdateWorkItemPropertyContext,
     WorkItemPropertyContext,
 )
+from .models.projects import ProjectFeature, ProjectMember
 from .models.workflows import (
     AttachWorkflowStates,
     CreateWorkflow,
@@ -58,6 +58,7 @@ from .models.workflows import (
     Workflow,
     WorkflowTransition,
 )
+from .models.workspaces import WorkspaceMember
 
 __all__ = [
     "PlaneClient",
@@ -110,6 +111,8 @@ __all__ = [
     "CreateWorkflowTransition",
     "UpdateWorkflowTransition",
     "ProjectFeature",
+    "ProjectMember",
+    "WorkspaceMember",
     # Project template models
     "WorkItemTemplate",
     "CreateWorkItemTemplate",

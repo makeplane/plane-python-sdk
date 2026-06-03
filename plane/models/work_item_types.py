@@ -58,8 +58,8 @@ class UpdateWorkItemType(BaseModel):
 
 
 class WorkspaceWorkItemTypePropertyLink(BaseModel):
-    """Request model for linking a property to a workspace work item type."""
+    """Request model for linking properties to a workspace work item type."""
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    property_id: str
+    properties: list[str]
