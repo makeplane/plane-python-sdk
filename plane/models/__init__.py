@@ -18,6 +18,7 @@ from .query_params import (
     PaginatedQueryParams,
     RetrieveQueryParams,
     WorkItemQueryParams,
+    WorkspaceWorkItemQueryParams,
 )
 
 __all__ = [
@@ -40,6 +41,7 @@ __all__ = [
     "PaginatedQueryParams",
     "RetrieveQueryParams",
     "WorkItemQueryParams",
+    "WorkspaceWorkItemQueryParams",
 ]
 
 

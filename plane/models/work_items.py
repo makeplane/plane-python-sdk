@@ -564,12 +564,60 @@ class UpdateWorkItemWorkLog(BaseModel):
     updated_by: str | None = None
 
 
-class PaginatedWorkItemResponse(PaginatedResponse):
-    """Paginated response for work items."""
+class WorkItemGroupBucket(BaseModel):
+    """One bucket in a grouped or sub-grouped work item response.
+
+    Each key in the ``results`` dict of a grouped response maps to one of
+    these buckets.  For sub-grouped responses the value is itself a
+    ``dict[str, WorkItemGroupBucket]``.
+    """
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[WorkItem]
+    total_results: int
+
+
+class PaginatedWorkItemResponse(PaginatedResponse):
+    """Paginated response for work items (flat, no grouping)."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[WorkItem]
+
+
+class GroupedPaginatedWorkItemResponse(PaginatedResponse):
+    """Paginated response when ``group_by`` is set (no ``sub_group_by``).
+
+    ``results`` is a mapping from group-field value (stringified) to a
+    :class:`WorkItemGroupBucket` containing the items and per-group count.
+
+    Example::
+
+        response.results["<state-uuid>"].results   # list of WorkItem
+        response.results["<state-uuid>"].total_results  # int
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: dict[str, WorkItemGroupBucket]
+
+
+class SubGroupedPaginatedWorkItemResponse(PaginatedResponse):
+    """Paginated response when both ``group_by`` and ``sub_group_by`` are set.
+
+    ``results`` is a two-level mapping:
+    ``group-value → sub-group-value → WorkItemGroupBucket``.
+
+    Example::
+
+        response.results["<state-uuid>"]["urgent"].results       # list of WorkItem
+        response.results["<state-uuid>"]["urgent"].total_results # int
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: dict[str, dict[str, WorkItemGroupBucket]]
 
 
 class PaginatedWorkItemActivityResponse(PaginatedResponse):

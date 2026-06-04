@@ -4,12 +4,14 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-from ...models.query_params import RetrieveQueryParams, WorkItemQueryParams
+from ...models.query_params import RetrieveQueryParams, WorkItemQueryParams, WorkspaceWorkItemQueryParams
 from ...models.work_items import (
     AdvancedSearchResult,
     AdvancedSearchWorkItem,
     CreateWorkItem,
+    GroupedPaginatedWorkItemResponse,
     PaginatedWorkItemResponse,
+    SubGroupedPaginatedWorkItemResponse,
     UpdateWorkItem,
     WorkItem,
     WorkItemDetail,
@@ -213,53 +215,81 @@ class WorkItems(BaseResource):
     def list_workspace(
         self,
         workspace_slug: str,
-        params: WorkItemQueryParams | None = None,
-    ) -> PaginatedWorkItemResponse:
+        params: WorkspaceWorkItemQueryParams | None = None,
+    ) -> PaginatedWorkItemResponse | GroupedPaginatedWorkItemResponse | SubGroupedPaginatedWorkItemResponse:
         """List work items across an entire workspace.
 
         Returns a paginated envelope of work items the caller can view,
         spanning every project in the workspace (per-project authorization
         and conditional grants are honored server-side).
 
+        The return type depends on the ``group_by`` / ``sub_group_by`` params:
+
+        - Neither set → :class:`~plane.models.work_items.PaginatedWorkItemResponse`
+          (``results`` is a flat list of work items)
+        - ``group_by`` only → :class:`~plane.models.work_items.GroupedPaginatedWorkItemResponse`
+          (``results`` is ``dict[group_value, WorkItemGroupBucket]``)
+        - Both set → :class:`~plane.models.work_items.SubGroupedPaginatedWorkItemResponse`
+          (``results`` is ``dict[group_value, dict[sub_group_value, WorkItemGroupBucket]]``)
+
+        ``group_by`` and ``sub_group_by`` must differ; the server returns
+        HTTP 400 when they are the same.
+
         Args:
             workspace_slug: The workspace slug identifier
             params: Optional query parameters — supports ``filters``, ``pql``,
-                ``order_by``, ``cursor``, ``per_page``, ``fields``, ``expand``.
+                ``order_by``, ``cursor``, ``per_page``, ``fields``, ``expand``,
+                ``group_by``, ``sub_group_by``, ``sub_issue``.
 
-        Example::
+        Example — flat list::
 
-            from plane.models.query_params import WorkItemQueryParams
+            from plane.models.query_params import WorkspaceWorkItemQueryParams
 
             results = client.work_items.list_workspace(
                 "my-workspace",
-                params=WorkItemQueryParams(
+                params=WorkspaceWorkItemQueryParams(
                     filters={"priority": "urgent"},
                     order_by="-created_at",
                     per_page=50,
                 ),
             )
+
+        Example — grouped by state::
+
+            from plane.models.query_params import WorkspaceWorkItemQueryParams
+
+            response = client.work_items.list_workspace(
+                "my-workspace",
+                params=WorkspaceWorkItemQueryParams(group_by="state_id"),
+            )
+            for state_id, bucket in response.results.items():
+                print(state_id, bucket.total_results, bucket.results)
+
+        Example — sub-grouped by priority within each state::
+
+            from plane.models.query_params import WorkspaceWorkItemQueryParams
+
+            response = client.work_items.list_workspace(
+                "my-workspace",
+                params=WorkspaceWorkItemQueryParams(
+                    group_by="state_id",
+                    sub_group_by="priority",
+                ),
+            )
+            for state_id, sub_groups in response.results.items():
+                for priority, bucket in sub_groups.items():
+                    print(state_id, priority, bucket.total_results)
         """
         response = self._get(
             f"{workspace_slug}/work-items",
             params=prepare_work_item_params(params),
         )
-        return PaginatedWorkItemResponse.model_validate(response)
-
-    def list_workspace(
-        self,
-        workspace_slug: str,
-        params: WorkItemQueryParams | None = None,
-    ) -> PaginatedWorkItemResponse:
-        """List work items across the entire workspace.
-
-        Args:
-            workspace_slug: The workspace slug identifier
-            params: Optional query parameters for filtering, ordering, and pagination
-        """
-        query_params = params.model_dump(exclude_none=True) if params else None
-        response = self._get(
-            f"{workspace_slug}/work-items", params=query_params
-        )
+        grouped_by = response.get("grouped_by")
+        sub_grouped_by = response.get("sub_grouped_by")
+        if grouped_by and sub_grouped_by:
+            return SubGroupedPaginatedWorkItemResponse.model_validate(response)
+        if grouped_by:
+            return GroupedPaginatedWorkItemResponse.model_validate(response)
         return PaginatedWorkItemResponse.model_validate(response)
 
     def search(

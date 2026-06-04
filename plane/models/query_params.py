@@ -84,6 +84,70 @@ class WorkItemQueryParams(PaginatedQueryParams):
     )
 
 
+#: Valid field names accepted by ``group_by`` and ``sub_group_by``.
+GROUP_BY_FIELDS = (
+    "state_id",
+    "priority",
+    "assignees__id",
+    "labels__id",
+    "cycle_id",
+    "issue_module__module_id",
+    "type_id",
+    "project_id",
+    "state__group",
+    "release_work_items__release_id",
+    "milestone_id",
+    "target_date",
+    "start_date",
+    "created_by",
+)
+
+
+class WorkspaceWorkItemQueryParams(WorkItemQueryParams):
+    """Query parameters for the workspace-scoped work item list endpoint.
+
+    Extends :class:`WorkItemQueryParams` with grouping and sub-issue controls
+    that are specific to ``GET /workspaces/{slug}/work-items``.
+
+    Grouping fields (``group_by``, ``sub_group_by``) change the shape of the
+    ``results`` envelope:
+
+    - Neither set → ``results`` is ``list[WorkItem]``
+    - ``group_by`` only → ``results`` is ``dict[str, WorkItemGroupBucket]``
+    - Both set → ``results`` is ``dict[str, dict[str, WorkItemGroupBucket]]``
+
+    ``group_by`` and ``sub_group_by`` must differ; the server returns HTTP 400
+    if they are the same.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    group_by: str | None = Field(
+        None,
+        description=(
+            "Field to group results by. When set the paginator returns a dict of "
+            "group buckets instead of a flat list. Valid values: "
+            + ", ".join(f"``{f}``" for f in GROUP_BY_FIELDS)
+        ),
+    )
+    sub_group_by: str | None = Field(
+        None,
+        description=(
+            "Field to nest a second grouping within each top-level group. "
+            "Requires ``group_by`` to be set and must differ from it. "
+            "Same valid values as ``group_by``."
+        ),
+    )
+    sub_issue: bool | None = Field(
+        None,
+        description=(
+            "When ``False``, only top-level items and direct children of epics "
+            "are returned (sub-issues are excluded). Omit or pass ``True`` to "
+            "include all items regardless of parent."
+        ),
+    )
+
+
 class RetrieveQueryParams(BaseQueryParams):
     """Query parameters for retrieve endpoints."""
 
@@ -95,4 +159,5 @@ __all__ = [
     "PaginatedQueryParams",
     "RetrieveQueryParams",
     "WorkItemQueryParams",
+    "WorkspaceWorkItemQueryParams",
 ]
