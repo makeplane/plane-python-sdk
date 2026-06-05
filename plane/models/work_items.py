@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .enums import AccessEnum, PriorityEnum, WorkItemRelationTypeEnum
 from .labels import Label
@@ -604,31 +604,31 @@ class WorkItemGroupCountEntry(BaseModel):
     count: int
 
 
-class WorkItemFlatCountResponse(BaseModel):
-    """Response from the workspace work item count endpoint when ``group_by``
-    is not supplied."""
-
-    model_config = ConfigDict(extra="allow", populate_by_name=True)
-
-    count: int
-
-
 class WorkItemGroupedCountResponse(BaseModel):
-    """Response from the workspace work item count endpoint when ``group_by``
-    is supplied.
+    """Response from the workspace work item count endpoint.
+
+    Handles both response shapes from ``GET /workspaces/<slug>/work-items/count``:
+
+    **Grouped** (with ``group_by`` param)::
+
+        {
+            "grouped_by": "priority",
+            "total_count": 42,
+            "results": {"urgent": {"count": 3}, "none": {"count": 6}}
+        }
 
     ``results`` keys are raw ORM field values: UUID strings for FK/M2M
     dimensions, plain strings for ``priority`` / ``state__group``, and
     ISO-date strings for ``target_date`` / ``start_date``.  The special
-    key ``"None"`` is used for work items with no value in that dimension
-    (unassigned, unlabelled, no release, etc.).
+    key ``"None"`` represents work items with no value in that dimension.
     """
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-    grouped_by: str
-    total_count: int
-    results: dict[str, WorkItemGroupCountEntry]
+    # grouped response
+    grouped_by: str | None = None
+    total_count: int | None = None
+    grouped_counts: dict[str, WorkItemGroupCountEntry] | None = None
 
 
-WorkItemCountResponse = WorkItemFlatCountResponse | WorkItemGroupedCountResponse
+WorkItemCountResponse = WorkItemGroupedCountResponse
