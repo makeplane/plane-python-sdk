@@ -1,6 +1,6 @@
 """Query parameter DTOs for list/retrieve endpoints."""
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -90,9 +90,66 @@ class RetrieveQueryParams(BaseQueryParams):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
 
+WorkItemCountGroupBy = Literal[
+    "state_id",
+    "state__group",
+    "priority",
+    "project_id",
+    "type_id",
+    "labels__id",
+    "assignees__id",
+    "issue_module__module_id",
+    "release_work_items__release_id",
+    "cycle_id",
+    "milestone_id",
+    "created_by",
+    "target_date",
+    "start_date",
+]
+
+
+class WorkItemCountQueryParams(BaseModel):
+    """Query parameters for the workspace work item count endpoint.
+
+    Accepts the same ``filters`` and ``pql`` as :class:`WorkItemQueryParams`
+    plus an optional ``group_by`` field.
+
+    Without ``group_by`` the response is ``{"count": N}``.
+    With ``group_by`` the response is
+    ``{"grouped_by": ..., "total_count": N, "results": {group_key: {"count": N}}}``.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    pql: str | None = Field(
+        None,
+        description=(
+            "Plane Query Language expression. Human-readable alternative to "
+            '`filters`. Example: `priority = "urgent" AND assignee = currentUser()`.'
+        ),
+    )
+    filters: dict[str, Any] | None = Field(
+        None,
+        description=(
+            "Structured filter expression. JSON-encoded into the `filters=` "
+            "query param by the client."
+        ),
+    )
+    group_by: WorkItemCountGroupBy | None = Field(
+        None,
+        description=(
+            "ORM field to group counts by. When supplied the response shape "
+            "changes from a flat ``{count}`` to a grouped "
+            "``{grouped_by, total_count, results}`` envelope."
+        ),
+    )
+
+
 __all__ = [
     "BaseQueryParams",
     "PaginatedQueryParams",
     "RetrieveQueryParams",
+    "WorkItemCountGroupBy",
+    "WorkItemCountQueryParams",
     "WorkItemQueryParams",
 ]

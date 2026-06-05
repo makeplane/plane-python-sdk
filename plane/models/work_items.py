@@ -594,3 +594,41 @@ class PaginatedWorkItemLinkResponse(PaginatedResponse):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[WorkItemLink]
+
+
+class WorkItemGroupCountEntry(BaseModel):
+    """Count for a single group in a grouped count response."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    count: int
+
+
+class WorkItemFlatCountResponse(BaseModel):
+    """Response from the workspace work item count endpoint when ``group_by``
+    is not supplied."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    count: int
+
+
+class WorkItemGroupedCountResponse(BaseModel):
+    """Response from the workspace work item count endpoint when ``group_by``
+    is supplied.
+
+    ``results`` keys are raw ORM field values: UUID strings for FK/M2M
+    dimensions, plain strings for ``priority`` / ``state__group``, and
+    ISO-date strings for ``target_date`` / ``start_date``.  The special
+    key ``"None"`` is used for work items with no value in that dimension
+    (unassigned, unlabelled, no release, etc.).
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    grouped_by: str
+    total_count: int
+    results: dict[str, WorkItemGroupCountEntry]
+
+
+WorkItemCountResponse = WorkItemFlatCountResponse | WorkItemGroupedCountResponse
