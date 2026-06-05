@@ -18,7 +18,6 @@ from ...models.work_items import (
     WorkItem,
     WorkItemCountResponse,
     WorkItemDetail,
-    WorkItemFlatCountResponse,
     WorkItemGroupedCountResponse,
     WorkItemSearch,
 )
@@ -274,15 +273,13 @@ class WorkItems(BaseResource):
     ) -> WorkItemCountResponse:
         """Return the count of work items across an entire workspace.
 
-        Without ``group_by`` returns a flat :class:`WorkItemFlatCountResponse`
-        ``{"count": N}``.
+        Always returns :class:`WorkItemGroupedCountResponse` with fields
+        ``grouped_by``, ``total_count``, and ``grouped_counts``.
 
-        With ``group_by`` returns a :class:`WorkItemGroupedCountResponse`
-        ``{"grouped_by": ..., "total_count": N, "results": {group_key: {"count": N}}}``.
-        Keys in ``results`` are raw ORM field values (UUID strings for FK/M2M
-        dimensions, plain strings for ``priority`` / ``state__group``, ISO-date
-        strings for ``target_date`` / ``start_date``).  The special key
-        ``"None"`` represents work items with no value in that dimension.
+        ``grouped_counts`` keys are raw ORM field values: UUID strings for
+        FK/M2M dimensions, plain strings for ``priority`` / ``state__group``,
+        ISO-date strings for ``target_date`` / ``start_date``.  ``"None"`` is
+        used for work items with no value in that dimension.
 
         Args:
             workspace_slug: The workspace slug identifier
@@ -293,21 +290,21 @@ class WorkItems(BaseResource):
 
             from plane.models.query_params import WorkItemCountQueryParams
 
-            # Flat count
+            # Total count
             result = client.work_items.count_workspace(
                 "my-workspace",
                 params=WorkItemCountQueryParams(
                     filters={"priority__in": ["urgent", "high"]},
                 ),
             )
-            print(result.count)  # e.g. 12
+            print(result.total_count)  # e.g. 12
 
             # Grouped by priority
             result = client.work_items.count_workspace(
                 "my-workspace",
                 params=WorkItemCountQueryParams(group_by="priority"),
             )
-            for group, entry in result.results.items():
+            for group, entry in result.grouped_counts.items():
                 print(f"{group}: {entry.count}")
 
             # Grouped by state, filtered by PQL
@@ -323,9 +320,7 @@ class WorkItems(BaseResource):
             f"{workspace_slug}/work-items/count",
             params=prepare_work_item_count_params(params),
         )
-        if "grouped_by" in response:
-            return WorkItemGroupedCountResponse.model_validate(response)
-        return WorkItemFlatCountResponse.model_validate(response)
+        return WorkItemGroupedCountResponse.model_validate(response)
 
     def search(
         self,
