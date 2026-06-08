@@ -144,6 +144,15 @@ class WorkItemCountQueryParams(BaseModel):
         ),
     )
 
+    sub_group_by: WorkItemCountGroupBy | None = Field(
+        None,
+        description=(
+            "Optional second field to group by, for nested grouping. Only valid if "
+            "`group_by` is also supplied. The response shape changes to include an "
+            "additional nesting level in the `results` envelope."
+        ),
+    )
+
 
 __all__ = [
     "BaseQueryParams",

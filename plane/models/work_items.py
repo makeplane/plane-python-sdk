@@ -596,28 +596,70 @@ class PaginatedWorkItemLinkResponse(PaginatedResponse):
     results: list[WorkItemLink]
 
 
-class WorkItemGroupCountEntry(BaseModel):
-    """Count for a single group in a grouped count response."""
+class WorkItemSubGroupCountEntry(BaseModel):
+    """Count for a single sub-group inside a sub-grouped count response."""
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     count: int
 
 
+class WorkItemGroupCountEntry(BaseModel):
+    """Count entry for a single group in a grouped count response.
+
+    Shape depends on whether ``sub_group_by`` was supplied:
+
+    * **Flat** (``group_by`` only): ``{"count": N}``
+    * **Nested** (``group_by`` + ``sub_group_by``):
+      ``{"total_count": N, "sub_grouped_counts": {sub_key: {"count": N}}}``
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    # flat grouped shape (group_by only)
+    count: int | None = None
+    # sub-grouped shape (group_by + sub_group_by)
+    total_count: int | None = None
+    sub_grouped_counts: dict[str, WorkItemSubGroupCountEntry] | None = None
+
+
 class WorkItemGroupedCountResponse(BaseModel):
     """Response from the workspace work item count endpoint.
 
-    Handles both response shapes from ``GET /workspaces/<slug>/work-items/count``:
+    Returned for all calls to ``GET /workspaces/<slug>/work-items/count``.
 
-    **Grouped** (with ``group_by`` param)::
+    **No** ``group_by``::
+
+        {"grouped_by": null, "sub_grouped_by": null, "total_count": N, "grouped_counts": {}}
+
+    **With** ``group_by`` only — ``grouped_counts`` values are ``{"count": N}``::
 
         {
             "grouped_by": "priority",
+            "sub_grouped_by": null,
             "total_count": 42,
-            "results": {"urgent": {"count": 3}, "none": {"count": 6}}
+            "grouped_counts": {"urgent": {"count": 3}, "none": {"count": 6}}
         }
 
-    ``results`` keys are raw ORM field values: UUID strings for FK/M2M
+    **With** ``group_by`` and ``sub_group_by`` — values carry ``total_count``
+    and a nested ``sub_grouped_counts`` dict::
+
+        {
+            "grouped_by": "priority",
+            "sub_grouped_by": "state_id",
+            "total_count": 42,
+            "grouped_counts": {
+                "urgent": {
+                    "total_count": 3,
+                    "sub_grouped_counts": {
+                        "949645da-a9dd-4a90-94b0-6c8fa16245ee": {"count": 2},
+                        "94d35657-a48c-44fd-bed8-87d895386ba4": {"count": 1}
+                    }
+                }
+            }
+        }
+
+    ``grouped_counts`` keys are raw ORM field values: UUID strings for FK/M2M
     dimensions, plain strings for ``priority`` / ``state__group``, and
     ISO-date strings for ``target_date`` / ``start_date``.  The special
     key ``"None"`` represents work items with no value in that dimension.
@@ -625,8 +667,8 @@ class WorkItemGroupedCountResponse(BaseModel):
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-    # grouped response
     grouped_by: str | None = None
+    sub_grouped_by: str | None = None
     total_count: int | None = None
     grouped_counts: dict[str, WorkItemGroupCountEntry] | None = None
 
