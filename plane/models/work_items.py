@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from .enums import AccessEnum, PriorityEnum, WorkItemRelationTypeEnum
 from .labels import Label
