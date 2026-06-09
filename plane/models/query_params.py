@@ -114,10 +114,9 @@ class WorkItemCountQueryParams(BaseModel):
     Accepts the same ``filters`` and ``pql`` as :class:`WorkItemQueryParams`
     plus an optional ``group_by`` field.
 
-    Without ``group_by`` the response is ``{"count": N}``.
-    With ``group_by`` the response is
-    ``{"grouped_by": ..., "total_count": N, "results": {group_key: {"count": N}}}``.
-    """
+    Always returns a grouped envelope matching :class:`~plane.models.work_items.WorkItemGroupedCountResponse`.
+    When ``group_by`` is omitted, ``grouped_counts`` is empty and ``total_count`` holds the overall count.
+    When ``group_by`` is provided, ``grouped_counts`` contains per-group counts, optionally nested when ``sub_group_by`` is also provided."""
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 

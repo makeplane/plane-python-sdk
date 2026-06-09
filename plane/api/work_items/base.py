@@ -62,6 +62,8 @@ def prepare_work_item_count_params(
     """
     if params is None:
         return None
+    if params.sub_group_by is not None and params.group_by is None:
+        raise ValueError("sub_group_by can only be used when group_by is also provided")
     payload: dict[str, Any] = params.model_dump(exclude_none=True)
     if "filters" in payload and isinstance(payload["filters"], dict):
         payload["filters"] = json.dumps(payload["filters"], separators=(",", ":"))

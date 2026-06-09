@@ -669,8 +669,8 @@ class WorkItemGroupedCountResponse(BaseModel):
 
     grouped_by: str | None = None
     sub_grouped_by: str | None = None
-    total_count: int | None = None
-    grouped_counts: dict[str, WorkItemGroupCountEntry] | None = None
+    total_count: int
+    grouped_counts: dict[str, WorkItemGroupCountEntry] = Field(default_factory=dict)
 
 
 WorkItemCountResponse = WorkItemGroupedCountResponse
