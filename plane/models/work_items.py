@@ -638,7 +638,7 @@ class WorkItemGroupedCountResponse(BaseModel):
             "grouped_by": "priority",
             "sub_grouped_by": null,
             "total_count": 42,
-            "grouped_counts": {"urgent": {"count": 3}, "none": {"count": 6}}
+            "grouped_counts": {"urgent": {"count": 3}, "None": {"count": 6}}
         }
 
     **With** ``group_by`` and ``sub_group_by`` — values carry ``total_count``
