@@ -4,7 +4,11 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
-from ...models.query_params import RetrieveQueryParams, WorkItemQueryParams
+from ...models.query_params import (
+    RetrieveQueryParams,
+    WorkItemCountQueryParams,
+    WorkItemQueryParams,
+)
 from ...models.work_items import (
     AdvancedSearchResult,
     AdvancedSearchWorkItem,
@@ -12,7 +16,9 @@ from ...models.work_items import (
     PaginatedWorkItemResponse,
     UpdateWorkItem,
     WorkItem,
+    WorkItemCountResponse,
     WorkItemDetail,
+    WorkItemGroupedCountResponse,
     WorkItemSearch,
 )
 from ..base_resource import BaseResource
@@ -42,6 +48,23 @@ def prepare_work_item_params(
         payload: dict[str, Any] = params.model_dump(exclude_none=True)
     else:
         payload = {k: v for k, v in params.items() if v is not None}
+    if "filters" in payload and isinstance(payload["filters"], dict):
+        payload["filters"] = json.dumps(payload["filters"], separators=(",", ":"))
+    return payload
+
+
+def prepare_work_item_count_params(
+    params: WorkItemCountQueryParams | None,
+) -> dict[str, Any] | None:
+    """Serialize work-item count query params for use as HTTP query params.
+
+    Same ``filters`` JSON-encoding logic as :func:`prepare_work_item_params`.
+    """
+    if params is None:
+        return None
+    if params.sub_group_by is not None and params.group_by is None:
+        raise ValueError("sub_group_by can only be used when group_by is also provided")
+    payload: dict[str, Any] = params.model_dump(exclude_none=True)
     if "filters" in payload and isinstance(payload["filters"], dict):
         payload["filters"] = json.dumps(payload["filters"], separators=(",", ":"))
     return payload
@@ -245,22 +268,79 @@ class WorkItems(BaseResource):
         )
         return PaginatedWorkItemResponse.model_validate(response)
 
-    def list_workspace(
+    def count_workspace(
         self,
         workspace_slug: str,
-        params: WorkItemQueryParams | None = None,
-    ) -> PaginatedWorkItemResponse:
-        """List work items across the entire workspace.
+        params: WorkItemCountQueryParams | None = None,
+    ) -> WorkItemCountResponse:
+        """Return the count of work items across an entire workspace.
+
+        Always returns :class:`WorkItemGroupedCountResponse` with fields
+        ``grouped_by``, ``sub_grouped_by``, ``total_count``, and
+        ``grouped_counts``.
+
+        ``grouped_counts`` keys are raw ORM field values: UUID strings for
+        FK/M2M dimensions, plain strings for ``priority`` / ``state__group``,
+        ISO-date strings for ``target_date`` / ``start_date``.  ``"None"`` is
+        used for work items with no value in that dimension.
+
+        When only ``group_by`` is supplied each ``grouped_counts`` entry has
+        shape ``{"count": N}``.  When ``sub_group_by`` is also supplied the
+        shape becomes ``{"total_count": N, "sub_grouped_counts": {sub_key: {"count": N}}}``.
 
         Args:
             workspace_slug: The workspace slug identifier
-            params: Optional query parameters for filtering, ordering, and pagination
+            params: Optional query parameters — supports ``filters``, ``pql``,
+                ``group_by``, and ``sub_group_by``.
+
+        Example::
+
+            from plane.models.query_params import WorkItemCountQueryParams
+
+            # Total count (no grouping)
+            result = client.work_items.count_workspace(
+                "my-workspace",
+                params=WorkItemCountQueryParams(
+                    filters={"priority__in": ["urgent", "high"]},
+                ),
+            )
+            print(result.total_count)  # e.g. 12
+
+            # Grouped by priority
+            result = client.work_items.count_workspace(
+                "my-workspace",
+                params=WorkItemCountQueryParams(group_by="priority"),
+            )
+            for group, entry in result.grouped_counts.items():
+                print(f"{group}: {entry.count}")
+
+            # Sub-grouped by state inside each priority
+            result = client.work_items.count_workspace(
+                "my-workspace",
+                params=WorkItemCountQueryParams(
+                    group_by="priority",
+                    sub_group_by="state_id",
+                ),
+            )
+            for group, entry in result.grouped_counts.items():
+                print(f"{group}: {entry.total_count} total")
+                for sub_group, sub_entry in (entry.sub_grouped_counts or {}).items():
+                    print(f"  {sub_group}: {sub_entry.count}")
+
+            # Grouped by state, filtered by PQL
+            result = client.work_items.count_workspace(
+                "my-workspace",
+                params=WorkItemCountQueryParams(
+                    pql='assignee = currentUser()',
+                    group_by="state_id",
+                ),
+            )
         """
-        query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(
-            f"{workspace_slug}/work-items", params=query_params
+            f"{workspace_slug}/work-items/count",
+            params=prepare_work_item_count_params(params),
         )
-        return PaginatedWorkItemResponse.model_validate(response)
+        return WorkItemGroupedCountResponse.model_validate(response)
 
     def search(
         self,
