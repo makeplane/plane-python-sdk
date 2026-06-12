@@ -38,6 +38,7 @@ class CreateWorkItemType(BaseModel):
     logo_props: Any | None = None
     is_epic: bool | None = None
     is_active: bool | None = None
+    level: int | None = None
     external_source: str | None = None
     external_id: str | None = None
 
@@ -53,6 +54,7 @@ class UpdateWorkItemType(BaseModel):
     logo_props: Any | None = None
     is_epic: bool | None = None
     is_active: bool | None = None
+    level: int | None = None
     external_source: str | None = None
     external_id: str | None = None
 
