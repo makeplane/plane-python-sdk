@@ -53,8 +53,11 @@ class WorkItemDetail(BaseModel):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
-    assignees: list[UserLite] = Field(default_factory=list)
-    labels: list[Label] = Field(default_factory=list)
+    # The API returns bare UUID strings for these relations unless the request
+    # expands them (``expand=assignees,labels``), so accept both shapes — the
+    # same tolerance ``state`` (``str | StateLite``) and ``WorkItemExpand`` use.
+    assignees: list[str] | list[UserLite] = Field(default_factory=list)
+    labels: list[str] | list[Label] = Field(default_factory=list)
     type_id: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
