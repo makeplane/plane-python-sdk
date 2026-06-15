@@ -15,8 +15,6 @@ from plane.models.work_items import (
     CreateWorkItem,
     CreateWorkItemCustomRelation,
     CreateWorkItemDependency,
-    RemoveWorkItemCustomRelation,
-    RemoveWorkItemDependency,
     WorkItemDependencyResponse,
     WorkItemWithRelationType,
 )
@@ -74,7 +72,7 @@ def custom_definition(client: PlaneClient, workspace_slug: str):
 
 
 class TestWorkItemDependencies:
-    """Tests for the /relation-dependencies/ endpoint."""
+    """Tests for the /dependencies/ endpoint."""
 
     def test_list_dependencies_empty(
         self, client: PlaneClient, workspace_slug: str, project: Project, work_item_a
@@ -154,7 +152,7 @@ class TestWorkItemDependencies:
             workspace_slug,
             project.id,
             work_item_a.id,
-            RemoveWorkItemDependency(work_item_id=work_item_b.id),
+            work_item_b.id,
         )
         result = client.work_items.dependencies.list(workspace_slug, project.id, work_item_a.id)
         blocking_ids = [wi.id for wi in result.blocking]
@@ -195,7 +193,7 @@ class TestWorkItemDependencies:
                 workspace_slug,
                 project.id,
                 work_item_a.id,
-                RemoveWorkItemDependency(work_item_id=work_item_b.id),
+                work_item_b.id,
             )
         assert created_any
 
@@ -292,7 +290,7 @@ class TestWorkItemCustomRelations:
             workspace_slug,
             project.id,
             work_item_a.id,
-            RemoveWorkItemCustomRelation(work_item_id=work_item_b.id),
+            work_item_b.id,
         )
         result = client.work_items.custom_relations.list(workspace_slug, project.id, work_item_a.id)
         outward_ids = [wi.id for wi in result.get(custom_definition.outward, [])]
@@ -327,7 +325,7 @@ class TestWorkItemCustomRelations:
             workspace_slug,
             project.id,
             work_item_a.id,
-            RemoveWorkItemCustomRelation(work_item_id=work_item_b.id),
+            work_item_b.id,
         )
 
     def test_create_relation_invalid_definition(

@@ -4,7 +4,6 @@ from typing import Any
 
 from ...models.work_items import (
     CreateWorkItemCustomRelation,
-    RemoveWorkItemCustomRelation,
     WorkItemWithRelationType,
 )
 from ..base_resource import BaseResource
@@ -68,7 +67,7 @@ class WorkItemCustomRelations(BaseResource):
         workspace_slug: str,
         project_id: str,
         work_item_id: str,
-        data: RemoveWorkItemCustomRelation,
+        related_work_item_id: str,
     ) -> None:
         """Remove a custom relation between this work item and a target.
 
@@ -76,9 +75,8 @@ class WorkItemCustomRelations(BaseResource):
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             work_item_id: UUID of the work item
-            data: Removal payload containing the related work item UUID
+            related_work_item_id: UUID of the related work item to remove the relation with
         """
-        return self._post(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/work-item-relations/remove/",
-            data.model_dump(exclude_none=True),
+        self._delete(
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/work-item-relations/{related_work_item_id}/"
         )

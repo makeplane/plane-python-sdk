@@ -4,7 +4,6 @@ from typing import Any
 
 from ...models.work_items import (
     CreateWorkItemDependency,
-    RemoveWorkItemDependency,
     WorkItemDependencyResponse,
     WorkItemWithRelationType,
 )
@@ -32,7 +31,7 @@ class WorkItemDependencies(BaseResource):
             work_item_id: UUID of the work item
         """
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/relation-dependencies/"
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/dependencies/"
         )
         return WorkItemDependencyResponse.model_validate(response)
 
@@ -52,7 +51,7 @@ class WorkItemDependencies(BaseResource):
             data: Dependency creation payload
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/relation-dependencies/",
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/dependencies/",
             data.model_dump(exclude_none=True),
         )
         return [WorkItemWithRelationType.model_validate(item) for item in response]
@@ -62,7 +61,7 @@ class WorkItemDependencies(BaseResource):
         workspace_slug: str,
         project_id: str,
         work_item_id: str,
-        data: RemoveWorkItemDependency,
+        related_work_item_id: str,
     ) -> None:
         """Remove a dependency relation between this work item and a target.
 
@@ -70,9 +69,8 @@ class WorkItemDependencies(BaseResource):
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             work_item_id: UUID of the work item
-            data: Removal payload containing the related work item UUID
+            related_work_item_id: UUID of the related work item to remove the dependency with
         """
-        return self._post(
-            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/relation-dependencies/remove/",
-            data.model_dump(exclude_none=True),
+        self._delete(
+            f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/dependencies/{related_work_item_id}/"
         )
