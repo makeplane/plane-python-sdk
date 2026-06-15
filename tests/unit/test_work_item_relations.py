@@ -87,6 +87,7 @@ class TestWorkItemDependencies:
         assert result.finish_before == []
         assert result.finish_after == []
 
+    @pytest.mark.dependency(name="create_blocking_dep")
     def test_create_blocking_dependency(
         self,
         client: PlaneClient,
@@ -112,6 +113,7 @@ class TestWorkItemDependencies:
         assert item.id == work_item_b.id
         assert item.relation_type == "blocking"
 
+    @pytest.mark.dependency(depends=["create_blocking_dep"])
     def test_list_dependencies_after_create(
         self,
         client: PlaneClient,
@@ -126,6 +128,7 @@ class TestWorkItemDependencies:
         blocking_ids = [wi.id for wi in result.blocking]
         assert work_item_b.id in blocking_ids
 
+    @pytest.mark.dependency(depends=["create_blocking_dep"])
     def test_list_reverse_dependency(
         self,
         client: PlaneClient,
@@ -139,6 +142,7 @@ class TestWorkItemDependencies:
         blocked_by_ids = [wi.id for wi in result.blocked_by]
         assert work_item_a.id in blocked_by_ids
 
+    @pytest.mark.dependency(depends=["create_blocking_dep"])
     def test_remove_dependency(
         self,
         client: PlaneClient,
@@ -221,6 +225,7 @@ class TestWorkItemCustomRelations:
         assert result[custom_definition.outward] == []
         assert result[custom_definition.inward] == []
 
+    @pytest.mark.dependency(name="create_custom_relation_outward")
     def test_create_custom_relation_outward(
         self,
         client: PlaneClient,
@@ -248,6 +253,7 @@ class TestWorkItemCustomRelations:
         assert item.id == work_item_b.id
         assert item.relation_type == custom_definition.outward
 
+    @pytest.mark.dependency(depends=["create_custom_relation_outward"])
     def test_list_custom_relations_after_create(
         self,
         client: PlaneClient,
@@ -262,6 +268,7 @@ class TestWorkItemCustomRelations:
         outward_ids = [wi.id for wi in result.get(custom_definition.outward, [])]
         assert work_item_b.id in outward_ids
 
+    @pytest.mark.dependency(depends=["create_custom_relation_outward"])
     def test_list_custom_relations_inward_side(
         self,
         client: PlaneClient,
@@ -276,6 +283,7 @@ class TestWorkItemCustomRelations:
         inward_ids = [wi.id for wi in result.get(custom_definition.inward, [])]
         assert work_item_a.id in inward_ids
 
+    @pytest.mark.dependency(depends=["create_custom_relation_outward"])
     def test_remove_custom_relation(
         self,
         client: PlaneClient,
