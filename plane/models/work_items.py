@@ -611,15 +611,13 @@ class WorkItemGroupCountEntry(BaseModel):
 
     * **Flat** (``group_by`` only): ``{"count": N}``
     * **Nested** (``group_by`` + ``sub_group_by``):
-      ``{"total_count": N, "sub_grouped_counts": {sub_key: {"count": N}}}``
+      ``{"count": N, "sub_grouped_counts": {sub_key: {"count": N}}}``
     """
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-    # flat grouped shape (group_by only)
-    count: int | None = None
-    # sub-grouped shape (group_by + sub_group_by)
-    total_count: int | None = None
+    count: int
+
     sub_grouped_counts: dict[str, WorkItemSubGroupCountEntry] | None = None
 
 
@@ -641,7 +639,7 @@ class WorkItemGroupedCountResponse(BaseModel):
             "grouped_counts": {"urgent": {"count": 3}, "None": {"count": 6}}
         }
 
-    **With** ``group_by`` and ``sub_group_by`` — values carry ``total_count``
+    **With** ``group_by`` and ``sub_group_by`` — values carry ``count``
     and a nested ``sub_grouped_counts`` dict::
 
         {
@@ -650,7 +648,7 @@ class WorkItemGroupedCountResponse(BaseModel):
             "total_count": 42,
             "grouped_counts": {
                 "urgent": {
-                    "total_count": 3,
+                    "count": 3,
                     "sub_grouped_counts": {
                         "949645da-a9dd-4a90-94b0-6c8fa16245ee": {"count": 2},
                         "94d35657-a48c-44fd-bed8-87d895386ba4": {"count": 1}

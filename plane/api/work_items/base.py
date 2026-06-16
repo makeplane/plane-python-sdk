@@ -284,9 +284,9 @@ class WorkItems(BaseResource):
         ISO-date strings for ``target_date`` / ``start_date``.  ``"None"`` is
         used for work items with no value in that dimension.
 
-        When only ``group_by`` is supplied each ``grouped_counts`` entry has
-        shape ``{"count": N}``.  When ``sub_group_by`` is also supplied the
-        shape becomes ``{"total_count": N, "sub_grouped_counts": {sub_key: {"count": N}}}``.
+        Each ``grouped_counts`` entry always has ``count``.  When
+        ``sub_group_by`` is also supplied it additionally carries
+        ``sub_grouped_counts``, a dict mapping sub-group keys to ``{"count": N}``.
 
         Args:
             workspace_slug: The workspace slug identifier
@@ -323,7 +323,7 @@ class WorkItems(BaseResource):
                 ),
             )
             for group, entry in result.grouped_counts.items():
-                print(f"{group}: {entry.total_count} total")
+                print(f"{group}: {entry.count} total")
                 for sub_group, sub_entry in (entry.sub_grouped_counts or {}).items():
                     print(f"  {sub_group}: {sub_entry.count}")
 
