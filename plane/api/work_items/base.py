@@ -359,7 +359,7 @@ class WorkItems(BaseResource):
             query: Search query string
             params: Optional query parameters for expand, fields, etc.
         """
-        search_params = {"q": query}
+        search_params = {"search": query}
         if params:
             search_params.update(params.model_dump(exclude_none=True))
         response = self._get(f"{workspace_slug}/work-items/search", params=search_params)

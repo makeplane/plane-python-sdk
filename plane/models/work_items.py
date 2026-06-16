@@ -201,7 +201,7 @@ class WorkItemSearchItem(BaseModel):
 
     id: str = Field(..., description="Issue ID")
     name: str = Field(..., description="Issue name")
-    sequence_id: str = Field(..., description="Issue sequence ID")
+    sequence_id: int = Field(..., description="Issue sequence ID")
     project__identifier: str = Field(..., description="Project identifier")
     project_id: str = Field(..., description="Project ID")
     workspace__slug: str = Field(..., description="Workspace slug")
