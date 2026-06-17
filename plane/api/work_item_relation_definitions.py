@@ -2,6 +2,7 @@ from typing import Any
 
 from ..models.work_item_relation_definitions import (
     CreateWorkItemRelationDefinition,
+    PaginatedWorkItemRelationDefinitionResponse,
     UpdateWorkItemRelationDefinition,
     WorkItemRelationDefinition,
 )
@@ -19,25 +20,33 @@ class WorkItemRelationDefinitions(BaseResource):
         workspace_slug: str,
         is_default: bool | None = None,
         is_active: bool | None = None,
-    ) -> list[WorkItemRelationDefinition]:
-        """List all work item relation definitions in the workspace.
+        per_page: int | None = None,
+        cursor: str | None = None,
+    ) -> PaginatedWorkItemRelationDefinitionResponse:
+        """List work item relation definitions in the workspace.
 
         Args:
             workspace_slug: The workspace slug identifier
             is_default: Optional filter by default status
             is_active: Optional filter by active status
+            per_page: Number of results per page (default 100)
+            cursor: Pagination cursor from a previous response's next_cursor
         """
         params: dict[str, Any] = {}
         if is_default is not None:
             params["is_default"] = str(is_default).lower()
         if is_active is not None:
             params["is_active"] = str(is_active).lower()
+        if per_page is not None:
+            params["per_page"] = per_page
+        if cursor is not None:
+            params["cursor"] = cursor
 
         response = self._get(
             f"{workspace_slug}/work-item-relation-definitions/",
             params=params if params else None,
         )
-        return [WorkItemRelationDefinition.model_validate(item) for item in response]
+        return PaginatedWorkItemRelationDefinitionResponse.model_validate(response)
 
     def create(
         self, workspace_slug: str, data: CreateWorkItemRelationDefinition

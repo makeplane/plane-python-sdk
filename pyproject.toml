@@ -12,6 +12,9 @@ license = { text = "MIT" }
 authors = [{ name = "Plane", email = "engineering@plane.so" }]
 dependencies = ["requests>=2.31.0", "pydantic>=2.4.0"]
 
+[project.optional-dependencies]
+dev = ["pytest", "pytest-dependency"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["plane*"]

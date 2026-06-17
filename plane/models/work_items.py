@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -201,7 +201,7 @@ class WorkItemSearchItem(BaseModel):
 
     id: str = Field(..., description="Issue ID")
     name: str = Field(..., description="Issue name")
-    sequence_id: str = Field(..., description="Issue sequence ID")
+    sequence_id: int = Field(..., description="Issue sequence ID")
     project__identifier: str = Field(..., description="Project identifier")
     project_id: str = Field(..., description="Project ID")
     workspace__slug: str = Field(..., description="Workspace slug")
@@ -522,6 +522,110 @@ class WorkItemRelationResponse(BaseModel):
     finish_before: list[str] = Field(
         ...,
         description="List of issue IDs that finish before this issue",
+    )
+
+
+DependencyTypeEnum = Literal[
+    "blocking",
+    "blocked_by",
+    "start_before",
+    "start_after",
+    "finish_before",
+    "finish_after",
+]
+
+
+class WorkItemWithRelationType(BaseModel):
+    """Work item with an injected relation_type label."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str | None = None
+    name: str | None = None
+    sequence_id: int | None = None
+    project_id: str | None = None
+    state_id: str | None = None
+    priority: str | None = None
+    type_id: str | None = None
+    is_epic: bool | None = None
+    label_ids: list[str] = Field(default_factory=list)
+    assignee_ids: list[str] = Field(default_factory=list)
+    sort_order: float | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    created_by: str | None = None
+    updated_by: str | None = None
+    relation_type: str | None = None
+
+
+class WorkItemDependencyResponse(BaseModel):
+    """Response model for GET /relation-dependencies/."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    blocking: list[WorkItemWithRelationType] = Field(default_factory=list)
+    blocked_by: list[WorkItemWithRelationType] = Field(default_factory=list)
+    start_before: list[WorkItemWithRelationType] = Field(default_factory=list)
+    start_after: list[WorkItemWithRelationType] = Field(default_factory=list)
+    finish_before: list[WorkItemWithRelationType] = Field(default_factory=list)
+    finish_after: list[WorkItemWithRelationType] = Field(default_factory=list)
+
+
+class CreateWorkItemDependency(BaseModel):
+    """Request model for creating work item dependency relations."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    relation_type: DependencyTypeEnum = Field(
+        ...,
+        description="Dependency direction from the perspective of this work item",
+    )
+    work_item_ids: list[str] = Field(
+        ...,
+        description="UUIDs of work items to create dependencies with",
+        min_length=1,
+    )
+
+
+class RemoveWorkItemDependency(BaseModel):
+    """Request model for removing a work item dependency."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    work_item_id: str = Field(
+        ...,
+        description="UUID of the related work item whose dependency should be removed",
+    )
+
+
+class CreateWorkItemCustomRelation(BaseModel):
+    """Request model for creating a custom (definition-based) work item relation."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    relation_definition_id: str = Field(
+        ...,
+        description="UUID of the workspace relation definition",
+    )
+    relation_definition_type: str = Field(
+        ...,
+        description="The outward or inward label of the definition (controls directionality)",
+    )
+    work_item_ids: list[str] = Field(
+        ...,
+        description="UUIDs of work items to create the relation with",
+        min_length=1,
+    )
+
+
+class RemoveWorkItemCustomRelation(BaseModel):
+    """Request model for removing a custom work item relation."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    work_item_id: str = Field(
+        ...,
+        description="UUID of the related work item whose custom relation should be removed",
     )
 
 

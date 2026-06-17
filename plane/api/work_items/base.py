@@ -25,6 +25,8 @@ from ..base_resource import BaseResource
 from .activities import WorkItemActivities
 from .attachments import WorkItemAttachments
 from .comments import WorkItemComments
+from .custom_relations import WorkItemCustomRelations
+from .dependencies import WorkItemDependencies
 from .links import WorkItemLinks
 from .pages import WorkItemPages
 from .relations import WorkItemRelations
@@ -76,6 +78,8 @@ class WorkItems(BaseResource):
 
         # Initialize sub-resources
         self.relations = WorkItemRelations(config)
+        self.dependencies = WorkItemDependencies(config)
+        self.custom_relations = WorkItemCustomRelations(config)
         self.links = WorkItemLinks(config)
         self.attachments = WorkItemAttachments(config)
         self.comments = WorkItemComments(config)
@@ -355,7 +359,7 @@ class WorkItems(BaseResource):
             query: Search query string
             params: Optional query parameters for expand, fields, etc.
         """
-        search_params = {"q": query}
+        search_params = {"search": query}
         if params:
             search_params.update(params.model_dump(exclude_none=True))
         response = self._get(f"{workspace_slug}/work-items/search", params=search_params)

@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, ConfigDict
 
+from .pagination import PaginatedResponse
+
 
 class WorkItemRelationDefinition(BaseModel):
     """Work item relation definition response model."""
@@ -47,3 +49,11 @@ class UpdateWorkItemRelationDefinition(BaseModel):
     is_active: bool | None = None
     color: str | None = None
     sort_order: float | None = None
+
+
+class PaginatedWorkItemRelationDefinitionResponse(PaginatedResponse):
+    """Paginated response for work item relation definitions."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[WorkItemRelationDefinition]
