@@ -148,6 +148,16 @@ class ProjectMember(UserLite):
 
     role: int | None = None
     role_slug: str | None = None
+    is_active: bool | None = None
+    is_bot: bool | None = None
+
+
+class PaginatedProjectMemberResponse(PaginatedResponse):
+    """Paginated response for the project members-lite endpoint."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[ProjectMember]
 
 
 class ProjectFeature(BaseModel):
@@ -165,5 +175,3 @@ class ProjectFeature(BaseModel):
     workflows: bool | None = None
     parallel_cycles: bool | None = None
     project_updates: bool | None = None
-
-

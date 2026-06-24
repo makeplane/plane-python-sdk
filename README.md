@@ -17,48 +17,39 @@ A comprehensive, type-annotated Python SDK for interacting with the Plane API. T
 This SDK (v0.2.0) replaces the v0.1.x OpenAPI-generated client and introduces intentional breaking changes for a cleaner, type-safe developer experience.
 
 - Authentication and client
-
   - New `PlaneClient(base_url, api_key | access_token)` replaces OpenAPI `Configuration`/`ApiClient` usage
   - Exactly one of `api_key` or `access_token` is required; providing both raises a `ConfigurationError`
   - `base_url` should NOT include `/api/v1`; the SDK appends `/api/v1` automatically
 
 - HTTP headers
-
   - API key header standardized to `X-Api-Key`; access tokens use `Authorization: Bearer <token>`
 
 - Resource paths and naming
-
   - All paths use `work-items` instead of v0.1.x `issues`
   - Sub-resources are grouped under `client.work_items.<subresource>`
 
 - Method names
-
   - Methods are standardized across resources: `list`, `create`, `retrieve`, `update`, `delete`
   - Replaces verbose, OpenAPI-generated method names
 
 - Models and DTOs
-
   - Uses Pydantic v2 with: response models `extra="allow"`; Create*/Update* DTOs `extra="ignore"`
   - Separate DTOs for create/update: `Create*` and `Update*`
   - Field naming is normalized
 
 - Pagination shape
-
   - Paginated responses now expose: `results`, `total_count`, `next_page_number`, `prev_page_number`
   - This replaces v0.1.x shapes that included different field names
 
 - Query parameters
-
   - Typed query params via models like `WorkItemQueryParams` and `RetrieveQueryParams`
   - Common fields include `per_page`, `page`, `order_by`, `expand`
 
 - Errors
-
   - Raises `HttpError(message, status_code, response)` on non-2xx responses
   - Configuration validation errors raise `ConfigurationError`
 
 - Imports and organization
-
   - Import models from `plane.models.<resource>`
   - No OpenAPI `*Api` classes; use resource objects from `PlaneClient`
 
@@ -280,6 +271,28 @@ users = client.users.list()
 ```python
 # Get workspace members
 members = client.workspaces.get_members(workspace_slug)
+
+# Filter members (all filters combine with AND; role_slug is exact, text fields
+# match case-insensitive contains)
+from plane.models.query_params import MemberQueryParams, MemberListQueryParams
+
+admins = client.workspaces.get_members(
+    workspace_slug,
+    params=MemberQueryParams(role_slug="admin", is_active=True),
+)
+
+# Paginated "lite" list — follow next_cursor until next_page_results is False
+paginated_members = client.workspaces.get_members_lite(
+    workspace_slug,
+    params=MemberListQueryParams(per_page=1000),
+)
+all_members = list(paginated_members.results)
+while paginated_members.next_page_results:
+    paginated_members = client.workspaces.get_members_lite(
+        workspace_slug,
+        params=MemberListQueryParams(per_page=1000, cursor=paginated_members.next_cursor),
+    )
+    all_members.extend(paginated_members.results)
 ```
 
 #### Roles
@@ -345,6 +358,20 @@ worklog_summary = client.projects.get_worklog_summary(workspace_slug, project_id
 
 # Get project members
 members = client.projects.get_members(workspace_slug, project_id)
+
+# Filter project members (same filters as workspace members)
+from plane.models.query_params import MemberQueryParams, MemberListQueryParams
+
+members = client.projects.get_members(
+    workspace_slug, project_id,
+    params=MemberQueryParams(display_name="ana", is_bot=False),
+)
+
+# Paginated "lite" list
+members = client.projects.get_members_lite(
+    workspace_slug, project_id,
+    params=MemberListQueryParams(per_page=1000),
+)
 ```
 
 #### Work Items

@@ -6,7 +6,11 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.projects import CreateProject, Project, ProjectMember, UpdateProject
-from plane.models.query_params import PaginatedQueryParams
+from plane.models.query_params import (
+    MemberListQueryParams,
+    MemberQueryParams,
+    PaginatedQueryParams,
+)
 
 
 class TestProjectsAPI:
@@ -102,6 +106,41 @@ class TestProjectsAPICRUD:
             assert hasattr(member, "role_slug")
             assert hasattr(member, "id")
             assert hasattr(member, "email")
+
+    def test_get_members_typed_filter(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """get_members accepts a typed MemberQueryParams and filters by is_active."""
+        members = client.projects.get_members(
+            workspace_slug, project.id, params=MemberQueryParams(is_active=True)
+        )
+        assert isinstance(members, list)
+        for member in members:
+            assert isinstance(member, ProjectMember)
+
+    def test_get_members_dict_filter_backcompat(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """get_members accepts a raw mapping; bool values are normalized to true/false."""
+        members = client.projects.get_members(
+            workspace_slug, project.id, params={"is_active": True, "role_slug": "admin"}
+        )
+        assert isinstance(members, list)
+        for member in members:
+            assert isinstance(member, ProjectMember)
+
+    def test_get_members_lite_paginated(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """get_members_lite returns a paginated envelope of ProjectMember items."""
+        paginated_members = client.projects.get_members_lite(
+            workspace_slug, project.id, params=MemberListQueryParams(per_page=100)
+        )
+        assert isinstance(paginated_members.results, list)
+        assert isinstance(paginated_members.total_count, int)
+        assert isinstance(paginated_members.next_page_results, bool)
+        for member in paginated_members.results:
+            assert isinstance(member, ProjectMember)
 
     def test_get_features(self, client: PlaneClient, workspace_slug: str, project: Project) -> None:
         """Test getting project features."""

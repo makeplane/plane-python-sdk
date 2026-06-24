@@ -5,6 +5,7 @@ from typing import Any
 
 from ..models.projects import (
     CreateProject,
+    PaginatedProjectMemberResponse,
     PaginatedProjectResponse,
     Project,
     ProjectFeature,
@@ -12,7 +13,11 @@ from ..models.projects import (
     ProjectWorklogSummary,
     UpdateProject,
 )
-from ..models.query_params import PaginatedQueryParams
+from ..models.query_params import (
+    MemberListQueryParams,
+    MemberQueryParams,
+    PaginatedQueryParams,
+)
 from .base_resource import BaseResource
 
 
@@ -86,20 +91,58 @@ class Projects(BaseResource):
         return [ProjectWorklogSummary.model_validate(item) for item in response]
 
     def get_members(
-        self, workspace_slug: str, project_id: str, params: Mapping[str, Any] | None = None
+        self,
+        workspace_slug: str,
+        project_id: str,
+        params: MemberQueryParams | Mapping[str, Any] | None = None,
     ) -> list[ProjectMember]:
-        """Get all members of a project.
+        """Get all members of a project with optional filtering (unpaginated).
 
+        Calls the filterable ``/projects/{id}/project-members/`` endpoint.
         Returns a list of ProjectMember objects that include role (int) and
         role_slug (str) fields in addition to basic identity fields.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
-            params: Optional query parameters
+            params: Optional query parameters. Accepts a ``MemberQueryParams``
+                instance for typed filtering (first_name, last_name, email,
+                display_name, role_slug, is_active, is_bot), or a raw mapping.
         """
-        response = self._get(f"{workspace_slug}/projects/{project_id}/members", params=params)
+        if isinstance(params, MemberQueryParams):
+            params = params.to_query_params()
+        elif params is not None:
+            # Lowercase bools so the typed filter backend accepts them
+            # (requests would otherwise encode True as "True" -> HTTP 400).
+            params = {k: (str(v).lower() if isinstance(v, bool) else v) for k, v in params.items()}
+        response = self._get(
+            f"{workspace_slug}/projects/{project_id}/project-members", params=params
+        )
         return [ProjectMember.model_validate(item) for item in response or []]
+
+    def get_members_lite(
+        self,
+        workspace_slug: str,
+        project_id: str,
+        params: MemberListQueryParams | None = None,
+    ) -> PaginatedProjectMemberResponse:
+        """List project members as a paginated "lite" response.
+
+        Unlike :meth:`get_members` (which returns a bare list), this returns a
+        cursor-paginated envelope. To page through every member, follow
+        ``response.next_cursor`` while ``response.next_page_results`` is True.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            params: Optional filter + pagination query parameters (the
+                :meth:`get_members` filters plus ``cursor`` and ``per_page``)
+        """
+        response = self._get(
+            f"{workspace_slug}/projects/{project_id}/project-members-lite",
+            params=params.to_query_params() if params else None,
+        )
+        return PaginatedProjectMemberResponse.model_validate(response)
 
     def get_features(self, workspace_slug: str, project_id: str) -> ProjectFeature:
         """Get features of a project.
@@ -154,4 +197,3 @@ class Projects(BaseResource):
             None (HTTP 204 No Content)
         """
         self._delete(f"{workspace_slug}/projects/{project_id}/archive")
-
