@@ -133,13 +133,13 @@ class TestProjectsAPICRUD:
         self, client: PlaneClient, workspace_slug: str, project: Project
     ) -> None:
         """get_members_lite returns a paginated envelope of ProjectMember items."""
-        page = client.projects.get_members_lite(
+        paginated_members = client.projects.get_members_lite(
             workspace_slug, project.id, params=MemberListQueryParams(per_page=100)
         )
-        assert isinstance(page.results, list)
-        assert isinstance(page.total_count, int)
-        assert isinstance(page.next_page_results, bool)
-        for member in page.results:
+        assert isinstance(paginated_members.results, list)
+        assert isinstance(paginated_members.total_count, int)
+        assert isinstance(paginated_members.next_page_results, bool)
+        for member in paginated_members.results:
             assert isinstance(member, ProjectMember)
 
     def test_get_features(self, client: PlaneClient, workspace_slug: str, project: Project) -> None:

@@ -48,13 +48,13 @@ class TestWorkspacesAPI:
 
     def test_get_members_lite_paginated(self, client: PlaneClient, workspace_slug: str) -> None:
         """get_members_lite returns a paginated envelope of WorkspaceMember items."""
-        page = client.workspaces.get_members_lite(
+        paginated_members = client.workspaces.get_members_lite(
             workspace_slug, params=MemberListQueryParams(per_page=100)
         )
-        assert isinstance(page.results, list)
-        assert isinstance(page.total_count, int)
-        assert isinstance(page.next_page_results, bool)
-        for member in page.results:
+        assert isinstance(paginated_members.results, list)
+        assert isinstance(paginated_members.total_count, int)
+        assert isinstance(paginated_members.next_page_results, bool)
+        for member in paginated_members.results:
             assert isinstance(member, WorkspaceMember)
 
     def test_get_features(self, client: PlaneClient, workspace_slug: str) -> None:
