@@ -1,6 +1,7 @@
 """Unit tests for Workspaces API resource (smoke tests with real HTTP requests)."""
 
 from plane.client import PlaneClient
+from plane.models.query_params import MemberQueryParams
 from plane.models.workspaces import WorkspaceMember
 
 
@@ -17,6 +18,35 @@ class TestWorkspacesAPI:
             assert hasattr(member, "display_name")
             assert hasattr(member, "role")
             assert hasattr(member, "role_slug")
+
+    def test_get_members_filter_is_active(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Filtering by is_active should only return active members."""
+        members = client.workspaces.get_members(
+            workspace_slug, params=MemberQueryParams(is_active=True)
+        )
+        assert isinstance(members, list)
+        for member in members:
+            assert isinstance(member, WorkspaceMember)
+            # is_active may be omitted by older servers; when present it must match
+            if member.is_active is not None:
+                assert member.is_active is True
+
+    def test_get_members_filter_display_name(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Filtering by a substring of an existing member's display name returns that member."""
+        all_members = client.workspaces.get_members(workspace_slug)
+        named = next((m for m in all_members if m.display_name), None)
+        if named is None:
+            return
+        fragment = named.display_name[: max(1, len(named.display_name) // 2)]
+        filtered = client.workspaces.get_members(
+            workspace_slug, params=MemberQueryParams(display_name=fragment)
+        )
+        assert isinstance(filtered, list)
+        assert any(m.id == named.id for m in filtered)
 
     def test_get_features(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test getting workspace features."""

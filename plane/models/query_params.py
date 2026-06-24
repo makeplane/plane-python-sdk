@@ -90,6 +90,37 @@ class RetrieveQueryParams(BaseQueryParams):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
 
+class MemberQueryParams(BaseQueryParams):
+    """Query parameters for workspace/project member list endpoints.
+
+    Inherits the documented query parameters from BaseQueryParams (expand,
+    fields, external_id, external_source, order_by) and adds member-specific
+    filters. Text filters match case-insensitively on a substring; ``role_slug``
+    matches exactly. Boolean filters narrow by membership/account flags.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    # text filters
+    first_name: str | None = Field(
+        None, description="Filter by member first name (case-insensitive contains)"
+    )
+    last_name: str | None = Field(
+        None, description="Filter by member last name (case-insensitive contains)"
+    )
+    email: str | None = Field(
+        None, description="Filter by member email (case-insensitive contains)"
+    )
+    display_name: str | None = Field(
+        None, description="Filter by member display name (case-insensitive contains)"
+    )
+    role_slug: str | None = Field(None, description="Filter by role slug (exact match)")
+
+    # boolean filters
+    is_active: bool | None = Field(None, description="Filter by active membership status")
+    is_bot: bool | None = Field(None, description="Filter by bot accounts")
+
+
 WorkItemCountGroupBy = Literal[
     "state_id",
     "state__group",
@@ -155,6 +186,7 @@ class WorkItemCountQueryParams(BaseModel):
 
 __all__ = [
     "BaseQueryParams",
+    "MemberQueryParams",
     "PaginatedQueryParams",
     "RetrieveQueryParams",
     "WorkItemCountGroupBy",

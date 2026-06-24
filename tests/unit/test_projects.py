@@ -6,7 +6,7 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.projects import CreateProject, Project, ProjectMember, UpdateProject
-from plane.models.query_params import PaginatedQueryParams
+from plane.models.query_params import MemberQueryParams, PaginatedQueryParams
 
 
 class TestProjectsAPI:
@@ -102,6 +102,28 @@ class TestProjectsAPICRUD:
             assert hasattr(member, "role_slug")
             assert hasattr(member, "id")
             assert hasattr(member, "email")
+
+    def test_get_members_typed_filter(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """get_members accepts a typed MemberQueryParams and filters by is_active."""
+        members = client.projects.get_members(
+            workspace_slug, project.id, params=MemberQueryParams(is_active=True)
+        )
+        assert isinstance(members, list)
+        for member in members:
+            assert isinstance(member, ProjectMember)
+
+    def test_get_members_dict_filter_backcompat(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """get_members still accepts a raw mapping for backward compatibility."""
+        members = client.projects.get_members(
+            workspace_slug, project.id, params={"is_active": True}
+        )
+        assert isinstance(members, list)
+        for member in members:
+            assert isinstance(member, ProjectMember)
 
     def test_get_features(self, client: PlaneClient, workspace_slug: str, project: Project) -> None:
         """Test getting project features."""

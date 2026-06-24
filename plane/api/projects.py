@@ -12,7 +12,7 @@ from ..models.projects import (
     ProjectWorklogSummary,
     UpdateProject,
 )
-from ..models.query_params import PaginatedQueryParams
+from ..models.query_params import MemberQueryParams, PaginatedQueryParams
 from .base_resource import BaseResource
 
 
@@ -86,7 +86,10 @@ class Projects(BaseResource):
         return [ProjectWorklogSummary.model_validate(item) for item in response]
 
     def get_members(
-        self, workspace_slug: str, project_id: str, params: Mapping[str, Any] | None = None
+        self,
+        workspace_slug: str,
+        project_id: str,
+        params: MemberQueryParams | Mapping[str, Any] | None = None,
     ) -> list[ProjectMember]:
         """Get all members of a project.
 
@@ -96,8 +99,11 @@ class Projects(BaseResource):
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
-            params: Optional query parameters
+            params: Optional query parameters. Accepts a ``MemberQueryParams``
+                instance for typed filtering/ordering, or a raw mapping.
         """
+        if isinstance(params, MemberQueryParams):
+            params = params.model_dump(exclude_none=True)
         response = self._get(f"{workspace_slug}/projects/{project_id}/members", params=params)
         return [ProjectMember.model_validate(item) for item in response or []]
 
@@ -154,4 +160,3 @@ class Projects(BaseResource):
             None (HTTP 204 No Content)
         """
         self._delete(f"{workspace_slug}/projects/{project_id}/archive")
-

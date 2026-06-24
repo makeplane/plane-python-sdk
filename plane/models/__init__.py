@@ -15,6 +15,7 @@ from .enums import (
 )
 from .query_params import (
     BaseQueryParams,
+    MemberQueryParams,
     PaginatedQueryParams,
     RetrieveQueryParams,
     WorkItemQueryParams,
@@ -37,6 +38,7 @@ __all__ = [
     "IntakeWorkItemStatusEnum",
     # query params
     "BaseQueryParams",
+    "MemberQueryParams",
     "PaginatedQueryParams",
     "RetrieveQueryParams",
     "WorkItemQueryParams",

@@ -13,16 +13,18 @@ class WorkspaceMember(UserLite):
 
     role: int | None = None
     role_slug: str | None = None
+    is_active: bool | None = None
+    is_bot: bool | None = None
 
 
 class WorkspaceFeature(BaseModel):
-  """Workspace feature model."""
+    """Workspace feature model."""
 
-  model_config = ConfigDict(extra="allow", populate_by_name=True)
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-  project_grouping: bool
-  initiatives: bool
-  teams: bool
-  customers: bool
-  wiki: bool
-  pi: bool
+    project_grouping: bool
+    initiatives: bool
+    teams: bool
+    customers: bool
+    wiki: bool
+    pi: bool

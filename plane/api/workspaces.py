@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..models.query_params import MemberQueryParams
 from ..models.workspaces import WorkspaceFeature, WorkspaceMember
 from .base_resource import BaseResource
 
@@ -11,7 +12,7 @@ class Workspaces(BaseResource):
         super().__init__(config, "/workspaces/")
 
     def get_members(
-        self, workspace_slug: str
+        self, workspace_slug: str, params: MemberQueryParams | None = None
     ) -> list[WorkspaceMember]:
         """Get all members of a workspace.
 
@@ -20,8 +21,12 @@ class Workspaces(BaseResource):
 
         Args:
             workspace_slug: The workspace slug identifier
+            params: Optional query parameters for filtering and ordering members
         """
-        response = self._get(f"{workspace_slug}/members")
+        response = self._get(
+            f"{workspace_slug}/members",
+            params=params.model_dump(exclude_none=True) if params else None,
+        )
         return [WorkspaceMember.model_validate(item) for item in response or []]
 
     def get_features(self, workspace_slug: str) -> WorkspaceFeature:
@@ -32,7 +37,7 @@ class Workspaces(BaseResource):
         """
         response = self._get(f"{workspace_slug}/features")
         return WorkspaceFeature.model_validate(response)
-    
+
     def update_features(self, workspace_slug: str, data: WorkspaceFeature) -> WorkspaceFeature:
         """Update features of a workspace.
 
