@@ -12,6 +12,7 @@ from ..api.pages import Pages
 from ..api.project_templates import ProjectTemplates
 from ..api.projects import Projects
 from ..api.releases import Releases
+from ..api.roles import Roles
 from ..api.states import States
 from ..api.stickies import Stickies
 from ..api.teamspaces import Teamspaces
@@ -83,3 +84,4 @@ class PlaneClient:
         self.workspace_project_states = WorkspaceProjectStates(self.config)
         self.work_item_relation_definitions = WorkItemRelationDefinitions(self.config)
         self.releases = Releases(self.config)
+        self.roles = Roles(self.config)
