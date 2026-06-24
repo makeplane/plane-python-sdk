@@ -282,6 +282,30 @@ users = client.users.list()
 members = client.workspaces.get_members(workspace_slug)
 ```
 
+#### Roles
+
+```python
+# List all role definitions (workspace + project), paginated envelope
+page = client.roles.list(workspace_slug)
+for role in page.results:
+    print(role.namespace, role.slug, role.name)
+
+# Only workspace-level roles (Owner / Admin / Member / Guest)
+workspace_roles = client.roles.list(workspace_slug, namespace="workspace")
+
+# Only project-role definitions (Admin / Contributor / Commenter / Guest).
+# These are shared across every project in the workspace — there is no
+# per-project roles endpoint.
+project_roles = client.roles.list(workspace_slug, namespace="project")
+
+# Retrieve a single role by id
+role = client.roles.retrieve(workspace_slug, role_id)
+```
+
+> `slug` is the stable identifier to use in code, but it is **not** globally
+> unique (`admin`/`guest` exist in both namespaces) — key roles by
+> `(namespace, slug)` when indexing them.
+
 ### Project Management
 
 #### Projects
