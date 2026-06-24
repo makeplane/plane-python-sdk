@@ -152,6 +152,14 @@ class ProjectMember(UserLite):
     is_bot: bool | None = None
 
 
+class PaginatedProjectMemberResponse(PaginatedResponse):
+    """Paginated response for the project members-lite endpoint."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[ProjectMember]
+
+
 class ProjectFeature(BaseModel):
     """Project feature model."""
 

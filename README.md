@@ -280,6 +280,28 @@ users = client.users.list()
 ```python
 # Get workspace members
 members = client.workspaces.get_members(workspace_slug)
+
+# Filter members (all filters combine with AND; role_slug is exact, text fields
+# match case-insensitive contains)
+from plane.models.query_params import MemberQueryParams, MemberListQueryParams
+
+admins = client.workspaces.get_members(
+    workspace_slug,
+    params=MemberQueryParams(role_slug="admin", is_active=True),
+)
+
+# Paginated "lite" list — follow next_cursor until next_page_results is False
+page = client.workspaces.get_members_lite(
+    workspace_slug,
+    params=MemberListQueryParams(per_page=1000),
+)
+all_members = list(page.results)
+while page.next_page_results:
+    page = client.workspaces.get_members_lite(
+        workspace_slug,
+        params=MemberListQueryParams(per_page=1000, cursor=page.next_cursor),
+    )
+    all_members.extend(page.results)
 ```
 
 ### Project Management
@@ -321,6 +343,20 @@ worklog_summary = client.projects.get_worklog_summary(workspace_slug, project_id
 
 # Get project members
 members = client.projects.get_members(workspace_slug, project_id)
+
+# Filter project members (same filters as workspace members)
+from plane.models.query_params import MemberQueryParams, MemberListQueryParams
+
+members = client.projects.get_members(
+    workspace_slug, project_id,
+    params=MemberQueryParams(display_name="ana", is_bot=False),
+)
+
+# Paginated "lite" list
+page = client.projects.get_members_lite(
+    workspace_slug, project_id,
+    params=MemberListQueryParams(per_page=1000),
+)
 ```
 
 #### Work Items

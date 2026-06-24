@@ -120,6 +120,39 @@ class MemberQueryParams(BaseQueryParams):
     is_active: bool | None = Field(None, description="Filter by active membership status")
     is_bot: bool | None = Field(None, description="Filter by bot accounts")
 
+    def to_query_params(self) -> dict[str, Any]:
+        """Serialize to a query-param dict the member endpoints accept.
+
+        Booleans are rendered as lowercase ``"true"``/``"false"`` strings so the
+        backend's typed filter backend parses them (a Python ``True`` would be
+        encoded as ``"True"`` and rejected with HTTP 400). Unset fields are
+        dropped so they never reach the query string.
+        """
+        raw = self.model_dump(exclude_none=True)
+        return {k: (str(v).lower() if isinstance(v, bool) else v) for k, v in raw.items()}
+
+
+class MemberListQueryParams(MemberQueryParams):
+    """Query parameters for the paginated member-lite list endpoints.
+
+    Adds cursor pagination to the :class:`MemberQueryParams` filters. The lite
+    endpoints default to and cap ``per_page`` at 1000.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    cursor: str | None = Field(
+        None,
+        description='Pagination cursor of the form "{per_page}:{page}:{offset}", '
+        "e.g. 100:0:0. Use the response's next_cursor to fetch the next page.",
+    )
+    per_page: int | None = Field(
+        None,
+        description="Number of results per page (default and max 1000)",
+        ge=1,
+        le=1000,
+    )
+
 
 WorkItemCountGroupBy = Literal[
     "state_id",
@@ -147,7 +180,8 @@ class WorkItemCountQueryParams(BaseModel):
 
     Always returns a grouped envelope matching :class:`~plane.models.work_items.WorkItemGroupedCountResponse`.
     When ``group_by`` is omitted, ``grouped_counts`` is empty and ``total_count`` holds the overall count.
-    When ``group_by`` is provided, ``grouped_counts`` contains per-group counts, optionally nested when ``sub_group_by`` is also provided."""
+    When ``group_by`` is provided, ``grouped_counts`` contains per-group counts, optionally nested when ``sub_group_by`` is also provided.
+    """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
@@ -186,6 +220,7 @@ class WorkItemCountQueryParams(BaseModel):
 
 __all__ = [
     "BaseQueryParams",
+    "MemberListQueryParams",
     "MemberQueryParams",
     "PaginatedQueryParams",
     "RetrieveQueryParams",

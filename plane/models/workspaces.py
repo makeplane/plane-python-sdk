@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
+from .pagination import PaginatedResponse
 from .users import UserLite
 
 
@@ -15,6 +16,14 @@ class WorkspaceMember(UserLite):
     role_slug: str | None = None
     is_active: bool | None = None
     is_bot: bool | None = None
+
+
+class PaginatedWorkspaceMemberResponse(PaginatedResponse):
+    """Paginated response for the workspace members-lite endpoint."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[WorkspaceMember]
 
 
 class WorkspaceFeature(BaseModel):
