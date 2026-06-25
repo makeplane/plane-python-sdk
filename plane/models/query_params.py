@@ -154,6 +154,33 @@ class MemberListQueryParams(MemberQueryParams):
     )
 
 
+class LiteListQueryParams(BaseModel):
+    """Query parameters for the read-only "lite" list endpoints.
+
+    The lite list routes (``projects-lite``, ``cycles-lite``, ``modules-lite``)
+    support only ordering and cursor pagination -- they expose no field filters.
+    ``per_page`` defaults to and caps at 1000 on the server.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    cursor: str | None = Field(
+        None,
+        description='Pagination cursor of the form "{per_page}:{page}:{offset}", '
+        "e.g. 1000:0:0. Use the response's next_cursor to fetch the next page.",
+    )
+    per_page: int | None = Field(
+        None,
+        description="Number of results per page (default and max 1000)",
+        ge=1,
+        le=1000,
+    )
+    order_by: str | None = Field(
+        None,
+        description="Field to order results by. Prefix with '-' for descending order",
+    )
+
+
 WorkItemCountGroupBy = Literal[
     "state_id",
     "state__group",
@@ -220,6 +247,7 @@ class WorkItemCountQueryParams(BaseModel):
 
 __all__ = [
     "BaseQueryParams",
+    "LiteListQueryParams",
     "MemberListQueryParams",
     "MemberQueryParams",
     "PaginatedQueryParams",

@@ -5,8 +5,9 @@ from datetime import datetime
 import pytest
 
 from plane.client import PlaneClient
-from plane.models.cycles import CreateCycle, UpdateCycle
+from plane.models.cycles import CreateCycle, CycleLite, UpdateCycle
 from plane.models.projects import Project, ProjectFeature
+from plane.models.query_params import LiteListQueryParams
 
 
 class TestCyclesAPI:
@@ -21,6 +22,19 @@ class TestCyclesAPI:
         assert hasattr(response, "results")
         assert hasattr(response, "count")
         assert isinstance(response.results, list)
+
+    def test_list_lite(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """list_lite returns a paginated envelope of CycleLite items."""
+        params = LiteListQueryParams(per_page=5, order_by="-created_at")
+        response = client.cycles.list_lite(workspace_slug, project.id, params=params)
+        assert isinstance(response.results, list)
+        assert isinstance(response.total_count, int)
+        assert isinstance(response.next_page_results, bool)
+        assert len(response.results) <= 5
+        for cycle in response.results:
+            assert isinstance(cycle, CycleLite)
 
     def test_list_archived_cycles(
         self, client: PlaneClient, workspace_slug: str, project: Project

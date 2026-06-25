@@ -141,6 +141,14 @@ class PaginatedCycleResponse(PaginatedResponse):
     results: list[Cycle]
 
 
+class PaginatedCycleLiteResponse(PaginatedResponse):
+    """Paginated response for the cycles-lite endpoint."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[CycleLite]
+
+
 class PaginatedArchivedCycleResponse(PaginatedResponse):
     """Paginated response for archived cycles."""
 

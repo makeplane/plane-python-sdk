@@ -5,6 +5,7 @@ from typing import Any
 
 from ..models.projects import (
     CreateProject,
+    PaginatedProjectLiteResponse,
     PaginatedProjectMemberResponse,
     PaginatedProjectResponse,
     Project,
@@ -14,6 +15,7 @@ from ..models.projects import (
     UpdateProject,
 )
 from ..models.query_params import (
+    LiteListQueryParams,
     MemberListQueryParams,
     MemberQueryParams,
     PaginatedQueryParams,
@@ -79,6 +81,25 @@ class Projects(BaseResource):
         query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(f"{workspace_slug}/projects", params=query_params)
         return PaginatedProjectResponse.model_validate(response)
+
+    def list_lite(
+        self, workspace_slug: str, params: LiteListQueryParams | None = None
+    ) -> PaginatedProjectLiteResponse:
+        """List projects as a paginated "lite" response.
+
+        Calls the read-only ``/projects-lite/`` endpoint, which returns a
+        field-trimmed shape (id, identifier, name, cover_image, icon_prop,
+        emoji, description, cover_image_url) suitable for pickers and reference
+        lookups. Only ordering and cursor pagination are supported -- there are
+        no field filters. ``per_page`` defaults to and caps at 1000.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            params: Optional ordering + cursor pagination query parameters
+        """
+        query_params = params.model_dump(exclude_none=True) if params else None
+        response = self._get(f"{workspace_slug}/projects-lite", params=query_params)
+        return PaginatedProjectLiteResponse.model_validate(response)
 
     def get_worklog_summary(self, workspace_slug: str, project_id: str) -> [ProjectWorklogSummary]:
         """Get work log summary for a project.

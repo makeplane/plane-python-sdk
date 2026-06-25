@@ -132,6 +132,14 @@ class PaginatedModuleResponse(PaginatedResponse):
     results: list[Module]
 
 
+class PaginatedModuleLiteResponse(PaginatedResponse):
+    """Paginated response for the modules-lite endpoint."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[ModuleLite]
+
+
 class PaginatedArchivedModuleResponse(PaginatedResponse):
     """Paginated response for archived modules."""
 

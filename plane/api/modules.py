@@ -5,11 +5,12 @@ from ..models.modules import (
     CreateModule,
     Module,
     PaginatedArchivedModuleResponse,
+    PaginatedModuleLiteResponse,
     PaginatedModuleResponse,
     PaginatedModuleWorkItemResponse,
     UpdateModule,
 )
-from ..models.query_params import WorkItemQueryParams
+from ..models.query_params import LiteListQueryParams, WorkItemQueryParams
 from .base_resource import BaseResource
 from .work_items.base import prepare_work_item_params
 
@@ -82,6 +83,31 @@ class Modules(BaseResource):
         """
         response = self._get(f"{workspace_slug}/projects/{project_id}/modules", params=params)
         return PaginatedModuleResponse.model_validate(response)
+
+    def list_lite(
+        self,
+        workspace_slug: str,
+        project_id: str,
+        params: LiteListQueryParams | None = None,
+    ) -> PaginatedModuleLiteResponse:
+        """List modules as a paginated "lite" response.
+
+        Calls the read-only ``/modules-lite/`` endpoint, which returns the full
+        module field set minus the issue-count metric annotations (total_issues,
+        completed_issues, etc.), suitable for pickers and reference lookups.
+        Only ordering and cursor pagination are supported -- there are no field
+        filters. ``per_page`` defaults to and caps at 1000.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            params: Optional ordering + cursor pagination query parameters
+        """
+        query_params = params.model_dump(exclude_none=True) if params else None
+        response = self._get(
+            f"{workspace_slug}/projects/{project_id}/modules-lite", params=query_params
+        )
+        return PaginatedModuleLiteResponse.model_validate(response)
 
     def list_archived(
         self, workspace_slug: str, project_id: str, params: Mapping[str, Any] | None = None

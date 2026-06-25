@@ -5,8 +5,15 @@ from datetime import datetime
 import pytest
 
 from plane.client import PlaneClient
-from plane.models.projects import CreateProject, Project, ProjectMember, UpdateProject
+from plane.models.projects import (
+    CreateProject,
+    Project,
+    ProjectLite,
+    ProjectMember,
+    UpdateProject,
+)
 from plane.models.query_params import (
+    LiteListQueryParams,
     MemberListQueryParams,
     MemberQueryParams,
     PaginatedQueryParams,
@@ -30,6 +37,24 @@ class TestProjectsAPI:
         response = client.projects.list(workspace_slug, params=params)
         assert response is not None
         assert hasattr(response, "results")
+        assert len(response.results) <= 5
+
+    def test_list_lite(self, client: PlaneClient, workspace_slug: str) -> None:
+        """list_lite returns a paginated envelope of ProjectLite items."""
+        response = client.projects.list_lite(workspace_slug)
+        assert isinstance(response.results, list)
+        assert isinstance(response.total_count, int)
+        assert isinstance(response.next_page_results, bool)
+        for project in response.results:
+            assert isinstance(project, ProjectLite)
+            assert project.name is not None
+            assert project.identifier is not None
+
+    def test_list_lite_with_params(self, client: PlaneClient, workspace_slug: str) -> None:
+        """list_lite honors ordering + cursor pagination params."""
+        params = LiteListQueryParams(per_page=5, order_by="-created_at")
+        response = client.projects.list_lite(workspace_slug, params=params)
+        assert isinstance(response.results, list)
         assert len(response.results) <= 5
 
 
