@@ -11,7 +11,7 @@ from ..models.cycles import (
     TransferCycleWorkItemsRequest,
     UpdateCycle,
 )
-from ..models.query_params import LiteListQueryParams, WorkItemQueryParams
+from ..models.query_params import CycleLiteListQueryParams, WorkItemQueryParams
 from .base_resource import BaseResource
 from .work_items.base import prepare_work_item_params
 
@@ -89,24 +89,29 @@ class Cycles(BaseResource):
         self,
         workspace_slug: str,
         project_id: str,
-        params: LiteListQueryParams | None = None,
+        params: CycleLiteListQueryParams | None = None,
     ) -> PaginatedCycleLiteResponse:
         """List cycles as a paginated "lite" response.
 
         Calls the read-only ``/cycles-lite/`` endpoint, which returns the full
         cycle field set minus the issue-count metric annotations (total_issues,
         completed_issues, etc.), suitable for pickers and reference lookups.
-        Only ordering and cursor pagination are supported -- there are no field
-        filters. ``per_page`` defaults to and caps at 1000.
+        Supports ordering, cursor pagination, and a ``cycle_view`` status filter
+        -- there are no field filters. ``per_page`` defaults to and caps at 1000.
+
+        Unlike the full ``cycles`` list endpoint (where ``cycle_view=current``
+        returns a bare array), this endpoint always returns the paginated
+        envelope for every ``cycle_view`` value.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
-            params: Optional ordering + cursor pagination query parameters
+            params: Optional ordering + cursor pagination query parameters,
+                plus the ``cycle_view`` status filter
         """
-        query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/cycles-lite", params=query_params
+            f"{workspace_slug}/projects/{project_id}/cycles-lite",
+            params=params.to_query_params() if params else None,
         )
         return PaginatedCycleLiteResponse.model_validate(response)
 

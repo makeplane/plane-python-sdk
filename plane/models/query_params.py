@@ -4,6 +4,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .enums import CycleViewEnum
+
 
 class BaseQueryParams(BaseModel):
     """Base query parameters for API requests."""
@@ -180,6 +182,55 @@ class LiteListQueryParams(BaseModel):
         description="Field to order results by. Prefix with '-' for descending order",
     )
 
+    def to_query_params(self) -> dict[str, Any]:
+        """Serialize to a query-param dict the lite endpoints accept.
+
+        Booleans are rendered as lowercase ``"true"``/``"false"`` strings so the
+        backend parses them (a Python ``True`` would be encoded as ``"True"`` and
+        rejected). Unset fields are dropped so they never reach the query string.
+        """
+        raw = self.model_dump(exclude_none=True)
+        return {k: (str(v).lower() if isinstance(v, bool) else v) for k, v in raw.items()}
+
+
+class ProjectLiteListQueryParams(LiteListQueryParams):
+    """Query parameters for the projects-lite list endpoint.
+
+    Adds the ``include_archived`` toggle to the shared lite ordering + cursor
+    pagination params.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    include_archived: bool | None = Field(
+        None,
+        description=(
+            "Include archived projects in the results. Defaults to False on the "
+            "server, which excludes archived projects. Set True to restore the "
+            "previous behavior of listing archived projects too."
+        ),
+    )
+
+
+class CycleLiteListQueryParams(LiteListQueryParams):
+    """Query parameters for the cycles-lite list endpoint.
+
+    Adds the ``cycle_view`` status filter to the shared lite ordering + cursor
+    pagination params.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    cycle_view: CycleViewEnum | None = Field(
+        None,
+        description=(
+            "Filter cycles by status: 'current' (started, not yet ended), "
+            "'upcoming' (starts in the future), 'completed' (ended), 'draft' "
+            "(no start/end dates), or 'incomplete' (not yet finished or "
+            "open-ended). Omit to return all cycles."
+        ),
+    )
+
 
 WorkItemCountGroupBy = Literal[
     "state_id",
@@ -247,9 +298,11 @@ class WorkItemCountQueryParams(BaseModel):
 
 __all__ = [
     "BaseQueryParams",
+    "CycleLiteListQueryParams",
     "LiteListQueryParams",
     "MemberListQueryParams",
     "MemberQueryParams",
+    "ProjectLiteListQueryParams",
     "PaginatedQueryParams",
     "RetrieveQueryParams",
     "WorkItemCountGroupBy",

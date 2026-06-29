@@ -103,9 +103,9 @@ class Modules(BaseResource):
             project_id: UUID of the project
             params: Optional ordering + cursor pagination query parameters
         """
-        query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/modules-lite", params=query_params
+            f"{workspace_slug}/projects/{project_id}/modules-lite",
+            params=params.to_query_params() if params else None,
         )
         return PaginatedModuleLiteResponse.model_validate(response)
 

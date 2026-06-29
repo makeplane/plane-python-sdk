@@ -293,6 +293,13 @@ while paginated_members.next_page_results:
         params=MemberListQueryParams(per_page=1000, cursor=paginated_members.next_cursor),
     )
     all_members.extend(paginated_members.results)
+
+# Project-role distribution — member counts per role across all active
+# (non-archived) projects in the workspace (built-in + custom roles)
+distribution = client.workspaces.get_project_role_distribution(workspace_slug)
+print(distribution.total_memberships, distribution.total_distinct_members)
+for role in distribution.roles:
+    print(role.slug, role.membership_count, role.distinct_member_count)
 ```
 
 #### Roles
@@ -371,6 +378,24 @@ members = client.projects.get_members(
 members = client.projects.get_members_lite(
     workspace_slug, project_id,
     params=MemberListQueryParams(per_page=1000),
+)
+
+# Paginated "lite" project list (id, identifier, name, icon/emoji, description,
+# cover image, archived_at) — for pickers/reference lookups.
+from plane.models.query_params import ProjectLiteListQueryParams
+
+lite = client.projects.list_lite(
+    workspace_slug,
+    params=ProjectLiteListQueryParams(per_page=1000, order_by="-created_at"),
+)
+for p in lite.results:
+    print(p.identifier, p.name)
+
+# NOTE: archived projects are now EXCLUDED by default. Pass include_archived=True
+# to restore the previous behavior of listing archived projects too.
+lite = client.projects.list_lite(
+    workspace_slug,
+    params=ProjectLiteListQueryParams(include_archived=True),
 )
 ```
 
@@ -499,6 +524,18 @@ client.cycles.delete(workspace_slug, project_id, cycle_id)
 # List archived cycles
 archived = client.cycles.list_archived(workspace_slug, project_id)
 
+# Paginated "lite" cycle list (full cycle fields minus issue-count metrics).
+# Supports a cycle_view status filter: current | upcoming | completed | draft |
+# incomplete (omit for all). Unlike the full list endpoint, this always paginates.
+from plane.models.query_params import CycleLiteListQueryParams
+
+lite = client.cycles.list_lite(
+    workspace_slug, project_id,
+    params=CycleLiteListQueryParams(cycle_view="current", per_page=1000),
+)
+for c in lite.results:
+    print(c.name)
+
 # Add work items to cycle
 from plane.models.cycles import AddWorkItemsToCycleRequest
 
@@ -556,6 +593,16 @@ client.modules.delete(workspace_slug, project_id, module_id)
 
 # List archived modules
 archived = client.modules.list_archived(workspace_slug, project_id)
+
+# Paginated "lite" module list (full module fields minus issue-count metrics)
+from plane.models.query_params import LiteListQueryParams
+
+lite = client.modules.list_lite(
+    workspace_slug, project_id,
+    params=LiteListQueryParams(per_page=1000, order_by="-created_at"),
+)
+for m in lite.results:
+    print(m.name)
 
 # Add work items to module
 from plane.models.modules import AddWorkItemsToModuleRequest

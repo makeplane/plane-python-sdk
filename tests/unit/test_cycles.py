@@ -7,7 +7,7 @@ import pytest
 from plane.client import PlaneClient
 from plane.models.cycles import CreateCycle, CycleLite, UpdateCycle
 from plane.models.projects import Project, ProjectFeature
-from plane.models.query_params import LiteListQueryParams
+from plane.models.query_params import CycleLiteListQueryParams
 
 
 class TestCyclesAPI:
@@ -27,12 +27,23 @@ class TestCyclesAPI:
         self, client: PlaneClient, workspace_slug: str, project: Project
     ) -> None:
         """list_lite returns a paginated envelope of CycleLite items."""
-        params = LiteListQueryParams(per_page=5, order_by="-created_at")
+        params = CycleLiteListQueryParams(per_page=5, order_by="-created_at")
         response = client.cycles.list_lite(workspace_slug, project.id, params=params)
         assert isinstance(response.results, list)
         assert isinstance(response.total_count, int)
         assert isinstance(response.next_page_results, bool)
         assert len(response.results) <= 5
+        for cycle in response.results:
+            assert isinstance(cycle, CycleLite)
+
+    def test_list_lite_cycle_view(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """list_lite honors the cycle_view status filter and stays paginated."""
+        params = CycleLiteListQueryParams(cycle_view="current", per_page=5)
+        response = client.cycles.list_lite(workspace_slug, project.id, params=params)
+        assert isinstance(response.results, list)
+        assert isinstance(response.total_count, int)
         for cycle in response.results:
             assert isinstance(cycle, CycleLite)
 

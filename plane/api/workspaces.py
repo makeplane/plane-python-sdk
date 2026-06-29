@@ -5,6 +5,7 @@ from typing import Any
 from ..models.query_params import MemberListQueryParams, MemberQueryParams
 from ..models.workspaces import (
     PaginatedWorkspaceMemberResponse,
+    ProjectRoleDistribution,
     WorkspaceFeature,
     WorkspaceMember,
 )
@@ -53,6 +54,19 @@ class Workspaces(BaseResource):
             params=params.to_query_params() if params else None,
         )
         return PaginatedWorkspaceMemberResponse.model_validate(response)
+
+    def get_project_role_distribution(self, workspace_slug: str) -> ProjectRoleDistribution:
+        """Get the distribution of project members by role across the workspace.
+
+        Aggregates member counts per role over all active (non-archived)
+        projects in the workspace. Both built-in roles (admin, contributor,
+        commenter, guest) and custom roles are included.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+        """
+        response = self._get(f"{workspace_slug}/project-role-distribution")
+        return ProjectRoleDistribution.model_validate(response)
 
     def get_features(self, workspace_slug: str) -> WorkspaceFeature:
         """Get features of a workspace.

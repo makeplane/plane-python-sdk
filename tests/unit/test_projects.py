@@ -13,10 +13,10 @@ from plane.models.projects import (
     UpdateProject,
 )
 from plane.models.query_params import (
-    LiteListQueryParams,
     MemberListQueryParams,
     MemberQueryParams,
     PaginatedQueryParams,
+    ProjectLiteListQueryParams,
 )
 
 
@@ -52,10 +52,20 @@ class TestProjectsAPI:
 
     def test_list_lite_with_params(self, client: PlaneClient, workspace_slug: str) -> None:
         """list_lite honors ordering + cursor pagination params."""
-        params = LiteListQueryParams(per_page=5, order_by="-created_at")
+        params = ProjectLiteListQueryParams(per_page=5, order_by="-created_at")
         response = client.projects.list_lite(workspace_slug, params=params)
         assert isinstance(response.results, list)
         assert len(response.results) <= 5
+
+    def test_list_lite_include_archived(self, client: PlaneClient, workspace_slug: str) -> None:
+        """list_lite with include_archived=True returns a valid envelope.
+
+        Archived projects are excluded by default; this opt-in restores them.
+        """
+        params = ProjectLiteListQueryParams(include_archived=True, per_page=5)
+        response = client.projects.list_lite(workspace_slug, params=params)
+        assert isinstance(response.results, list)
+        assert isinstance(response.total_count, int)
 
 
 class TestProjectsAPICRUD:

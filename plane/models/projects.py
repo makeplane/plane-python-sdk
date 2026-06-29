@@ -75,6 +75,7 @@ class ProjectLite(BaseModel):
     emoji: str | None = None
     description: str | None = None
     cover_image_url: str | None = None
+    archived_at: str | None = None
 
 
 class CreateProject(BaseModel):
