@@ -5,6 +5,7 @@ from typing import Any
 
 from ..models.projects import (
     CreateProject,
+    PaginatedProjectLiteResponse,
     PaginatedProjectMemberResponse,
     PaginatedProjectResponse,
     Project,
@@ -17,6 +18,7 @@ from ..models.query_params import (
     MemberListQueryParams,
     MemberQueryParams,
     PaginatedQueryParams,
+    ProjectLiteListQueryParams,
 )
 from .base_resource import BaseResource
 
@@ -79,6 +81,34 @@ class Projects(BaseResource):
         query_params = params.model_dump(exclude_none=True) if params else None
         response = self._get(f"{workspace_slug}/projects", params=query_params)
         return PaginatedProjectResponse.model_validate(response)
+
+    def list_lite(
+        self, workspace_slug: str, params: ProjectLiteListQueryParams | None = None
+    ) -> PaginatedProjectLiteResponse:
+        """List projects as a paginated "lite" response.
+
+        Calls the read-only ``/projects-lite/`` endpoint, which returns a
+        field-trimmed shape (id, identifier, name, cover_image, icon_prop,
+        emoji, description, cover_image_url, archived_at) suitable for pickers
+        and reference lookups. Supports ordering, cursor pagination, and an
+        ``include_archived`` toggle -- there are no field filters. ``per_page``
+        defaults to and caps at 1000.
+
+        .. note::
+            Archived projects are now **excluded** by default. Pass
+            ``ProjectLiteListQueryParams(include_archived=True)`` to restore the
+            previous behavior of listing archived projects too.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            params: Optional ordering + cursor pagination query parameters,
+                plus the ``include_archived`` toggle
+        """
+        response = self._get(
+            f"{workspace_slug}/projects-lite",
+            params=params.to_query_params() if params else None,
+        )
+        return PaginatedProjectLiteResponse.model_validate(response)
 
     def get_worklog_summary(self, workspace_slug: str, project_id: str) -> [ProjectWorklogSummary]:
         """Get work log summary for a project.

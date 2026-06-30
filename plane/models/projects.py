@@ -58,6 +58,26 @@ class Project(BaseModel):
     default_state: str | None = None
 
 
+class ProjectLite(BaseModel):
+    """Lite project information.
+
+    Trimmed shape returned by the read-only ``projects-lite`` list endpoint
+    (``ProjectLiteSerializer``), intended for pickers and reference lookups.
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str | None = None
+    identifier: str
+    name: str
+    cover_image: str | None = None
+    icon_prop: Any | None = None
+    emoji: str | None = None
+    description: str | None = None
+    cover_image_url: str | None = None
+    archived_at: str | None = None
+
+
 class CreateProject(BaseModel):
     """Request model for creating a project."""
 
@@ -136,6 +156,14 @@ class PaginatedProjectResponse(PaginatedResponse):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Project]
+
+
+class PaginatedProjectLiteResponse(PaginatedResponse):
+    """Paginated response for the projects-lite endpoint."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[ProjectLite]
 
 
 class ProjectMember(UserLite):

@@ -6,8 +6,9 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.enums import ModuleStatus
-from plane.models.modules import CreateModule, UpdateModule
+from plane.models.modules import CreateModule, ModuleLite, UpdateModule
 from plane.models.projects import Project, ProjectFeature
+from plane.models.query_params import LiteListQueryParams
 
 
 class TestModulesAPI:
@@ -22,6 +23,19 @@ class TestModulesAPI:
         assert hasattr(response, "results")
         assert hasattr(response, "count")
         assert isinstance(response.results, list)
+
+    def test_list_lite(
+        self, client: PlaneClient, workspace_slug: str, project: Project
+    ) -> None:
+        """list_lite returns a paginated envelope of ModuleLite items."""
+        params = LiteListQueryParams(per_page=5, order_by="-created_at")
+        response = client.modules.list_lite(workspace_slug, project.id, params=params)
+        assert isinstance(response.results, list)
+        assert isinstance(response.total_count, int)
+        assert isinstance(response.next_page_results, bool)
+        assert len(response.results) <= 5
+        for module in response.results:
+            assert isinstance(module, ModuleLite)
 
     def test_list_archived_modules(
         self, client: PlaneClient, workspace_slug: str, project: Project

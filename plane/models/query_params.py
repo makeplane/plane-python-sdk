@@ -4,6 +4,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .enums import CycleStatusEnum
+
 
 class BaseQueryParams(BaseModel):
     """Base query parameters for API requests."""
@@ -154,6 +156,111 @@ class MemberListQueryParams(MemberQueryParams):
     )
 
 
+class LiteListQueryParams(BaseModel):
+    """Query parameters for the read-only "lite" list endpoints.
+
+    The lite list routes (``projects-lite``, ``cycles-lite``, ``modules-lite``)
+    support only ordering and cursor pagination -- they expose no field filters.
+    ``per_page`` defaults to and caps at 1000 on the server.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    cursor: str | None = Field(
+        None,
+        description='Pagination cursor of the form "{per_page}:{page}:{offset}", '
+        "e.g. 1000:0:0. Use the response's next_cursor to fetch the next page.",
+    )
+    per_page: int | None = Field(
+        None,
+        description="Number of results per page (default and max 1000)",
+        ge=1,
+        le=1000,
+    )
+    order_by: str | None = Field(
+        None,
+        description="Field to order results by. Prefix with '-' for descending order",
+    )
+
+    def to_query_params(self) -> dict[str, Any]:
+        """Serialize to a query-param dict the lite endpoints accept.
+
+        Booleans are rendered as lowercase ``"true"``/``"false"`` strings so the
+        backend parses them (a Python ``True`` would be encoded as ``"True"`` and
+        rejected). Unset fields are dropped so they never reach the query string.
+        """
+        raw = self.model_dump(exclude_none=True)
+        return {k: (str(v).lower() if isinstance(v, bool) else v) for k, v in raw.items()}
+
+
+class ProjectLiteListQueryParams(LiteListQueryParams):
+    """Query parameters for the projects-lite list endpoint.
+
+    Adds the ``include_archived`` toggle to the shared lite ordering + cursor
+    pagination params.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    include_archived: bool | None = Field(
+        None,
+        description=(
+            "Include archived projects in the results. Defaults to False on the "
+            "server, which excludes archived projects. Set True to restore the "
+            "previous behavior of listing archived projects too."
+        ),
+    )
+
+
+_CYCLE_STATUS_DESCRIPTION = (
+    "Filter cycles by status: 'current' (started, not yet ended), 'upcoming' "
+    "(starts in the future), 'completed' (ended), 'draft' (no start/end dates), "
+    "or 'incomplete' (not yet finished or open-ended). Omit to return all cycles."
+)
+
+
+class CycleLiteListQueryParams(LiteListQueryParams):
+    """Query parameters for the cycles-lite list endpoint.
+
+    Adds the ``status`` filter to the shared lite ordering + cursor pagination
+    params. Unlike the full cycles list, the lite endpoint accepts only
+    ``status`` (no ``cycle_view`` alias) and always returns a paginated envelope.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    status: CycleStatusEnum | None = Field(None, description=_CYCLE_STATUS_DESCRIPTION)
+
+
+class CycleListQueryParams(PaginatedQueryParams):
+    """Query parameters for the full cycles list endpoint.
+
+    Adds cycle status filtering on top of the standard pagination params.
+    ``status`` is the canonical filter; ``cycle_view`` is a deprecated alias kept
+    for backward compatibility. If both are sent, the server uses ``status`` and
+    ignores ``cycle_view``.
+
+    Note: with ``status=current`` (or ``cycle_view=current``) the server returns
+    a bare array of cycles rather than the paginated envelope returned for all
+    other values. :meth:`~plane.api.cycles.Cycles.list` handles both shapes.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    status: CycleStatusEnum | None = Field(None, description=_CYCLE_STATUS_DESCRIPTION)
+    cycle_view: CycleStatusEnum | None = Field(
+        None,
+        description=(
+            "Deprecated alias for ``status``, kept for backward compatibility. "
+            "Prefer ``status``; if both are supplied the server uses ``status``."
+        ),
+    )
+
+    def to_query_params(self) -> dict[str, Any]:
+        """Serialize to a query-param dict, dropping unset fields."""
+        return self.model_dump(exclude_none=True)
+
+
 WorkItemCountGroupBy = Literal[
     "state_id",
     "state__group",
@@ -220,8 +327,12 @@ class WorkItemCountQueryParams(BaseModel):
 
 __all__ = [
     "BaseQueryParams",
+    "CycleLiteListQueryParams",
+    "CycleListQueryParams",
+    "LiteListQueryParams",
     "MemberListQueryParams",
     "MemberQueryParams",
+    "ProjectLiteListQueryParams",
     "PaginatedQueryParams",
     "RetrieveQueryParams",
     "WorkItemCountGroupBy",

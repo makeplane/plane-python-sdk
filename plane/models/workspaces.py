@@ -37,3 +37,31 @@ class WorkspaceFeature(BaseModel):
     customers: bool
     wiki: bool
     pi: bool
+
+
+class ProjectRoleDistributionEntry(BaseModel):
+    """Per-role membership counts within a workspace's project-role distribution."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    role_id: str | None = None
+    name: str | None = None
+    slug: str | None = None
+    is_system: bool | None = None
+    level: int | None = None
+    membership_count: int | None = None
+    distinct_member_count: int | None = None
+
+
+class ProjectRoleDistribution(BaseModel):
+    """Aggregate count of project members by role across a workspace.
+
+    Counts span all active (non-archived) projects in the workspace and include
+    both built-in roles (admin, contributor, commenter, guest) and custom roles.
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    total_memberships: int | None = None
+    total_distinct_members: int | None = None
+    roles: list[ProjectRoleDistributionEntry] = []

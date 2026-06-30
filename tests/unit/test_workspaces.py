@@ -2,7 +2,7 @@
 
 from plane.client import PlaneClient
 from plane.models.query_params import MemberListQueryParams, MemberQueryParams
-from plane.models.workspaces import WorkspaceMember
+from plane.models.workspaces import ProjectRoleDistributionEntry, WorkspaceMember
 
 
 class TestWorkspacesAPI:
@@ -56,6 +56,18 @@ class TestWorkspacesAPI:
         assert isinstance(paginated_members.next_page_results, bool)
         for member in paginated_members.results:
             assert isinstance(member, WorkspaceMember)
+
+    def test_get_project_role_distribution(self, client: PlaneClient, workspace_slug: str) -> None:
+        """get_project_role_distribution returns aggregate role counts."""
+        distribution = client.workspaces.get_project_role_distribution(workspace_slug)
+        assert isinstance(distribution.total_memberships, int)
+        assert isinstance(distribution.total_distinct_members, int)
+        assert isinstance(distribution.roles, list)
+        for entry in distribution.roles:
+            assert isinstance(entry, ProjectRoleDistributionEntry)
+            assert hasattr(entry, "slug")
+            assert hasattr(entry, "membership_count")
+            assert hasattr(entry, "distinct_member_count")
 
     def test_get_features(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test getting workspace features."""
