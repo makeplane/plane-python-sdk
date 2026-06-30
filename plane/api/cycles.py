@@ -11,7 +11,11 @@ from ..models.cycles import (
     TransferCycleWorkItemsRequest,
     UpdateCycle,
 )
-from ..models.query_params import CycleLiteListQueryParams, WorkItemQueryParams
+from ..models.query_params import (
+    CycleListQueryParams,
+    CycleLiteListQueryParams,
+    WorkItemQueryParams,
+)
 from .base_resource import BaseResource
 from .work_items.base import prepare_work_item_params
 
@@ -73,16 +77,39 @@ class Cycles(BaseResource):
         return self._delete(f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}")
 
     def list(
-        self, workspace_slug: str, project_id: str, params: Mapping[str, Any] | None = None
-    ) -> PaginatedCycleResponse:
+        self,
+        workspace_slug: str,
+        project_id: str,
+        params: CycleListQueryParams | Mapping[str, Any] | None = None,
+    ) -> PaginatedCycleResponse | list[Cycle]:
         """List cycles with optional filtering parameters.
+
+        Supports cycle status filtering via :class:`CycleListQueryParams`. Pass
+        ``status`` (canonical) or the deprecated ``cycle_view`` alias with one of
+        ``current``, ``upcoming``, ``completed``, ``draft``, ``incomplete``; if
+        both are supplied the server uses ``status``.
+
+        .. note::
+            With ``status=current`` (or ``cycle_view=current``) the server
+            returns a **bare list** of :class:`Cycle` objects instead of the
+            paginated :class:`PaginatedCycleResponse` envelope returned for all
+            other values. This method returns whichever shape the server sends.
+            The :meth:`list_lite` endpoint always paginates, even for
+            ``status=current``.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
-            params: Optional query parameters
+            params: Optional query parameters. Prefer ``CycleListQueryParams``;
+                a plain mapping is also accepted for backwards compatibility.
         """
-        response = self._get(f"{workspace_slug}/projects/{project_id}/cycles", params=params)
+        if isinstance(params, CycleListQueryParams):
+            query_params: Mapping[str, Any] | None = params.to_query_params()
+        else:
+            query_params = params
+        response = self._get(f"{workspace_slug}/projects/{project_id}/cycles", params=query_params)
+        if isinstance(response, list):
+            return [Cycle.model_validate(item) for item in response]
         return PaginatedCycleResponse.model_validate(response)
 
     def list_lite(
@@ -96,18 +123,20 @@ class Cycles(BaseResource):
         Calls the read-only ``/cycles-lite/`` endpoint, which returns the full
         cycle field set minus the issue-count metric annotations (total_issues,
         completed_issues, etc.), suitable for pickers and reference lookups.
-        Supports ordering, cursor pagination, and a ``cycle_view`` status filter
-        -- there are no field filters. ``per_page`` defaults to and caps at 1000.
+        Supports ordering, cursor pagination, and a ``status`` filter -- there
+        are no field filters. ``per_page`` defaults to and caps at 1000. Unlike
+        the full cycles list, the lite endpoint accepts only ``status`` (no
+        ``cycle_view`` alias).
 
-        Unlike the full ``cycles`` list endpoint (where ``cycle_view=current``
+        Unlike the full ``cycles`` list endpoint (where ``status=current``
         returns a bare array), this endpoint always returns the paginated
-        envelope for every ``cycle_view`` value.
+        envelope for every ``status`` value.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             params: Optional ordering + cursor pagination query parameters,
-                plus the ``cycle_view`` status filter
+                plus the ``status`` filter
         """
         response = self._get(
             f"{workspace_slug}/projects/{project_id}/cycles-lite",

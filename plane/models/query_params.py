@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .enums import CycleViewEnum
+from .enums import CycleStatusEnum
 
 
 class BaseQueryParams(BaseModel):
@@ -212,24 +212,53 @@ class ProjectLiteListQueryParams(LiteListQueryParams):
     )
 
 
+_CYCLE_STATUS_DESCRIPTION = (
+    "Filter cycles by status: 'current' (started, not yet ended), 'upcoming' "
+    "(starts in the future), 'completed' (ended), 'draft' (no start/end dates), "
+    "or 'incomplete' (not yet finished or open-ended). Omit to return all cycles."
+)
+
+
 class CycleLiteListQueryParams(LiteListQueryParams):
     """Query parameters for the cycles-lite list endpoint.
 
-    Adds the ``cycle_view`` status filter to the shared lite ordering + cursor
-    pagination params.
+    Adds the ``status`` filter to the shared lite ordering + cursor pagination
+    params. Unlike the full cycles list, the lite endpoint accepts only
+    ``status`` (no ``cycle_view`` alias) and always returns a paginated envelope.
     """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    cycle_view: CycleViewEnum | None = Field(
+    status: CycleStatusEnum | None = Field(None, description=_CYCLE_STATUS_DESCRIPTION)
+
+
+class CycleListQueryParams(PaginatedQueryParams):
+    """Query parameters for the full cycles list endpoint.
+
+    Adds cycle status filtering on top of the standard pagination params.
+    ``status`` is the canonical filter; ``cycle_view`` is a deprecated alias kept
+    for backward compatibility. If both are sent, the server uses ``status`` and
+    ignores ``cycle_view``.
+
+    Note: with ``status=current`` (or ``cycle_view=current``) the server returns
+    a bare array of cycles rather than the paginated envelope returned for all
+    other values. :meth:`~plane.api.cycles.Cycles.list` handles both shapes.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    status: CycleStatusEnum | None = Field(None, description=_CYCLE_STATUS_DESCRIPTION)
+    cycle_view: CycleStatusEnum | None = Field(
         None,
         description=(
-            "Filter cycles by status: 'current' (started, not yet ended), "
-            "'upcoming' (starts in the future), 'completed' (ended), 'draft' "
-            "(no start/end dates), or 'incomplete' (not yet finished or "
-            "open-ended). Omit to return all cycles."
+            "Deprecated alias for ``status``, kept for backward compatibility. "
+            "Prefer ``status``; if both are supplied the server uses ``status``."
         ),
     )
+
+    def to_query_params(self) -> dict[str, Any]:
+        """Serialize to a query-param dict, dropping unset fields."""
+        return self.model_dump(exclude_none=True)
 
 
 WorkItemCountGroupBy = Literal[
@@ -299,6 +328,7 @@ class WorkItemCountQueryParams(BaseModel):
 __all__ = [
     "BaseQueryParams",
     "CycleLiteListQueryParams",
+    "CycleListQueryParams",
     "LiteListQueryParams",
     "MemberListQueryParams",
     "MemberQueryParams",

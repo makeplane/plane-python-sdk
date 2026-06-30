@@ -16,6 +16,7 @@ from .enums import (
 from .query_params import (
     BaseQueryParams,
     CycleLiteListQueryParams,
+    CycleListQueryParams,
     LiteListQueryParams,
     MemberListQueryParams,
     MemberQueryParams,
@@ -43,6 +44,7 @@ __all__ = [
     # query params
     "BaseQueryParams",
     "CycleLiteListQueryParams",
+    "CycleListQueryParams",
     "LiteListQueryParams",
     "MemberListQueryParams",
     "MemberQueryParams",

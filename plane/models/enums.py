@@ -48,7 +48,10 @@ PropertyTypeEnum = Literal[
     "FORMULA",
 ]
 RelationTypeEnum = Literal["ISSUE", "USER", "RELEASE"]
-CycleViewEnum = Literal["current", "upcoming", "completed", "draft", "incomplete"]
+CycleStatusEnum = Literal["current", "upcoming", "completed", "draft", "incomplete"]
+# Deprecated alias for CycleStatusEnum. ``status`` is the canonical cycle filter
+# going forward; ``cycle_view`` is kept only for backward compatibility.
+CycleViewEnum = CycleStatusEnum
 
 
 # Proper Enum classes for better type safety and IDE support
@@ -582,6 +585,7 @@ __all__ = [
     "PriorityEnum",
     "PropertyTypeEnum",
     "RelationTypeEnum",
+    "CycleStatusEnum",
     "CycleViewEnum",
     "TimezoneEnum",
     "TypeMimeEnum",

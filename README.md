@@ -507,6 +507,26 @@ cycle = client.cycles.create(
 # List cycles
 cycles = client.cycles.list(workspace_slug, project_id)
 
+# Filter cycles by status: current | upcoming | completed | draft | incomplete.
+# `status` is canonical; `cycle_view` is a deprecated alias (status wins if both set).
+from plane.models.query_params import CycleListQueryParams
+
+upcoming = client.cycles.list(
+    workspace_slug, project_id,
+    params=CycleListQueryParams(status="upcoming"),
+)
+for c in upcoming.results:  # paginated envelope
+    print(c.name)
+
+# NOTE: status="current" is a special case — the API returns a BARE LIST of cycles
+# (not the paginated envelope). list() returns whichever shape the server sends.
+current = client.cycles.list(
+    workspace_slug, project_id,
+    params=CycleListQueryParams(status="current"),
+)
+for c in current:  # plain list[Cycle]
+    print(c.name)
+
 # Retrieve a cycle
 cycle = client.cycles.retrieve(workspace_slug, project_id, cycle_id)
 
@@ -525,13 +545,14 @@ client.cycles.delete(workspace_slug, project_id, cycle_id)
 archived = client.cycles.list_archived(workspace_slug, project_id)
 
 # Paginated "lite" cycle list (full cycle fields minus issue-count metrics).
-# Supports a cycle_view status filter: current | upcoming | completed | draft |
-# incomplete (omit for all). Unlike the full list endpoint, this always paginates.
+# Supports a status filter: current | upcoming | completed | draft | incomplete
+# (omit for all). The lite endpoint takes only `status` (no `cycle_view` alias)
+# and ALWAYS paginates — even for status="current".
 from plane.models.query_params import CycleLiteListQueryParams
 
 lite = client.cycles.list_lite(
     workspace_slug, project_id,
-    params=CycleLiteListQueryParams(cycle_view="current", per_page=1000),
+    params=CycleLiteListQueryParams(status="current", per_page=1000),
 )
 for c in lite.results:
     print(c.name)
