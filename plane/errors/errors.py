@@ -95,3 +95,18 @@ class HttpError(PlaneError):
             f"{type(self).__name__}(message={super().__str__()!r}, "
             f"status_code={self.status_code!r}, response={self.response!r})"
         )
+
+
+class WorkloadParentHasChildrenError(HttpError):
+    """Raised by ``Workload.update_estimate`` when the target work item has
+    one or more countable sub-items.
+
+    Workload estimates can only be set on leaf work items — a parent's
+    aggregate is surfaced via ``Workload.list_rollups`` /
+    ``WorkloadEstimateDetail.rollup`` instead. The underlying HTTP response
+    always carries ``{"error_code": "PARENT_HAS_CHILDREN"}``; this class
+    exposes that as :attr:`error_code` so callers can branch on it
+    programmatically instead of parsing the response body.
+    """
+
+    error_code: str = "PARENT_HAS_CHILDREN"

@@ -1,3 +1,13 @@
-from .errors import ConfigurationError, HttpError, PlaneError
+from .errors import (
+    ConfigurationError,
+    HttpError,
+    PlaneError,
+    WorkloadParentHasChildrenError,
+)
 
-__all__ = ["PlaneError", "ConfigurationError", "HttpError"]
+__all__ = [
+    "PlaneError",
+    "ConfigurationError",
+    "HttpError",
+    "WorkloadParentHasChildrenError",
+]

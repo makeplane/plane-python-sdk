@@ -21,6 +21,7 @@ from ..api.work_item_relation_definitions import WorkItemRelationDefinitions
 from ..api.work_item_types import WorkItemTypes
 from ..api.work_items import WorkItems
 from ..api.workflows import Workflows
+from ..api.workload import Workload
 from ..api.workspace_project_labels import WorkspaceProjectLabels
 from ..api.workspace_project_states import WorkspaceProjectStates
 from ..api.workspace_templates import WorkspaceTemplates
@@ -75,6 +76,7 @@ class PlaneClient:
         self.initiatives = Initiatives(self.config)
         self.teamspaces = Teamspaces(self.config)
         self.workflows = Workflows(self.config)
+        self.workload = Workload(self.config)
         self.project_templates = ProjectTemplates(self.config)
         self.workspace_templates = WorkspaceTemplates(self.config)
         self.workspace_work_item_types = WorkspaceWorkItemTypes(self.config)

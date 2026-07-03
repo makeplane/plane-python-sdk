@@ -18,6 +18,7 @@ from .api.work_item_relation_definitions import WorkItemRelationDefinitions
 from .api.work_item_types import WorkItemTypes
 from .api.work_items import WorkItems
 from .api.workflows import Workflows, WorkflowStates, WorkflowTransitions
+from .api.workload import Workload
 from .api.workspace_project_labels import WorkspaceProjectLabels
 from .api.workspace_project_states import WorkspaceProjectStates
 from .api.workspace_templates import WorkspaceTemplates
@@ -34,7 +35,12 @@ from .client import (
     PlaneClient,
 )
 from .config import Configuration
-from .errors.errors import ConfigurationError, HttpError, PlaneError
+from .errors.errors import (
+    ConfigurationError,
+    HttpError,
+    PlaneError,
+    WorkloadParentHasChildrenError,
+)
 from .models.project_templates import (
     CreatePageTemplate,
     CreateWorkItemTemplate,
@@ -80,6 +86,7 @@ __all__ = [
     "Workflows",
     "WorkflowStates",
     "WorkflowTransitions",
+    "Workload",
     "ProjectTemplates",
     "ProjectWorkItemTemplates",
     "ProjectPageTemplates",
@@ -92,6 +99,7 @@ __all__ = [
     "PlaneError",
     "ConfigurationError",
     "HttpError",
+    "WorkloadParentHasChildrenError",
     "OAuthToken",
     "OAuthAuthorizationParams",
     "OAuthTokenExchangeParams",
