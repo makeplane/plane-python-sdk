@@ -53,8 +53,12 @@ class WorkItemDetail(BaseModel):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str | None = None
-    assignees: list[UserLite] = Field(default_factory=list)
-    labels: list[Label] = Field(default_factory=list)
+    # The API returns these as either a list of UUID strings or a list of
+    # expanded objects (depending on ?expand=), so accept both — mirroring
+    # WorkItemExpand. A bare list[UserLite]/list[Label] rejected the string
+    # form and raised a ValidationError on retrieve().
+    assignees: list[str] | list[UserLite] = Field(default_factory=list)
+    labels: list[str] | list[Label] = Field(default_factory=list)
     type_id: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
