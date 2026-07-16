@@ -1,6 +1,8 @@
 """Unit tests for Customers API resource (smoke tests with real HTTP requests)."""
 
+import re
 import time
+import unicodedata
 import uuid
 
 import pytest
@@ -29,6 +31,12 @@ from plane.models.work_items import CreateWorkItem
 def _unique(prefix: str) -> str:
     """Build a name that will not collide with other runs."""
     return f"{prefix} {int(time.time() * 1000)}_{uuid.uuid4().hex[:6]}"
+
+
+def slugify(value: str) -> str:
+    value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    value = re.sub(r"[^\w\s-]", "", value.lower())
+    return re.sub(r"[-\s]+", "-", value).strip("-_")
 
 
 class TestCustomersAPI:
@@ -241,8 +249,8 @@ class TestCustomerProperties:
         prop = client.customers.properties.create(
             workspace_slug,
             CreateCustomerProperty(
-                name=f"tier_{uuid.uuid4().hex[:8]}",
-                display_name="Tier",
+                name="ignored",
+                display_name=_unique("Tier"),
                 property_type=PropertyType.TEXT,
                 settings=TextAttributeSettings(display_format="single-line"),
             ),
@@ -263,7 +271,14 @@ class TestCustomerProperties:
         """A TEXT property carries its settings."""
         assert text_property.id is not None
         assert text_property.property_type == PropertyType.TEXT
-        assert text_property.display_name == "Tier"
+        assert text_property.display_name.startswith("Tier")
+
+    def test_name_is_slugified_display_name(
+        self, client: PlaneClient, workspace_slug: str, text_property
+    ) -> None:
+        """The stored name is the slug of display_name, not the name that was sent."""
+        assert text_property.name == slugify(text_property.display_name)
+        assert text_property.name != "ignored"
 
     def test_created_property_appears_in_list(
         self, client: PlaneClient, workspace_slug: str, text_property
@@ -278,13 +293,15 @@ class TestCustomerProperties:
         assert retrieved.id == text_property.id
 
     def test_update_property(self, client: PlaneClient, workspace_slug: str, text_property):
-        """display_name is updatable."""
+        """display_name is updatable, and re-slugs the stored name with it."""
+        new_display_name = _unique("Updated Tier")
         updated = client.customers.properties.update(
             workspace_slug,
             text_property.id,
-            UpdateCustomerProperty(display_name="Updated Tier"),
+            UpdateCustomerProperty(display_name=new_display_name),
         )
-        assert updated.display_name == "Updated Tier"
+        assert updated.display_name == new_display_name
+        assert updated.name == slugify(new_display_name)
 
     def test_create_option_property_with_options(
         self, client: PlaneClient, workspace_slug: str
@@ -293,8 +310,8 @@ class TestCustomerProperties:
         prop = client.customers.properties.create(
             workspace_slug,
             CreateCustomerProperty(
-                name=f"segment_{uuid.uuid4().hex[:8]}",
-                display_name="Segment",
+                name="ignored",
+                display_name=_unique("Segment"),
                 property_type=PropertyType.OPTION,
                 options=[
                     CreateCustomerPropertyOption(name="SMB", is_default=True),
@@ -318,8 +335,8 @@ class TestCustomerProperties:
         prop = client.customers.properties.create(
             workspace_slug,
             CreateCustomerProperty(
-                name=f"segment_{uuid.uuid4().hex[:8]}",
-                display_name="Segment",
+                name="ignored",
+                display_name=_unique("Segment"),
                 property_type=PropertyType.OPTION,
                 options=[CreateCustomerPropertyOption(name="SMB")],
             ),
@@ -342,8 +359,8 @@ class TestCustomerProperties:
         prop = client.customers.properties.create(
             workspace_slug,
             CreateCustomerProperty(
-                name=f"doomed_{uuid.uuid4().hex[:8]}",
-                display_name="Doomed",
+                name="ignored",
+                display_name=_unique("Doomed"),
                 property_type=PropertyType.TEXT,
                 settings=TextAttributeSettings(display_format="single-line"),
             ),
@@ -372,8 +389,7 @@ class TestCustomerProperties:
             )
 
     def test_update_model_keeps_immutable_fields(self) -> None:
-        """The update model keeps fields the API refuses to change.
-        """
+        """The update model keeps fields the API refuses to change."""
         fields = set(UpdateCustomerProperty.model_fields)
         assert {"property_type", "is_multi", "settings"} <= fields
 
@@ -387,8 +403,8 @@ class TestCustomerPropertyValues:
         prop = client.customers.properties.create(
             workspace_slug,
             CreateCustomerProperty(
-                name=f"notes_{uuid.uuid4().hex[:8]}",
-                display_name="Notes",
+                name="ignored",
+                display_name=_unique("Notes"),
                 property_type=PropertyType.TEXT,
                 settings=TextAttributeSettings(display_format="single-line"),
             ),

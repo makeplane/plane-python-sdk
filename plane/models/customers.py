@@ -186,11 +186,7 @@ class CustomerProperty(BaseModel):
 
 
 class CreateCustomerProperty(BaseModel):
-    """Request model for creating a customer property.
-
-    `default_value` is ignored by the API when `is_required` is set, and must
-    hold at most one entry unless `is_multi` is set.
-    """
+    """Request model for creating a customer property."""
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
