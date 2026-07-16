@@ -177,11 +177,11 @@ class CustomerProperty(BaseModel):
     options: list[CustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
 
@@ -208,11 +208,11 @@ class CreateCustomerProperty(BaseModel):
     options: list[CreateCustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
     @model_validator(mode="after")
@@ -272,11 +272,11 @@ class UpdateCustomerProperty(BaseModel):
     options: list[UpdateCustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
     @model_validator(mode="after")
