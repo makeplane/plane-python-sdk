@@ -3,7 +3,9 @@ from typing import Any
 
 from plane.api.base_resource import BaseResource
 from plane.api.customers.properties import CustomerProperties
+from plane.api.customers.property_values import CustomerPropertyValues
 from plane.api.customers.requests import CustomerRequests
+from plane.api.customers.work_items import CustomerWorkItems
 from plane.models.customers import (
     CreateCustomer,
     Customer,
@@ -18,7 +20,9 @@ class Customers(BaseResource):
 
         # Initialize sub-resources
         self.properties = CustomerProperties(config)
+        self.property_values = CustomerPropertyValues(config)
         self.requests = CustomerRequests(config)
+        self.work_items = CustomerWorkItems(config)
 
     def list(
         self, workspace_slug: str, params: Mapping[str, Any] | None = None
@@ -27,7 +31,7 @@ class Customers(BaseResource):
 
         Args:
             workspace_slug: The workspace slug identifier
-            params: Optional query parameters
+            params: Optional query parameters, e.g. `query` to search by name
         """
         response = self._get(f"{workspace_slug}/customers", params=params)
         return PaginatedCustomerResponse.model_validate(response)
@@ -46,7 +50,7 @@ class Customers(BaseResource):
         return Customer.model_validate(response)
 
     def create(self, workspace_slug: str, data: CreateCustomer) -> Customer:
-        """Create a new customer.
+        """Create a customer, or update the one it matches.
 
         Args:
             workspace_slug: The workspace slug identifier
@@ -76,3 +80,18 @@ class Customers(BaseResource):
             customer_id: UUID of the customer
         """
         return self._delete(f"{workspace_slug}/customers/{customer_id}")
+
+    def delete_by_external_id(
+        self, workspace_slug: str, external_source: str, external_id: str
+    ) -> None:
+        """Delete the customer carrying an external reference.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            external_source: External system the customer came from
+            external_id: The customer's identifier in that system
+        """
+        return self._delete(
+            f"{workspace_slug}/customers",
+            params={"external_source": external_source, "external_id": external_id},
+        )
