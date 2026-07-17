@@ -37,15 +37,9 @@ class TestReleases:
         except Exception:
             pass
 
-    def test_list_releases_returns_list(self, client: PlaneClient, workspace_slug: str) -> None:
-        """list() returns a plain list (it used to raise on the paginated envelope)."""
-        releases = client.releases.list(workspace_slug)
-        assert isinstance(releases, list)
-
-    def test_list_paginated_returns_envelope(
-        self, client: PlaneClient, workspace_slug: str
-    ) -> None:
-        response = client.releases.list_paginated(workspace_slug)
+    def test_list_releases_returns_envelope(self, client: PlaneClient, workspace_slug: str) -> None:
+        """list() returns the paginated envelope (it used to raise on the dict)."""
+        response = client.releases.list(workspace_slug)
         assert hasattr(response, "results")
         assert isinstance(response.results, list)
         assert isinstance(response.total_count, int)
@@ -100,7 +94,7 @@ class TestReleaseTags:
             pass
 
     def test_list_tags(self, client: PlaneClient, workspace_slug: str) -> None:
-        assert isinstance(client.releases.tags.list(workspace_slug), list)
+        assert isinstance(client.releases.tags.list(workspace_slug).results, list)
 
     def test_create_tag_carries_version(self, tag) -> None:
         assert tag.id is not None
@@ -143,7 +137,7 @@ class TestReleaseLabels:
             pass
 
     def test_list_labels(self, client: PlaneClient, workspace_slug: str) -> None:
-        assert isinstance(client.releases.labels.list(workspace_slug), list)
+        assert isinstance(client.releases.labels.list(workspace_slug).results, list)
 
     def test_create_label(self, label) -> None:
         assert label.id is not None
@@ -180,7 +174,9 @@ class TestReleaseItemLabels:
             pass
 
     def test_list_item_labels(self, client: PlaneClient, workspace_slug: str, release) -> None:
-        assert isinstance(client.releases.item_labels.list(workspace_slug, release.id), list)
+        assert isinstance(
+            client.releases.item_labels.list(workspace_slug, release.id).results, list
+        )
 
     def test_attach_and_detach_label(
         self, client: PlaneClient, workspace_slug: str, release
@@ -194,12 +190,12 @@ class TestReleaseItemLabels:
             )
             assert isinstance(attached, list)
             assert label.id in [
-                x.id for x in client.releases.item_labels.list(workspace_slug, release.id)
+                x.id for x in client.releases.item_labels.list(workspace_slug, release.id).results
             ]
 
             client.releases.item_labels.delete(workspace_slug, release.id, label.id)
             assert label.id not in [
-                x.id for x in client.releases.item_labels.list(workspace_slug, release.id)
+                x.id for x in client.releases.item_labels.list(workspace_slug, release.id).results
             ]
         finally:
             try:
@@ -221,7 +217,7 @@ class TestReleaseWorkItems:
             pass
 
     def test_list_work_items(self, client: PlaneClient, workspace_slug: str, release) -> None:
-        assert isinstance(client.releases.work_items.list(workspace_slug, release.id), list)
+        assert isinstance(client.releases.work_items.list(workspace_slug, release.id).results, list)
 
     def test_add_and_remove_work_item(
         self, client: PlaneClient, workspace_slug: str, release, project
@@ -236,12 +232,12 @@ class TestReleaseWorkItems:
                 workspace_slug, release.id, AddReleaseWorkItems(work_item_ids=[wi.id])
             )
             assert wi.id in [
-                w.id for w in client.releases.work_items.list(workspace_slug, release.id)
+                w.id for w in client.releases.work_items.list(workspace_slug, release.id).results
             ]
 
             client.releases.work_items.remove(workspace_slug, release.id, [wi.id])
             assert wi.id not in [
-                w.id for w in client.releases.work_items.list(workspace_slug, release.id)
+                w.id for w in client.releases.work_items.list(workspace_slug, release.id).results
             ]
         finally:
             try:
@@ -269,7 +265,7 @@ class TestReleaseComments:
         assert comment.id is not None
 
         assert comment.id in [
-            c.id for c in client.releases.comments.list(workspace_slug, release.id)
+            c.id for c in client.releases.comments.list(workspace_slug, release.id).results
         ]
         assert (
             client.releases.comments.retrieve(workspace_slug, release.id, comment.id).id
@@ -298,7 +294,9 @@ class TestReleaseLinks:
         )
         assert link.id is not None
 
-        assert link.id in [x.id for x in client.releases.links.list(workspace_slug, release.id)]
+        assert link.id in [
+            x.id for x in client.releases.links.list(workspace_slug, release.id).results
+        ]
         updated = client.releases.links.update(
             workspace_slug, release.id, link.id, UpdateReleaseLink(title="Updated")
         )

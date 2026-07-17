@@ -6,7 +6,6 @@ from typing import Any
 from ...models.releases import (
     AddReleaseWorkItems,
     PaginatedReleaseWorkItemResponse,
-    ReleaseWorkItem,
 )
 from ..base_resource import BaseResource
 
