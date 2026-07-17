@@ -4,6 +4,9 @@ from typing import Any
 
 from plane.api.base_resource import BaseResource
 from plane.models.customers import (
+    CustomerPropertyValues as CustomerPropertyValuesResponse,
+)
+from plane.models.customers import (
     SetCustomerPropertyValue,
     SetCustomerPropertyValues,
 )
@@ -37,15 +40,18 @@ class CustomerPropertyValues(BaseResource):
             Property id mapped to that property's values
         """
         response = self._get(f"{workspace_slug}/customers/{customer_id}/property-values")
-        return response or {}
+        return CustomerPropertyValuesResponse.model_validate(response or {}).root
 
-    def set(
+    def create(
         self,
         workspace_slug: str,
         customer_id: str,
         data: SetCustomerPropertyValues,
     ) -> None:
         """Set several of a customer's property values at once.
+
+        Acts as an upsert: the properties named are given these values, replacing
+        any they already held. Properties absent from the payload are untouched.
 
         Args:
             workspace_slug: The workspace slug identifier
@@ -77,7 +83,8 @@ class CustomerPropertyValues(BaseResource):
         response = self._get(
             f"{workspace_slug}/customers/{customer_id}/property-values/{property_id}"
         )
-        return (response or {}).get(str(property_id), [])
+        values = CustomerPropertyValuesResponse.model_validate(response or {}).root
+        return values.get(str(property_id), [])
 
     def update(
         self,

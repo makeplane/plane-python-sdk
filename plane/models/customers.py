@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, RootModel, field_serializer, model_validator
 
 from .enums import PropertyType, RelationType
 from .pagination import PaginatedResponse
@@ -428,6 +428,16 @@ class SetCustomerPropertyValue(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     values: list[str]
+
+
+class CustomerPropertyValues(RootModel[dict[str, list[str]]]):
+    """Response model for a customer's property values.
+
+    Maps property id to that property's values. Every value is a string whatever
+    the property's type.
+    """
+
+    root: dict[str, list[str]]
 
 
 class PaginatedCustomerResponse(PaginatedResponse):

@@ -72,26 +72,33 @@ class Customers(BaseResource):
         )
         return Customer.model_validate(response)
 
-    def delete(self, workspace_slug: str, customer_id: str) -> None:
-        """Delete a customer by ID.
+    def delete(
+        self,
+        workspace_slug: str,
+        customer_id: str | None = None,
+        external_source: str | None = None,
+        external_id: str | None = None,
+    ) -> None:
+        """Delete a customer, addressed by ID or by its external reference.
+
+        Pass `customer_id`, or both `external_source` and `external_id` for a
+        customer synced from an external system. Deleting by an external reference
+        that matches nothing succeeds silently.
 
         Args:
             workspace_slug: The workspace slug identifier
             customer_id: UUID of the customer
-        """
-        return self._delete(f"{workspace_slug}/customers/{customer_id}")
-
-    def delete_by_external_id(
-        self, workspace_slug: str, external_source: str, external_id: str
-    ) -> None:
-        """Delete the customer carrying an external reference.
-
-        Args:
-            workspace_slug: The workspace slug identifier
             external_source: External system the customer came from
             external_id: The customer's identifier in that system
+
+        Raises:
+            ValueError: If neither a customer_id nor a full external reference is given
         """
-        return self._delete(
-            f"{workspace_slug}/customers",
-            params={"external_source": external_source, "external_id": external_id},
-        )
+        if customer_id:
+            return self._delete(f"{workspace_slug}/customers/{customer_id}")
+        if external_source and external_id:
+            return self._delete(
+                f"{workspace_slug}/customers",
+                params={"external_source": external_source, "external_id": external_id},
+            )
+        raise ValueError("Provide customer_id, or both external_source and external_id.")

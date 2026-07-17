@@ -217,7 +217,7 @@ class TestCustomersUpsert:
                 external_id=external_id,
             ),
         )
-        client.customers.delete_by_external_id(workspace_slug, "pytest", external_id)
+        client.customers.delete(workspace_slug, external_source="pytest", external_id=external_id)
 
         with pytest.raises(HttpError):
             client.customers.retrieve(workspace_slug, customer.id)
@@ -226,7 +226,9 @@ class TestCustomersUpsert:
         self, client: PlaneClient, workspace_slug: str
     ) -> None:
         """Deleting an external reference that matches nothing does not raise."""
-        client.customers.delete_by_external_id(workspace_slug, "pytest", uuid.uuid4().hex)
+        client.customers.delete(
+            workspace_slug, external_source="pytest", external_id=uuid.uuid4().hex
+        )
 
 
 @pytest.fixture
@@ -424,7 +426,7 @@ class TestCustomerPropertyValues:
         self, client: PlaneClient, workspace_slug: str, customer, text_property
     ) -> None:
         """Values set in bulk read back."""
-        client.customers.property_values.set(
+        client.customers.property_values.create(
             workspace_slug,
             customer.id,
             SetCustomerPropertyValues(customer_property_values={text_property.id: ["hello"]}),
@@ -568,7 +570,7 @@ class TestCustomerWorkItems:
         self, client: PlaneClient, workspace_slug: str, customer, work_item
     ) -> None:
         """A linked work item is listed against the customer."""
-        response = client.customers.work_items.link(
+        response = client.customers.work_items.create(
             workspace_slug, customer.id, LinkCustomerWorkItems(work_item_ids=[work_item.id])
         )
         assert work_item.id in [i.id for i in response.linked_work_items]
@@ -580,7 +582,7 @@ class TestCustomerWorkItems:
         self, client: PlaneClient, workspace_slug: str, customer, work_item
     ) -> None:
         """The project__identifier key is surfaced as project_identifier."""
-        client.customers.work_items.link(
+        client.customers.work_items.create(
             workspace_slug, customer.id, LinkCustomerWorkItems(work_item_ids=[work_item.id])
         )
         linked = client.customers.work_items.list(workspace_slug, customer.id)
@@ -591,10 +593,10 @@ class TestCustomerWorkItems:
         self, client: PlaneClient, workspace_slug: str, customer, work_item
     ) -> None:
         """An unlinked work item drops off the customer."""
-        client.customers.work_items.link(
+        client.customers.work_items.create(
             workspace_slug, customer.id, LinkCustomerWorkItems(work_item_ids=[work_item.id])
         )
-        client.customers.work_items.unlink(workspace_slug, customer.id, work_item.id)
+        client.customers.work_items.delete(workspace_slug, customer.id, work_item.id)
 
         linked = client.customers.work_items.list(workspace_slug, customer.id)
         assert work_item.id not in [i.id for i in linked]
@@ -604,14 +606,14 @@ class TestCustomerWorkItems:
     ) -> None:
         """Unlinking a work item that is not linked is a 404."""
         with pytest.raises(HttpError):
-            client.customers.work_items.unlink(workspace_slug, customer.id, work_item.id)
+            client.customers.work_items.delete(workspace_slug, customer.id, work_item.id)
 
     def test_link_unknown_issue_raises(
         self, client: PlaneClient, workspace_slug: str, customer
     ) -> None:
         """Linking a work item that does not exist is rejected."""
         with pytest.raises(HttpError):
-            client.customers.work_items.link(
+            client.customers.work_items.create(
                 workspace_slug,
                 customer.id,
                 LinkCustomerWorkItems(work_item_ids=[str(uuid.uuid4())]),
@@ -625,7 +627,7 @@ class TestCustomerWorkItems:
             workspace_slug, customer.id, CreateCustomerRequest(name=_unique("Scoped Request"))
         )
         try:
-            client.customers.work_items.link(
+            client.customers.work_items.create(
                 workspace_slug,
                 customer.id,
                 LinkCustomerWorkItems(work_item_ids=[work_item.id]),

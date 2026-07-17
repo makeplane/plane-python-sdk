@@ -51,7 +51,7 @@ class CustomerWorkItems(BaseResource):
         )
         return [CustomerWorkItem.model_validate(item) for item in response]
 
-    def link(
+    def create(
         self,
         workspace_slug: str,
         customer_id: str,
@@ -77,7 +77,7 @@ class CustomerWorkItems(BaseResource):
         )
         return LinkCustomerWorkItemsResponse.model_validate(response)
 
-    def unlink(
+    def delete(
         self,
         workspace_slug: str,
         customer_id: str,
