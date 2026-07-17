@@ -531,24 +531,15 @@ class TestCustomerRequests:
         """
         assert "work_item_ids" in UpdateCustomerRequest.model_fields
 
-    def test_list_returns_a_plain_list(
+    def test_list_returns_envelope(
         self, client: PlaneClient, workspace_slug: str, customer, customer_request
     ) -> None:
-        """list() returns a list, as it always claimed to.
+        """list() returns the paginated envelope.
 
         It used to return [] unconditionally by testing a paginated dict with
-        isinstance(response, list). Callers keep the list; list_paginated()
-        carries the envelope.
+        isinstance(response, list); now it parses the envelope.
         """
-        requests = client.customers.requests.list(workspace_slug, customer.id)
-        assert isinstance(requests, list)
-        assert customer_request.id in [r.id for r in requests]
-
-    def test_list_paginated_returns_envelope(
-        self, client: PlaneClient, workspace_slug: str, customer, customer_request
-    ) -> None:
-        """list_paginated() exposes the cursors and total count."""
-        response = client.customers.requests.list_paginated(workspace_slug, customer.id)
+        response = client.customers.requests.list(workspace_slug, customer.id)
         assert isinstance(response.results, list)
         assert isinstance(response.total_count, int)
         assert customer_request.id in [r.id for r in response.results]

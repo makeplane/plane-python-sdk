@@ -19,28 +19,11 @@ class CustomerRequests(BaseResource):
         workspace_slug: str,
         customer_id: str,
         params: Mapping[str, Any] | None = None,
-    ) -> list[CustomerRequest]:
-        """List customer requests.
-
-        Returns one page of requests — 1000 by default, or `per_page` when it is
-        given. Use `list_paginated()` to page beyond that, or to read the cursors
-        and total count.
-
-        Args:
-            workspace_slug: The workspace slug identifier
-            customer_id: UUID of the customer
-            params: Optional query parameters, e.g. `query` to search by name,
-                `per_page` to size the page
-        """
-        return self.list_paginated(workspace_slug, customer_id, params=params).results
-
-    def list_paginated(
-        self,
-        workspace_slug: str,
-        customer_id: str,
-        params: Mapping[str, Any] | None = None,
     ) -> PaginatedCustomerRequestResponse:
-        """List customer requests, keeping the pagination envelope.
+        """List customer requests (paginated).
+
+        Returns one page (1000 by default). Pass `per_page`/`cursor` in params and
+        follow `next_cursor` to page through the rest.
 
         Args:
             workspace_slug: The workspace slug identifier
