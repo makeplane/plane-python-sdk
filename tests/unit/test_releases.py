@@ -14,6 +14,8 @@ from plane.models.releases import (
     CreateReleaseLabel,
     CreateReleaseLink,
     CreateReleaseTag,
+    RemoveReleaseItemLabel,
+    RemoveReleaseWorkItems,
     UpdateRelease,
     UpdateReleaseLabel,
     UpdateReleaseLink,
@@ -193,7 +195,9 @@ class TestReleaseItemLabels:
                 x.id for x in client.releases.item_labels.list(workspace_slug, release.id).results
             ]
 
-            client.releases.item_labels.delete(workspace_slug, release.id, label.id)
+            client.releases.item_labels.delete(
+                workspace_slug, release.id, RemoveReleaseItemLabel(label_ids=[label.id])
+            )
             assert label.id not in [
                 x.id for x in client.releases.item_labels.list(workspace_slug, release.id).results
             ]
@@ -228,14 +232,16 @@ class TestReleaseWorkItems:
             workspace_slug, project.id, CreateWorkItem(name=f"wi-{_uid()}")
         )
         try:
-            client.releases.work_items.add(
+            client.releases.work_items.create(
                 workspace_slug, release.id, AddReleaseWorkItems(work_item_ids=[wi.id])
             )
             assert wi.id in [
                 w.id for w in client.releases.work_items.list(workspace_slug, release.id).results
             ]
 
-            client.releases.work_items.remove(workspace_slug, release.id, [wi.id])
+            client.releases.work_items.delete(
+                workspace_slug, release.id, RemoveReleaseWorkItems(work_item_ids=[wi.id])
+            )
             assert wi.id not in [
                 w.id for w in client.releases.work_items.list(workspace_slug, release.id).results
             ]

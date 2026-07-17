@@ -116,14 +116,13 @@ class ReleaseTag(BaseModel):
 class CreateReleaseTag(BaseModel):
     """Request model for creating a release tag.
 
-    `version` is required by the API and must be unique in the workspace. `name`
-    and `color` are ignored (a tag is not a label) and kept only for backward
-    compatibility.
+    `version` must be unique in the workspace. `name` and `color` are ignored (a
+    tag is not a label) and kept only for backward compatibility.
     """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    version: str | None = None
+    version: str
     description: str | None = None
     commit_hash: str | None = None
     git_tag: str | None = None
@@ -177,7 +176,15 @@ class UpdateReleaseLabel(BaseModel):
 
 
 class AddReleaseItemLabel(BaseModel):
-    """Request model for adding labels to a release."""
+    """Request model for attaching labels to a release."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    label_ids: list[str]
+
+
+class RemoveReleaseItemLabel(BaseModel):
+    """Request model for detaching labels from a release."""
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
@@ -196,6 +203,14 @@ class ReleaseWorkItem(BaseModel):
 
 class AddReleaseWorkItems(BaseModel):
     """Request model for linking work items to a release."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    work_item_ids: list[str]
+
+
+class RemoveReleaseWorkItems(BaseModel):
+    """Request model for unlinking work items from a release."""
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 

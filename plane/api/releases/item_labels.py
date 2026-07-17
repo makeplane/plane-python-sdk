@@ -7,6 +7,7 @@ from ...models.releases import (
     AddReleaseItemLabel,
     PaginatedReleaseLabelResponse,
     ReleaseLabel,
+    RemoveReleaseItemLabel,
 )
 from ..base_resource import BaseResource
 
@@ -49,15 +50,15 @@ class ReleaseItemLabels(BaseResource):
         )
         return [ReleaseLabel.model_validate(item) for item in response]
 
-    def delete(self, workspace_slug: str, release_id: str, label_id: str) -> None:
-        """Detach a label from a release (the label itself is not deleted).
+    def delete(self, workspace_slug: str, release_id: str, data: RemoveReleaseItemLabel) -> None:
+        """Detach labels from a release (the labels themselves are not deleted).
 
         Args:
             workspace_slug: The workspace slug identifier
             release_id: UUID of the release
-            label_id: UUID of the label to detach
+            data: Label IDs to detach
         """
         return self._delete(
             f"{workspace_slug}/releases/{release_id}/labels/",
-            data={"label_ids": [label_id]},
+            data.model_dump(exclude_none=True),
         )

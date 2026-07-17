@@ -6,6 +6,7 @@ from typing import Any
 from ...models.releases import (
     AddReleaseWorkItems,
     PaginatedReleaseWorkItemResponse,
+    RemoveReleaseWorkItems,
 )
 from ..base_resource import BaseResource
 
@@ -32,7 +33,7 @@ class ReleaseWorkItems(BaseResource):
         response = self._get(f"{workspace_slug}/releases/{release_id}/work-items/", params=params)
         return PaginatedReleaseWorkItemResponse.model_validate(response)
 
-    def add(self, workspace_slug: str, release_id: str, data: AddReleaseWorkItems) -> None:
+    def create(self, workspace_slug: str, release_id: str, data: AddReleaseWorkItems) -> None:
         """Link work items to a release. Already-linked work items are skipped.
 
         Args:
@@ -45,15 +46,15 @@ class ReleaseWorkItems(BaseResource):
             data.model_dump(exclude_none=True),
         )
 
-    def remove(self, workspace_slug: str, release_id: str, work_item_ids: list[str]) -> None:
+    def delete(self, workspace_slug: str, release_id: str, data: RemoveReleaseWorkItems) -> None:
         """Unlink work items from a release.
 
         Args:
             workspace_slug: The workspace slug identifier
             release_id: UUID of the release
-            work_item_ids: UUIDs of the work items to unlink
+            data: Work item IDs to unlink
         """
         return self._delete(
             f"{workspace_slug}/releases/{release_id}/work-items/",
-            data={"work_item_ids": work_item_ids},
+            data.model_dump(exclude_none=True),
         )
