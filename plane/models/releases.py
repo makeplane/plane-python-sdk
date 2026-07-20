@@ -293,6 +293,30 @@ class UpdateReleaseLink(BaseModel):
     metadata: Any | None = None
 
 
+class ReleaseChangelog(BaseModel):
+    """Release changelog response model."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str | None = None
+    changelog: Any | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    created_by: str | None = None
+    updated_by: str | None = None
+    workspace: str | None = None
+    release: str | None = None
+
+
+class UpdateReleaseChangelog(BaseModel):
+    """Request model for updating a release changelog body."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    description_html: str | None = None
+    description_json: Any | None = None
+
+
 class PaginatedReleaseResponse(PaginatedResponse):
     """Paginated response for the releases list endpoint."""
 

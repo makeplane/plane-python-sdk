@@ -17,6 +17,7 @@ from plane.models.releases import (
     RemoveReleaseItemLabel,
     RemoveReleaseWorkItems,
     UpdateRelease,
+    UpdateReleaseChangelog,
     UpdateReleaseLabel,
     UpdateReleaseLink,
     UpdateReleaseTag,
@@ -308,3 +309,43 @@ class TestReleaseLinks:
         )
         assert updated.id == link.id
         client.releases.links.delete(workspace_slug, release.id, link.id)
+
+
+class TestReleaseChangelog:
+    """The changelog is a singleton per release (retrieve + update only)."""
+
+    @pytest.fixture
+    def release(self, client: PlaneClient, workspace_slug: str):
+        rel = client.releases.create(workspace_slug, CreateRelease(name=f"release-{_uid()}"))
+        yield rel
+        try:
+            client.releases.delete(workspace_slug, rel.id)
+        except Exception:
+            pass
+
+    def test_changelog_retrieve_and_update(
+        self, client: PlaneClient, workspace_slug: str, release
+    ) -> None:
+        changelog = client.releases.changelog.retrieve(workspace_slug, release.id)
+        assert changelog.id is not None
+
+        updated = client.releases.changelog.update(
+            workspace_slug,
+            release.id,
+            UpdateReleaseChangelog(description_html="<p>v1 notes</p>"),
+        )
+        assert updated.id == changelog.id
+
+    def test_changelog_created_empty_on_first_access(
+        self, client: PlaneClient, workspace_slug: str, release
+    ) -> None:
+        """First retrieve on a release with no changelog hits the create branch:
+        a changelog row is created with an empty body, and a repeat retrieve
+        returns the same row (the fetch branch) rather than a duplicate."""
+        created = client.releases.changelog.retrieve(workspace_slug, release.id)
+        assert created.id is not None
+        # empty default body written by the create branch
+        assert (created.changelog or {}).get("description_html") == "<p></p>"
+
+        again = client.releases.changelog.retrieve(workspace_slug, release.id)
+        assert again.id == created.id

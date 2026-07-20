@@ -10,6 +10,7 @@ from ...models.releases import (
     UpdateRelease,
 )
 from ..base_resource import BaseResource
+from .changelog import ReleaseChangelogs
 from .comments import ReleaseComments
 from .item_labels import ReleaseItemLabels
 from .labels import ReleaseLabels
@@ -31,6 +32,7 @@ class Releases(BaseResource):
         self.work_items = ReleaseWorkItems(config)
         self.comments = ReleaseComments(config)
         self.links = ReleaseLinks(config)
+        self.changelog = ReleaseChangelogs(config)
 
     def list(
         self, workspace_slug: str, params: Mapping[str, Any] | None = None
