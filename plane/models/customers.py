@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, field_serializer, model_validator
+from pydantic import BaseModel, ConfigDict, Field, RootModel, field_serializer, model_validator
 
 from .enums import PropertyType, RelationType
 from .pagination import PaginatedResponse
@@ -36,6 +36,9 @@ class Customer(BaseModel):
     stage: str | None = None
     contract_status: str | None = None
     revenue: str | None = None
+    external_source: str | None = None
+    external_id: str | None = None
+    archived_at: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
     logo_asset: str | None = None
@@ -43,7 +46,13 @@ class Customer(BaseModel):
 
 
 class CreateCustomer(BaseModel):
-    """Request model for creating a customer."""
+    """Request model for creating a customer.
+
+    The create endpoint is an upsert. When `external_id` and `external_source`
+    are both set, an existing customer matching them is updated; otherwise a
+    customer with the same `name` is updated. Only when neither matches is a new
+    customer created.
+    """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
@@ -59,6 +68,8 @@ class CreateCustomer(BaseModel):
     stage: str | None = None
     contract_status: str | None = None
     revenue: str | None = None
+    external_source: str | None = None
+    external_id: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
     logo_asset: str | None = None
@@ -81,9 +92,59 @@ class UpdateCustomer(BaseModel):
     stage: str | None = None
     contract_status: str | None = None
     revenue: str | None = None
+    external_source: str | None = None
+    external_id: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
     logo_asset: str | None = None
+
+
+class CustomerPropertyOption(BaseModel):
+    """Customer property option model (values of an OPTION property)."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str | None = None
+    deleted_at: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+    name: str
+    sort_order: float | None = None
+    description: str | None = None
+    logo_props: Any | None = None
+    is_active: bool | None = None
+    is_default: bool | None = None
+    external_source: str | None = None
+    external_id: str | None = None
+    created_by: str | None = None
+    updated_by: str | None = None
+    workspace: str | None = None
+    property: str | None = None
+    parent: str | None = None
+
+
+class CreateCustomerPropertyOption(BaseModel):
+    """Request model for an OPTION property's option, sent inline on create."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    name: str
+    description: str | None = None
+    is_default: bool | None = None
+
+
+class UpdateCustomerPropertyOption(BaseModel):
+    """Request model for an OPTION property's option, sent inline on update.
+
+    Set `id` to update an existing option; omit it to create a new one.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    id: str | None = None
+    name: str | None = None
+    description: str | None = None
+    is_default: bool | None = None
 
 
 class CustomerProperty(BaseModel):
@@ -113,13 +174,14 @@ class CustomerProperty(BaseModel):
     created_by: str | None = None
     updated_by: str | None = None
     workspace: str | None = None
+    options: list[CustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
 
@@ -143,13 +205,14 @@ class CreateCustomerProperty(BaseModel):
     validation_rules: Any | None = None
     external_source: str | None = None
     external_id: str | None = None
+    options: list[CreateCustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
     @model_validator(mode="after")
@@ -172,7 +235,7 @@ class CreateCustomerProperty(BaseModel):
         if prop_type == PropertyType.DATETIME:
             if settings is None:
                 raise ValueError(
-                    "settings with DateAttributeSettings is required for DATETIME " "properties"
+                    "settings with DateAttributeSettings is required for DATETIME properties"
                 )
             if not isinstance(settings, DateAttributeSettings):
                 raise ValueError("settings must be DateAttributeSettings for DATETIME properties")
@@ -206,13 +269,14 @@ class UpdateCustomerProperty(BaseModel):
     external_id: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
+    options: list[UpdateCustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str:
+    def serialize_property_type(self, value: PropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str:
+    def serialize_relation_type(self, value: RelationType) -> str | None:
         return value.value if value else None
 
     @model_validator(mode="after")
@@ -267,6 +331,24 @@ class CustomerRequest(BaseModel):
     description_html: str | None = None
     link: str | None = None
     work_item_ids: list[str] | None = None
+    attachment_count: int | None = None
+    created_at: str | None = None
+
+
+class CreateCustomerRequest(BaseModel):
+    """Request model for creating a customer request.
+
+    `work_item_ids` links work items to the customer at creation time. It is
+    write-only — the created request echoed back does not include it.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    name: str
+    description: Any | None = None
+    description_html: str | None = None
+    link: str | None = None
+    work_item_ids: list[str] | None = None
 
 
 class UpdateCustomerRequest(BaseModel):
@@ -279,6 +361,83 @@ class UpdateCustomerRequest(BaseModel):
     description_html: str | None = None
     link: str | None = None
     work_item_ids: list[str] | None = None
+
+
+class CustomerWorkItem(BaseModel):
+    """A work item linked to a customer."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str
+    name: str | None = None
+    state_id: str | None = None
+    priority: str | None = None
+    sequence_id: int | None = None
+    project_id: str | None = None
+    project_identifier: str | None = Field(None, alias="project__identifier")
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class LinkCustomerWorkItems(BaseModel):
+    """Request model for linking work items to a customer."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    work_item_ids: list[str] = Field(..., alias="issue_ids")
+
+
+class LinkedCustomerWorkItem(BaseModel):
+    """A work item as echoed back by the link endpoint."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str
+    name: str | None = None
+    sequence_id: int | None = None
+    project_id: str | None = None
+    project_identifier: str | None = Field(None, alias="project__identifier")
+
+
+class LinkCustomerWorkItemsResponse(BaseModel):
+    """Response returned when linking work items to a customer."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    message: str | None = None
+    linked_work_items: list[LinkedCustomerWorkItem] = Field(
+        default_factory=list, alias="linked_issues"
+    )
+
+
+class SetCustomerPropertyValues(BaseModel):
+    """Request model for setting several customer property values at once.
+
+    Maps property id to its list of values. Every value is sent as a string
+    regardless of the property's type.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    customer_property_values: dict[str, list[str]]
+
+
+class SetCustomerPropertyValue(BaseModel):
+    """Request model for setting a single customer property's values."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    values: list[str]
+
+
+class CustomerPropertyValues(RootModel[dict[str, list[str]]]):
+    """Response model for a customer's property values.
+
+    Maps property id to that property's values. Every value is a string whatever
+    the property's type.
+    """
+
+    root: dict[str, list[str]]
 
 
 class PaginatedCustomerResponse(PaginatedResponse):
@@ -303,3 +462,15 @@ class PaginatedCustomerPropertyResponse(PaginatedResponse):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[CustomerProperty]
+
+
+class PaginatedCustomerRequestResponse(PaginatedResponse):
+    """Paginated response for customer requests list endpoint.
+
+    All pagination fields from PaginatedResponse are required.
+    The results field contains the list of CustomerRequest objects.
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    results: list[CustomerRequest]
