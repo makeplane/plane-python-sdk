@@ -76,6 +76,7 @@ class RelationType(Enum):
     ISSUE = "ISSUE"
     USER = "USER"
     RELEASE = "RELEASE"
+    RICH_TEXT = "RICH_TEXT"
 
 
 class Priority(Enum):
