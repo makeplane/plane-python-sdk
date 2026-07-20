@@ -17,6 +17,7 @@ from plane.models.collections import (
     UpdateCollectionPage,
 )
 from plane.models.pages import CreatePage
+from plane.models.query_params import CollectionPageQueryParams
 
 
 def _collection_name(prefix: str) -> str:
@@ -149,10 +150,20 @@ class TestCollectionPagesAPI:
             )
             assert child_page is not None
 
+            # The unfiltered listing returns only root-branch pages; sub-pages are
+            # listed under their parent via the parent_id filter.
             listed = client.collections.list_collection_pages(workspace_slug, collection.id)
-            page_ids = {row.page.get("id") for row in listed.results if row.page}
-            assert parent_page.id in page_ids
-            assert child_page.id in page_ids
+            root_page_ids = {row.page.get("id") for row in listed.results if row.page}
+            assert parent_page.id in root_page_ids
+            assert child_page.id not in root_page_ids
+
+            children = client.collections.list_collection_pages(
+                workspace_slug,
+                collection.id,
+                params=CollectionPageQueryParams(parent_id=parent_page.id),
+            )
+            child_page_ids = {row.page.get("id") for row in children.results if row.page}
+            assert child_page.id in child_page_ids
         finally:
             for created_page in (child_page, parent_page):
                 if created_page is not None:
