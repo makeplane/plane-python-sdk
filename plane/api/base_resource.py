@@ -36,9 +36,7 @@ class BaseResource:
         )
         return self._handle_response(response)
 
-    def _post(
-        self, endpoint: str, data: Mapping[str, Any] | list[Any] | None = None
-    ) -> Any:
+    def _post(self, endpoint: str, data: Mapping[str, Any] | list[Any] | None = None) -> Any:
         url = self._build_url(endpoint)
         response = self.session.post(
             url, headers=self._headers(), json=data, timeout=self.config.timeout
@@ -59,10 +57,19 @@ class BaseResource:
         )
         return self._handle_response(response)
 
-    def _delete(self, endpoint: str, data: Mapping[str, Any] | None = None) -> None:
+    def _delete(
+        self,
+        endpoint: str,
+        data: Mapping[str, Any] | None = None,
+        params: Mapping[str, Any] | None = None,
+    ) -> None:
         url = self._build_url(endpoint)
         response = self.session.delete(
-            url, headers=self._headers(), json=data, timeout=self.config.timeout
+            url,
+            headers=self._headers(),
+            json=data,
+            params=params,
+            timeout=self.config.timeout,
         )
         self._handle_response(response)
 

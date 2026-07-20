@@ -1,4 +1,5 @@
 from ..api.agent_runs import AgentRuns
+from ..api.collections import Collections
 from ..api.customers import Customers
 from ..api.cycles import Cycles
 from ..api.epics import Epics
@@ -61,6 +62,7 @@ class PlaneClient:
         self.epics = Epics(self.config)
         self.work_items = WorkItems(self.config)
         self.pages = Pages(self.config)
+        self.collections = Collections(self.config)
         self.labels = Labels(self.config)
         self.states = States(self.config)
         self.milestones = Milestones(self.config)
