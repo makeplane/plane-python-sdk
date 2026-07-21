@@ -27,16 +27,20 @@ class PaginatedWorkspaceMemberResponse(PaginatedResponse):
 
 
 class WorkspaceFeature(BaseModel):
-    """Workspace feature model."""
+    """Workspace feature model.
+
+    All fields are optional so a caller can toggle a single feature; the update
+    endpoint is a partial (PATCH) that only applies the fields that are sent.
+    """
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-    project_grouping: bool
-    initiatives: bool
-    teams: bool
-    customers: bool
-    wiki: bool
-    pi: bool
+    project_grouping: bool | None = None
+    initiatives: bool | None = None
+    teams: bool | None = None
+    customers: bool | None = None
+    wiki: bool | None = None
+    pi: bool | None = None
 
 
 class ProjectRoleDistributionEntry(BaseModel):
