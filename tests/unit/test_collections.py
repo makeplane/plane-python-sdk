@@ -65,18 +65,20 @@ class TestCollectionPagesAPI:
         source = client.collections.create(
             workspace_slug, CreateCollection(name=_collection_name("Source Collection"))
         )
-        target = client.collections.create(
-            workspace_slug, CreateCollection(name=_collection_name("Target Collection"))
-        )
-        page = client.pages.create_workspace_page(
-            workspace_slug,
-            CreatePage(
-                name=_collection_name("Collection Page"),
-                description_html="<p>collection sdk test</p>",
-            ),
-        )
-
+        target = None
+        page = None
         try:
+            target = client.collections.create(
+                workspace_slug, CreateCollection(name=_collection_name("Target Collection"))
+            )
+            page = client.pages.create_workspace_page(
+                workspace_slug,
+                CreatePage(
+                    name=_collection_name("Collection Page"),
+                    description_html="<p>collection sdk test</p>",
+                ),
+            )
+
             search_results = client.collections.pages.search(
                 workspace_slug, source.id, search=page.name
             )
@@ -108,15 +110,19 @@ class TestCollectionPagesAPI:
                 row.page and row.page.get("id") == page.id for row in listed_after.results
             )
         finally:
-            try:
-                client.pages.delete_workspace_page(workspace_slug, page.id)
-            except Exception:
-                pass
-            for collection in (source, target):
+            if page is not None:
                 try:
-                    client.collections.delete(workspace_slug, collection.id, archive_pages=False)
+                    client.pages.delete_workspace_page(workspace_slug, page.id)
                 except Exception:
                     pass
+            for collection in (source, target):
+                if collection is not None:
+                    try:
+                        client.collections.delete(
+                            workspace_slug, collection.id, archive_pages=False
+                        )
+                    except Exception:
+                        pass
 
     def test_create_page_in_collection_and_sub_page(
         self, client: PlaneClient, workspace_slug: str
