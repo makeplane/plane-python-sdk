@@ -1,8 +1,24 @@
+from enum import IntEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
 from .pagination import PaginatedResponse
+
+
+class CollectionAccessEnum(IntEnum):
+    """Access level of a collection."""
+
+    PUBLIC = 0
+    PRIVATE = 1
+
+
+class CollectionMemberAccessEnum(IntEnum):
+    """Access level of a member within a collection."""
+
+    VIEW = 0
+    COMMENT = 1
+    EDIT = 2
 
 
 class Collection(BaseModel):
@@ -13,8 +29,8 @@ class Collection(BaseModel):
     id: str | None = None
     name: str | None = None
     owned_by_id: str | None = None
-    access: int | None = None
-    current_user_access: int | None = None
+    access: CollectionAccessEnum | None = None
+    current_user_access: CollectionMemberAccessEnum | None = None
     has_pages: bool | None = None
     is_default: bool | None = None
     is_global: bool | None = None
@@ -33,7 +49,7 @@ class CreateCollection(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     name: str
-    access: int | None = None
+    access: CollectionAccessEnum | None = None
     logo_props: Any | None = None
 
 
@@ -59,7 +75,7 @@ class CollectionMember(BaseModel):
     id: str | None = None
     collection: str | None = None
     member: str | None = None
-    access: int | None = None
+    access: CollectionMemberAccessEnum | None = None
     workspace: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
@@ -73,7 +89,7 @@ class CreateCollectionMember(BaseModel):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     member: str
-    access: int
+    access: CollectionMemberAccessEnum
 
 
 class UpdateCollectionMember(BaseModel):
@@ -81,7 +97,7 @@ class UpdateCollectionMember(BaseModel):
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    access: int
+    access: CollectionMemberAccessEnum
 
 
 class CollectionPage(BaseModel):
