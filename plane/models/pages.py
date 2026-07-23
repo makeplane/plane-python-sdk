@@ -40,6 +40,8 @@ class CreatePage(BaseModel):
     logo_props: Any | None = None
     external_id: str | None = None
     external_source: str | None = None
+    parent_id: str | None = None
+    collection_id: str | None = None
 
 
 class UpdatePage(BaseModel):
@@ -65,4 +67,3 @@ class PaginatedPageResponse(PaginatedResponse):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     results: list[Page]
-

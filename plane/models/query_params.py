@@ -51,6 +51,25 @@ class PaginatedQueryParams(BaseQueryParams):
     )
 
 
+class CollectionPageQueryParams(PaginatedQueryParams):
+    """Query parameters for the list-pages-in-collection endpoint.
+
+    Adds a name search filter and a parent-page filter on top of the standard
+    pagination params.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    search: str | None = Field(None, description="Case-insensitive substring filter on page name")
+    parent_id: str | None = Field(
+        None,
+        description=(
+            "Filter to direct children of this page within the collection. "
+            "Omit to return only top-level (non-sub) pages."
+        ),
+    )
+
+
 class WorkItemQueryParams(PaginatedQueryParams):
     """Query parameters for work item list endpoints.
 
@@ -327,6 +346,7 @@ class WorkItemCountQueryParams(BaseModel):
 
 __all__ = [
     "BaseQueryParams",
+    "CollectionPageQueryParams",
     "CycleLiteListQueryParams",
     "CycleListQueryParams",
     "LiteListQueryParams",
