@@ -1,6 +1,6 @@
 from typing import Any
 
-from ..models.pages import CreatePage, Page, PaginatedPageResponse
+from ..models.pages import CreatePage, Page, PaginatedPageResponse, UpdatePage
 from ..models.query_params import PaginatedQueryParams, RetrieveQueryParams
 from .base_resource import BaseResource
 
@@ -113,6 +113,46 @@ class Pages(BaseResource):
         """
         response = self._post(
             f"{workspace_slug}/projects/{project_id}/pages",
+            data.model_dump(exclude_none=True),
+        )
+        return Page.model_validate(response)
+
+    def update_workspace_page(
+        self,
+        workspace_slug: str,
+        page_id: str,
+        data: UpdatePage,
+    ) -> Page:
+        """Update a workspace page by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            page_id: UUID of the page
+            data: Updated page data
+        """
+        response = self._patch(
+            f"{workspace_slug}/pages/{page_id}",
+            data.model_dump(exclude_none=True),
+        )
+        return Page.model_validate(response)
+
+    def update_project_page(
+        self,
+        workspace_slug: str,
+        project_id: str,
+        page_id: str,
+        data: UpdatePage,
+    ) -> Page:
+        """Update a project page by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            page_id: UUID of the page
+            data: Updated page data
+        """
+        response = self._patch(
+            f"{workspace_slug}/projects/{project_id}/pages/{page_id}",
             data.model_dump(exclude_none=True),
         )
         return Page.model_validate(response)
