@@ -143,6 +143,14 @@ class SetProjectWorkflowPick(BaseModel):
     state_mapping: dict[str, str] | None = None
 
 
+class ProjectWorkflowPickResult(BaseModel):
+    """Response of setting a project's workflow pick: the workflow now in effect."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    workflow_id: str | None = None
+
+
 class WorkflowFallbackPreviewRequest(BaseModel):
     """Request model for previewing the project workflow fallback.
 

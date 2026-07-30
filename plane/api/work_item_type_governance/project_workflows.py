@@ -5,6 +5,7 @@ from typing import Any
 from ...models.work_item_type_governance import (
     GovernancePreview,
     ProjectTypeWorkflow,
+    ProjectWorkflowPickResult,
     SetProjectWorkflowPick,
     WorkflowFallbackPreviewRequest,
 )
@@ -68,24 +69,27 @@ class ProjectTypeWorkflows(BaseResource):
         project_id: str,
         type_id: str,
         data: SetProjectWorkflowPick,
-    ) -> dict[str, Any]:
+    ) -> ProjectWorkflowPickResult:
         """Set the project's workflow pick for a type.
 
         Runs the workflow fallback for stranded work items; every orphan must be
         covered by ``data.state_mapping`` (400 with an orphan report otherwise).
-        Returns ``{"workflow_id": "<picked id>"}``.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             type_id: UUID of the work item type
             data: The pick (workflow and optional orphan state mapping)
+
+        Returns:
+            The workflow now in effect for this project and type
         """
         response = self._put(
             f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/workflow/",
             data.model_dump(exclude_none=True),
         )
-        return response if isinstance(response, dict) else {"workflow_id": response}
+        payload = response if isinstance(response, dict) else {"workflow_id": response}
+        return ProjectWorkflowPickResult.model_validate(payload)
 
     def preview_fallback(
         self, workspace_slug: str, project_id: str, data: WorkflowFallbackPreviewRequest
