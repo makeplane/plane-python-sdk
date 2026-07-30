@@ -69,6 +69,27 @@ class WorkflowTransitions(BaseResource):
             raise
         return WorkflowTransition.model_validate(response)
 
+    def retrieve(
+        self,
+        workspace_slug: str,
+        project_id: str,
+        workflow_id: str,
+        transition_id: str,
+    ) -> WorkflowTransition:
+        """Retrieve a workflow state transition by ID.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            project_id: UUID of the project
+            workflow_id: UUID of the workflow
+            transition_id: UUID of the transition
+        """
+        response = self._get(
+            f"{workspace_slug}/projects/{project_id}/workflows/{workflow_id}"
+            f"/state-transitions/{transition_id}/"
+        )
+        return WorkflowTransition.model_validate(response)
+
     def update(
         self,
         workspace_slug: str,

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
-from .enums import GroupEnum
+from .enums import CatalogGroupEnum, GroupEnum
 from .pagination import PaginatedResponse
 
 
@@ -67,6 +67,43 @@ class UpdateState(BaseModel):
     group: GroupEnum | None = None
     is_triage: bool | None = None
     default: bool | None = None
+    external_source: str | None = None
+    external_id: str | None = None
+
+
+class CreateWorkspaceState(BaseModel):
+    """Request model for creating a workspace (catalog) state.
+
+    Only accepted when the workspace owns states and workflows (workspace
+    governance). ``group`` is required and must be one of the five lifecycle
+    groups — the triage state is system-managed and cannot be created. Catalog
+    states carry no ``default`` flag; the workspace default lives on the
+    workflow's default state.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    name: str
+    color: str
+    group: CatalogGroupEnum
+    description: str | None = None
+    external_source: str | None = None
+    external_id: str | None = None
+
+
+class UpdateWorkspaceState(BaseModel):
+    """Request model for updating a workspace (catalog) state.
+
+    ``default`` is not accepted for catalog states — the API rejects it with
+    code ``workspace_managed``.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    name: str | None = None
+    color: str | None = None
+    group: CatalogGroupEnum | None = None
+    description: str | None = None
     external_source: str | None = None
     external_id: str | None = None
 

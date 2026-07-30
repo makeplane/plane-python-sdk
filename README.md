@@ -677,6 +677,37 @@ state = client.states.update(
 client.states.delete(workspace_slug, project_id, state_id)
 ```
 
+#### Workspace States
+
+Workspace-level work-item states. Reads are dual-mode: under workspace
+governance they serve the workspace states catalog; in ungoverned workspaces
+they aggregate the states of every project the caller can access. Writes
+require the workspace to own states and workflows (check
+`client.workspaces.get_features(workspace_slug).states_owned_by_workspace`).
+
+```python
+# List states at workspace scope (works in both modes)
+states = client.workspace_states.list(workspace_slug)
+
+# Create a workspace (catalog) state — governed workspaces only
+from plane.models.states import CreateWorkspaceState
+
+state = client.workspace_states.create(
+    workspace_slug,
+    data=CreateWorkspaceState(name="In Review", color="#3b82f6", group="started"),
+)
+
+# Retrieve / update / delete
+state = client.workspace_states.retrieve(workspace_slug, state_id)
+
+from plane.models.states import UpdateWorkspaceState
+
+state = client.workspace_states.update(
+    workspace_slug, state_id, data=UpdateWorkspaceState(color="#22c55e")
+)
+client.workspace_states.delete(workspace_slug, state_id)
+```
+
 #### Labels
 
 ```python
@@ -735,6 +766,86 @@ wit = client.work_item_types.update(
 
 # Delete a work item type
 client.work_item_types.delete(workspace_slug, project_id, type_id)
+```
+
+#### Workspace Workflows
+
+The workspace workflow catalog (workspace governance). `list` is dual-mode;
+all writes require the workspace to own states and workflows.
+
+```python
+# List workspace workflows
+workflows = client.workspace_workflows.list(workspace_slug)
+
+# Create a workflow draft, then configure its chain
+from plane.models.workspace_workflows import (
+    AddWorkspaceWorkflowStates,
+    CreateWorkspaceWorkflow,
+    CreateWorkspaceWorkflowTransition,
+)
+
+workflow = client.workspace_workflows.create(
+    workspace_slug, data=CreateWorkspaceWorkflow(name="Engineering")
+)
+client.workspace_workflows.states.add(
+    workspace_slug, workflow.id, data=AddWorkspaceWorkflowStates(state_ids=[state_a, state_b])
+)
+client.workspace_workflows.states.mark_default(workspace_slug, workflow.id, state_a)
+
+# Transitions
+client.workspace_workflows.transitions.create(
+    workspace_slug,
+    workflow.id,
+    data=CreateWorkspaceWorkflowTransition(state_id=state_a, transition_state_id=state_b),
+)
+
+# Full chain, usage report, and activity log
+workflow = client.workspace_workflows.retrieve(workspace_slug, workflow.id)
+usage = client.workspace_workflows.usage(workspace_slug, workflow.id)
+activities = client.workspace_workflows.activities(workspace_slug, workflow.id)
+
+# Transition hooks (validation/action hooks, webhook secrets, executions)
+hooks = client.workspace_workflows.hooks.list(workspace_slug, workflow_id, transition_id)
+```
+
+#### Work Item Type Governance
+
+Governs which workflows a workspace-level work item type may use
+(`any` / `constrained` / `required` modes, allowlists, and per-project pins).
+Workspace governance only.
+
+```python
+# Read and change a type's governance
+governance = client.work_item_type_governance.retrieve(workspace_slug, type_id)
+
+from plane.models.work_item_type_governance import UpdateTypeGovernance
+
+governance = client.work_item_type_governance.update(
+    workspace_slug,
+    type_id,
+    data=UpdateTypeGovernance(mode="constrained", workflow_ids=[workflow_id]),
+)
+
+# Dry-run the impact first
+from plane.models.work_item_type_governance import TypeGovernancePreviewRequest
+
+preview = client.work_item_type_governance.preview(
+    workspace_slug,
+    type_id,
+    data=TypeGovernancePreviewRequest(mode="required", required_workflow_id=workflow_id),
+)
+
+# Pins, and the project-side view (effective workflows + picks)
+pins = client.work_item_type_governance.list_pins(workspace_slug, type_id)
+entries = client.work_item_type_governance.list_project_type_workflows(
+    workspace_slug, project_id
+)
+
+from plane.models.work_item_type_governance import SetProjectWorkflowPick
+
+client.work_item_type_governance.set_project_pick(
+    workspace_slug, project_id, type_id, data=SetProjectWorkflowPick(workflow_id=workflow_id)
+)
 ```
 
 #### Work Item Properties

@@ -15,6 +15,15 @@ GroupEnum = Literal[
     "cancelled",
     "triage",
 ]
+# Workspace (catalog) states accept only the five lifecycle groups — the
+# triage state is system-managed under workspace governance.
+CatalogGroupEnum = Literal[
+    "backlog",
+    "unstarted",
+    "started",
+    "completed",
+    "cancelled",
+]
 WorkItemRelationTypeEnum = Literal[
     "blocking",
     "blocked_by",

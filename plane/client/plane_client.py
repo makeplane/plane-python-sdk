@@ -20,14 +20,17 @@ from ..api.teamspaces import Teamspaces
 from ..api.users import Users
 from ..api.work_item_properties import WorkItemProperties
 from ..api.work_item_relation_definitions import WorkItemRelationDefinitions
+from ..api.work_item_type_governance import WorkItemTypeGovernance
 from ..api.work_item_types import WorkItemTypes
 from ..api.work_items import WorkItems
 from ..api.workflows import Workflows
 from ..api.workspace_project_labels import WorkspaceProjectLabels
 from ..api.workspace_project_states import WorkspaceProjectStates
+from ..api.workspace_states import WorkspaceStates
 from ..api.workspace_templates import WorkspaceTemplates
 from ..api.workspace_work_item_properties import WorkspaceWorkItemProperties
 from ..api.workspace_work_item_types import WorkspaceWorkItemTypes
+from ..api.workspace_workflows import WorkspaceWorkflows
 from ..api.workspaces import Workspaces
 from ..config import Configuration
 from ..errors import ConfigurationError
@@ -84,6 +87,9 @@ class PlaneClient:
         self.workspace_work_item_properties = WorkspaceWorkItemProperties(self.config)
         self.workspace_project_labels = WorkspaceProjectLabels(self.config)
         self.workspace_project_states = WorkspaceProjectStates(self.config)
+        self.workspace_states = WorkspaceStates(self.config)
+        self.workspace_workflows = WorkspaceWorkflows(self.config)
+        self.work_item_type_governance = WorkItemTypeGovernance(self.config)
         self.work_item_relation_definitions = WorkItemRelationDefinitions(self.config)
         self.releases = Releases(self.config)
         self.roles = Roles(self.config)

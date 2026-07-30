@@ -41,6 +41,12 @@ class WorkspaceFeature(BaseModel):
     customers: bool | None = None
     wiki: bool | None = None
     pi: bool | None = None
+    work_item_types: bool | None = None
+    releases: bool | None = None
+    # Read-only: reports whether states and workflows live at the workspace
+    # level (workspace governance). Only the governance migration can change
+    # it — the update endpoint rejects it as an input.
+    states_owned_by_workspace: bool | None = None
 
 
 class ProjectRoleDistributionEntry(BaseModel):
