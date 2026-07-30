@@ -30,12 +30,7 @@ from .api.workspace_states import WorkspaceStates
 from .api.workspace_templates import WorkspaceTemplates
 from .api.workspace_work_item_properties import WorkspaceWorkItemProperties
 from .api.workspace_work_item_types import WorkspaceWorkItemTypes
-from .api.workspace_workflows import (
-    WorkspaceWorkflows,
-    WorkspaceWorkflowStates,
-    WorkspaceWorkflowTransitionHooks,
-    WorkspaceWorkflowTransitions,
-)
+from .api.workspace_workflows import WorkspaceWorkflows
 from .api.workspaces import Workspaces
 from .client import (
     OAuthAuthorizationParams,
@@ -139,9 +134,6 @@ __all__ = [
     "WorkspaceProjectStates",
     "WorkspaceStates",
     "WorkspaceWorkflows",
-    "WorkspaceWorkflowStates",
-    "WorkspaceWorkflowTransitions",
-    "WorkspaceWorkflowTransitionHooks",
     "WorkItemTypeGovernance",
     "PlaneError",
     "ConfigurationError",

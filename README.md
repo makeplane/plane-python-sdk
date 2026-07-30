@@ -847,15 +847,15 @@ preview = client.work_item_type_governance.preview(
     data=TypeGovernancePreviewRequest(mode="required", required_workflow_id=workflow_id),
 )
 
-# Pins, and the project-side view (effective workflows + picks)
-pins = client.work_item_type_governance.list_pins(workspace_slug, type_id)
-entries = client.work_item_type_governance.list_project_type_workflows(
-    workspace_slug, project_id
-)
+# Per-project pins
+pins = client.work_item_type_governance.pins.list(workspace_slug, type_id)
+
+# Project-side view: each type's effective workflow, and the project's pick
+entries = client.work_item_type_governance.project_workflows.list(workspace_slug, project_id)
 
 from plane.models.work_item_type_governance import SetProjectWorkflowPick
 
-client.work_item_type_governance.update_project_pick(
+client.work_item_type_governance.project_workflows.update_pick(
     workspace_slug, project_id, type_id, data=SetProjectWorkflowPick(workflow_id=workflow_id)
 )
 ```

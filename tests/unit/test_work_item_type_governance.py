@@ -56,7 +56,7 @@ class TestWorkItemTypeGovernance:
         self, client: PlaneClient, workspace_slug: str, workspace_type
     ) -> None:
         """A fresh type has no pins."""
-        pins = client.work_item_type_governance.list_pins(workspace_slug, workspace_type.id)
+        pins = client.work_item_type_governance.pins.list(workspace_slug, workspace_type.id)
         assert pins == []
 
     def test_project_type_workflows(
@@ -65,7 +65,7 @@ class TestWorkItemTypeGovernance:
         """The project-side view lists an entry per active type."""
         if not governed:
             pytest.skip("workspace does not own states and workflows")
-        entries = client.work_item_type_governance.list_project_type_workflows(
+        entries = client.work_item_type_governance.project_workflows.list(
             workspace_slug, project.id
         )
         assert isinstance(entries, list)
