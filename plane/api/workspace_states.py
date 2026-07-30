@@ -37,7 +37,7 @@ class WorkspaceStates(BaseResource):
             workspace_slug: The workspace slug identifier
             params: Optional query parameters (e.g. cursor, per_page)
         """
-        response = self._get(f"{workspace_slug}/states", params=params)
+        response = self._get(f"{workspace_slug}/states/", params=params)
         return PaginatedStateResponse.model_validate(response)
 
     def retrieve_by_external_id(
@@ -51,7 +51,7 @@ class WorkspaceStates(BaseResource):
             external_source: External source system name
         """
         response = self._get(
-            f"{workspace_slug}/states",
+            f"{workspace_slug}/states/",
             params={"external_id": external_id, "external_source": external_source},
         )
         return State.model_validate(response)
@@ -67,7 +67,7 @@ class WorkspaceStates(BaseResource):
             workspace_slug: The workspace slug identifier
             data: State data (name, color, and one of the five lifecycle groups)
         """
-        response = self._post(f"{workspace_slug}/states", data.model_dump(exclude_none=True))
+        response = self._post(f"{workspace_slug}/states/", data.model_dump(exclude_none=True))
         return State.model_validate(response)
 
     def retrieve(self, workspace_slug: str, state_id: str) -> State:
@@ -77,7 +77,7 @@ class WorkspaceStates(BaseResource):
             workspace_slug: The workspace slug identifier
             state_id: UUID of the state
         """
-        response = self._get(f"{workspace_slug}/states/{state_id}")
+        response = self._get(f"{workspace_slug}/states/{state_id}/")
         return State.model_validate(response)
 
     def update(self, workspace_slug: str, state_id: str, data: UpdateWorkspaceState) -> State:
@@ -92,7 +92,7 @@ class WorkspaceStates(BaseResource):
             data: Updated state data
         """
         response = self._patch(
-            f"{workspace_slug}/states/{state_id}", data.model_dump(exclude_none=True)
+            f"{workspace_slug}/states/{state_id}/", data.model_dump(exclude_none=True)
         )
         return State.model_validate(response)
 
@@ -107,4 +107,4 @@ class WorkspaceStates(BaseResource):
             workspace_slug: The workspace slug identifier
             state_id: UUID of the state
         """
-        return self._delete(f"{workspace_slug}/states/{state_id}")
+        return self._delete(f"{workspace_slug}/states/{state_id}/")

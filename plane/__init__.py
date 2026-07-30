@@ -74,6 +74,7 @@ from .models.workflows import (
     CreateWorkflow,
     CreateWorkflowTransition,
     CreateWorkflowTransitionHook,
+    SubmitWorkItemApproval,
     UpdateWorkflow,
     UpdateWorkflowState,
     UpdateWorkflowTransition,
@@ -82,6 +83,7 @@ from .models.workflows import (
     WorkflowActivity,
     WorkflowTransition,
     WorkflowTransitionHook,
+    WorkItemApprovalResult,
 )
 from .models.workspace_workflows import (
     AddWorkspaceWorkflowStates,
@@ -93,7 +95,10 @@ from .models.workspace_workflows import (
     UpdateWorkspaceWorkflowState,
     UpdateWorkspaceWorkflowTransition,
     WorkspaceWorkflow,
+    WorkspaceWorkflowState,
+    WorkspaceWorkflowTransition,
     WorkspaceWorkflowUsage,
+    WorkspaceWorkflowUsageProject,
 )
 from .models.workspaces import WorkspaceFeature, WorkspaceMember
 
@@ -159,11 +164,15 @@ __all__ = [
     "WorkflowTransitionHook",
     "CreateWorkflowTransitionHook",
     "UpdateWorkflowTransitionHook",
+    "SubmitWorkItemApproval",
+    "WorkItemApprovalResult",
     # Workspace state models
     "CreateWorkspaceState",
     "UpdateWorkspaceState",
     # Workspace workflow models
     "WorkspaceWorkflow",
+    "WorkspaceWorkflowState",
+    "WorkspaceWorkflowTransition",
     "PaginatedWorkspaceWorkflowResponse",
     "CreateWorkspaceWorkflow",
     "UpdateWorkspaceWorkflow",
@@ -173,6 +182,7 @@ __all__ = [
     "CreateWorkspaceWorkflowTransition",
     "UpdateWorkspaceWorkflowTransition",
     "WorkspaceWorkflowUsage",
+    "WorkspaceWorkflowUsageProject",
     # Type governance models
     "TypeGovernance",
     "UpdateTypeGovernance",

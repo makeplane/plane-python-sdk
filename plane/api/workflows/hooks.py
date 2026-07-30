@@ -33,7 +33,7 @@ class ProjectWorkflowTransitionHooks(BaseResource):
             workflow_id: UUID of the workflow
             transition_id: UUID of the transition
         """
-        data = self._get(self._base(workspace_slug, project_id, workflow_id, transition_id))
+        data = self._get(f"{self._base(workspace_slug, project_id, workflow_id, transition_id)}/")
         items = data.get("results", data) if isinstance(data, dict) else data
         return [WorkflowTransitionHook.model_validate(item) for item in items]
 
@@ -58,7 +58,7 @@ class ProjectWorkflowTransitionHooks(BaseResource):
             data: Hook data (phase, handler_name, config)
         """
         response = self._post(
-            self._base(workspace_slug, project_id, workflow_id, transition_id),
+            f"{self._base(workspace_slug, project_id, workflow_id, transition_id)}/",
             data.model_dump(exclude_none=True),
         )
         return WorkflowTransitionHook.model_validate(response)
@@ -81,7 +81,7 @@ class ProjectWorkflowTransitionHooks(BaseResource):
             hook_id: UUID of the hook
         """
         response = self._get(
-            f"{self._base(workspace_slug, project_id, workflow_id, transition_id)}/{hook_id}"
+            f"{self._base(workspace_slug, project_id, workflow_id, transition_id)}/{hook_id}/"
         )
         return WorkflowTransitionHook.model_validate(response)
 
@@ -105,7 +105,7 @@ class ProjectWorkflowTransitionHooks(BaseResource):
             data: Updated hook data
         """
         response = self._patch(
-            f"{self._base(workspace_slug, project_id, workflow_id, transition_id)}/{hook_id}",
+            f"{self._base(workspace_slug, project_id, workflow_id, transition_id)}/{hook_id}/",
             data.model_dump(exclude_none=True),
         )
         return WorkflowTransitionHook.model_validate(response)
@@ -128,5 +128,5 @@ class ProjectWorkflowTransitionHooks(BaseResource):
             hook_id: UUID of the hook
         """
         return self._delete(
-            f"{self._base(workspace_slug, project_id, workflow_id, transition_id)}/{hook_id}"
+            f"{self._base(workspace_slug, project_id, workflow_id, transition_id)}/{hook_id}/"
         )

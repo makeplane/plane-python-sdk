@@ -39,7 +39,7 @@ class WorkspaceWorkflowStates(BaseResource):
             The updated chain rows
         """
         response = self._post(
-            f"{workspace_slug}/workflows/{workflow_id}/states",
+            f"{workspace_slug}/workflows/{workflow_id}/states/",
             data.model_dump(exclude_none=True),
         )
         return _validate_chain(response)
@@ -62,7 +62,7 @@ class WorkspaceWorkflowStates(BaseResource):
             data: Updated membership data
         """
         response = self._patch(
-            f"{workspace_slug}/workflows/{workflow_id}/states/{state_id}",
+            f"{workspace_slug}/workflows/{workflow_id}/states/{state_id}/",
             data.model_dump(exclude_none=True),
         )
         return WorkspaceWorkflowState.model_validate(response)
@@ -88,7 +88,7 @@ class WorkspaceWorkflowStates(BaseResource):
             data: Optional removal options (new default, orphan state mapping)
         """
         return self._delete(
-            f"{workspace_slug}/workflows/{workflow_id}/states/{state_id}",
+            f"{workspace_slug}/workflows/{workflow_id}/states/{state_id}/",
             data=data.model_dump(exclude_none=True) if data is not None else None,
         )
 
@@ -105,7 +105,7 @@ class WorkspaceWorkflowStates(BaseResource):
             state_id: UUID of the catalog state
         """
         response = self._post(
-            f"{workspace_slug}/workflows/{workflow_id}/states/{state_id}/mark-default",
+            f"{workspace_slug}/workflows/{workflow_id}/states/{state_id}/mark-default/",
             None,
         )
         if response is None:

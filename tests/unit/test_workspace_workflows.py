@@ -40,16 +40,20 @@ class TestWorkspaceWorkflows:
             pytest.skip("workspace does not own states and workflows")
 
         suffix = uuid4().hex[:8]
-        state_a = client.workspace_states.create(
-            workspace_slug,
-            CreateWorkspaceState(name=f"test-wf-a-{suffix}", color="#FF0000", group="unstarted"),
-        )
-        state_b = client.workspace_states.create(
-            workspace_slug,
-            CreateWorkspaceState(name=f"test-wf-b-{suffix}", color="#00FF00", group="started"),
-        )
+        state_a = None
+        state_b = None
         workflow = None
         try:
+            state_a = client.workspace_states.create(
+                workspace_slug,
+                CreateWorkspaceState(
+                    name=f"test-wf-a-{suffix}", color="#FF0000", group="unstarted"
+                ),
+            )
+            state_b = client.workspace_states.create(
+                workspace_slug,
+                CreateWorkspaceState(name=f"test-wf-b-{suffix}", color="#00FF00", group="started"),
+            )
             workflow = client.workspace_workflows.create(
                 workspace_slug, CreateWorkspaceWorkflow(name=f"test-workflow-{suffix}")
             )
@@ -84,8 +88,9 @@ class TestWorkspaceWorkflows:
             teardown = []
             if workflow is not None and workflow.id:
                 teardown.append((client.workspace_workflows.delete, (workspace_slug, workflow.id)))
-            teardown.append((client.workspace_states.delete, (workspace_slug, state_a.id)))
-            teardown.append((client.workspace_states.delete, (workspace_slug, state_b.id)))
+            for state in (state_a, state_b):
+                if state is not None and state.id:
+                    teardown.append((client.workspace_states.delete, (workspace_slug, state.id)))
             for func, args in teardown:
                 try:
                     func(*args)

@@ -37,7 +37,7 @@ class WorkItemTypeGovernance(BaseResource):
             workspace_slug: The workspace slug identifier
             type_id: UUID of the workspace work item type
         """
-        response = self._get(f"{workspace_slug}/work-item-types/{type_id}/governance")
+        response = self._get(f"{workspace_slug}/work-item-types/{type_id}/governance/")
         return TypeGovernance.model_validate(response)
 
     def update(
@@ -54,7 +54,7 @@ class WorkItemTypeGovernance(BaseResource):
             data: The governance change
         """
         response = self._patch(
-            f"{workspace_slug}/work-item-types/{type_id}/governance",
+            f"{workspace_slug}/work-item-types/{type_id}/governance/",
             data.model_dump(exclude_none=True),
         )
         return TypeGovernance.model_validate(response)
@@ -70,7 +70,7 @@ class WorkItemTypeGovernance(BaseResource):
             data: The governance change to preview
         """
         response = self._post(
-            f"{workspace_slug}/work-item-types/{type_id}/governance/preview",
+            f"{workspace_slug}/work-item-types/{type_id}/governance/preview/",
             data.model_dump(exclude_none=True),
         )
         payload = response.get("preview", response) if isinstance(response, dict) else response
@@ -85,7 +85,7 @@ class WorkItemTypeGovernance(BaseResource):
             workspace_slug: The workspace slug identifier
             type_id: UUID of the workspace work item type
         """
-        data = self._get(f"{workspace_slug}/work-item-types/{type_id}/governance/pins")
+        data = self._get(f"{workspace_slug}/work-item-types/{type_id}/governance/pins/")
         items = data.get("results", data) if isinstance(data, dict) else data
         return [WorkItemTypeWorkflowPin.model_validate(item) for item in items]
 
@@ -100,7 +100,7 @@ class WorkItemTypeGovernance(BaseResource):
             data: The workflow and target projects
         """
         response = self._post(
-            f"{workspace_slug}/work-item-types/{type_id}/governance/pins",
+            f"{workspace_slug}/work-item-types/{type_id}/governance/pins/",
             data.model_dump(exclude_none=True),
         )
         items = response.get("results", response) if isinstance(response, dict) else response
@@ -114,7 +114,7 @@ class WorkItemTypeGovernance(BaseResource):
             type_id: UUID of the workspace work item type
             pin_id: UUID of the pin
         """
-        return self._delete(f"{workspace_slug}/work-item-types/{type_id}/governance/pins/{pin_id}")
+        return self._delete(f"{workspace_slug}/work-item-types/{type_id}/governance/pins/{pin_id}/")
 
     # --- project-side view (picks and effective workflows) ---
 
@@ -128,7 +128,7 @@ class WorkItemTypeGovernance(BaseResource):
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
         """
-        data = self._get(f"{workspace_slug}/projects/{project_id}/work-item-types/workflows")
+        data = self._get(f"{workspace_slug}/projects/{project_id}/work-item-types/workflows/")
         items = data.get("results", data) if isinstance(data, dict) else data
         return [ProjectTypeWorkflow.model_validate(item) for item in items]
 
@@ -143,11 +143,11 @@ class WorkItemTypeGovernance(BaseResource):
             type_id: UUID of the work item type
         """
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/workflows"
+            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/workflows/"
         )
         return ProjectTypeWorkflow.model_validate(response)
 
-    def get_project_pick(
+    def retrieve_project_pick(
         self, workspace_slug: str, project_id: str, type_id: str
     ) -> ProjectTypeWorkflow:
         """Get the project's current workflow pick context for a type.
@@ -158,11 +158,11 @@ class WorkItemTypeGovernance(BaseResource):
             type_id: UUID of the work item type
         """
         response = self._get(
-            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/workflow"
+            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/workflow/"
         )
         return ProjectTypeWorkflow.model_validate(response)
 
-    def set_project_pick(
+    def update_project_pick(
         self,
         workspace_slug: str,
         project_id: str,
@@ -182,7 +182,7 @@ class WorkItemTypeGovernance(BaseResource):
             data: The pick (workflow and optional orphan state mapping)
         """
         response = self._put(
-            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/workflow",
+            f"{workspace_slug}/projects/{project_id}/work-item-types/{type_id}/workflow/",
             data.model_dump(exclude_none=True),
         )
         return response if isinstance(response, dict) else {"workflow_id": response}
@@ -198,7 +198,7 @@ class WorkItemTypeGovernance(BaseResource):
             data: The scenario to preview (re-type or workflow switch)
         """
         response = self._post(
-            f"{workspace_slug}/projects/{project_id}/workflow-fallback-preview",
+            f"{workspace_slug}/projects/{project_id}/workflow-fallback-preview/",
             data.model_dump(exclude_none=True),
         )
         payload = response.get("preview", response) if isinstance(response, dict) else response

@@ -3,7 +3,14 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ...models.workflows import CreateWorkflow, UpdateWorkflow, Workflow, WorkflowActivity
+from ...models.workflows import (
+    CreateWorkflow,
+    SubmitWorkItemApproval,
+    UpdateWorkflow,
+    Workflow,
+    WorkflowActivity,
+    WorkItemApprovalResult,
+)
 from ..base_resource import BaseResource
 from .hooks import ProjectWorkflowTransitionHooks
 from .states import WorkflowStates
@@ -129,18 +136,23 @@ class Workflows(BaseResource):
         return [WorkflowActivity.model_validate(item) for item in items]
 
     def submit_work_item_approval(
-        self, workspace_slug: str, project_id: str, work_item_id: str, action: str
-    ) -> Any:
+        self,
+        workspace_slug: str,
+        project_id: str,
+        work_item_id: str,
+        data: SubmitWorkItemApproval,
+    ) -> WorkItemApprovalResult:
         """Approve or reject a work item's pending workflow transition.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             work_item_id: UUID of the work item
-            action: ``"approve"`` or ``"reject"``
+            data: The approval decision (``type="approve"`` or ``type="reject"``)
         """
-        return self._post(
+        response = self._post(
             f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}"
             "/workflow-approval/",
-            {"type": action},
+            data.model_dump(exclude_none=True),
         )
+        return WorkItemApprovalResult.model_validate(response)

@@ -777,26 +777,35 @@ all writes require the workspace to own states and workflows.
 # List workspace workflows
 workflows = client.workspace_workflows.list(workspace_slug)
 
-# Create a workflow draft, then configure its chain
+# Create a workflow draft, then configure its chain from catalog states
+from plane.models.states import CreateWorkspaceState
 from plane.models.workspace_workflows import (
     AddWorkspaceWorkflowStates,
     CreateWorkspaceWorkflow,
     CreateWorkspaceWorkflowTransition,
 )
 
+state_a = client.workspace_states.create(
+    workspace_slug, data=CreateWorkspaceState(name="Todo", color="#94a3b8", group="unstarted")
+)
+state_b = client.workspace_states.create(
+    workspace_slug, data=CreateWorkspaceState(name="Doing", color="#3b82f6", group="started")
+)
 workflow = client.workspace_workflows.create(
     workspace_slug, data=CreateWorkspaceWorkflow(name="Engineering")
 )
 client.workspace_workflows.states.add(
-    workspace_slug, workflow.id, data=AddWorkspaceWorkflowStates(state_ids=[state_a, state_b])
-)
-client.workspace_workflows.states.mark_default(workspace_slug, workflow.id, state_a)
-
-# Transitions
-client.workspace_workflows.transitions.create(
     workspace_slug,
     workflow.id,
-    data=CreateWorkspaceWorkflowTransition(state_id=state_a, transition_state_id=state_b),
+    data=AddWorkspaceWorkflowStates(state_ids=[state_a.id, state_b.id]),
+)
+client.workspace_workflows.states.mark_default(workspace_slug, workflow.id, state_a.id)
+
+# Transitions
+transition = client.workspace_workflows.transitions.create(
+    workspace_slug,
+    workflow.id,
+    data=CreateWorkspaceWorkflowTransition(state_id=state_a.id, transition_state_id=state_b.id),
 )
 
 # Full chain, usage report, and activity log
@@ -805,7 +814,7 @@ usage = client.workspace_workflows.usage(workspace_slug, workflow.id)
 activities = client.workspace_workflows.activities(workspace_slug, workflow.id)
 
 # Transition hooks (validation/action hooks, webhook secrets, executions)
-hooks = client.workspace_workflows.hooks.list(workspace_slug, workflow_id, transition_id)
+hooks = client.workspace_workflows.hooks.list(workspace_slug, workflow.id, transition.id)
 ```
 
 #### Work Item Type Governance
@@ -815,6 +824,9 @@ Governs which workflows a workspace-level work item type may use
 Workspace governance only.
 
 ```python
+# type_id: UUID of a workspace work item type; workflow_id: UUID of a
+# workspace workflow (e.g. workflow.id from the example above)
+
 # Read and change a type's governance
 governance = client.work_item_type_governance.retrieve(workspace_slug, type_id)
 
@@ -843,7 +855,7 @@ entries = client.work_item_type_governance.list_project_type_workflows(
 
 from plane.models.work_item_type_governance import SetProjectWorkflowPick
 
-client.work_item_type_governance.set_project_pick(
+client.work_item_type_governance.update_project_pick(
     workspace_slug, project_id, type_id, data=SetProjectWorkflowPick(workflow_id=workflow_id)
 )
 ```

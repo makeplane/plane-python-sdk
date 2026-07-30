@@ -29,7 +29,7 @@ class WorkspaceWorkflowTransitionHooks(BaseResource):
             workflow_id: UUID of the workflow
             transition_id: UUID of the transition
         """
-        data = self._get(self._base(workspace_slug, workflow_id, transition_id))
+        data = self._get(f"{self._base(workspace_slug, workflow_id, transition_id)}/")
         items = data.get("results", data) if isinstance(data, dict) else data
         return [WorkflowTransitionHook.model_validate(item) for item in items]
 
@@ -52,7 +52,7 @@ class WorkspaceWorkflowTransitionHooks(BaseResource):
             data: Hook data (phase, handler_name, config)
         """
         response = self._post(
-            self._base(workspace_slug, workflow_id, transition_id),
+            f"{self._base(workspace_slug, workflow_id, transition_id)}/",
             data.model_dump(exclude_none=True),
         )
         return WorkflowTransitionHook.model_validate(response)
@@ -68,7 +68,7 @@ class WorkspaceWorkflowTransitionHooks(BaseResource):
             transition_id: UUID of the transition
             hook_id: UUID of the hook
         """
-        response = self._get(f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}")
+        response = self._get(f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}/")
         return WorkflowTransitionHook.model_validate(response)
 
     def update(
@@ -89,7 +89,7 @@ class WorkspaceWorkflowTransitionHooks(BaseResource):
             data: Updated hook data
         """
         response = self._patch(
-            f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}",
+            f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}/",
             data.model_dump(exclude_none=True),
         )
         return WorkflowTransitionHook.model_validate(response)
@@ -105,7 +105,7 @@ class WorkspaceWorkflowTransitionHooks(BaseResource):
             transition_id: UUID of the transition
             hook_id: UUID of the hook
         """
-        return self._delete(f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}")
+        return self._delete(f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}/")
 
     def regenerate_secret(
         self, workspace_slug: str, workflow_id: str, transition_id: str, hook_id: str
@@ -122,7 +122,7 @@ class WorkspaceWorkflowTransitionHooks(BaseResource):
         """
         response = self._post(
             f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}"
-            "/regenerate-webhook-secret",
+            "/regenerate-webhook-secret/",
             None,
         )
         return WorkflowTransitionHook.model_validate(response)
@@ -143,7 +143,7 @@ class WorkspaceWorkflowTransitionHooks(BaseResource):
             hook_id: UUID of the hook
         """
         data = self._get(
-            f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}/executions"
+            f"{self._base(workspace_slug, workflow_id, transition_id)}/{hook_id}/executions/"
         )
         items = data.get("results", data) if isinstance(data, dict) else data
         return list(items) if isinstance(items, list) else [items]

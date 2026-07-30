@@ -587,6 +587,7 @@ IntakeWorkItemStatusEnum = int
 
 __all__ = [
     "AccessEnum",
+    "CatalogGroupEnum",
     "EntityTypeEnum",
     "GroupEnum",
     "WorkItemRelationTypeEnum",

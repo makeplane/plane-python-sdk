@@ -43,7 +43,7 @@ class WorkspaceWorkflows(BaseResource):
             params: Optional query parameters (search, is_active, sort_by,
                 sort_order, cursor, per_page)
         """
-        response = self._get(f"{workspace_slug}/workflows", params=params)
+        response = self._get(f"{workspace_slug}/workflows/", params=params)
         return PaginatedWorkspaceWorkflowResponse.model_validate(response)
 
     def create(self, workspace_slug: str, data: CreateWorkspaceWorkflow) -> WorkspaceWorkflow:
@@ -55,7 +55,7 @@ class WorkspaceWorkflows(BaseResource):
             workspace_slug: The workspace slug identifier
             data: Workflow data
         """
-        response = self._post(f"{workspace_slug}/workflows", data.model_dump(exclude_none=True))
+        response = self._post(f"{workspace_slug}/workflows/", data.model_dump(exclude_none=True))
         return WorkspaceWorkflow.model_validate(response)
 
     def retrieve(self, workspace_slug: str, workflow_id: str) -> WorkspaceWorkflow:
@@ -65,7 +65,7 @@ class WorkspaceWorkflows(BaseResource):
             workspace_slug: The workspace slug identifier
             workflow_id: UUID of the workflow
         """
-        response = self._get(f"{workspace_slug}/workflows/{workflow_id}")
+        response = self._get(f"{workspace_slug}/workflows/{workflow_id}/")
         return WorkspaceWorkflow.model_validate(response)
 
     def update(
@@ -79,7 +79,7 @@ class WorkspaceWorkflows(BaseResource):
             data: Updated workflow data
         """
         response = self._patch(
-            f"{workspace_slug}/workflows/{workflow_id}", data.model_dump(exclude_none=True)
+            f"{workspace_slug}/workflows/{workflow_id}/", data.model_dump(exclude_none=True)
         )
         return WorkspaceWorkflow.model_validate(response)
 
@@ -92,7 +92,7 @@ class WorkspaceWorkflows(BaseResource):
             workspace_slug: The workspace slug identifier
             workflow_id: UUID of the workflow
         """
-        return self._delete(f"{workspace_slug}/workflows/{workflow_id}")
+        return self._delete(f"{workspace_slug}/workflows/{workflow_id}/")
 
     def usage(self, workspace_slug: str, workflow_id: str) -> WorkspaceWorkflowUsage:
         """Report which projects/types resolve to this workflow, and which types
@@ -102,7 +102,7 @@ class WorkspaceWorkflows(BaseResource):
             workspace_slug: The workspace slug identifier
             workflow_id: UUID of the workflow
         """
-        response = self._get(f"{workspace_slug}/workflows/{workflow_id}/usage")
+        response = self._get(f"{workspace_slug}/workflows/{workflow_id}/usage/")
         return WorkspaceWorkflowUsage.model_validate(response)
 
     def activities(
@@ -119,6 +119,6 @@ class WorkspaceWorkflows(BaseResource):
             params: Optional query parameters (e.g. created_at__gt, cursor,
                 per_page)
         """
-        data = self._get(f"{workspace_slug}/workflows/{workflow_id}/activities", params=params)
+        data = self._get(f"{workspace_slug}/workflows/{workflow_id}/activities/", params=params)
         items = data.get("results", data) if isinstance(data, dict) else data
         return [WorkflowActivity.model_validate(item) for item in items]

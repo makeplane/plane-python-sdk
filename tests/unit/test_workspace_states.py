@@ -62,11 +62,11 @@ class TestWorkspaceStates:
                 name=name, color="#FF0000", group="unstarted", description="SDK test state"
             ),
         )
-        assert created.id is not None
-        assert created.name == name
-        assert created.project is None
-
         try:
+            assert created.id is not None
+            assert created.name == name
+            assert created.project is None
+
             retrieved = client.workspace_states.retrieve(workspace_slug, created.id)
             assert retrieved.id == created.id
 

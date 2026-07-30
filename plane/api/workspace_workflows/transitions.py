@@ -21,7 +21,7 @@ class WorkspaceWorkflowTransitions(BaseResource):
             workspace_slug: The workspace slug identifier
             workflow_id: UUID of the workflow
         """
-        data = self._get(f"{workspace_slug}/workflows/{workflow_id}/state-transitions")
+        data = self._get(f"{workspace_slug}/workflows/{workflow_id}/state-transitions/")
         items = data.get("results", data) if isinstance(data, dict) else data
         return [WorkspaceWorkflowTransition.model_validate(item) for item in items]
 
@@ -39,7 +39,7 @@ class WorkspaceWorkflowTransitions(BaseResource):
             data: Transition data (from-state, target state, optional approvers)
         """
         response = self._post(
-            f"{workspace_slug}/workflows/{workflow_id}/state-transitions",
+            f"{workspace_slug}/workflows/{workflow_id}/state-transitions/",
             data.model_dump(exclude_none=True),
         )
         return WorkspaceWorkflowTransition.model_validate(response)
@@ -55,7 +55,7 @@ class WorkspaceWorkflowTransitions(BaseResource):
             transition_id: UUID of the transition
         """
         response = self._get(
-            f"{workspace_slug}/workflows/{workflow_id}/state-transitions/{transition_id}"
+            f"{workspace_slug}/workflows/{workflow_id}/state-transitions/{transition_id}/"
         )
         return WorkspaceWorkflowTransition.model_validate(response)
 
@@ -75,7 +75,7 @@ class WorkspaceWorkflowTransitions(BaseResource):
             data: Updated transition data
         """
         response = self._patch(
-            f"{workspace_slug}/workflows/{workflow_id}/state-transitions/{transition_id}",
+            f"{workspace_slug}/workflows/{workflow_id}/state-transitions/{transition_id}/",
             data.model_dump(exclude_none=True),
         )
         return WorkspaceWorkflowTransition.model_validate(response)
@@ -89,5 +89,5 @@ class WorkspaceWorkflowTransitions(BaseResource):
             transition_id: UUID of the transition
         """
         return self._delete(
-            f"{workspace_slug}/workflows/{workflow_id}/state-transitions/{transition_id}"
+            f"{workspace_slug}/workflows/{workflow_id}/state-transitions/{transition_id}/"
         )

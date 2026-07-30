@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -126,6 +126,23 @@ class WorkflowActivity(BaseModel):
     new_value: Any | None = None
     actor: Any | None = None
     created_at: str | None = None
+
+
+class SubmitWorkItemApproval(BaseModel):
+    """Request model for approving or rejecting a work item's pending workflow
+    transition. ``type`` is ``"approve"`` or ``"reject"``."""
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    type: Literal["approve", "reject"]
+
+
+class WorkItemApprovalResult(BaseModel):
+    """Response of a work item workflow approval: the state the item moved to."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    state_id: str | None = None
 
 
 class WorkflowTransitionHook(BaseModel):

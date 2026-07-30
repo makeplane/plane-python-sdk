@@ -1,5 +1,6 @@
 from .enums import (
     AccessEnum,
+    CatalogGroupEnum,
     EntityTypeEnum,
     GroupEnum,
     IntakeWorkItemStatusEnum,
@@ -29,6 +30,7 @@ from .query_params import (
 __all__ = [
     # enums
     "AccessEnum",
+    "CatalogGroupEnum",
     "EntityTypeEnum",
     "GroupEnum",
     "WorkItemRelationTypeEnum",
