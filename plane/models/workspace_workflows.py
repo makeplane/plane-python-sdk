@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from .pagination import PaginatedResponse
 
@@ -8,8 +8,15 @@ from .pagination import PaginatedResponse
 class WorkspaceWorkflowState(BaseModel):
     """One state row in a workspace workflow's chain.
 
-    Rows are keyed by catalog state IDs. ``transitions`` embeds the outgoing
-    transitions (with approvers) when the payload is the full chain projection.
+    Rows are keyed by catalog state IDs, so ``id`` is the state's own ID — the
+    inverse of the project-scoped :class:`plane.models.workflows.WorkflowState`,
+    where ``id`` is the membership row's ID and ``state_id`` is the state's. The
+    API never sends ``state_id`` on these rows; the SDK fills it from ``id`` so
+    that ``state_id`` identifies the state in both models and only ``id``
+    differs.
+
+    ``transitions`` embeds the outgoing transitions (with approvers) when the
+    payload is the full chain projection.
     """
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
@@ -21,6 +28,20 @@ class WorkspaceWorkflowState(BaseModel):
     is_default: bool | None = None
     sequence: float | None = None
     transitions: list[dict[str, Any]] | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _fill_state_id_from_id(cls, data: Any) -> Any:
+        """Populate ``state_id`` from ``id`` when the payload omits it.
+
+        Without this the field would silently parse as ``None`` on every chain
+        row, which reads as "this row has no state" rather than "the server
+        does not send this key". If a future payload does carry ``state_id``,
+        that value wins.
+        """
+        if isinstance(data, dict) and data.get("state_id") is None and data.get("id") is not None:
+            return {**data, "state_id": data["id"]}
+        return data
 
 
 class WorkspaceWorkflow(BaseModel):

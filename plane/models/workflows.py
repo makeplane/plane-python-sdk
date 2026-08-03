@@ -90,7 +90,12 @@ class UpdateWorkflowTransition(BaseModel):
 
 
 class WorkflowState(BaseModel):
-    """A state's membership row within a workflow chain."""
+    """A state's membership row within a workflow chain.
+
+    ``id`` is the membership row's ID and ``state_id`` the state's own — the
+    inverse of :class:`plane.models.workspace_workflows.WorkspaceWorkflowState`,
+    whose rows are keyed by state ID.
+    """
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 

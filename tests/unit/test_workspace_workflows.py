@@ -11,6 +11,8 @@ from plane.models.workspace_workflows import (
     AddWorkspaceWorkflowStates,
     CreateWorkspaceWorkflow,
     UpdateWorkspaceWorkflow,
+    WorkspaceWorkflow,
+    WorkspaceWorkflowState,
 )
 
 
@@ -96,3 +98,39 @@ class TestWorkspaceWorkflows:
                     func(*args)
                 except Exception as exc:
                     warnings.warn(f"Teardown failed: {exc}", stacklevel=1)
+
+
+class TestWorkspaceWorkflowStateModel:
+    """Test Pydantic model validation for workspace workflow chain rows."""
+
+    def test_state_id_filled_from_id(self) -> None:
+        """Chain rows are keyed by state ID, and the API omits ``state_id``."""
+        row = WorkspaceWorkflowState.model_validate(
+            {
+                "id": "8f1c2d3e",
+                "type": "DEFAULT",
+                "allow_issue_creation": True,
+                "is_default": False,
+                "sequence": 65535.0,
+                "transitions": [],
+            }
+        )
+        assert row.state_id == "8f1c2d3e"
+        assert row.model_dump()["state_id"] == "8f1c2d3e"
+
+    def test_state_id_filled_on_nested_chain(self) -> None:
+        """The detail payload's nested ``states`` rows get the same treatment."""
+        workflow = WorkspaceWorkflow.model_validate(
+            {"id": "wf-1", "name": "Default", "states": [{"id": "state-1"}, {"id": "state-2"}]}
+        )
+        assert workflow.states is not None
+        assert [state.state_id for state in workflow.states] == ["state-1", "state-2"]
+
+    def test_explicit_state_id_wins(self) -> None:
+        """A payload that does carry ``state_id`` keeps its own value."""
+        row = WorkspaceWorkflowState.model_validate({"id": "membership-1", "state_id": "state-1"})
+        assert row.state_id == "state-1"
+
+    def test_missing_id_leaves_state_id_unset(self) -> None:
+        """Nothing to fill from, and nothing to raise about."""
+        assert WorkspaceWorkflowState.model_validate({}).state_id is None
