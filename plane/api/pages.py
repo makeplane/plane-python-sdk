@@ -233,5 +233,9 @@ class Pages(BaseResource):
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             page_id: UUID of the page
+
+        Note:
+            The page must be archived first; the API answers 400
+            "The page should be archived before deleting" otherwise.
         """
         return self._delete(f"{workspace_slug}/projects/{project_id}/pages/{page_id}")

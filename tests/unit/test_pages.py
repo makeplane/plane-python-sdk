@@ -10,8 +10,12 @@ from plane.models.projects import Project
 
 
 def _requires_live(exc: Exception) -> None:
-    """Page content is written by the live collaboration service; skip without it."""
-    if "502" in str(exc) or "Failed to update page document" in str(exc):
+    """Skip when the live collaboration service is absent, and only then.
+
+    It answers one identified failure. Skipping on the status alone would swallow any
+    other 502 -- a proxy fault or an API regression -- as "environment not available".
+    """
+    if "Failed to update page document" in str(exc):
         pytest.skip("requires Plane's live collaboration service")
     raise exc
 
@@ -108,7 +112,10 @@ class TestPagesAPI:
         page = client.pages.create_project_page(
             workspace_slug,
             project.id,
-            CreatePage(name=f"Test Update {int(time.time())}", description_html="<p>first draft</p>"),
+            CreatePage(
+                name=f"Test Update {int(time.time())}",
+                description_html="<p>first draft</p>",
+            ),
         )
 
         try:
@@ -129,7 +136,10 @@ class TestPagesAPI:
         """Test updating a workspace page."""
         page = client.pages.create_workspace_page(
             workspace_slug,
-            CreatePage(name=f"Test WS Update {int(time.time())}", description_html="<p>first draft</p>"),
+            CreatePage(
+                name=f"Test WS Update {int(time.time())}",
+                description_html="<p>first draft</p>",
+            ),
         )
 
         try:
