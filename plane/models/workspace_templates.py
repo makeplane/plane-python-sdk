@@ -16,7 +16,9 @@ class WorkItemTemplate(BaseModel):
 
     id: str | None = None
     name: str | None = None
-    description: str | None = None
+    # The editor stores a JSON document here and returns {} when empty; only
+    # description_html is text. Matches Page.description.
+    description: dict | str | None = None
     description_html: str | None = None
     template_data: Any | None = None
     logo_props: Any | None = None
@@ -56,7 +58,9 @@ class ProjectTemplate(BaseModel):
 
     id: str | None = None
     name: str | None = None
-    description: str | None = None
+    # The editor stores a JSON document here and returns {} when empty; only
+    # description_html is text. Matches Page.description.
+    description: dict | str | None = None
     logo_props: Any | None = None
     template_data: Any | None = None
     created_at: str | None = None
@@ -93,7 +97,9 @@ class PageTemplate(BaseModel):
 
     id: str | None = None
     name: str | None = None
-    description: str | None = None
+    # The editor stores a JSON document here and returns {} when empty; only
+    # description_html is text. Matches Page.description.
+    description: dict | str | None = None
     description_html: str | None = None
     template_data: Any | None = None
     logo_props: Any | None = None
