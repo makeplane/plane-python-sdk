@@ -23,6 +23,15 @@ class Page(BaseModel):
     anchor: str | None = None
     workspace: str | None = None
     projects: list[str] | None = None
+    access: int | None = None
+    is_locked: bool | None = None
+    archived_at: str | None = None
+    parent_id: str | None = None
+    # Where the page is filed, and the id of the row that files it there -- the
+    # second is what addresses the membership when moving the page between
+    # collections. Both are null for a page in no collection.
+    collection_id: str | None = None
+    page_collection_id: str | None = None
 
 
 class CreatePage(BaseModel):
