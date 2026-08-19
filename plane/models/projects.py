@@ -85,6 +85,7 @@ class CreateProject(BaseModel):
 
     name: str
     description: str | None = None
+    description_html: str | None = None
     project_lead: str | None = None
     default_assignee: str | None = None
     identifier: str
@@ -113,6 +114,7 @@ class UpdateProject(BaseModel):
 
     name: str | None = None
     description: str | None = None
+    description_html: str | None = None
     network: NetworkEnum | None = None
     project_lead: str | None = None
     default_assignee: str | None = None
