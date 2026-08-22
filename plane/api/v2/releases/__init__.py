@@ -1,0 +1,139 @@
+"""Releases (api_v2) -- workspace-scoped, not project-scoped. Beyond CRUD:
+`manage_labels`/`manage_work_items`, a `.changelog` singleton, catalog siblings
+`.labels`/`.tags`, and nested `.comments`/`.links` (see `tags.py` for a golden/server mismatch)."""
+
+from __future__ import annotations
+
+import builtins
+from collections.abc import Iterator, Sequence
+from typing import Any
+
+from ....models.v2.releases import (
+    CreateRelease,
+    Release,
+    ReleaseChildManageRequest,
+    ReleaseChildManageResult,
+    UpdateRelease,
+)
+from .._kernel.pagination import Page
+from .._kernel.resource import V2Resource
+from .._kernel.transport import V2Transport
+from .changelog import ReleaseChangelogResource
+from .comments import ReleaseComments
+from .labels import ReleaseLabels
+from .links import ReleaseLinks
+from .tags import ReleaseTags
+
+__all__ = [
+    "ReleaseChangelogResource",
+    "ReleaseComments",
+    "ReleaseLabels",
+    "ReleaseLinks",
+    "ReleaseTags",
+    "Releases",
+]
+
+
+class Releases(V2Resource[Release, CreateRelease, UpdateRelease]):
+    path = "/workspaces/{slug}/releases/"
+    model = Release
+    operations = {
+        "list": "releases_list",
+        "retrieve": "releases_retrieve",
+        "create": "releases_create",
+        "update": "releases_partial_update",
+        "delete": "releases_destroy",
+        "manage_labels": "releases_labels",
+        "manage_work_items": "releases_work_items",
+    }
+
+    def __init__(self, transport: V2Transport, **scope: Any) -> None:
+        super().__init__(transport, **scope)
+        self.comments = ReleaseComments(transport, **self._scope)
+        self.links = ReleaseLinks(transport, **self._scope)
+        self.labels = ReleaseLabels(transport, **self._scope)
+        self.tags = ReleaseTags(transport, **self._scope)
+        self.changelog = ReleaseChangelogResource(transport, **self._scope)
+
+    # -- Workspace-scoped CRUD ----------------------------------------------------
+
+    def list(
+        self,
+        *,
+        fields: Sequence[str] | None = None,
+        expand: Sequence[str] | None = None,
+        **filters: Any,
+    ) -> Page[Release]:
+        """One page of releases in the workspace.
+
+        `**filters` covers `status`, `lead_id`, `tag_id`, `is_latest`."""
+        return self._list(params={"fields": fields, "expand": expand, **filters})
+
+    def iterate(
+        self,
+        *,
+        fields: Sequence[str] | None = None,
+        expand: Sequence[str] | None = None,
+        **filters: Any,
+    ) -> Iterator[Release]:
+        """Every release in the workspace, following pages automatically."""
+        return self._iter(params={"fields": fields, "expand": expand, **filters})
+
+    def retrieve(
+        self,
+        release_id: str,
+        *,
+        fields: Sequence[str] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Release:
+        return self._retrieve(pk=release_id, params={"fields": fields, "expand": expand})
+
+    def find_by_name(self, name: str) -> Release:
+        """The one release with this name; raises if none or several match."""
+        return self._find_one(filters={"name": name})
+
+    def create(self, data: CreateRelease) -> Release:
+        return self._create(data)
+
+    def update(self, release_id: str, data: UpdateRelease) -> Release:
+        return self._update(data, pk=release_id)
+
+    def delete(self, release_id: str) -> None:
+        return self._delete(pk=release_id)
+
+    # -- Child membership manage (labels / work items) -----------------------------
+    # Response is `{added, removed}`, not a `Release`, so these bypass `_action`.
+
+    def manage_labels(
+        self,
+        release_id: str,
+        *,
+        add: builtins.list[str] | None = None,
+        remove: builtins.list[str] | None = None,
+    ) -> ReleaseChildManageResult:
+        """Attach and/or detach release labels (from the workspace catalog) on
+        this release in one call. Returns the ids actually added/removed."""
+        body = ReleaseChildManageRequest(add=add, remove=remove)
+        payload = self.transport.request(
+            "POST",
+            f"{self._detail_url(release_id)}labels/",
+            json=body.model_dump(mode="json", exclude_none=True),
+        )
+        return ReleaseChildManageResult.model_validate(payload)
+
+    def manage_work_items(
+        self,
+        release_id: str,
+        *,
+        add: builtins.list[str] | None = None,
+        remove: builtins.list[str] | None = None,
+    ) -> ReleaseChildManageResult:
+        """Attach and/or detach work items on this release in one call. Returns
+        the ids actually added/removed."""
+        body = ReleaseChildManageRequest(add=add, remove=remove)
+        payload = self.transport.request(
+            "POST",
+            f"{self._detail_url(release_id)}work-items/",
+            json=body.model_dump(mode="json", exclude_none=True),
+        )
+        return ReleaseChildManageResult.model_validate(payload)

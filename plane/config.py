@@ -34,6 +34,9 @@ class Configuration:
             )
 
         self.base_path = base_path.rstrip("/") + "/api/v1"
+        # Raw origin with no version suffix. v1 keeps `base_path`; v2 resources
+        # build their own `/api/v2` prefix from this.
+        self.api_root = base_path.rstrip("/")
         self.api_key = api_key
         self.access_token = access_token
         self.timeout = timeout

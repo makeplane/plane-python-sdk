@@ -18,6 +18,7 @@ from ..api.states import States
 from ..api.stickies import Stickies
 from ..api.teamspaces import Teamspaces
 from ..api.users import Users
+from ..api.v2 import V2Namespace
 from ..api.work_item_properties import WorkItemProperties
 from ..api.work_item_relation_definitions import WorkItemRelationDefinitions
 from ..api.work_item_type_governance import WorkItemTypeGovernance
@@ -58,6 +59,9 @@ class PlaneClient:
             api_key=api_key,
             access_token=access_token,
         )
+
+        # api_v2 surface. v1 resources below are unchanged.
+        self.v2 = V2Namespace(self.config)
 
         self.users = Users(self.config)
         self.workspaces = Workspaces(self.config)

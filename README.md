@@ -196,6 +196,121 @@ work_items = client.work_items.list(
 )
 ```
 
+## API v2
+
+`client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
+
+The chain is the **only** public form: bind a workspace once
+(`client.v2.workspace(slug)`), then a project inside it once more
+(`.project(project)`) — both are zero-I/O locators, not requests. Every v2
+resource hangs off one of the two as a plain attribute; nothing takes a
+`workspace_slug`/`project` parameter directly, because the scope you bound already
+supplies it. `client.v2.users` and `client.v2.user_assets` are the only exceptions
+— the 6 v2 operations with no workspace in their path stay directly on `client.v2`.
+
+```python
+from plane import PlaneClient
+from plane.models.v2 import CreateState
+
+client = PlaneClient(base_url="https://api.plane.so", api_key="...")
+
+# Bind once -- "acme" is a workspace slug, "ENG" a project key (a UUID works too)
+eng = client.v2.workspace("acme").project("ENG")
+
+# Projects address by key; states resolve by name
+todo = eng.states.find_by_name("Todo")
+
+# Ask for only the fields you need
+for state in eng.states.iterate(fields=["id", "name"]):
+    print(state.id, state.name)
+
+eng.states.create(CreateState(name="In Review", color="#4ECDC4"))
+
+# Batches report per row; partial success is the default
+result = eng.states.bulk_create([CreateState(name="QA", color="#fff")])
+result.raise_for_failures()
+```
+
+Sparse responses mean every read field except `id` is optional — check for `None`
+rather than assuming a field is present.
+
+`eng.labels` follows the same shape as `eng.states`: `list`, `iterate`, `retrieve`,
+`find_by_name`, `create`, `update`, `delete`, `upsert`, `bulk_create`, `bulk_update`,
+`bulk_delete`. Models: `State`, `CreateState`, `UpdateState`, `Label`, `CreateLabel`,
+`UpdateLabel`, `BulkWriteResponse`, `OffsetPage`, `CursorPage`, all importable from
+`plane.models.v2`.
+
+`eng.cycles`, `eng.modules` and `eng.milestones` offer the same CRUD/upsert/bulk
+surface. Milestones' identifying field is `title`, not `name`, but `find_by_name`
+still takes a `name` argument — the API's own list filter aliases `?name=` to the
+`title` column. Models: `Cycle`, `CreateCycle`, `UpdateCycle`, `Module`, `CreateModule`,
+`UpdateModule`, `ModuleStatus`, `Milestone`, `CreateMilestone`, `UpdateMilestone`, all
+importable from `plane.models.v2`.
+
+Wiki resources are workspace-scoped, reached under `.wiki`:
+
+```python
+from plane.models.v2 import CreatePage
+
+ws = client.v2.workspace("acme")
+
+# A public page created without `collection_id` lands in the workspace's default
+# ("General") collection server-side; private pages need an explicit private one.
+handbook = ws.wiki.collections.find_by_name("Engineering handbook")
+ws.wiki.pages.create(CreatePage(name="Runbook", collection_id=handbook.id))
+ws.wiki.collections.default()          # the default collection, resolved by `is_default`
+```
+
+Work items follow the same pattern, and readable identifiers come first:
+
+```python
+from plane.models.v2 import CreateWorkItem
+
+eng = client.v2.workspace("acme").project("ENG")
+item = eng.work_items.create(CreateWorkItem(name="Fix login bug", state="Todo", labels=["bug"]))
+eng.work_items.comments.list(item.id)
+
+# By human key, with no project needed -- `ws.work_items` spans every project
+ws.work_items.retrieve_by_identifier("ENG-12")
+```
+
+Every other resource hangs off the same two locators with the same shape --
+`ws.members`, `ws.releases.comments`, `eng.cycles`, `eng.work_item_types.properties`,
+... -- and none of them take `workspace_slug`/`project` arguments: the locator
+supplies both.
+
+Errors from `client.v2` calls raise `PlaneAPIError` (RFC 9457 problem detail —
+`.status`, `.type`, `.code`, `.detail`, `.errors`), and `find_by_name` raises
+`NoMatchFound` or `MultipleMatchesFound` when it can't resolve to exactly one row.
+All three, plus `FieldError` (the shape of one entry in `.errors`), are re-exported
+from both `plane.api.v2` and the top-level `plane` package:
+
+```python
+from plane.api.v2 import MultipleMatchesFound, NoMatchFound, PlaneAPIError
+
+# or, equivalently:
+# from plane import MultipleMatchesFound, NoMatchFound, PlaneAPIError
+
+try:
+    state = eng.states.find_by_name("Todo")
+except NoMatchFound:
+    ...
+except MultipleMatchesFound:
+    ...
+
+try:
+    eng.states.create(CreateState(name="", color="#fff"))
+except PlaneAPIError as e:
+    print(e.status, e.code, e.detail)
+```
+
+Bulk writes (`bulk_create`, `bulk_update`, `bulk_delete`) cap at 50 rows per call and
+answer HTTP 200 even when some rows fail — call `result.raise_for_failures()` to turn
+partial failure into an exception, or inspect `result.failures` yourself. An empty
+batch is rejected client-side with a `ValueError` before any request is sent — the API
+itself 400s on `[]` (every bulk schema requires at least one row), so the client mirrors
+that instead of round-tripping a request guaranteed to fail.
+
 ## Architecture
 
 ### Client Structure

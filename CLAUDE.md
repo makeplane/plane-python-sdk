@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Plane Python SDK (`plane-sdk` on PyPI, v0.2.4) — a synchronous, type-annotated Python client for the Plane API. Built on `requests` + `pydantic` v2, targeting Python 3.10+.
+Plane Python SDK (`plane-sdk` on PyPI, v0.3.0) — a synchronous, type-annotated Python client for the Plane API. Built on `requests` + `pydantic` v2, targeting Python 3.10+.
 
 ## Common Commands
 
@@ -69,6 +69,26 @@ PlaneClient
 - `plane/client/` — `PlaneClient` (API key / access token auth) and `OAuthClient` (OAuth 2.0 flows).
 - `plane/errors/` — `PlaneError` → `HttpError`, `ConfigurationError`.
 - `plane/config.py` — `Configuration` and `RetryConfig` dataclasses.
+- `plane/api/v2/` — the v2 surface. The chain is the only public form:
+  `client.v2.workspace(slug)` (`Workspace`, `plane/api/v2/workspace.py`) and
+  `.project(project)` (`Project`, `plane/api/v2/project.py`) are zero-I/O locators
+  that bind `slug`/`project_id` once; every v2 resource hangs off one of them as a
+  plain attribute (`.wiki` on `Workspace` is itself a small locator, `Wiki` in
+  `plane/api/v2/wiki.py`, holding `.pages`/`.collections`). `client.v2.users` /
+  `.user_assets` are the only resources kept directly on `V2Namespace` (the 6
+  operations with no workspace in their path). `_kernel/` holds the shared
+  machinery: `V2Resource.__init__(transport, **scope)` stores the bound scope,
+  and `_collection_url`/`_detail_url` merge it with any explicitly passed path
+  params (explicit wins) — a resource constructed with no scope (most offline
+  tests do this) behaves exactly as if every path param were passed per call, so
+  a resource's methods work identically whether or not it was reached through
+  the chain. No public v2 method takes `workspace_slug`/`project` parameters —
+  the locator supplies both; leaf ids (`work_item_id`, `release_id`, ...) stay as
+  the first positional argument. `_generated/constants.py` is produced by
+  `scripts/generate_v2_constants.py` from the api_v2 OpenAPI golden and must
+  never be hand-edited.
+- `plane/models/v2/` — v2 pydantic models. Read models mark every field except `id`
+  optional, because `?fields=` and collection deferral can omit any of them.
 
 ### Sub-resource pattern
 

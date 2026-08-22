@@ -1,0 +1,97 @@
+name: Test Python SDK
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install -e .
+          pip install -r requirements.txt
+
+      - name: Lint (scoped to api_v2)
+        # Scoped to v2: the v1 tree has 28 pre-existing ruff errors and is not gated yet.
+        run: ruff check plane/api/v2 plane/models/v2 tests/v2
+
+      - name: Unit tests (tests/v2, excluding integration)
+        run: pytest tests/v2 --ignore=tests/v2/integration -q
+
+      - name: Integration tests (tests/v2/integration)
+        # No PLANE_* env vars are set in CI, so every test here must skip via the
+        # repo's env-var skip gate rather than run against a live API. A run that
+        # isn't all-skips here means the skip gate itself is broken.
+        run: pytest tests/v2/integration -q
+
+      # mypy is intentionally NOT run in this workflow: the codebase currently has 56
+      # pre-existing mypy errors under `--strict` (see pyproject.toml's [tool.mypy]).
+      # Add a mypy step once that baseline is cleaned up.
+
+  v2-golden-drift:
+    needs: check-secrets
+    if: ${{ needs.check-secrets.outputs.has_token == 'true' }}
+    runs-on: ubuntu-latest
+    # Runs inside plane-python-sdk/ with plane-ee as a sibling dir: the generator records
+    # its golden path verbatim in the output header, so the relative spelling must match
+    # the committed one (`../plane-ee/apps/api/plane/api_v2/core/schema/openapi`).
+    defaults:
+      run:
+        working-directory: plane-python-sdk
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plane-python-sdk
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        # black is required by scripts/generate_v2_constants.py to format its output
+        # so the regenerated file matches the committed one byte-for-byte.
+        run: pip install -r requirements.txt
+
+      - name: Checkout plane-ee (api_v2 OpenAPI golden)
+        # PLANE_EE_CHECKOUT_TOKEN: fine-grained PAT with read access to makeplane/plane-ee.
+        # Without it this job is skipped (visibly), not failed.
+        uses: actions/checkout@v4
+        with:
+          repository: makeplane/plane-ee
+          ref: preview
+          token: ${{ secrets.PLANE_EE_CHECKOUT_TOKEN }}
+          sparse-checkout: apps/api/plane/api_v2/core/schema/openapi
+          sparse-checkout-cone-mode: false
+          path: plane-ee
+
+      - name: Check generated v2 constants against the api_v2 golden
+        run: |
+          python scripts/generate_v2_constants.py ../plane-ee/apps/api/plane/api_v2/core/schema/openapi
+          git diff --exit-code plane/api/v2/_generated/constants.py
+
+  check-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      has_token: ${{ steps.check.outputs.has_token }}
+    steps:
+      - name: Check whether PLANE_EE_CHECKOUT_TOKEN is configured
+        # `secrets` isn't reliably available in a job-level `if:` on every runner
+        # context, so export the check as a step output here instead and gate the
+        # v2-golden-drift job on that output.
+        id: check
+        run: echo "has_token=${{ secrets.PLANE_EE_CHECKOUT_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
