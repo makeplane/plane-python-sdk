@@ -181,7 +181,7 @@ class WorkItems(BaseResource):
         """
         response = self._patch(
             f"{workspace_slug}/projects/{project_id}/work-items/{work_item_id}",
-            data.model_dump(exclude_none=True),
+            data.model_dump(exclude_unset=True),
         )
         return WorkItem.model_validate(response)
 
