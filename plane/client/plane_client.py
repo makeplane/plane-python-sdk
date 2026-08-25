@@ -43,6 +43,7 @@ class PlaneClient:
         base_url: str,
         api_key: str | None = None,
         access_token: str | None = None,
+        verify: bool | str = True,
     ) -> None:
         if not api_key and not access_token:
             raise ConfigurationError(
@@ -57,6 +58,7 @@ class PlaneClient:
             base_path=base_url,
             api_key=api_key,
             access_token=access_token,
+            verify=verify,
         )
 
         self.users = Users(self.config)

@@ -14,6 +14,7 @@ class BaseResource:
         self.config = config
         self.base_path = base_path.rstrip("/")
         self.session = requests.Session()
+        self.session.verify = config.verify
 
         if self.config.retry:
             retry = Retry(
