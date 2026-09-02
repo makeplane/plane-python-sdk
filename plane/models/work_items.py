@@ -321,6 +321,7 @@ class WorkItemComment(BaseModel):
     workspace: str | None = None
     issue: str | None = None
     actor: str | None = None
+    parent: str | None = None
 
 
 class CreateWorkItemComment(BaseModel):
@@ -333,6 +334,8 @@ class CreateWorkItemComment(BaseModel):
     access: AccessEnum | None = None
     external_source: str | None = None
     external_id: str | None = None
+    # ID of a top-level comment on the same work item to reply to.
+    parent: str | None = None
 
 
 class UpdateWorkItemComment(BaseModel):
