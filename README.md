@@ -279,6 +279,38 @@ Every other resource hangs off the same two locators with the same shape --
 ... -- and none of them take `workspace_slug`/`project` arguments: the locator
 supplies both.
 
+Membership between two resources is a *bridge* sub-resource with two verbs, `add` and
+`remove` -- parent id first, then 1..100 ids -- each returning the ids the server
+actually changed (already-present / already-absent ids are omitted):
+
+```python
+proj.cycles.work_items.add(sprint.id, [item.id, subtask.id])   # -> ["<item id>", ...]
+proj.cycles.work_items.remove(sprint.id, [subtask.id])
+proj.modules.work_items.add(module.id, ids)
+proj.milestones.work_items.add(milestone.id, ids)
+ws.customers.work_items.add(customer.id, ids)
+ws.releases.work_items.add(release.id, ids)
+ws.releases.labels.add(release.id, [label.id])       # `.labels.create` defines a label;
+ws.initiatives.labels.add(initiative.id, [label.id]) # `.labels.add` puts one on a row
+ws.initiatives.projects.add(initiative.id, [project.id])
+ws.initiatives.work_items.add(initiative.id, ids)
+ws.wiki.collections.pages.add(collection.id, [page.id])
+ws.wiki.collections.members.add(collection.id, [CollectionMemberAdd(member_id=user.id)])
+ws.wiki.collections.members.remove(collection.id, [user.id])
+```
+
+An empty list, or more than 100 ids, raises `ValueError` before any request is sent.
+Custom properties on a work item type use the web app's own words instead:
+`eng.work_item_types.properties.link(type_id, [property_id])` and
+`.unlink(type_id, property_id)` -- unlinking deletes that property's values on every
+work item of the type.
+
+Lookups by readable key are server-side wherever the API filters on one:
+`ws.roles.find_by_slug("admin", namespace="workspace")`,
+`eng.estimates.points.find_by_key(estimate.id, 3)`, and `find_by_name` on
+properties (`name` is the property key such as `story_points`, not the label), their
+options, and workspace property contexts.
+
 Errors from `client.v2` calls raise `PlaneAPIError` (RFC 9457 problem detail —
 `.status`, `.type`, `.code`, `.detail`, `.errors`), and `find_by_name` raises
 `NoMatchFound` or `MultipleMatchesFound` when it can't resolve to exactly one row.

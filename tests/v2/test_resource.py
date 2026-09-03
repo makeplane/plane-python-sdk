@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import responses
 from pydantic import BaseModel, ConfigDict
@@ -291,3 +293,94 @@ def test_action_validates_expand_against_its_own_operation_id(
         archivable_rows._action(
             "archive", pk="abc", slug="acme", project_id="ENG", params={"expand": ["bogus"]}
         )
+
+
+# -- Membership bridges (`_bridge`) -------------------------------------------------
+
+
+class MemberRow(BaseModel):
+    member_id: str
+    access: int | None = None
+
+
+class BridgeRows(V2Resource[Row, WriteRow, PatchRow]):
+    """Catalog-style resource whose bridge URL differs from its own `path`."""
+
+    path = "/workspaces/{slug}/releases/labels/"
+    bridge_path = "/workspaces/{slug}/releases/{release_id}/labels/"
+    model = Row
+    operations = {"bridge": "releases_labels"}
+
+
+@pytest.fixture
+def bridge_rows(config: Configuration) -> BridgeRows:
+    return BridgeRows(V2Transport(config), slug="acme")
+
+
+@responses.activate
+def test_bridge_add_posts_only_the_add_key_and_returns_added(bridge_rows: BridgeRows) -> None:
+    responses.post(
+        "https://api.example.com/api/v2/workspaces/acme/releases/r1/labels/",
+        json={"added": ["l1"], "removed": []},
+    )
+
+    added = bridge_rows._bridge(key="add", ids=["l1", "l2"], release_id="r1")
+
+    assert added == ["l1"]
+    assert json.loads(responses.calls[0].request.body) == {"add": ["l1", "l2"]}
+
+
+@responses.activate
+def test_bridge_remove_posts_only_the_remove_key_and_returns_removed(
+    bridge_rows: BridgeRows,
+) -> None:
+    responses.post(
+        "https://api.example.com/api/v2/workspaces/acme/releases/r1/labels/",
+        json={"added": [], "removed": ["l1"]},
+    )
+
+    removed = bridge_rows._bridge(key="remove", ids=["l1"], release_id="r1")
+
+    assert removed == ["l1"]
+    assert json.loads(responses.calls[0].request.body) == {"remove": ["l1"]}
+
+
+@responses.activate
+def test_bridge_returns_empty_list_when_the_result_key_is_absent(bridge_rows: BridgeRows) -> None:
+    responses.post("https://api.example.com/api/v2/workspaces/acme/releases/r1/labels/", json={})
+
+    assert bridge_rows._bridge(key="add", ids=["l1"], release_id="r1") == []
+
+
+@responses.activate
+def test_bridge_serializes_pydantic_entries_without_nones(bridge_rows: BridgeRows) -> None:
+    responses.post(
+        "https://api.example.com/api/v2/workspaces/acme/releases/r1/labels/",
+        json={"added": ["u1", "u2"]},
+    )
+
+    bridge_rows._bridge(
+        key="add",
+        ids=[MemberRow(member_id="u1", access=1), MemberRow(member_id="u2")],
+        release_id="r1",
+    )
+
+    assert json.loads(responses.calls[0].request.body) == {
+        "add": [{"member_id": "u1", "access": 1}, {"member_id": "u2"}]
+    }
+
+
+@responses.activate
+def test_bridge_rejects_empty_and_over_cap_id_lists_before_any_request(
+    bridge_rows: BridgeRows,
+) -> None:
+    with pytest.raises(ValueError, match="at least one"):
+        bridge_rows._bridge(key="add", ids=[], release_id="r1")
+    with pytest.raises(ValueError, match="At most 100"):
+        bridge_rows._bridge(key="remove", ids=["x"] * 101, release_id="r1")
+    assert len(responses.calls) == 0
+
+
+def test_bridge_rejects_unknown_keys(bridge_rows: BridgeRows) -> None:
+    with pytest.raises(ValueError, match="'add' or 'remove'"):
+        bridge_rows._bridge(key="manage", ids=["x"], release_id="r1")

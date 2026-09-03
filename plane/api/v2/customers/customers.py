@@ -1,25 +1,20 @@
 """Customers (api_v2) -- workspace-scoped, unlike states/labels/work items.
-`manage_work_items` returns the changed ids, not a `Customer`, so it bypasses `_action`."""
+Customer/work-item membership is the `.work_items` bridge (`add`/`remove`)."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from typing import Any
 
-from ....models.v2.customers import (
-    CreateCustomer,
-    Customer,
-    CustomerWorkItemManageRequest,
-    CustomerWorkItemManageResponse,
-    UpdateCustomer,
-)
+from ....models.v2.customers import CreateCustomer, Customer, UpdateCustomer
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .property_values import CustomerPropertyValues
 from .requests import CustomerRequests
+from .work_items import CustomerWorkItems
 
-__all__ = ["Customers", "CustomerPropertyValues", "CustomerRequests"]
+__all__ = ["Customers", "CustomerPropertyValues", "CustomerRequests", "CustomerWorkItems"]
 
 
 class Customers(V2Resource[Customer, CreateCustomer, UpdateCustomer]):
@@ -32,13 +27,13 @@ class Customers(V2Resource[Customer, CreateCustomer, UpdateCustomer]):
         "update": "customers_partial_update",
         "upsert": "customers_upsert",
         "delete": "customers_destroy",
-        "manage_work_items": "customers_work_items",
     }
 
     def __init__(self, transport: V2Transport, **scope: Any) -> None:
         super().__init__(transport, **scope)
         self.requests = CustomerRequests(transport, **self._scope)
         self.property_values = CustomerPropertyValues(transport, **self._scope)
+        self.work_items = CustomerWorkItems(transport, **self._scope)
 
     def list(
         self,
@@ -79,15 +74,3 @@ class Customers(V2Resource[Customer, CreateCustomer, UpdateCustomer]):
     def upsert(self, data: CreateCustomer) -> Customer:
         """Reconciles on (external_source, external_id) when both are set."""
         return self._upsert(data)
-
-    def manage_work_items(
-        self, customer_id: str, data: CustomerWorkItemManageRequest
-    ) -> CustomerWorkItemManageResponse:
-        """Link (`data.add`) or unlink (`data.remove`) work items on a customer,
-        returning the ids actually changed."""
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(customer_id)}work-items/",
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return CustomerWorkItemManageResponse.model_validate(payload)

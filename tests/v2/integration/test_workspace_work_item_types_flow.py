@@ -108,7 +108,7 @@ def test_workspace_work_item_types_flow(ws: Workspace, proj: Project, project_id
         gold_id = next(_id(o) for o in context.options or [] if _name(o) == "Gold")
 
         # 7. attach both properties to the workspace type
-        result = ws.work_item_types.properties.attach(type_id, [text_prop.id, option_prop.id])
+        result = ws.work_item_types.properties.link(type_id, [text_prop.id, option_prop.id])
         attached.extend([text_prop.id, option_prop.id])
         assert {text_prop.id, option_prop.id}.issubset(set(result.properties))
 
@@ -139,7 +139,7 @@ def test_workspace_work_item_types_flow(ws: Workspace, proj: Project, project_id
             for work_item_id in created_work_items:
                 _swallow(proj.work_items.delete, work_item_id)
             for property_id in attached:
-                _swallow(ws.work_item_types.properties.detach, type_id or "", property_id)
+                _swallow(ws.work_item_types.properties.unlink, type_id or "", property_id)
             for property_id in properties:
                 _swallow(ws.work_item_properties.delete, property_id)
             if type_id:

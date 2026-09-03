@@ -60,6 +60,11 @@ class WorkItemPropertyContexts(
     ) -> WorkItemPropertyContext:
         return self._retrieve(pk=context_id, property_id=property_id, params={"fields": fields})
 
+    def find_by_name(self, property_id: str, name: str) -> WorkItemPropertyContext:
+        """The one context on this property with this name; raises if none or
+        several match."""
+        return self._find_one(filters={"name": name}, property_id=property_id)
+
     def create(
         self, property_id: str, data: CreateWorkItemPropertyContext
     ) -> WorkItemPropertyContext:

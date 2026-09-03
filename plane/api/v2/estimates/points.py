@@ -56,12 +56,15 @@ class EstimatePoints(V2Resource[EstimatePoint, CreateEstimatePoint, UpdateEstima
     ) -> EstimatePoint:
         return self._retrieve(pk=point_id, estimate_id=estimate_id, params={"fields": fields})
 
+    def find_by_key(self, estimate_id: str, key: int) -> EstimatePoint:
+        """The one point on this estimate with this key; raises if none or several
+        match."""
+        return self._find_one(filters={"key": key}, estimate_id=estimate_id)
+
     def create(self, estimate_id: str, data: CreateEstimatePoint) -> EstimatePoint:
         return self._create(data, estimate_id=estimate_id)
 
-    def update(
-        self, estimate_id: str, point_id: str, data: UpdateEstimatePoint
-    ) -> EstimatePoint:
+    def update(self, estimate_id: str, point_id: str, data: UpdateEstimatePoint) -> EstimatePoint:
         return self._update(data, pk=point_id, estimate_id=estimate_id)
 
     def delete(self, estimate_id: str, point_id: str) -> None:

@@ -15,8 +15,6 @@ from plane.api.v2.pages import WikiPages
 from plane.client import PlaneClient
 from plane.models.v2.collections import (
     CollectionMemberAdd,
-    CollectionMembersManage,
-    CollectionPagesManage,
     CreateCollection,
     UpdateCollection,
 )
@@ -94,14 +92,14 @@ class TestCRUD:
 
 
 class TestPagesSubResource:
-    def test_pages_manage_add_then_remove(
+    def test_pages_add_then_remove(
         self,
         collections: Collections,
         workspace_pages: WikiPages,
     ) -> None:
         collection = collections.create(CreateCollection(name=unique_name("coll")))
-        # `collection_id` at create time, not `pages.manage(add=...)` afterward
-        # -- see the module docstring's API quirk note.
+        # `collection_id` at create time, not `pages.add(...)` afterward -- see
+        # the module docstring's API quirk note.
         page = workspace_pages.create(
             CreatePage(name=unique_name("coll-page"), collection_id=collection.id)
         )
@@ -109,18 +107,16 @@ class TestPagesSubResource:
             after_create = collections.retrieve(collection.id)
             assert page.id in (after_create.page_ids or [])
 
-            removed = collections.pages.manage(
-                collection.id, CollectionPagesManage(remove=[page.id])
-            )
-            assert page.id in removed.removed
+            removed = collections.pages.remove(collection.id, [page.id])
+            assert page.id in removed
 
             after_remove = collections.retrieve(collection.id)
             assert page.id not in (after_remove.page_ids or [])
 
             # The page now has no active collection at all, so `add` genuinely
             # has somewhere to insert into (no unique-constraint conflict).
-            added = collections.pages.manage(collection.id, CollectionPagesManage(add=[page.id]))
-            assert page.id in added.added
+            added = collections.pages.add(collection.id, [page.id])
+            assert page.id in added
 
             after_add = collections.retrieve(collection.id)
             assert page.id in (after_add.page_ids or [])
@@ -161,7 +157,7 @@ class TestMembersSubResource:
         finally:
             collections.delete(created.id)
 
-    def test_members_manage_add_then_remove(
+    def test_members_add_then_remove(
         self,
         collections: Collections,
         workspace_members: WorkspaceMembers,
@@ -177,15 +173,12 @@ class TestMembersSubResource:
 
         created = collections.create(CreateCollection(name=unique_name("coll")))
         try:
-            added = collections.members.manage(
-                created.id,
-                CollectionMembersManage(add=[CollectionMemberAdd(member_id=member_id, access=0)]),
+            added = collections.members.add(
+                created.id, [CollectionMemberAdd(member_id=member_id, access=0)]
             )
-            assert member_id in added.added
+            assert member_id in added
 
-            removed = collections.members.manage(
-                created.id, CollectionMembersManage(remove=[member_id])
-            )
-            assert member_id in removed.removed
+            removed = collections.members.remove(created.id, [member_id])
+            assert member_id in removed
         finally:
             collections.delete(created.id)

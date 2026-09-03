@@ -1,5 +1,5 @@
-"""Offline coverage for `Releases`: workspace-scoped, a manage verb returning `{added, removed}`,
-and the `changelog` singleton sub-resource."""
+"""Offline coverage for `Releases`: workspace-scoped, the `.work_items` and `.labels`
+membership bridges (`add`/`remove`), and the `changelog` singleton sub-resource."""
 
 import json
 
@@ -127,48 +127,98 @@ def test_find_by_name(releases: Releases) -> None:
     assert releases.find_by_name("v1.0").id == "1"
 
 
-# -- Child membership manage (labels / work items) -------------------------------
+# -- Membership bridge: work_items ------------------------------------------------
 
 
 @responses.activate
-def test_manage_labels_posts_add_remove_and_parses_result(releases: Releases) -> None:
-    responses.post(
-        f"{BASE}/rel-1/labels/",
-        json={"added": ["lbl-1"], "removed": ["lbl-2"]},
-    )
-
-    result = releases.manage_labels("rel-1", add=["lbl-1"], remove=["lbl-2"])
-
-    body = json.loads(responses.calls[0].request.body)
-    assert body == {"add": ["lbl-1"], "remove": ["lbl-2"]}
-    assert result.added == ["lbl-1"]
-    assert result.removed == ["lbl-2"]
-    assert responses.calls[0].request.url.endswith("/releases/rel-1/labels/")
-
-
-@responses.activate
-def test_manage_work_items_posts_to_its_own_sub_path(releases: Releases) -> None:
+def test_work_items_add_sends_add_body_and_returns_added(releases: Releases) -> None:
     responses.post(
         f"{BASE}/rel-1/work-items/",
         json={"added": ["wi-1"], "removed": []},
     )
 
-    result = releases.manage_work_items("rel-1", add=["wi-1"])
+    result = releases.work_items.add("rel-1", ["wi-1"])
 
-    assert result.added == ["wi-1"]
-    assert result.removed == []
-    assert responses.calls[0].request.url.endswith("/releases/rel-1/work-items/")
+    assert result == ["wi-1"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"add": ["wi-1"]}
+    assert responses.calls[0].request.url == f"{BASE}/rel-1/work-items/"
 
 
 @responses.activate
-def test_manage_labels_omits_unset_add_remove(releases: Releases) -> None:
-    """`exclude_none` means passing only `add` doesn't send a null `remove`."""
-    responses.post(f"{BASE}/rel-1/labels/", json={"added": ["lbl-1"], "removed": []})
+def test_work_items_remove_sends_remove_body_and_returns_removed(releases: Releases) -> None:
+    responses.post(
+        f"{BASE}/rel-1/work-items/",
+        json={"added": [], "removed": ["wi-2"]},
+    )
 
-    releases.manage_labels("rel-1", add=["lbl-1"])
+    result = releases.work_items.remove("rel-1", ["wi-2"])
 
+    assert result == ["wi-2"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"remove": ["wi-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/rel-1/work-items/"
+
+
+@responses.activate
+def test_work_items_bridge_rejects_empty_or_oversized_ids(releases: Releases) -> None:
+    with pytest.raises(ValueError):
+        releases.work_items.add("rel-1", [])
+    with pytest.raises(ValueError):
+        releases.work_items.add("rel-1", [f"wi-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        releases.work_items.remove("rel-1", [])
+    with pytest.raises(ValueError):
+        releases.work_items.remove("rel-1", [f"wi-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0
+
+
+# -- Membership bridge: labels (per-release association) -------------------------
+
+
+@responses.activate
+def test_labels_add_sends_add_body_and_returns_added(releases: Releases) -> None:
+    responses.post(
+        f"{BASE}/rel-1/labels/",
+        json={"added": ["lbl-1"], "removed": []},
+    )
+
+    result = releases.labels.add("rel-1", ["lbl-1"])
+
+    assert result == ["lbl-1"]
     body = json.loads(responses.calls[0].request.body)
     assert body == {"add": ["lbl-1"]}
+    assert responses.calls[0].request.url == f"{BASE}/rel-1/labels/"
+
+
+@responses.activate
+def test_labels_remove_sends_remove_body_and_returns_removed(releases: Releases) -> None:
+    responses.post(
+        f"{BASE}/rel-1/labels/",
+        json={"added": [], "removed": ["lbl-2"]},
+    )
+
+    result = releases.labels.remove("rel-1", ["lbl-2"])
+
+    assert result == ["lbl-2"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"remove": ["lbl-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/rel-1/labels/"
+
+
+@responses.activate
+def test_labels_bridge_rejects_empty_or_oversized_ids(releases: Releases) -> None:
+    with pytest.raises(ValueError):
+        releases.labels.add("rel-1", [])
+    with pytest.raises(ValueError):
+        releases.labels.add("rel-1", [f"lbl-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        releases.labels.remove("rel-1", [])
+    with pytest.raises(ValueError):
+        releases.labels.remove("rel-1", [f"lbl-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0
 
 
 # -- Changelog (singleton) --------------------------------------------------------

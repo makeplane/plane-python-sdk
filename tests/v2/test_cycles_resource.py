@@ -1,5 +1,5 @@
-"""Offline coverage for `Cycles`; includes `transfer`/`manage_work_items`, folded in from the
-former separate `CycleActions` class."""
+"""Offline coverage for `Cycles`; includes `transfer` and the `.work_items` membership
+bridge (`add`/`remove`)."""
 
 import json
 
@@ -120,7 +120,7 @@ def test_find_by_name(cycles: Cycles) -> None:
     assert cycles.find_by_name("Sprint 1").id == "1"
 
 
-# -- Custom actions: transfer / manage_work_items -------------------------------
+# -- Custom action: transfer -----------------------------------------------------
 
 
 @responses.activate
@@ -134,25 +134,42 @@ def test_transfer_sends_new_cycle_id_and_returns_it(cycles: Cycles) -> None:
     assert sent == {"new_cycle_id": "2"}
 
 
-@responses.activate
-def test_manage_work_items_sends_add_and_remove(cycles: Cycles) -> None:
-    responses.post(f"{BASE}/1/work-items/", json={"added": ["wi-1"], "removed": ["wi-2"]})
-
-    result = cycles.manage_work_items("1", add=["wi-1"], remove=["wi-2"])
-
-    assert result.added == ["wi-1"]
-    assert result.removed == ["wi-2"]
-    sent = json.loads(responses.calls[0].request.body)
-    assert sent == {"add": ["wi-1"], "remove": ["wi-2"]}
+# -- Membership bridge: work_items ------------------------------------------------
 
 
 @responses.activate
-def test_manage_work_items_omits_absent_side(cycles: Cycles) -> None:
-    """Only `add` provided -- `remove` must not be sent as `null`."""
+def test_work_items_add_sends_add_body_and_returns_added(cycles: Cycles) -> None:
     responses.post(f"{BASE}/1/work-items/", json={"added": ["wi-1"], "removed": []})
 
-    cycles.manage_work_items("1", add=["wi-1"])
+    result = cycles.work_items.add("1", ["wi-1"])
 
+    assert result == ["wi-1"]
     sent = json.loads(responses.calls[0].request.body)
     assert sent == {"add": ["wi-1"]}
-    assert "remove" not in sent
+    assert responses.calls[0].request.url == f"{BASE}/1/work-items/"
+
+
+@responses.activate
+def test_work_items_remove_sends_remove_body_and_returns_removed(cycles: Cycles) -> None:
+    responses.post(f"{BASE}/1/work-items/", json={"added": [], "removed": ["wi-2"]})
+
+    result = cycles.work_items.remove("1", ["wi-2"])
+
+    assert result == ["wi-2"]
+    sent = json.loads(responses.calls[0].request.body)
+    assert sent == {"remove": ["wi-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/1/work-items/"
+
+
+@responses.activate
+def test_work_items_bridge_rejects_empty_or_oversized_ids(cycles: Cycles) -> None:
+    with pytest.raises(ValueError):
+        cycles.work_items.add("1", [])
+    with pytest.raises(ValueError):
+        cycles.work_items.add("1", [f"wi-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        cycles.work_items.remove("1", [])
+    with pytest.raises(ValueError):
+        cycles.work_items.remove("1", [f"wi-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0

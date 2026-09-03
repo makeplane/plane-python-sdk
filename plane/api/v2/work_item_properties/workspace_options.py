@@ -39,6 +39,11 @@ class WorkspaceWorkItemPropertyOptions(
     def retrieve(self, property_id: str, option_id: str) -> WorkItemPropertyOption:
         return self._retrieve(pk=option_id, property_id=property_id)
 
+    def find_by_name(self, property_id: str, name: str) -> WorkItemPropertyOption:
+        """The one option on this property with this name; raises if none or
+        several match."""
+        return self._find_one(filters={"name": name}, property_id=property_id)
+
     def create(
         self, property_id: str, data: CreateWorkItemPropertyOption
     ) -> WorkItemPropertyOption:

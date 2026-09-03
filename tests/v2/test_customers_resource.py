@@ -1,5 +1,5 @@
 """Offline coverage for `Customers`: CRUD, `upsert`, the `requests` sub-resource, dict-shaped
-`property_values`, and `manage_work_items`."""
+`property_values`, and the `.work_items` membership bridge (`add`/`remove`)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,6 @@ from plane.models.v2.customers import (
     CreateCustomer,
     CreateCustomerPropertyValues,
     CreateCustomerRequest,
-    CustomerWorkItemManageRequest,
     UpdateCustomer,
     UpdateCustomerRequest,
 )
@@ -76,22 +75,47 @@ def test_find_customer_by_name(customers: Customers) -> None:
 
 
 @responses.activate
-def test_manage_work_items_posts_add_remove_and_returns_changed_ids(
-    customers: Customers,
-) -> None:
+def test_work_items_add_sends_add_body_and_returns_added(customers: Customers) -> None:
     responses.post(
         f"{BASE}/cu1/work-items/",
-        json={"added": ["wi-1"], "removed": ["wi-2"]},
+        json={"added": ["wi-1"], "removed": []},
     )
 
-    result = customers.manage_work_items(
-        "cu1", CustomerWorkItemManageRequest(add=["wi-1"], remove=["wi-2"])
-    )
+    result = customers.work_items.add("cu1", ["wi-1"])
 
-    assert result.added == ["wi-1"]
-    assert result.removed == ["wi-2"]
+    assert result == ["wi-1"]
     body = json.loads(responses.calls[0].request.body)
-    assert body == {"add": ["wi-1"], "remove": ["wi-2"]}
+    assert body == {"add": ["wi-1"]}
+    assert responses.calls[0].request.url == f"{BASE}/cu1/work-items/"
+
+
+@responses.activate
+def test_work_items_remove_sends_remove_body_and_returns_removed(customers: Customers) -> None:
+    responses.post(
+        f"{BASE}/cu1/work-items/",
+        json={"added": [], "removed": ["wi-2"]},
+    )
+
+    result = customers.work_items.remove("cu1", ["wi-2"])
+
+    assert result == ["wi-2"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"remove": ["wi-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/cu1/work-items/"
+
+
+@responses.activate
+def test_work_items_bridge_rejects_empty_or_oversized_ids(customers: Customers) -> None:
+    with pytest.raises(ValueError):
+        customers.work_items.add("cu1", [])
+    with pytest.raises(ValueError):
+        customers.work_items.add("cu1", [f"wi-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        customers.work_items.remove("cu1", [])
+    with pytest.raises(ValueError):
+        customers.work_items.remove("cu1", [f"wi-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0
 
 
 # -- Nested: requests -------------------------------------------------------------

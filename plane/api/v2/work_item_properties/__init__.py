@@ -64,6 +64,13 @@ class WorkItemProperties(
     ) -> WorkItemProperty:
         return self._retrieve(pk=property_id, params={"fields": fields})
 
+    def find_by_name(self, name: str) -> WorkItemProperty:
+        """The one property definition whose key is `name`; raises if none or
+        several match. `name` is the property key (e.g. `story_points`), not the
+        label shown in the app (`display_name`) -- the API has no label filter
+        yet."""
+        return self._find_one(filters={"name": name})
+
     def create(self, data: CreateWorkItemProperty) -> WorkItemProperty:
         return self._create(data)
 
@@ -111,6 +118,13 @@ class WorkspaceWorkItemProperties(
         self, property_id: str, *, fields: Sequence[str] | None = None
     ) -> WorkItemProperty:
         return self._retrieve(pk=property_id, params={"fields": fields})
+
+    def find_by_name(self, name: str) -> WorkItemProperty:
+        """The one property definition whose key is `name`; raises if none or
+        several match. `name` is the property key (e.g. `story_points`), not the
+        label shown in the app (`display_name`) -- the API has no label filter
+        yet."""
+        return self._find_one(filters={"name": name})
 
     def create(self, data: CreateWorkItemProperty) -> WorkItemProperty:
         return self._create(data)

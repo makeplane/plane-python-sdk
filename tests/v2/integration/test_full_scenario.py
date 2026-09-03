@@ -16,7 +16,6 @@ from plane.client import PlaneClient
 from plane.models.v2.collections import CreateCollection
 from plane.models.v2.cycles import CreateCycle
 from plane.models.v2.labels import CreateLabel
-from plane.models.v2.module_work_items import ModuleWorkItemManageRequest
 from plane.models.v2.modules import CreateModule
 from plane.models.v2.pages import CreatePage, UpdatePage
 from plane.models.v2.projects import CreateProject
@@ -51,11 +50,11 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
                     CreateWorkItemProperty(display_name=f"Severity {tag}", property_type="TEXT")
                 )
                 cleanup.append(("property", lambda: ws.work_item_properties.delete(severity.id)))
-                ws.work_item_types.properties.attach(bug_type.id, [severity.id])
+                ws.work_item_types.properties.link(bug_type.id, [severity.id])
                 cleanup.append(
                     (
-                        "detach",
-                        lambda: ws.work_item_types.properties.detach(bug_type.id, severity.id),
+                        "unlink",
+                        lambda: ws.work_item_types.properties.unlink(bug_type.id, severity.id),
                     )
                 )
             else:
@@ -66,11 +65,11 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
                     CreateWorkItemProperty(display_name=f"Severity {tag}", property_type="TEXT")
                 )
                 cleanup.append(("property", lambda: proj.work_item_properties.delete(severity.id)))
-                proj.work_item_types.properties.attach(bug_type.id, [severity.id])
+                proj.work_item_types.properties.link(bug_type.id, [severity.id])
                 cleanup.append(
                     (
-                        "detach",
-                        lambda: proj.work_item_types.properties.detach(bug_type.id, severity.id),
+                        "unlink",
+                        lambda: proj.work_item_types.properties.unlink(bug_type.id, severity.id),
                     )
                 )
         except PlaneAPIError as exc:
@@ -116,8 +115,8 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
         cleanup.append(("sub-task", lambda: proj.work_items.delete(subtask.id)))
         assert subtask.parent_id == item.id
 
-        proj.cycles.manage_work_items(sprint.id, add=[item.id, subtask.id])
-        proj.modules.manage_work_items(auth.id, ModuleWorkItemManageRequest(add=[item.id]))
+        proj.cycles.work_items.add(sprint.id, [item.id, subtask.id])
+        proj.modules.work_items.add(auth.id, [item.id])
         in_sprint = {row.id for row in proj.work_items.list(cycle_id=sprint.id).data}
         assert in_sprint >= {item.id, subtask.id}
 

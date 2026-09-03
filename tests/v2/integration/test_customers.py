@@ -16,7 +16,6 @@ from plane.models.v2.customers import (
     CreateCustomer,
     CreateCustomerPropertyValues,
     CreateCustomerRequest,
-    CustomerWorkItemManageRequest,
     UpdateCustomer,
     UpdateCustomerRequest,
 )
@@ -71,7 +70,7 @@ class TestCustomers:
     def test_find_by_name(self, customers: Customers, customer: Any) -> None:
         assert customers.find_by_name(customer.name).id == customer.id
 
-    def test_manage_work_items(
+    def test_work_items_add_then_remove(
         self,
         client: PlaneClient,
         workspace_slug: str,
@@ -82,15 +81,11 @@ class TestCustomers:
         work_items = client.v2.workspace(workspace_slug).project(project_id).work_items
         work_item = work_items.create(CreateWorkItem(name=unique_name("wi-customer-link")))
         try:
-            added = customers.manage_work_items(
-                customer.id, CustomerWorkItemManageRequest(add=[work_item.id])
-            )
-            assert work_item.id in added.added
+            added = customers.work_items.add(customer.id, [work_item.id])
+            assert work_item.id in added
 
-            removed = customers.manage_work_items(
-                customer.id, CustomerWorkItemManageRequest(remove=[work_item.id])
-            )
-            assert work_item.id in removed.removed
+            removed = customers.work_items.remove(customer.id, [work_item.id])
+            assert work_item.id in removed
         finally:
             work_items.delete(work_item.id)
 

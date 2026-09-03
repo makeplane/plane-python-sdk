@@ -21,9 +21,7 @@ class CustomerPropertyValues(
     def list(self, customer_id: str) -> CustomerPropertyValueMap:
         """Every property value set on a customer, keyed by property id.
         Properties with no value set are absent from the mapping."""
-        payload = self.transport.request(
-            "GET", self._collection_url(customer_id=customer_id)
-        )
+        payload = self.transport.request("GET", self._collection_url(customer_id=customer_id))
         return self.model.model_validate(payload)
 
     def create(self, customer_id: str, data: CreateCustomerPropertyValues) -> None:

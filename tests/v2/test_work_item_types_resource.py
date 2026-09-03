@@ -270,7 +270,7 @@ def test_properties_list_and_retrieve(properties: WorkItemTypeProperties) -> Non
 
 
 @responses.activate
-def test_properties_attach_posts_to_the_collection_url_with_ids_body(
+def test_properties_link_posts_to_the_collection_url_with_ids_body(
     properties: WorkItemTypeProperties,
 ) -> None:
     responses.post(
@@ -278,7 +278,7 @@ def test_properties_attach_posts_to_the_collection_url_with_ids_body(
         json={"properties": ["p1", "p2"]},
     )
 
-    result = properties.attach("1", ["p1", "p2"])
+    result = properties.link("1", ["p1", "p2"])
 
     assert result.properties == ["p1", "p2"]
     body = json.loads(responses.calls[0].request.body)
@@ -286,10 +286,10 @@ def test_properties_attach_posts_to_the_collection_url_with_ids_body(
 
 
 @responses.activate
-def test_properties_detach_deletes_by_property_id(properties: WorkItemTypeProperties) -> None:
+def test_properties_unlink_deletes_by_property_id(properties: WorkItemTypeProperties) -> None:
     responses.delete(f"{BASE}/projects/ENG/work-item-types/1/properties/p1/", status=204)
 
-    assert properties.detach("1", "p1") is None
+    assert properties.unlink("1", "p1") is None
 
 
 # -- Workspace-scoped WorkItemTypeProperties: also a different path template -------
@@ -311,16 +311,16 @@ def test_workspace_properties_list_uses_a_workspace_only_path(
 
 
 @responses.activate
-def test_workspace_properties_attach_and_detach(
+def test_workspace_properties_link_and_unlink(
     workspace_properties: WorkspaceWorkItemTypeProperties,
 ) -> None:
     responses.post(f"{BASE}/work-item-types/1/properties/", json={"properties": ["p1"]})
     responses.delete(f"{BASE}/work-item-types/1/properties/p1/", status=204)
 
-    attached = workspace_properties.attach("1", ["p1"])
-    assert attached.properties == ["p1"]
+    linked = workspace_properties.link("1", ["p1"])
+    assert linked.properties == ["p1"]
 
-    assert workspace_properties.detach("1", "p1") is None
+    assert workspace_properties.unlink("1", "p1") is None
 
 
 # -- Scope forwarding: `.properties` inherits its parent's own scope ---------------

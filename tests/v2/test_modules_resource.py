@@ -1,5 +1,5 @@
-"""Offline coverage for `Modules`; includes `manage_work_items`, folded in from the former separate
-`ModuleWorkItems` class."""
+"""Offline coverage for `Modules`; includes the `.work_items` membership bridge
+(`add`/`remove`)."""
 
 import json
 
@@ -9,7 +9,6 @@ import responses
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.modules import Modules
 from plane.config import Configuration
-from plane.models.v2.module_work_items import ModuleWorkItemManageRequest
 from plane.models.v2.modules import CreateModule, UpdateModule
 
 BASE = "https://api.example.com/api/v2/workspaces/acme/projects/ENG/modules"
@@ -121,30 +120,48 @@ def test_find_by_name(modules: Modules) -> None:
     assert modules.find_by_name("Onboarding").id == "1"
 
 
-# -- Custom action: manage_work_items --------------------------------------------
+# -- Membership bridge: work_items ------------------------------------------------
 
 
 @responses.activate
-def test_manage_work_items_add_only(modules: Modules) -> None:
+def test_work_items_add_sends_add_body_and_returns_added(modules: Modules) -> None:
     responses.post(
         f"{BASE}/mod-1/work-items/",
         json={"added": ["wi-1", "wi-2"], "removed": []},
     )
 
-    result = modules.manage_work_items(
-        "mod-1", ModuleWorkItemManageRequest(add=["wi-1", "wi-2"])
+    result = modules.work_items.add("mod-1", ["wi-1", "wi-2"])
+
+    assert result == ["wi-1", "wi-2"]
+    sent = json.loads(responses.calls[0].request.body)
+    assert sent == {"add": ["wi-1", "wi-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/mod-1/work-items/"
+
+
+@responses.activate
+def test_work_items_remove_sends_remove_body_and_returns_removed(modules: Modules) -> None:
+    responses.post(
+        f"{BASE}/mod-1/work-items/",
+        json={"added": [], "removed": ["wi-1"]},
     )
 
-    assert result.added == ["wi-1", "wi-2"]
-    assert result.removed == []
+    result = modules.work_items.remove("mod-1", ["wi-1"])
+
+    assert result == ["wi-1"]
     sent = json.loads(responses.calls[0].request.body)
-    assert sent == {"add": ["wi-1", "wi-2"], "remove": []}
+    assert sent == {"remove": ["wi-1"]}
+    assert responses.calls[0].request.url == f"{BASE}/mod-1/work-items/"
 
 
-def test_module_work_item_manage_request_caps_at_100_ids() -> None:
-    """`maxItems: 100` from the golden -- negative assertion, proven capable of
-    failing below."""
-    from pydantic import ValidationError
+@responses.activate
+def test_work_items_bridge_rejects_empty_or_oversized_ids(modules: Modules) -> None:
+    with pytest.raises(ValueError):
+        modules.work_items.add("mod-1", [])
+    with pytest.raises(ValueError):
+        modules.work_items.add("mod-1", [f"wi-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        modules.work_items.remove("mod-1", [])
+    with pytest.raises(ValueError):
+        modules.work_items.remove("mod-1", [f"wi-{i}" for i in range(101)])
 
-    with pytest.raises(ValidationError):
-        ModuleWorkItemManageRequest(add=[f"wi-{i}" for i in range(101)])
+    assert len(responses.calls) == 0

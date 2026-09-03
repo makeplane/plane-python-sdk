@@ -12,7 +12,6 @@ from plane.client import PlaneClient
 from plane.models.v2.initiatives import (
     CreateInitiative,
     CreateInitiativeLabel,
-    InitiativeChildManageRequest,
     UpdateInitiative,
     UpdateInitiativeLabel,
 )
@@ -47,7 +46,7 @@ class TestInitiatives:
             initiatives.retrieve(created.id)
         assert exc_info.value.status == 404
 
-    def test_manage_labels_projects_and_work_items(
+    def test_labels_projects_and_work_items_add(
         self,
         client: PlaneClient,
         workspace_slug: str,
@@ -61,20 +60,14 @@ class TestInitiatives:
         work_items = client.v2.workspace(workspace_slug).project(project_id).work_items
         work_item = work_items.create(CreateWorkItem(name=unique_name("wi-initiative-link")))
         try:
-            labels_result = initiatives.manage_labels(
-                initiative.id, InitiativeChildManageRequest(add=[label.id])
-            )
-            assert label.id in labels_result.added
+            labels_result = initiatives.labels.add(initiative.id, [label.id])
+            assert label.id in labels_result
 
-            projects_result = initiatives.manage_projects(
-                initiative.id, InitiativeChildManageRequest(add=[project_id])
-            )
-            assert project_id in projects_result.added
+            projects_result = initiatives.projects.add(initiative.id, [project_id])
+            assert project_id in projects_result
 
-            work_items_result = initiatives.manage_work_items(
-                initiative.id, InitiativeChildManageRequest(add=[work_item.id])
-            )
-            assert work_item.id in work_items_result.added
+            work_items_result = initiatives.work_items.add(initiative.id, [work_item.id])
+            assert work_item.id in work_items_result
 
             refreshed = initiatives.retrieve(initiative.id)
             assert refreshed.label_ids and label.id in refreshed.label_ids

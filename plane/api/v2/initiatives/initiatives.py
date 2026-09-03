@@ -1,25 +1,21 @@
 """Initiatives (api_v2) -- workspace-scoped, unlike states/labels/work items.
-`manage_labels`/`manage_projects`/`manage_work_items` return changed ids, not an
-`Initiative`, so they bypass `_action`."""
+Label/project/work-item membership are the `.labels`/`.projects`/`.work_items`
+bridges (`add`/`remove`), not methods on `Initiatives` itself."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from typing import Any
 
-from ....models.v2.initiatives import (
-    CreateInitiative,
-    Initiative,
-    InitiativeChildManageRequest,
-    InitiativeChildManageResponse,
-    UpdateInitiative,
-)
+from ....models.v2.initiatives import CreateInitiative, Initiative, UpdateInitiative
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .labels import InitiativeLabels
+from .projects import InitiativeProjects
+from .work_items import InitiativeWorkItems
 
-__all__ = ["InitiativeLabels", "Initiatives"]
+__all__ = ["InitiativeLabels", "InitiativeProjects", "InitiativeWorkItems", "Initiatives"]
 
 
 class Initiatives(V2Resource[Initiative, CreateInitiative, UpdateInitiative]):
@@ -31,14 +27,13 @@ class Initiatives(V2Resource[Initiative, CreateInitiative, UpdateInitiative]):
         "create": "initiatives_create",
         "update": "initiatives_partial_update",
         "delete": "initiatives_destroy",
-        "manage_labels": "initiatives_labels",
-        "manage_projects": "initiatives_projects",
-        "manage_work_items": "initiatives_work_items",
     }
 
     def __init__(self, transport: V2Transport, **scope: Any) -> None:
         super().__init__(transport, **scope)
         self.labels = InitiativeLabels(transport, **self._scope)
+        self.projects = InitiativeProjects(transport, **self._scope)
+        self.work_items = InitiativeWorkItems(transport, **self._scope)
 
     def list(
         self,
@@ -83,34 +78,3 @@ class Initiatives(V2Resource[Initiative, CreateInitiative, UpdateInitiative]):
 
     def delete(self, pk: str) -> None:
         return self._delete(pk=pk)
-
-    def _manage_child(
-        self, action: str, pk: str, data: InitiativeChildManageRequest
-    ) -> InitiativeChildManageResponse:
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(pk)}{action}/",
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return InitiativeChildManageResponse.model_validate(payload)
-
-    def manage_labels(
-        self, pk: str, data: InitiativeChildManageRequest
-    ) -> InitiativeChildManageResponse:
-        """Attach (`data.add`) or detach (`data.remove`) initiative labels on this
-        initiative, returning the ids actually changed."""
-        return self._manage_child("labels", pk, data)
-
-    def manage_projects(
-        self, pk: str, data: InitiativeChildManageRequest
-    ) -> InitiativeChildManageResponse:
-        """Add (`data.add`) or remove (`data.remove`) projects on this initiative,
-        returning the ids actually changed."""
-        return self._manage_child("projects", pk, data)
-
-    def manage_work_items(
-        self, pk: str, data: InitiativeChildManageRequest
-    ) -> InitiativeChildManageResponse:
-        """Link (`data.add`) or unlink (`data.remove`) work items on this
-        initiative, returning the ids actually changed."""
-        return self._manage_child("work-items", pk, data)

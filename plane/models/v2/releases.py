@@ -75,7 +75,7 @@ class UpdateRelease(BaseModel):
 
 class ReleaseLabel(BaseModel):
     """A workspace-level release-label catalog entry -- not the per-release
-    association (see `Releases.manage_labels`)."""
+    association (see `ReleaseLabels.add`/`.remove`)."""
 
     model_config = ConfigDict(extra="allow")
 
@@ -227,12 +227,12 @@ class UpdateReleaseChangelog(BaseModel):
     description_json: object | None = None
 
 
-# -- Child membership manage (labels / work items) --------------------------------
+# -- Child membership bridges (labels / work items) --------------------------------
 
 
 class ReleaseChildManageRequest(BaseModel):
-    """Body for `Releases.manage_labels`/`.manage_work_items`: ids to attach
-    and/or detach on the release in one call."""
+    """Body of the `.work_items`/`ReleaseLabels` bridges (`add`/`remove`): ids
+    to attach and/or detach on the release in one call."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -241,8 +241,8 @@ class ReleaseChildManageRequest(BaseModel):
 
 
 class ReleaseChildManageResult(BaseModel):
-    """The ids actually added/removed by a `manage_labels`/`manage_work_items`
-    call."""
+    """The ids actually added/removed by a `.work_items`/`ReleaseLabels`
+    bridge call."""
 
     model_config = ConfigDict(extra="allow")
 

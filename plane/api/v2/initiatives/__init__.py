@@ -2,5 +2,7 @@
 
 from .initiatives import Initiatives
 from .labels import InitiativeLabels
+from .projects import InitiativeProjects
+from .work_items import InitiativeWorkItems
 
-__all__ = ["InitiativeLabels", "Initiatives"]
+__all__ = ["InitiativeLabels", "InitiativeProjects", "InitiativeWorkItems", "Initiatives"]

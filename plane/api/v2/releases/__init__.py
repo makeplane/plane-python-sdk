@@ -1,20 +1,14 @@
 """Releases (api_v2) -- workspace-scoped, not project-scoped. Beyond CRUD:
-`manage_labels`/`manage_work_items`, a `.changelog` singleton, catalog siblings
-`.labels`/`.tags`, and nested `.comments`/`.links` (see `tags.py` for a golden/server mismatch)."""
+a `.work_items` membership bridge, a `.changelog` singleton, catalog siblings
+`.labels` (itself a bridge for the per-release association)/`.tags`, and
+nested `.comments`/`.links` (see `tags.py` for a golden/server mismatch)."""
 
 from __future__ import annotations
 
-import builtins
 from collections.abc import Iterator, Sequence
 from typing import Any
 
-from ....models.v2.releases import (
-    CreateRelease,
-    Release,
-    ReleaseChildManageRequest,
-    ReleaseChildManageResult,
-    UpdateRelease,
-)
+from ....models.v2.releases import CreateRelease, Release, UpdateRelease
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
@@ -23,6 +17,7 @@ from .comments import ReleaseComments
 from .labels import ReleaseLabels
 from .links import ReleaseLinks
 from .tags import ReleaseTags
+from .work_items import ReleaseWorkItems
 
 __all__ = [
     "ReleaseChangelogResource",
@@ -30,6 +25,7 @@ __all__ = [
     "ReleaseLabels",
     "ReleaseLinks",
     "ReleaseTags",
+    "ReleaseWorkItems",
     "Releases",
 ]
 
@@ -43,8 +39,6 @@ class Releases(V2Resource[Release, CreateRelease, UpdateRelease]):
         "create": "releases_create",
         "update": "releases_partial_update",
         "delete": "releases_destroy",
-        "manage_labels": "releases_labels",
-        "manage_work_items": "releases_work_items",
     }
 
     def __init__(self, transport: V2Transport, **scope: Any) -> None:
@@ -54,6 +48,7 @@ class Releases(V2Resource[Release, CreateRelease, UpdateRelease]):
         self.labels = ReleaseLabels(transport, **self._scope)
         self.tags = ReleaseTags(transport, **self._scope)
         self.changelog = ReleaseChangelogResource(transport, **self._scope)
+        self.work_items = ReleaseWorkItems(transport, **self._scope)
 
     # -- Workspace-scoped CRUD ----------------------------------------------------
 
@@ -100,40 +95,3 @@ class Releases(V2Resource[Release, CreateRelease, UpdateRelease]):
 
     def delete(self, release_id: str) -> None:
         return self._delete(pk=release_id)
-
-    # -- Child membership manage (labels / work items) -----------------------------
-    # Response is `{added, removed}`, not a `Release`, so these bypass `_action`.
-
-    def manage_labels(
-        self,
-        release_id: str,
-        *,
-        add: builtins.list[str] | None = None,
-        remove: builtins.list[str] | None = None,
-    ) -> ReleaseChildManageResult:
-        """Attach and/or detach release labels (from the workspace catalog) on
-        this release in one call. Returns the ids actually added/removed."""
-        body = ReleaseChildManageRequest(add=add, remove=remove)
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(release_id)}labels/",
-            json=body.model_dump(mode="json", exclude_none=True),
-        )
-        return ReleaseChildManageResult.model_validate(payload)
-
-    def manage_work_items(
-        self,
-        release_id: str,
-        *,
-        add: builtins.list[str] | None = None,
-        remove: builtins.list[str] | None = None,
-    ) -> ReleaseChildManageResult:
-        """Attach and/or detach work items on this release in one call. Returns
-        the ids actually added/removed."""
-        body = ReleaseChildManageRequest(add=add, remove=remove)
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(release_id)}work-items/",
-            json=body.model_dump(mode="json", exclude_none=True),
-        )
-        return ReleaseChildManageResult.model_validate(payload)

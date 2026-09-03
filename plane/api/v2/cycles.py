@@ -1,6 +1,6 @@
-"""Project cycles (api_v2). `transfer`/`manage_work_items` don't fit the CRUD
-request/response shape `V2Resource` generates, so they build requests directly,
-but stay plain methods on `Cycles` rather than a separate sub-resource."""
+"""Project cycles (api_v2). `transfer` doesn't fit the CRUD request/response shape
+`V2Resource` generates, so it builds its request directly but stays a plain method on
+`Cycles`; cycle membership is the `.work_items` bridge (`add`/`remove`)."""
 
 from __future__ import annotations
 
@@ -18,6 +18,30 @@ from ...models.v2.cycle_actions import (
 from ...models.v2.cycles import CreateCycle, Cycle, UpdateCycle
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
+from ._kernel.transport import V2Transport
+
+
+class CycleWorkItems(
+    V2Resource[CycleWorkItemManageResult, CycleWorkItemManage, CycleWorkItemManage]
+):
+    """Membership bridge between a cycle and work items: `add` moves work items into the
+    cycle (re-homing them from any other cycle), `remove` takes them out. Both POST to
+    `.../cycles/{cycle_id}/work-items/` and return the ids actually changed."""
+
+    path = "/workspaces/{slug}/projects/{project_id}/cycles/{cycle_id}/work-items/"
+    model = CycleWorkItemManageResult
+    operations = {
+        "bridge": "cycles_work_items_manage",
+    }
+
+    def add(self, cycle_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+        """Move 1..100 work items into this cycle; returns the ids actually added
+        (already-present ones are omitted)."""
+        return self._bridge(key="add", ids=work_item_ids, cycle_id=cycle_id)
+
+    def remove(self, cycle_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+        """Take 1..100 work items out of this cycle; returns the ids actually removed."""
+        return self._bridge(key="remove", ids=work_item_ids, cycle_id=cycle_id)
 
 
 class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
@@ -34,8 +58,11 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
         "bulk_update": "cycles_bulk_update",
         "bulk_delete": "cycles_bulk_delete",
         "transfer": "cycles_transfer",
-        "manage_work_items": "cycles_work_items_manage",
     }
+
+    def __init__(self, transport: V2Transport, **scope: Any) -> None:
+        super().__init__(transport, **scope)
+        self.work_items = CycleWorkItems(transport, **self._scope)
 
     def list(
         self,
@@ -112,21 +139,3 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
             json=data.model_dump(mode="json", exclude_none=True),
         )
         return CycleTransferResult.model_validate(payload)
-
-    def manage_work_items(
-        self,
-        cycle_id: str,
-        *,
-        add: builtins.list[str] | None = None,
-        remove: builtins.list[str] | None = None,
-    ) -> CycleWorkItemManageResult:
-        """Bulk set-style cycle membership: `add` moves work items into this
-        cycle (re-homing from any other cycle), `remove` takes them out. Provide
-        at least one of `add`/`remove` (up to 100 ids each)."""
-        data = CycleWorkItemManage(add=add, remove=remove)
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(cycle_id)}work-items/",
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return CycleWorkItemManageResult.model_validate(payload)

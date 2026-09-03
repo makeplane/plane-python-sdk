@@ -73,8 +73,8 @@ class CollectionMember(BaseModel):
 
 
 class CollectionMemberAdd(BaseModel):
-    """One `add` entry for `CollectionMembers.manage` -- `member_id` plus an
-    optional access level (defaults to View server-side)."""
+    """One `add` entry for the `CollectionMembers.add` bridge -- `member_id`
+    plus an optional access level (defaults to View server-side)."""
 
     model_config = ConfigDict(extra="ignore")
 

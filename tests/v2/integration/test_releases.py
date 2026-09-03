@@ -177,23 +177,23 @@ class TestPagination:
         assert page.next_cursor is not None
 
 
-class TestManageLabelsAndWorkItems:
-    def test_manage_labels_add_then_remove(self, releases: Releases, release: Any) -> None:
+class TestLabelsAndWorkItemsBridges:
+    def test_labels_add_then_remove(self, releases: Releases, release: Any) -> None:
         label = releases.labels.create(CreateReleaseLabel(name=unique_name("rel-label")))
         try:
-            added = releases.manage_labels(release.id, add=[label.id])
-            assert label.id in added.added
+            added = releases.labels.add(release.id, [label.id])
+            assert label.id in added
 
             fetched = releases.retrieve(release.id)
             assert fetched.label_ids is not None
             assert label.id in fetched.label_ids
 
-            removed = releases.manage_labels(release.id, remove=[label.id])
-            assert label.id in removed.removed
+            removed = releases.labels.remove(release.id, [label.id])
+            assert label.id in removed
         finally:
             releases.labels.delete(label.id)
 
-    def test_manage_work_items_add_then_remove(
+    def test_work_items_add_then_remove(
         self,
         client: PlaneClient,
         workspace_slug: str,
@@ -206,11 +206,11 @@ class TestManageLabelsAndWorkItems:
         work_items = client.v2.workspace(workspace_slug).project(project_id).work_items
         work_item = work_items.create(CreateWorkItem(name=unique_name("release-wi")))
         try:
-            added = releases.manage_work_items(release.id, add=[work_item.id])
-            assert work_item.id in added.added
+            added = releases.work_items.add(release.id, [work_item.id])
+            assert work_item.id in added
 
-            removed = releases.manage_work_items(release.id, remove=[work_item.id])
-            assert work_item.id in removed.removed
+            removed = releases.work_items.remove(release.id, [work_item.id])
+            assert work_item.id in removed
         finally:
             work_items.delete(work_item.id)
 

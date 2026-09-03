@@ -1,7 +1,10 @@
-"""Offline coverage for `Initiatives`: CRUD, `?expand=lead`, manage verbs, and the workspace-level
-`labels` sibling collection."""
+"""Offline coverage for `Initiatives`: CRUD, `?expand=lead`, the `.work_items`/`.projects`/
+`.labels` membership bridges (`add`/`remove`), and the workspace-level `labels` sibling
+collection."""
 
 from __future__ import annotations
+
+import json
 
 import pytest
 import responses
@@ -12,7 +15,6 @@ from plane.config import Configuration
 from plane.models.v2.initiatives import (
     CreateInitiative,
     CreateInitiativeLabel,
-    InitiativeChildManageRequest,
     UpdateInitiative,
     UpdateInitiativeLabel,
 )
@@ -81,30 +83,133 @@ def test_find_initiative_by_name(initiatives: Initiatives) -> None:
     assert initiatives.find_by_name("Q3 push").id == "in1"
 
 
+# -- Membership bridge: work_items ------------------------------------------------
+
+
 @responses.activate
-def test_manage_labels_projects_work_items(initiatives: Initiatives) -> None:
-    responses.post(f"{BASE}/in1/labels/", json={"added": ["lbl-1"], "removed": []})
+def test_work_items_add_sends_add_body_and_returns_added(initiatives: Initiatives) -> None:
+    responses.post(f"{BASE}/in1/work-items/", json={"added": ["wi-1"], "removed": []})
+
+    result = initiatives.work_items.add("in1", ["wi-1"])
+
+    assert result == ["wi-1"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"add": ["wi-1"]}
+    assert responses.calls[0].request.url == f"{BASE}/in1/work-items/"
+
+
+@responses.activate
+def test_work_items_remove_sends_remove_body_and_returns_removed(initiatives: Initiatives) -> None:
+    responses.post(f"{BASE}/in1/work-items/", json={"added": [], "removed": ["wi-2"]})
+
+    result = initiatives.work_items.remove("in1", ["wi-2"])
+
+    assert result == ["wi-2"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"remove": ["wi-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/in1/work-items/"
+
+
+@responses.activate
+def test_work_items_bridge_rejects_empty_or_oversized_ids(initiatives: Initiatives) -> None:
+    with pytest.raises(ValueError):
+        initiatives.work_items.add("in1", [])
+    with pytest.raises(ValueError):
+        initiatives.work_items.add("in1", [f"wi-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        initiatives.work_items.remove("in1", [])
+    with pytest.raises(ValueError):
+        initiatives.work_items.remove("in1", [f"wi-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0
+
+
+# -- Membership bridge: projects ---------------------------------------------------
+
+
+@responses.activate
+def test_projects_add_sends_add_body_and_returns_added(initiatives: Initiatives) -> None:
     responses.post(f"{BASE}/in1/projects/", json={"added": ["proj-1"], "removed": []})
-    responses.post(f"{BASE}/in1/work-items/", json={"added": ["wi-1"], "removed": ["wi-2"]})
 
-    labels_result = initiatives.manage_labels("in1", InitiativeChildManageRequest(add=["lbl-1"]))
-    assert labels_result.added == ["lbl-1"]
+    result = initiatives.projects.add("in1", ["proj-1"])
 
-    projects_result = initiatives.manage_projects(
-        "in1", InitiativeChildManageRequest(add=["proj-1"])
-    )
-    assert projects_result.added == ["proj-1"]
+    assert result == ["proj-1"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"add": ["proj-1"]}
+    assert responses.calls[0].request.url == f"{BASE}/in1/projects/"
 
-    work_items_result = initiatives.manage_work_items(
-        "in1", InitiativeChildManageRequest(add=["wi-1"], remove=["wi-2"])
-    )
-    assert work_items_result.added == ["wi-1"]
-    assert work_items_result.removed == ["wi-2"]
 
-    # Each verb action hits its own sub-path, not a shared one.
-    assert responses.calls[0].request.url.endswith("/in1/labels/")
-    assert responses.calls[1].request.url.endswith("/in1/projects/")
-    assert responses.calls[2].request.url.endswith("/in1/work-items/")
+@responses.activate
+def test_projects_remove_sends_remove_body_and_returns_removed(initiatives: Initiatives) -> None:
+    responses.post(f"{BASE}/in1/projects/", json={"added": [], "removed": ["proj-2"]})
+
+    result = initiatives.projects.remove("in1", ["proj-2"])
+
+    assert result == ["proj-2"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"remove": ["proj-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/in1/projects/"
+
+
+@responses.activate
+def test_projects_bridge_rejects_empty_or_oversized_ids(initiatives: Initiatives) -> None:
+    with pytest.raises(ValueError):
+        initiatives.projects.add("in1", [])
+    with pytest.raises(ValueError):
+        initiatives.projects.add("in1", [f"proj-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        initiatives.projects.remove("in1", [])
+    with pytest.raises(ValueError):
+        initiatives.projects.remove("in1", [f"proj-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0
+
+
+# -- Membership bridge: labels (per-initiative association) ----------------------
+
+
+@responses.activate
+def test_initiative_labels_bridge_add_sends_add_body_and_returns_added(
+    initiatives: Initiatives,
+) -> None:
+    responses.post(f"{BASE}/in1/labels/", json={"added": ["lbl-1"], "removed": []})
+
+    result = initiatives.labels.add("in1", ["lbl-1"])
+
+    assert result == ["lbl-1"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"add": ["lbl-1"]}
+    assert responses.calls[0].request.url == f"{BASE}/in1/labels/"
+
+
+@responses.activate
+def test_initiative_labels_bridge_remove_sends_remove_body_and_returns_removed(
+    initiatives: Initiatives,
+) -> None:
+    responses.post(f"{BASE}/in1/labels/", json={"added": [], "removed": ["lbl-2"]})
+
+    result = initiatives.labels.remove("in1", ["lbl-2"])
+
+    assert result == ["lbl-2"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"remove": ["lbl-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/in1/labels/"
+
+
+@responses.activate
+def test_initiative_labels_bridge_rejects_empty_or_oversized_ids(
+    initiatives: Initiatives,
+) -> None:
+    with pytest.raises(ValueError):
+        initiatives.labels.add("in1", [])
+    with pytest.raises(ValueError):
+        initiatives.labels.add("in1", [f"lbl-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        initiatives.labels.remove("in1", [])
+    with pytest.raises(ValueError):
+        initiatives.labels.remove("in1", [f"lbl-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0
 
 
 # -- Sibling collection: labels (workspace-level, not nested under an initiative) --

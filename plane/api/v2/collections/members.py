@@ -9,8 +9,8 @@ from collections.abc import Sequence
 
 from ....models.v2.collections import (
     CollectionMember,
+    CollectionMemberAdd,
     CollectionMembersManage,
-    CollectionMembersManageResult,
 )
 from .._kernel.resource import V2Resource
 
@@ -24,7 +24,7 @@ class CollectionMembers(
     model = CollectionMember
     operations = {
         "list": "collections_members_list",
-        "manage": "collections_members",
+        "bridge": "collections_members",
     }
 
     def list(
@@ -43,13 +43,12 @@ class CollectionMembers(
         )
         return [CollectionMember.model_validate(row) for row in payload]
 
-    def manage(
-        self, collection_id: str, data: CollectionMembersManage
-    ) -> CollectionMembersManageResult:
-        """Bulk grant/revoke workspace-member access to a collection."""
-        payload = self.transport.request(
-            "POST",
-            self._collection_url(collection_id=collection_id),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return CollectionMembersManageResult.model_validate(payload)
+    def add(self, collection_id: str, members: Sequence[CollectionMemberAdd]) -> builtins.list[str]:
+        """Grant (or update) access for 1..100 workspace members on this
+        collection; returns the member ids actually added or updated."""
+        return self._bridge(key="add", ids=members, collection_id=collection_id)
+
+    def remove(self, collection_id: str, user_ids: Sequence[str]) -> builtins.list[str]:
+        """Revoke access for 1..100 members from this collection; returns the
+        member ids actually removed (idempotent no-ops omitted)."""
+        return self._bridge(key="remove", ids=user_ids, collection_id=collection_id)

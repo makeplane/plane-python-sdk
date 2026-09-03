@@ -1,5 +1,6 @@
 import pytest
 import responses
+from responses import matchers
 
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.roles import Roles
@@ -67,3 +68,40 @@ def test_find_by_name_raises_on_no_match(roles: Roles) -> None:
 
     with pytest.raises(NoMatchFound, match="name='Nope'"):
         roles.find_by_name("Nope")
+
+
+@responses.activate
+def test_find_by_slug(roles: Roles) -> None:
+    responses.get(
+        f"{BASE}/",
+        json={
+            "data": [{"id": "1", "name": "Admin", "slug": "admin"}],
+            "pagination": {"style": "offset"},
+        },
+        match=[matchers.query_param_matcher({"slug": "admin", "per_page": "2", "count": "False"})],
+    )
+
+    assert roles.find_by_slug("admin").id == "1"
+
+
+@responses.activate
+def test_find_by_slug_with_namespace(roles: Roles) -> None:
+    responses.get(
+        f"{BASE}/",
+        json={
+            "data": [{"id": "1", "name": "Admin", "slug": "admin", "namespace": "workspace"}],
+            "pagination": {"style": "offset"},
+        },
+        match=[
+            matchers.query_param_matcher(
+                {
+                    "slug": "admin",
+                    "namespace": "workspace",
+                    "per_page": "2",
+                    "count": "False",
+                }
+            )
+        ],
+    )
+
+    assert roles.find_by_slug("admin", namespace="workspace").id == "1"

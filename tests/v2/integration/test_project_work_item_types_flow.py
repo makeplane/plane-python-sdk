@@ -115,7 +115,7 @@ def test_project_work_item_types_flow(proj: Project) -> None:
         assert exc_info.value.status == 400
 
         # 8. attach both properties to the type
-        result = proj.work_item_types.properties.attach(type_id, [text_prop.id, option_prop.id])
+        result = proj.work_item_types.properties.link(type_id, [text_prop.id, option_prop.id])
         attached.extend([text_prop.id, option_prop.id])
         assert {text_prop.id, option_prop.id}.issubset(set(result.properties))
         listed = {row.id for row in proj.work_item_types.properties.list(type_id).data}
@@ -150,7 +150,7 @@ def test_project_work_item_types_flow(proj: Project) -> None:
             for work_item_id in created_work_items:
                 _swallow(proj.work_items.delete, work_item_id)
             for property_id in attached:
-                _swallow(proj.work_item_types.properties.detach, type_id or "", property_id)
+                _swallow(proj.work_item_types.properties.unlink, type_id or "", property_id)
             for property_id in properties:
                 _swallow(proj.work_item_properties.delete, property_id)
 

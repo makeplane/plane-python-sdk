@@ -1,5 +1,6 @@
 """Project modules (api_v2). Module membership (`member_ids`) is read-only:
-the golden's `ModuleWriteRequest` has no writable member field."""
+the golden's `ModuleWriteRequest` has no writable member field; work item
+membership is the `.work_items` bridge (`add`/`remove`)."""
 
 from __future__ import annotations
 
@@ -15,6 +16,33 @@ from ...models.v2.module_work_items import (
 from ...models.v2.modules import CreateModule, Module, UpdateModule
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
+from ._kernel.transport import V2Transport
+
+
+class ModuleWorkItems(
+    V2Resource[
+        ModuleWorkItemManageResponse, ModuleWorkItemManageRequest, ModuleWorkItemManageRequest
+    ]
+):
+    """Membership bridge between a module and work items: `add` links work items
+    to the module, `remove` unlinks them. Both POST to
+    `.../modules/{module_id}/work-items/` and return the ids actually changed."""
+
+    path = "/workspaces/{slug}/projects/{project_id}/modules/{module_id}/work-items/"
+    model = ModuleWorkItemManageResponse
+    operations = {
+        "bridge": "modules_work_items_manage",
+    }
+
+    def add(self, module_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+        """Link 1..100 work items to this module; returns the ids actually added
+        (already-linked ones are omitted)."""
+        return self._bridge(key="add", ids=work_item_ids, module_id=module_id)
+
+    def remove(self, module_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+        """Unlink 1..100 work items from this module; returns the ids actually
+        removed."""
+        return self._bridge(key="remove", ids=work_item_ids, module_id=module_id)
 
 
 class Modules(V2Resource[Module, CreateModule, UpdateModule]):
@@ -30,8 +58,11 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
         "bulk_create": "modules_bulk_create",
         "bulk_update": "modules_bulk_update",
         "bulk_delete": "modules_bulk_delete",
-        "manage_work_items": "modules_work_items_manage",
     }
+
+    def __init__(self, transport: V2Transport, **scope: Any) -> None:
+        super().__init__(transport, **scope)
+        self.work_items = ModuleWorkItems(transport, **self._scope)
 
     def list(
         self,
@@ -94,18 +125,3 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
         self, ids: builtins.list[str], *, all_or_none: bool = False
     ) -> BulkWriteResponse:
         return self._bulk_delete(ids, all_or_none=all_or_none)
-
-    # -- Custom actions ------------------------------------------------------
-
-    def manage_work_items(
-        self, module_id: str, data: ModuleWorkItemManageRequest
-    ) -> ModuleWorkItemManageResponse:
-        """Add and/or remove work items on this module, returning the ids
-        actually changed. Built directly since the response isn't this resource's `model`."""
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(module_id)}work-items/",
-            params=self._query(None, action="manage_work_items"),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return ModuleWorkItemManageResponse.model_validate(payload)

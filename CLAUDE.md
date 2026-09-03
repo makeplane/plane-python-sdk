@@ -87,6 +87,27 @@ PlaneClient
   the first positional argument. `_generated/constants.py` is produced by
   `scripts/generate_v2_constants.py` from the api_v2 OpenAPI golden and must
   never be hand-edited.
+  - **Bridges.** Membership between two resources (`.../cycles/{id}/work-items/`,
+    `.../releases/{id}/labels/`, `.../collections/{id}/members/`, ...) is never a
+    `manage_*(add=, remove=)` method. It is a sub-resource (`proj.cycles.work_items`,
+    `ws.initiatives.projects`; on a catalog resource such as `ws.releases.labels` the
+    verbs sit next to the CRUD) exposing exactly `add(parent_id, ids) -> list[str]`
+    and `remove(parent_id, ids) -> list[str]`, both delegating to
+    `V2Resource._bridge(key=, ids=, **path_params)`. The kernel POSTs `{"add": [...]}`
+    or `{"remove": [...]}` only, rejects 0 or >100 ids with `ValueError` before the
+    request, and returns the response's `added`/`removed` list. A class whose own
+    `path` is not the bridge URL sets `bridge_path`. The bridge class declares the
+    golden's single manage operationId under the `"bridge"` key of `operations`. The
+    `*Manage*` request/response models stay in `plane/models/v2/*` as the bridge's
+    `model`, but are not exported from `plane.models.v2`.
+  - **Bridge verbs copy the web app CTA.** Properties on a work item type:
+    `link`/`unlink` (unlink deletes the property's values on every work item of the
+    type). Members of anything else: `add`/`remove`. `workflows.states.attach` is a
+    different bridge (POST `{state_ids}`) and keeps its name.
+  - **Lookups.** `find_by_<key>` is server-side via `_find_one` only where the golden
+    list op has that filter (`roles.find_by_slug`, `estimates.points.find_by_key`,
+    `find_by_name` on properties/options/contexts); property `name` is the machine
+    key, not the `display_name` label.
 - `plane/models/v2/` — v2 pydantic models. Read models mark every field except `id`
   optional, because `?fields=` and collection deferral can omit any of them.
 

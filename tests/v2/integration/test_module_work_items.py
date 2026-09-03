@@ -1,6 +1,7 @@
-"""Live coverage for `manage_work_items` (api_v2): add/remove link-management
-between a module and its work items, reached as
-`...modules.manage_work_items(...)`; offline coverage lives in `tests/v2`."""
+"""Live coverage for the `.work_items` bridge (api_v2): add/remove
+link-management between a module and its work items, reached as
+`...modules.work_items.add(...)`/`.remove(...)`; offline coverage lives in
+`tests/v2`."""
 
 from __future__ import annotations
 
@@ -10,7 +11,6 @@ import pytest
 
 from plane.api.v2.project import Project
 from plane.client import PlaneClient
-from plane.models.v2.module_work_items import ModuleWorkItemManageRequest
 from plane.models.v2.modules import CreateModule
 
 from .helpers import unique_name
@@ -28,34 +28,27 @@ def module(proj: Project) -> dict[str, Any]:
 
 
 class TestModuleWorkItems:
-    def test_manage_adds_then_removes_a_work_item(
+    def test_work_items_add_then_remove(
         self,
         proj: Project,
         module: dict[str, Any],
         work_item: Any,
     ) -> None:
-        added = proj.modules.manage_work_items(
-            str(module["id"]),
-            ModuleWorkItemManageRequest(add=[work_item.id]),
-        )
-        assert work_item.id in added.added
+        added = proj.modules.work_items.add(str(module["id"]), [work_item.id])
+        assert work_item.id in added
 
-        removed = proj.modules.manage_work_items(
-            str(module["id"]),
-            ModuleWorkItemManageRequest(remove=[work_item.id]),
-        )
-        assert work_item.id in removed.removed
+        removed = proj.modules.work_items.remove(str(module["id"]), [work_item.id])
+        assert work_item.id in removed
 
-    def test_manage_over_100_ids_is_rejected_client_side(
+    def test_work_items_add_over_100_ids_is_rejected_client_side(
         self,
         proj: Project,
         module: dict[str, Any],
     ) -> None:
-        """The pydantic DTO enforces the golden's `maxItems: 100` before the
+        """The bridge kernel enforces the golden's `maxItems: 100` before the
         request is ever sent -- this never reaches the server."""
-        from pydantic import ValidationError
-
-        with pytest.raises(ValidationError):
-            ModuleWorkItemManageRequest(
-                add=[f"00000000-0000-0000-0000-{i:012d}" for i in range(101)]
+        with pytest.raises(ValueError):
+            proj.modules.work_items.add(
+                str(module["id"]),
+                [f"00000000-0000-0000-0000-{i:012d}" for i in range(101)],
             )

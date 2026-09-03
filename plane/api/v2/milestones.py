@@ -1,6 +1,7 @@
 """Project milestones (api_v2). Golden calls the identifying field `title`, but
 the list filter is still `?name=` (aliased server-side); `find_by_name` keeps
-the same `name` parameter every other resource uses."""
+the same `name` parameter every other resource uses. Milestone membership is
+the `.work_items` bridge (`add`/`remove`)."""
 
 from __future__ import annotations
 
@@ -16,6 +17,36 @@ from ...models.v2.milestone_work_items import (
 from ...models.v2.milestones import CreateMilestone, Milestone, UpdateMilestone
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
+from ._kernel.transport import V2Transport
+
+
+class MilestoneWorkItems(
+    V2Resource[
+        MilestoneWorkItemManageResponse,
+        MilestoneWorkItemManageRequest,
+        MilestoneWorkItemManageRequest,
+    ]
+):
+    """Membership bridge between a milestone and work items: `add` links work
+    items to the milestone, `remove` unlinks them. Both POST to
+    `.../milestones/{milestone_id}/work-items/` and return the ids actually
+    changed."""
+
+    path = "/workspaces/{slug}/projects/{project_id}/milestones/{milestone_id}/work-items/"
+    model = MilestoneWorkItemManageResponse
+    operations = {
+        "bridge": "milestones_work_items",
+    }
+
+    def add(self, milestone_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+        """Link 1..100 work items to this milestone; returns the ids actually
+        added (already-linked ones are omitted)."""
+        return self._bridge(key="add", ids=work_item_ids, milestone_id=milestone_id)
+
+    def remove(self, milestone_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+        """Unlink 1..100 work items from this milestone; returns the ids
+        actually removed."""
+        return self._bridge(key="remove", ids=work_item_ids, milestone_id=milestone_id)
 
 
 class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
@@ -31,12 +62,13 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         "bulk_create": "milestones_bulk_create",
         "bulk_update": "milestones_bulk_update",
         "bulk_delete": "milestones_bulk_delete",
-        "manage_work_items": "milestones_work_items",
     }
 
-    def list(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
-    ) -> Page[Milestone]:
+    def __init__(self, transport: V2Transport, **scope: Any) -> None:
+        super().__init__(transport, **scope)
+        self.work_items = MilestoneWorkItems(transport, **self._scope)
+
+    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[Milestone]:
         """One page of milestones in this project."""
         return self._list(params={"fields": fields, **filters})
 
@@ -82,18 +114,3 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         self, ids: builtins.list[str], *, all_or_none: bool = False
     ) -> BulkWriteResponse:
         return self._bulk_delete(ids, all_or_none=all_or_none)
-
-    # -- Custom actions ------------------------------------------------------
-
-    def manage_work_items(
-        self, milestone_id: str, data: MilestoneWorkItemManageRequest
-    ) -> MilestoneWorkItemManageResponse:
-        """Add and/or remove work items on this milestone, returning the ids
-        actually changed. Built directly since the response isn't this resource's `model`."""
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(milestone_id)}work-items/",
-            params=self._query(None, action="manage_work_items"),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return MilestoneWorkItemManageResponse.model_validate(payload)

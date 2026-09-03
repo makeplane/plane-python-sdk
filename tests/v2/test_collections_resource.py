@@ -1,5 +1,5 @@
-"""Offline coverage for `Collections`; covers CRUD, `default()`, and the `members`/`pages` sub-
-resources' list/manage verbs."""
+"""Offline coverage for `Collections`; covers CRUD, `default()`, and the `members`/`pages`
+sub-resources' list/membership-bridge (`add`/`remove`) verbs."""
 
 import json
 
@@ -10,13 +10,7 @@ from plane.api.v2._kernel.errors import NoMatchFound
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.collections import Collections
 from plane.config import Configuration
-from plane.models.v2.collections import (
-    CollectionMemberAdd,
-    CollectionMembersManage,
-    CollectionPagesManage,
-    CreateCollection,
-    UpdateCollection,
-)
+from plane.models.v2.collections import CollectionMemberAdd, CreateCollection, UpdateCollection
 
 BASE = "https://api.example.com/api/v2/workspaces/acme/collections"
 
@@ -153,35 +147,82 @@ def test_members_list_rejects_unknown_expand(collections: Collections) -> None:
 
 
 @responses.activate
-def test_members_manage_adds_and_removes(collections: Collections) -> None:
-    responses.post(
-        f"{BASE}/c1/members/",
-        json={"added": ["u1"], "removed": ["u2"]},
-    )
+def test_members_add_sends_add_body_and_returns_added(collections: Collections) -> None:
+    responses.post(f"{BASE}/c1/members/", json={"added": ["u1"], "removed": []})
 
-    result = collections.members.manage(
-        "c1",
-        CollectionMembersManage(add=[CollectionMemberAdd(member_id="u1", access=1)], remove=["u2"]),
-    )
+    result = collections.members.add("c1", [CollectionMemberAdd(member_id="u1", access=1)])
 
-    assert result.added == ["u1"]
-    assert result.removed == ["u2"]
+    assert result == ["u1"]
     body = json.loads(responses.calls[0].request.body)
-    assert body == {"add": [{"member_id": "u1", "access": 1}], "remove": ["u2"]}
+    assert body == {"add": [{"member_id": "u1", "access": 1}]}
+    assert responses.calls[0].request.url == f"{BASE}/c1/members/"
+
+
+@responses.activate
+def test_members_remove_sends_remove_body_and_returns_removed(collections: Collections) -> None:
+    responses.post(f"{BASE}/c1/members/", json={"added": [], "removed": ["u2"]})
+
+    result = collections.members.remove("c1", ["u2"])
+
+    assert result == ["u2"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"remove": ["u2"]}
+    assert responses.calls[0].request.url == f"{BASE}/c1/members/"
+
+
+@responses.activate
+def test_members_bridge_rejects_empty_or_oversized_ids(collections: Collections) -> None:
+    with pytest.raises(ValueError):
+        collections.members.add("c1", [])
+    with pytest.raises(ValueError):
+        collections.members.add("c1", [CollectionMemberAdd(member_id=f"u-{i}") for i in range(101)])
+    with pytest.raises(ValueError):
+        collections.members.remove("c1", [])
+    with pytest.raises(ValueError):
+        collections.members.remove("c1", [f"u-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0
 
 
 # -- Pages (collections.pages) ---------------------------------------------------
 
 
 @responses.activate
-def test_pages_manage_adds_and_removes(collections: Collections) -> None:
+def test_pages_add_sends_add_body_and_returns_added(collections: Collections) -> None:
     responses.post(f"{BASE}/c1/pages/", json={"added": ["p1"], "removed": []})
 
-    result = collections.pages.manage("c1", CollectionPagesManage(add=["p1"]))
+    result = collections.pages.add("c1", ["p1"])
 
-    assert result.added == ["p1"]
-    assert result.removed == []
+    assert result == ["p1"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"add": ["p1"]}
     assert "/collections/c1/pages/" in responses.calls[0].request.url
+
+
+@responses.activate
+def test_pages_remove_sends_remove_body_and_returns_removed(collections: Collections) -> None:
+    responses.post(f"{BASE}/c1/pages/", json={"added": [], "removed": ["p2"]})
+
+    result = collections.pages.remove("c1", ["p2"])
+
+    assert result == ["p2"]
+    body = json.loads(responses.calls[0].request.body)
+    assert body == {"remove": ["p2"]}
+    assert "/collections/c1/pages/" in responses.calls[0].request.url
+
+
+@responses.activate
+def test_pages_bridge_rejects_empty_or_oversized_ids(collections: Collections) -> None:
+    with pytest.raises(ValueError):
+        collections.pages.add("c1", [])
+    with pytest.raises(ValueError):
+        collections.pages.add("c1", [f"p-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        collections.pages.remove("c1", [])
+    with pytest.raises(ValueError):
+        collections.pages.remove("c1", [f"p-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0
 
 
 @responses.activate

@@ -3,5 +3,6 @@
 from .customers import Customers
 from .property_values import CustomerPropertyValues
 from .requests import CustomerRequests
+from .work_items import CustomerWorkItems
 
-__all__ = ["Customers", "CustomerPropertyValues", "CustomerRequests"]
+__all__ = ["Customers", "CustomerPropertyValues", "CustomerRequests", "CustomerWorkItems"]

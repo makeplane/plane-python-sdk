@@ -1,6 +1,6 @@
-"""Custom properties attached to a work item type (project- and workspace-scoped).
-`attach` POSTs to the *collection* URL, returning `{"properties": [...]}`, not a
-`WorkItemProperty` row; `detach` is a plain `_delete` by property id."""
+"""Custom properties linked to a work item type (project- and workspace-scoped).
+`link` POSTs to the *collection* URL, returning `{"properties": [...]}`, not a
+`WorkItemProperty` row; `unlink` is a plain `_delete` by property id."""
 
 from __future__ import annotations
 
@@ -58,10 +58,9 @@ class WorkItemTypeProperties(
     ) -> WorkItemProperty:
         return self._retrieve(pk=property_id, type_id=type_id, params={"fields": fields})
 
-    def attach(
-        self, type_id: str, property_ids: Sequence[str]
-    ) -> WorkItemPropertyAttachResult:
-        """Attach existing property definitions to this work item type."""
+    def link(self, type_id: str, property_ids: Sequence[str]) -> WorkItemPropertyAttachResult:
+        """Link existing property definitions to this work item type; returns the
+        full set of linked property ids."""
         payload = self.transport.request(
             "POST",
             self._collection_url(type_id=type_id),
@@ -71,8 +70,9 @@ class WorkItemTypeProperties(
         )
         return WorkItemPropertyAttachResult.model_validate(payload)
 
-    def detach(self, type_id: str, property_id: str) -> None:
-        """Detach a property definition from this work item type."""
+    def unlink(self, type_id: str, property_id: str) -> None:
+        """Unlink a property definition from this work item type. This deletes
+        that property's values on every work item of the type."""
         return self._delete(pk=property_id, type_id=type_id)
 
 
@@ -119,11 +119,9 @@ class WorkspaceWorkItemTypeProperties(
     ) -> WorkItemProperty:
         return self._retrieve(pk=property_id, type_id=type_id, params={"fields": fields})
 
-    def attach(
-        self, type_id: str, property_ids: Sequence[str]
-    ) -> WorkItemPropertyAttachResult:
-        """Attach existing property definitions to this workspace-level work item
-        type."""
+    def link(self, type_id: str, property_ids: Sequence[str]) -> WorkItemPropertyAttachResult:
+        """Link existing property definitions to this work item type; returns the
+        full set of linked property ids."""
         payload = self.transport.request(
             "POST",
             self._collection_url(type_id=type_id),
@@ -133,6 +131,7 @@ class WorkspaceWorkItemTypeProperties(
         )
         return WorkItemPropertyAttachResult.model_validate(payload)
 
-    def detach(self, type_id: str, property_id: str) -> None:
-        """Detach a property definition from this workspace-level work item type."""
+    def unlink(self, type_id: str, property_id: str) -> None:
+        """Unlink a property definition from this workspace-level work item type.
+        This deletes that property's values on every work item of the type."""
         return self._delete(pk=property_id, type_id=type_id)

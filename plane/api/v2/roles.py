@@ -56,3 +56,12 @@ class Roles(V2Resource[Role, Role, Role]):
                 f"use the id instead, or list to see every match."
             )
         return matches[0]
+
+    def find_by_slug(self, slug: str, *, namespace: str | None = None) -> Role:
+        """The one role with this slug; raises if none or several match. Slugs
+        are unique only *within* a namespace, so pass `namespace` or expect
+        `MultipleMatchesFound`."""
+        filters: dict[str, Any] = {"slug": slug}
+        if namespace is not None:
+            filters["namespace"] = namespace
+        return self._find_one(filters=filters)

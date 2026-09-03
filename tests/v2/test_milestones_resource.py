@@ -1,5 +1,5 @@
-"""Offline coverage for `Milestones`; includes `manage_work_items`, folded in from the former
-separate `MilestoneWorkItems` class."""
+"""Offline coverage for `Milestones`; includes the `.work_items` membership bridge
+(`add`/`remove`)."""
 
 import json
 
@@ -9,7 +9,6 @@ import responses
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.milestones import Milestones
 from plane.config import Configuration
-from plane.models.v2.milestone_work_items import MilestoneWorkItemManageRequest
 from plane.models.v2.milestones import CreateMilestone, UpdateMilestone
 
 BASE = "https://api.example.com/api/v2/workspaces/acme/projects/ENG/milestones"
@@ -128,21 +127,48 @@ def test_find_by_name_filters_on_the_name_query_param(milestones: Milestones) ->
     assert "name=Beta" in (request.url or "")
 
 
-# -- Custom action: manage_work_items --------------------------------------------
+# -- Membership bridge: work_items ------------------------------------------------
 
 
 @responses.activate
-def test_manage_work_items_add_and_remove(milestones: Milestones) -> None:
+def test_work_items_add_sends_add_body_and_returns_added(milestones: Milestones) -> None:
     responses.post(
         f"{BASE}/m1/work-items/",
-        json={"added": ["wi-1"], "removed": ["wi-2"]},
+        json={"added": ["wi-1"], "removed": []},
     )
 
-    result = milestones.manage_work_items(
-        "m1", MilestoneWorkItemManageRequest(add=["wi-1"], remove=["wi-2"])
-    )
+    result = milestones.work_items.add("m1", ["wi-1"])
 
-    assert result.added == ["wi-1"]
-    assert result.removed == ["wi-2"]
+    assert result == ["wi-1"]
     sent_body = json.loads(responses.calls[0].request.body)
-    assert sent_body == {"add": ["wi-1"], "remove": ["wi-2"]}
+    assert sent_body == {"add": ["wi-1"]}
+    assert responses.calls[0].request.url == f"{BASE}/m1/work-items/"
+
+
+@responses.activate
+def test_work_items_remove_sends_remove_body_and_returns_removed(milestones: Milestones) -> None:
+    responses.post(
+        f"{BASE}/m1/work-items/",
+        json={"added": [], "removed": ["wi-2"]},
+    )
+
+    result = milestones.work_items.remove("m1", ["wi-2"])
+
+    assert result == ["wi-2"]
+    sent_body = json.loads(responses.calls[0].request.body)
+    assert sent_body == {"remove": ["wi-2"]}
+    assert responses.calls[0].request.url == f"{BASE}/m1/work-items/"
+
+
+@responses.activate
+def test_work_items_bridge_rejects_empty_or_oversized_ids(milestones: Milestones) -> None:
+    with pytest.raises(ValueError):
+        milestones.work_items.add("m1", [])
+    with pytest.raises(ValueError):
+        milestones.work_items.add("m1", [f"wi-{i}" for i in range(101)])
+    with pytest.raises(ValueError):
+        milestones.work_items.remove("m1", [])
+    with pytest.raises(ValueError):
+        milestones.work_items.remove("m1", [f"wi-{i}" for i in range(101)])
+
+    assert len(responses.calls) == 0

@@ -1,6 +1,7 @@
-"""`transfer`/`manage_work_items` (`Cycles`) against a real server; they share
-one "completed" gate but check opposite directions on `end_date`, so a work
-item must be added before a cycle elapses, then the window moved into the past."""
+"""`transfer`/`.work_items.add`/`.remove` (`Cycles`) against a real server; they
+share one "completed" gate but check opposite directions on `end_date`, so a
+work item must be added before a cycle elapses, then the window moved into
+the past."""
 
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
 def completed_cycle(proj: Project) -> Iterator[Any]:
     """A cycle whose date window is already in the past -- the only shape
     `transfer` accepts as a source (server-enforced). Not eligible for
-    `manage_work_items(add=...)` -- see the module docstring."""
+    `.work_items.add(...)` -- see the module docstring."""
     now = datetime.now(timezone.utc)
     created = proj.cycles.create(
         CreateCycle(
@@ -83,16 +84,16 @@ def work_item(proj: Project) -> Iterator[Any]:
         pass
 
 
-def test_manage_work_items_add_then_remove(
+def test_work_items_add_then_remove(
     proj: Project,
     open_cycle: Any,
     work_item: Any,
 ) -> None:
-    added = proj.cycles.manage_work_items(open_cycle.id, add=[work_item.id])
-    assert work_item.id in (added.added or [])
+    added = proj.cycles.work_items.add(open_cycle.id, [work_item.id])
+    assert work_item.id in added
 
-    removed = proj.cycles.manage_work_items(open_cycle.id, remove=[work_item.id])
-    assert work_item.id in (removed.removed or [])
+    removed = proj.cycles.work_items.remove(open_cycle.id, [work_item.id])
+    assert work_item.id in removed
 
 
 def test_transfer_moves_incomplete_work_items(
@@ -112,7 +113,7 @@ def test_transfer_moves_incomplete_work_items(
         ),
     )
     try:
-        proj.cycles.manage_work_items(source.id, add=[work_item.id])
+        proj.cycles.work_items.add(source.id, [work_item.id])
 
         proj.cycles.update(
             source.id,

@@ -7,11 +7,7 @@ from __future__ import annotations
 import builtins
 from collections.abc import Sequence
 
-from ....models.v2.collections import (
-    CollectionPageSearch,
-    CollectionPagesManage,
-    CollectionPagesManageResult,
-)
+from ....models.v2.collections import CollectionPageSearch, CollectionPagesManage
 from .._kernel.resource import V2Resource
 
 __all__ = ["CollectionPages"]
@@ -21,22 +17,22 @@ class CollectionPages(
     V2Resource[CollectionPageSearch, CollectionPagesManage, CollectionPagesManage]
 ):
     path = "/workspaces/{slug}/collections/{collection_id}/"
+    bridge_path = "/workspaces/{slug}/collections/{collection_id}/pages/"
     model = CollectionPageSearch
     operations = {
         "search": "collections_pages_search",
-        "manage": "collections_pages",
+        "bridge": "collections_pages",
     }
 
-    def manage(
-        self, collection_id: str, data: CollectionPagesManage
-    ) -> CollectionPagesManageResult:
-        """Bulk add/remove pages from a collection."""
-        payload = self.transport.request(
-            "POST",
-            f"{self._collection_url(collection_id=collection_id)}pages/",
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return CollectionPagesManageResult.model_validate(payload)
+    def add(self, collection_id: str, page_ids: Sequence[str]) -> builtins.list[str]:
+        """Add 1..100 pages to this collection; returns the ids actually
+        added."""
+        return self._bridge(key="add", ids=page_ids, collection_id=collection_id)
+
+    def remove(self, collection_id: str, page_ids: Sequence[str]) -> builtins.list[str]:
+        """Remove 1..100 pages from this collection; returns the ids actually
+        removed."""
+        return self._bridge(key="remove", ids=page_ids, collection_id=collection_id)
 
     def search(
         self,

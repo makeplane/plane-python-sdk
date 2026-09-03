@@ -200,9 +200,7 @@ class TestWorkItemTypeProperties:
         work_item_type: Any,
         attachable_property_id: str,
     ) -> None:
-        attached = proj.work_item_types.properties.attach(
-            work_item_type.id, [attachable_property_id]
-        )
+        attached = proj.work_item_types.properties.link(work_item_type.id, [attachable_property_id])
         assert attachable_property_id in attached.properties
         try:
             page = proj.work_item_types.properties.list(work_item_type.id)
@@ -213,7 +211,7 @@ class TestWorkItemTypeProperties:
             )
             assert fetched.id == attachable_property_id
         finally:
-            proj.work_item_types.properties.detach(work_item_type.id, attachable_property_id)
+            proj.work_item_types.properties.unlink(work_item_type.id, attachable_property_id)
 
         page_after = proj.work_item_types.properties.list(work_item_type.id)
         assert all(p.id != attachable_property_id for p in page_after.data)

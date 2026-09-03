@@ -55,9 +55,7 @@ class CustomerRequests(V2Resource[CustomerRequest, CreateCustomerRequest, Update
     def create(self, customer_id: str, data: CreateCustomerRequest) -> CustomerRequest:
         return self._create(data, customer_id=customer_id)
 
-    def update(
-        self, customer_id: str, pk: str, data: UpdateCustomerRequest
-    ) -> CustomerRequest:
+    def update(self, customer_id: str, pk: str, data: UpdateCustomerRequest) -> CustomerRequest:
         return self._update(data, pk=pk, customer_id=customer_id)
 
     def delete(self, customer_id: str, pk: str) -> None:

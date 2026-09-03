@@ -1,5 +1,5 @@
 """Models for the two cycle custom actions out of scope of `plane.models.v2.cycles`
-(`transfer` and `manage_work_items` -- see `plane/api/v2/cycles.py`'s docstring)."""
+(`transfer` and the `.work_items` bridge -- see `plane/api/v2/cycles.py`'s docstring)."""
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -34,7 +34,7 @@ class CycleWorkItemManage(BaseModel):
 
 
 class CycleWorkItemManageResult(BaseModel):
-    """Response of `manage_work_items` -- the work-item ids actually added and
+    """Response of the `.work_items` bridge (`add`/`remove`) -- the work item ids actually added and
     removed (idempotent no-ops are omitted)."""
 
     model_config = ConfigDict(extra="allow")

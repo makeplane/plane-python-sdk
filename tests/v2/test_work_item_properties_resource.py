@@ -3,6 +3,7 @@
 
 import pytest
 import responses
+from responses import matchers
 
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.work_item_properties import (
@@ -119,6 +120,24 @@ def test_retrieve_property(properties: WorkItemProperties) -> None:
     assert row.id == "p1"
 
 
+@responses.activate
+def test_find_by_name(properties: WorkItemProperties) -> None:
+    responses.get(
+        f"{PROJECT_BASE}/",
+        json={
+            "data": [{"id": "p1", "name": "story_points", "display_name": "Story Points"}],
+            "pagination": {"style": "offset"},
+        },
+        match=[
+            matchers.query_param_matcher(
+                {"name": "story_points", "per_page": "2", "count": "False"}
+            )
+        ],
+    )
+
+    assert properties.find_by_name("story_points").id == "p1"
+
+
 # -- WorkItemProperties.options (project-scoped) --------------------------------
 
 
@@ -136,6 +155,19 @@ def test_list_project_options(options: WorkItemPropertyOptions) -> None:
     page = options.list("p1")
 
     assert page.data[0].name == "Critical"
+
+
+@responses.activate
+def test_project_options_find_by_name(options: WorkItemPropertyOptions) -> None:
+    responses.get(
+        f"{PROJECT_BASE}/p1/options/",
+        json={"data": [{"id": "o1", "name": "Critical"}], "pagination": {"style": "offset"}},
+        match=[
+            matchers.query_param_matcher({"name": "Critical", "per_page": "2", "count": "False"})
+        ],
+    )
+
+    assert options.find_by_name("p1", "Critical").id == "o1"
 
 
 @responses.activate
@@ -227,6 +259,26 @@ def test_workspace_properties_create_then_delete(
     assert created.id == "p1"
 
 
+@responses.activate
+def test_workspace_properties_find_by_name(
+    workspace_properties: WorkspaceWorkItemProperties,
+) -> None:
+    responses.get(
+        f"{WORKSPACE_BASE}/",
+        json={
+            "data": [{"id": "p1", "name": "story_points", "display_name": "Story Points"}],
+            "pagination": {"style": "offset"},
+        },
+        match=[
+            matchers.query_param_matcher(
+                {"name": "story_points", "per_page": "2", "count": "False"}
+            )
+        ],
+    )
+
+    assert workspace_properties.find_by_name("story_points").id == "p1"
+
+
 # -- WorkspaceWorkItemProperties.contexts ----------------------------------------
 
 
@@ -244,6 +296,22 @@ def test_list_contexts(contexts: WorkItemPropertyContexts) -> None:
     page = contexts.list("p1")
 
     assert page.data[0].applies_to_all_projects is True
+
+
+@responses.activate
+def test_contexts_find_by_name(contexts: WorkItemPropertyContexts) -> None:
+    responses.get(
+        f"{WORKSPACE_BASE}/p1/contexts/",
+        json={
+            "data": [{"id": "c1", "name": "Bug-only", "is_required": True}],
+            "pagination": {"style": "offset"},
+        },
+        match=[
+            matchers.query_param_matcher({"name": "Bug-only", "per_page": "2", "count": "False"})
+        ],
+    )
+
+    assert contexts.find_by_name("p1", "Bug-only").id == "c1"
 
 
 def test_contexts_list_rejects_unknown_field(contexts: WorkItemPropertyContexts) -> None:
@@ -308,6 +376,21 @@ def test_list_workspace_options(workspace_options: WorkspaceWorkItemPropertyOpti
     page = workspace_options.list("p1")
 
     assert page.data[0].name == "Critical"
+
+
+@responses.activate
+def test_workspace_options_find_by_name(
+    workspace_options: WorkspaceWorkItemPropertyOptions,
+) -> None:
+    responses.get(
+        f"{WORKSPACE_BASE}/p1/options/",
+        json={"data": [{"id": "o1", "name": "Critical"}], "pagination": {"style": "offset"}},
+        match=[
+            matchers.query_param_matcher({"name": "Critical", "per_page": "2", "count": "False"})
+        ],
+    )
+
+    assert workspace_options.find_by_name("p1", "Critical").id == "o1"
 
 
 def test_workspace_options_list_rejects_unknown_order_by(

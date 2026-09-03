@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from typing import Any, ClassVar, Generic, TypeVar
 from urllib.parse import quote
 
@@ -17,6 +17,12 @@ from .transport import V2Transport
 TRead = TypeVar("TRead", bound=BaseModel)
 TWrite = TypeVar("TWrite", bound=BaseModel)
 TPatch = TypeVar("TPatch", bound=BaseModel)
+
+BRIDGE_MAX_IDS = 100
+"""Per-call id cap on membership bridges (`.../{parent}/work-items/` and friends): the
+golden's manage schemas cap `add`/`remove` at 100 ids each."""
+
+_BRIDGE_RESULT_KEYS = {"add": "added", "remove": "removed"}
 
 
 def encode_fields(operation_id: str, fields: Any) -> str:
@@ -61,6 +67,9 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     path: ClassVar[str]
     model: ClassVar[type[BaseModel]]
     operations: ClassVar[dict[str, str]]
+    bridge_path: ClassVar[str | None] = None
+    """Where `_bridge` POSTs when the membership URL is not this resource's own `path`
+    (a catalog resource like release labels bridges at `.../releases/{release_id}/labels/`)."""
 
     def __init__(self, transport: V2Transport, **scope: Any) -> None:
         """`scope` is the path parameters this resource was bound to at construction
@@ -69,13 +78,17 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         self._scope: dict[str, Any] = scope
 
     # URL + params
-    def _collection_url(self, **path_params: Any) -> str:
-        """Build the collection URL, percent-encoding every path param.
-
-        `safe=""` stops a param value from injecting extra URL segments."""
+    def _format_path(self, template: str, **path_params: Any) -> str:
+        """Fill `template` from the bound scope plus `path_params` (explicit wins),
+        percent-encoding every value; `safe=""` stops a value from injecting extra
+        URL segments."""
         merged = {**self._scope, **path_params}
         encoded = {key: quote(str(value), safe="") for key, value in merged.items()}
-        return self.path.format(**encoded)
+        return template.format(**encoded)
+
+    def _collection_url(self, **path_params: Any) -> str:
+        """Build the collection URL, percent-encoding every path param."""
+        return self._format_path(self.path, **path_params)
 
     def _detail_url(self, pk: Any, **path_params: Any) -> str:
         base = self._collection_url(**path_params)
@@ -264,6 +277,34 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         return self._batch(
             "bulk-delete", {"ids": list(ids), "all_or_none": all_or_none}, **path_params
         )
+
+    def _bridge(self, *, key: str, ids: Sequence[Any], **path_params: Any) -> list[str]:
+        """One side of a membership bridge: POST `{key: [...]}` (`key` is `"add"` or
+        `"remove"`) to `bridge_path` (or `path`) and return the ids the server reports
+        as actually changed -- `added` for `add`, `removed` for `remove`, `[]` when the
+        key is absent. Entries may be plain ids or pydantic rows (serialized with
+        `exclude_none`). 0 or more than `BRIDGE_MAX_IDS` entries raise `ValueError`
+        before any request is sent."""
+        try:
+            result_key = _BRIDGE_RESULT_KEYS[key]
+        except KeyError:
+            raise ValueError(f"Bridge key must be 'add' or 'remove', not {key!r}.") from None
+        entries = list(ids)
+        if not entries:
+            raise ValueError(f"Provide at least one id to {key}.")
+        if len(entries) > BRIDGE_MAX_IDS:
+            raise ValueError(f"At most {BRIDGE_MAX_IDS} ids per call (received {len(entries)}).")
+        body = [
+            (
+                entry.model_dump(mode="json", exclude_none=True)
+                if isinstance(entry, BaseModel)
+                else entry
+            )
+            for entry in entries
+        ]
+        url = self._format_path(self.bridge_path or self.path, **path_params)
+        payload = self.transport.request("POST", url, json={key: body})
+        return list(payload.get(result_key) or [])
 
     def _find_one(self, *, filters: Mapping[str, Any], **path_params: Any) -> TRead:
         """Resolve exactly one row by identity filter, or raise.

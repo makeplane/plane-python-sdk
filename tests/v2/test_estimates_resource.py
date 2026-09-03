@@ -196,6 +196,20 @@ def test_points_list_is_nested_under_the_estimate(points: EstimatePoints) -> Non
 
 
 @responses.activate
+def test_points_find_by_key(points: EstimatePoints) -> None:
+    responses.get(
+        f"{BASE}/1/points/",
+        json={
+            "data": [{"id": "p1", "key": 3, "value": "M"}],
+            "pagination": {"style": "offset"},
+        },
+        match=[matchers.query_param_matcher({"key": "3", "per_page": "2", "count": "False"})],
+    )
+
+    assert points.find_by_key("1", 3).id == "p1"
+
+
+@responses.activate
 def test_points_create_retrieve_update_delete(points: EstimatePoints) -> None:
     responses.post(f"{BASE}/1/points/", json={"id": "p1", "value": "XS", "key": 0}, status=201)
     responses.get(f"{BASE}/1/points/p1/", json={"id": "p1", "value": "XS", "key": 0})

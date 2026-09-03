@@ -133,9 +133,9 @@ class CreateCustomerPropertyValues(BaseModel):
 
 
 class CustomerWorkItemManageRequest(BaseModel):
-    """POST body for `Customers.manage_work_items`: work item ids to link/unlink
-    from this customer. Both lists are optional; omit either to leave that side
-    unchanged."""
+    """Body of the `Customers.work_items` bridge (`add`/`remove`): work item ids
+    to link/unlink from this customer. Both lists are optional; omit either to
+    leave that side unchanged."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -144,7 +144,7 @@ class CustomerWorkItemManageRequest(BaseModel):
 
 
 class CustomerWorkItemManageResponse(BaseModel):
-    """The ids actually added/removed by a `Customers.manage_work_items` call."""
+    """The ids actually added/removed by a `Customers.work_items` bridge call."""
 
     model_config = ConfigDict(extra="allow")
 

@@ -1,5 +1,5 @@
 """Initiative models for api_v2; `InitiativeLabel` is workspace-level (not nested under an
-initiative) -- use `Initiatives.manage_labels` to attach/detach."""
+initiative) -- use the `InitiativeLabels.add`/`.remove` bridge to attach/detach."""
 
 from __future__ import annotations
 
@@ -101,8 +101,8 @@ class UpdateInitiativeLabel(BaseModel):
 
 
 class InitiativeChildManageRequest(BaseModel):
-    """POST body shared by `Initiatives.manage_labels` / `.manage_projects` /
-    `.manage_work_items`: ids to add/remove from that child collection. Both
+    """POST body shape shared by the `InitiativeProjects` / `InitiativeWorkItems`
+    bridges (`add`/`remove`): ids to add/remove from that child collection. Both
     lists are optional; omit either to leave that side unchanged."""
 
     model_config = ConfigDict(extra="ignore")
@@ -112,8 +112,8 @@ class InitiativeChildManageRequest(BaseModel):
 
 
 class InitiativeChildManageResponse(BaseModel):
-    """The ids actually added/removed by one of the `Initiatives` manage-child
-    actions."""
+    """The ids actually added/removed by an initiative membership bridge
+    (`InitiativeLabels`, `InitiativeProjects`, `InitiativeWorkItems`)."""
 
     model_config = ConfigDict(extra="allow")
 
