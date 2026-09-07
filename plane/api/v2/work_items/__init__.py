@@ -108,7 +108,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
             slug=slug,
             project_id=project,
         )
-        return self._load_page(page, slug, project)
+        return self._load_page(page, slug, project, fields)
 
     def iterate(
         self,
@@ -144,7 +144,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
             slug=slug,
             project_id=project,
         )
-        return self._load(row, slug, project)
+        return self._load(row, slug, project, fields)
 
     def create(
         self,
@@ -160,7 +160,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
         row = self._create(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
-        return self._load(row, slug, project)
+        return self._load(row, slug, project, fields)
 
     def update(
         self,
@@ -269,15 +269,30 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
 
     # -- Navigation -----------------------------------------------------------------
 
-    def _load(self, row: WorkItem, slug: str, project: str) -> LoadedWorkItem:
+    def _load(
+        self,
+        row: WorkItem,
+        slug: str,
+        project: str,
+        fields: Sequence[str] | None = None,
+    ) -> LoadedWorkItem:
         loaded: LoadedWorkItem = LoadedWorkItem.build(
-            row, ids=(slug, project, row.id), names=("slug", "project", "work_item")
+            row,
+            ids=(slug, project, row.id),
+            names=("slug", "project", "work_item"),
+            fields=fields,
         )
         object.__setattr__(loaded, "_resources", self)
         return loaded
 
-    def _load_page(self, page: Page[WorkItem], slug: str, project: str) -> Page[LoadedWorkItem]:
-        rows = [self._load(row, slug, project) for row in page.data]
+    def _load_page(
+        self,
+        page: Page[WorkItem],
+        slug: str,
+        project: str,
+        fields: Sequence[str] | None = None,
+    ) -> Page[LoadedWorkItem]:
+        rows = [self._load(row, slug, project, fields) for row in page.data]
         if isinstance(page, CursorPage):
             return CursorPage[LoadedWorkItem](
                 data=rows,

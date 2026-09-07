@@ -7,6 +7,7 @@ import pytest
 import responses
 
 from plane.api.v2 import V2Namespace
+from plane.api.v2._kernel.errors import FieldNotRequested
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.work_items import WorkItems
 from plane.config import Configuration
@@ -283,6 +284,50 @@ def test_fetched_work_item_reaches_comments_with_no_ids_repeated(
     work_item.comments.list()
 
     assert responses.calls[1].request.url.endswith("/work-items/w1/comments/")
+
+
+# -- `fields=` must reach `Loaded.build`, not just `Loaded` unit tests -----------
+# (regression: `_load` forgot to forward it, so every field read as `None`
+# instead of raising for a field never requested from a sparse response)
+
+
+@responses.activate
+def test_retrieve_with_fields_raises_on_an_unrequested_field(work_items: WorkItems) -> None:
+    responses.get(f"{BASE}/wi-1/", json={"id": "wi-1"})
+
+    row = work_items.retrieve("acme", "ENG", "wi-1", fields=["id"])
+
+    assert len(row._present) == 1
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = row.name
+
+
+@responses.activate
+def test_list_with_fields_raises_on_an_unrequested_field_for_a_page_row(
+    work_items: WorkItems,
+) -> None:
+    responses.get(
+        f"{BASE}/",
+        json={"data": [{"id": "wi-1"}], "pagination": {"style": "offset"}, "total_count": 1},
+    )
+
+    page = work_items.list("acme", "ENG", fields=["id"])
+    row = page.data[0]
+
+    assert len(row._present) == 1
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = row.name
+
+
+@responses.activate
+def test_retrieve_with_fields_reads_a_requested_but_null_field_as_none(
+    work_items: WorkItems,
+) -> None:
+    responses.get(f"{BASE}/wi-1/", json={"id": "wi-1", "name": None})
+
+    row = work_items.retrieve("acme", "ENG", "wi-1", fields=["id", "name"])
+
+    assert row.name is None
 
 
 # -- Signpost: coverage dropped pending migration, not silently lost --------------

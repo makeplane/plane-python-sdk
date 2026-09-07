@@ -84,7 +84,7 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
             },
             slug=slug,
         )
-        return self._load_page(page, slug)
+        return self._load_page(page, slug, fields)
 
     def iterate(
         self,
@@ -113,7 +113,7 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
         (e.g. `"ENG"`) -- api_v2's flagship readable-identifier resource: no
         separate lookup is needed to go from a known key to a UUID."""
         row = self._retrieve(pk=project, params={"fields": fields, "expand": expand}, slug=slug)
-        return self._load(row, slug)
+        return self._load(row, slug, fields)
 
     def find_by_name(self, slug: str, name: str) -> Project:
         """The one project with this name; raises if none or several match."""
@@ -128,7 +128,7 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
         expand: Sequence[str] | None = None,
     ) -> LoadedProject:
         row = self._create(data, params={"fields": fields, "expand": expand}, slug=slug)
-        return self._load(row, slug)
+        return self._load(row, slug, fields)
 
     def update(
         self,
@@ -219,15 +219,20 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
 
     # -- Navigation -----------------------------------------------------------------
 
-    def _load(self, row: Project, slug: str) -> LoadedProject:
+    def _load(self, row: Project, slug: str, fields: Sequence[str] | None = None) -> LoadedProject:
         loaded: LoadedProject = LoadedProject.build(
-            row, ids=(slug, row.identifier or row.id), names=("slug", "project")
+            row,
+            ids=(slug, row.identifier or row.id),
+            names=("slug", "project"),
+            fields=fields,
         )
         object.__setattr__(loaded, "_resources", self)
         return loaded
 
-    def _load_page(self, page: Page[Project], slug: str) -> Page[LoadedProject]:
-        rows = [self._load(row, slug) for row in page.data]
+    def _load_page(
+        self, page: Page[Project], slug: str, fields: Sequence[str] | None = None
+    ) -> Page[LoadedProject]:
+        rows = [self._load(row, slug, fields) for row in page.data]
         if isinstance(page, CursorPage):
             return CursorPage[LoadedProject](
                 data=rows,
