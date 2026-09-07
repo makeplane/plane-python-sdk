@@ -4,67 +4,74 @@ import responses
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.states import States
 from plane.config import Configuration
-from plane.models.v2.states import CreateState, UpdateState
+from plane.models.v2.states import CreateState
 
 
 @pytest.fixture
 def states(config: Configuration) -> States:
-    return States(V2Transport(config), slug="acme", project_id="ENG")
+    return States(V2Transport(config))
 
 
 @responses.activate
-def test_list_states(states: States) -> None:
+def test_list_takes_path_ids_positionally(states: States) -> None:
     responses.get(
         "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/",
         json={
-            "data": [{"id": "1", "name": "Todo", "group": "unstarted"}],
+            "data": [{"id": "1", "name": "Todo"}],
             "pagination": {"style": "offset"},
             "total_count": 1,
         },
     )
 
-    page = states.list()
+    page = states.list("acme", "ENG")
 
-    assert page.total_count == 1
-    assert page.data[0].group == "unstarted"
+    assert page.data[0].name == "Todo"
 
 
 @responses.activate
-def test_sparse_response_leaves_absent_fields_none(states: States) -> None:
+def test_path_ids_may_be_passed_by_keyword(states: States) -> None:
     responses.get(
         "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/",
-        json={"data": [{"id": "1"}], "pagination": {"style": "offset"}},
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
     )
 
-    page = states.list(fields=["id"])
+    states.list(slug="acme", project="ENG")
 
-    assert page.data[0].id == "1"
-    assert page.data[0].name is None
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/"
+    )
 
 
 @responses.activate
-def test_create_then_patch(states: States) -> None:
+def test_filters_reach_the_query_string(states: States) -> None:
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    states.list("acme", "ENG", fields=["id", "name"], group="unstarted")
+
+    request_url = responses.calls[0].request.url
+    assert "fields=id%2Cname" in request_url
+    assert "group=unstarted" in request_url
+
+
+@responses.activate
+def test_create_posts_to_the_collection(states: States) -> None:
     responses.post(
         "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/",
-        json={"id": "1", "name": "Todo", "color": "#fff"},
-        status=201,
-    )
-    responses.patch(
-        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/1/",
-        json={"id": "1", "name": "Doing"},
+        json={"id": "2", "name": "Doing"},
     )
 
-    created = states.create(CreateState(name="Todo", color="#fff"))
-    updated = states.update(created.id, UpdateState(name="Doing"))
+    created = states.create("acme", "ENG", CreateState(name="Doing", color="#fff", group="started"))
 
-    assert updated.name == "Doing"
+    assert created.id == "2"
 
 
 @responses.activate
-def test_find_by_name(states: States) -> None:
-    responses.get(
-        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/",
-        json={"data": [{"id": "1", "name": "Todo"}], "pagination": {"style": "offset"}},
+def test_delete_targets_the_detail_url(states: States) -> None:
+    responses.delete(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/2/", status=204
     )
 
-    assert states.find_by_name("Todo").id == "1"
+    assert states.delete("acme", "ENG", "2") is None
