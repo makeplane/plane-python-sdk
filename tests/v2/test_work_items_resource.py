@@ -395,3 +395,58 @@ def test_sub_resource_coverage_pending_flat_pattern_migration(resource: str) -> 
     `WorkItems` moved to the flat pattern in task 10. Restore real tests for it
     once it is migrated too."""
     pytest.skip(f"WorkItem{resource.title()} coverage removed pending flat-pattern migration")
+
+
+# -- Presence follows the *response*, not the request ----------------------------
+# (regression: `_present` was derived from the caller's `fields=`, so a partial row
+# returned with no `fields=` in play -- which is what collection deferral does --
+# marked every field present and read back as a silent `None`.)
+
+
+@responses.activate
+def test_retrieve_with_no_fields_argument_raises_for_a_field_the_server_omitted(
+    work_items: WorkItems,
+) -> None:
+    responses.get(f"{BASE}/wi-1/", json={"id": "wi-1", "name": "Fix bug"})
+
+    row = work_items.retrieve("acme", "ENG", "wi-1")
+
+    assert row._present == frozenset({"id", "name"})
+    with pytest.raises(FieldNotRequested, match="priority"):
+        _ = row.priority
+
+
+@responses.activate
+def test_list_with_no_fields_argument_raises_for_a_deferred_field(
+    work_items: WorkItems,
+) -> None:
+    """Collection deferral: the list route returns a narrower row than the detail
+    route even though the caller passed no `fields=`."""
+    responses.get(
+        f"{BASE}/",
+        json={
+            "data": [{"id": "wi-1", "name": "Fix bug"}],
+            "pagination": {"style": "offset"},
+            "total_count": 1,
+        },
+    )
+
+    row = work_items.list("acme", "ENG").data[0]
+
+    assert row.name == "Fix bug"
+    assert row._present == frozenset({"id", "name"})
+    with pytest.raises(FieldNotRequested, match="state_id"):
+        _ = row.state_id
+
+
+@responses.activate
+def test_a_field_the_server_returned_but_the_caller_narrowed_away_stays_hidden(
+    work_items: WorkItems,
+) -> None:
+    responses.get(f"{BASE}/wi-1/", json={"id": "wi-1", "name": "Fix bug"})
+
+    row = work_items.retrieve("acme", "ENG", "wi-1", fields=["id"])
+
+    assert row._present == frozenset({"id"})
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = row.name

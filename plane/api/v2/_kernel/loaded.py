@@ -27,10 +27,17 @@ class Loaded:
         fields: Sequence[str] | None = None,
         names: tuple[str, ...] | None = None,
     ) -> Any:
-        data = row.model_dump()
+        # Presence is what the *server returned*, never what the caller asked for.
+        # The API defers fields on collection reads even when no `fields=` was passed,
+        # so deriving presence from the request would mark every field present and hand
+        # back a silent `None` for one the response never carried. `model_fields_set` is
+        # the response's own record of which keys actually arrived.
+        returned = set(row.model_fields_set)
         if fields is not None:
-            keep = set(fields) | {"id"}
-            data = {key: value for key, value in data.items() if key in keep}
+            # A caller that asked for fewer fields than the server sent still sees only
+            # what it asked for; `id` is always available.
+            returned &= set(fields) | {"id"}
+        data = {key: value for key, value in row.model_dump().items() if key in returned}
         obj = cls.model_construct(**data)  # type: ignore[attr-defined]
         # `model_construct` back-fills declared defaults, so a field the server never
         # sent would read as `None` and look like real data. Drop those, so reading one
@@ -50,8 +57,10 @@ class Loaded:
         if name in type(self).model_fields:  # type: ignore[attr-defined]
             present = object.__getattribute__(self, "_present")
             raise FieldNotRequested(
-                f"{type(self).__name__}.{name} was not returned: "
-                f"fields={sorted(present - {'id'})!r} did not include it"
+                f"{type(self).__name__}.{name} is not available on this row: the "
+                f"server returned {sorted(present)!r}. Reading it would look like "
+                f"real data, so it raises instead -- request it with `fields=`, or "
+                f"re-fetch the row if the collection deferred it."
             )
         raise AttributeError(name)
 

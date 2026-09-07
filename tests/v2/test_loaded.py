@@ -28,10 +28,28 @@ def test_requested_but_null_field_reads_as_none() -> None:
     assert loaded.group is None
 
 
-def test_no_fields_argument_means_everything_is_present() -> None:
-    row = State(id="1", name="Todo")
+def test_with_no_fields_argument_presence_still_follows_the_response() -> None:
+    """The API defers fields on collection reads with no `fields=` in play, so
+    presence must come from the response, not from "the caller asked for nothing,
+    therefore everything"."""
+    row = State(id="1", name="Todo")  # the server sent exactly these two keys
     loaded = LoadedState.build(row, ids=("acme",), fields=None)
-    assert loaded.group is None
+
+    assert loaded.name == "Todo"
+    assert loaded._present == frozenset({"id", "name"})
+    with pytest.raises(FieldNotRequested, match="group"):
+        _ = loaded.group
+
+
+def test_a_field_the_server_sent_but_the_caller_did_not_ask_for_stays_hidden() -> None:
+    """`fields=` narrows presence further: asking for less than the server sent
+    must not smuggle the extra keys back in."""
+    row = State(id="1", name="Todo", group="backlog")
+    loaded = LoadedState.build(row, ids=("acme",), fields=["id"])
+
+    assert loaded._present == frozenset({"id"})
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = loaded.name
 
 
 def test_ids_are_kept_for_navigation() -> None:

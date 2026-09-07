@@ -190,3 +190,66 @@ def test_update_returns_a_navigable_row(config: Configuration) -> None:
 
     assert project.name == "Eng Team"
     assert responses.calls[-1].request.url.endswith("/projects/ENG/labels/")
+
+
+# -- Presence follows the *response*, not the request ----------------------------
+# (regression: `_present` was derived from the caller's `fields=`, so a partial row
+# returned with no `fields=` in play -- which is what collection deferral does --
+# marked every field present and read back as a silent `None`.)
+
+
+@responses.activate
+def test_retrieve_with_no_fields_argument_raises_for_a_field_the_server_omitted(
+    config: Configuration,
+) -> None:
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/",
+        json={"id": "p1", "identifier": "ENG"},
+    )
+
+    project = V2Namespace(config).workspaces.projects.retrieve("acme", "ENG")
+
+    assert project._present == frozenset({"id", "identifier"})
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = project.name
+
+
+@responses.activate
+def test_list_with_no_fields_argument_raises_for_a_deferred_field(
+    config: Configuration,
+) -> None:
+    """Collection deferral: the list route returns a narrower row than the detail
+    route even though the caller passed no `fields=`."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/",
+        json={
+            "data": [{"id": "p1", "identifier": "ENG", "name": "Engineering"}],
+            "pagination": {"style": "offset"},
+            "total_count": 1,
+        },
+    )
+
+    row = V2Namespace(config).workspaces.projects.list("acme").data[0]
+
+    assert row.name == "Engineering"
+    assert row._present == frozenset({"id", "identifier", "name"})
+    with pytest.raises(FieldNotRequested, match="description"):
+        _ = row.description
+
+
+@responses.activate
+def test_a_field_the_server_returned_but_the_caller_narrowed_away_stays_hidden(
+    config: Configuration,
+) -> None:
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/",
+        json={"id": "p1", "identifier": "ENG", "name": "Engineering"},
+    )
+
+    project = V2Namespace(config).workspaces.projects.retrieve(
+        "acme", "ENG", fields=["id", "identifier"]
+    )
+
+    assert project._present == frozenset({"id", "identifier"})
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = project.name
