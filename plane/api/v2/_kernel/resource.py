@@ -73,6 +73,15 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     bridges `add`/`remove` at `.../releases/{release_id}/labels/`, not its own
     `.../releases/labels/`)."""
 
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if "bridge_path" in cls.__dict__:
+            raise TypeError(
+                f"{cls.__name__} declares 'bridge_path', which V2Resource no longer "
+                "reads (Task 5 replaced it with per-method 'extra_paths' overrides). "
+                'Set `extra_paths = {"add": "...", "remove": "..."}` instead.'
+            )
+
     def __init__(self, transport: V2Transport) -> None:
         self.transport = transport
 

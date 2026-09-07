@@ -48,3 +48,13 @@ def test_url_for_uses_the_override_when_declared(config: Configuration) -> None:
     catalog = _Catalog(V2Transport(config))
     url = catalog.url_for("add", slug="acme", release_id="r1")
     assert url == "/workspaces/acme/releases/r1/labels/"
+
+
+def test_subclass_declaring_bridge_path_raises_at_definition() -> None:
+    with pytest.raises(TypeError, match="extra_paths"):
+
+        class _Stale(V2Resource[State, State, State]):
+            path = "/workspaces/{slug}/things/"
+            model = State
+            operations = {}
+            bridge_path = "/workspaces/{slug}/things/{thing_id}/labels/"
