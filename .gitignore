@@ -74,3 +74,5 @@ target/
 tsconfig.tsbuildinfo
 
 test.py
+.superpowers/
+
