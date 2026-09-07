@@ -81,11 +81,11 @@ class States(V2Resource[State, CreateState, UpdateState]):
         self,
         slug: str,
         project: str,
-        state_id: str,
+        state: str,
         *,
         fields: Sequence[StatesRetrieveField] | None = None,
     ) -> State:
-        return self._retrieve(pk=state_id, params={"fields": fields}, slug=slug, project_id=project)
+        return self._retrieve(pk=state, params={"fields": fields}, slug=slug, project_id=project)
 
     def find_by_name(self, slug: str, project: str, name: str) -> State:
         """The one state with this name; raises if none or several match."""
@@ -105,17 +105,17 @@ class States(V2Resource[State, CreateState, UpdateState]):
         self,
         slug: str,
         project: str,
-        state_id: str,
+        state: str,
         data: UpdateState,
         *,
         fields: Sequence[StatesPartialUpdateField] | None = None,
     ) -> State:
         return self._update(
-            data, pk=state_id, params={"fields": fields}, slug=slug, project_id=project
+            data, pk=state, params={"fields": fields}, slug=slug, project_id=project
         )
 
-    def delete(self, slug: str, project: str, state_id: str) -> None:
-        return self._delete(pk=state_id, slug=slug, project_id=project)
+    def delete(self, slug: str, project: str, state: str) -> None:
+        return self._delete(pk=state, slug=slug, project_id=project)
 
     def upsert(
         self,

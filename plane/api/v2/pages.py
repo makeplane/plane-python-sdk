@@ -89,13 +89,13 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         self,
         slug: str,
         project: str,
-        page_id: str,
+        page: str,
         *,
         fields: Sequence[ProjectPagesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> PageModel:
         return self._retrieve(
-            pk=page_id, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+            pk=page, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
 
     def find_by_name(self, slug: str, project: str, name: str) -> PageModel:
@@ -126,17 +126,15 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         self,
         slug: str,
         project: str,
-        page_id: str,
+        page: str,
         data: UpdatePage,
         *,
         fields: Sequence[ProjectPagesPartialUpdateField] | None = None,
     ) -> PageModel:
-        return self._update(
-            data, pk=page_id, params={"fields": fields}, slug=slug, project_id=project
-        )
+        return self._update(data, pk=page, params={"fields": fields}, slug=slug, project_id=project)
 
-    def delete(self, slug: str, project: str, page_id: str) -> None:
-        return self._delete(pk=page_id, slug=slug, project_id=project)
+    def delete(self, slug: str, project: str, page: str) -> None:
+        return self._delete(pk=page, slug=slug, project_id=project)
 
 
 class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
@@ -195,12 +193,12 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
     def retrieve(
         self,
         slug: str,
-        page_id: str,
+        page: str,
         *,
         fields: Sequence[WorkspacePagesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> PageModel:
-        return self._retrieve(pk=page_id, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._retrieve(pk=page, params={"fields": fields, "expand": expand}, slug=slug)
 
     def find_by_name(self, slug: str, name: str) -> PageModel:
         """The one wiki page with this name; raises if none or several match.
@@ -231,12 +229,12 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
     def update(
         self,
         slug: str,
-        page_id: str,
+        page: str,
         data: UpdatePage,
         *,
         fields: Sequence[WorkspacePagesPartialUpdateField] | None = None,
     ) -> PageModel:
-        return self._update(data, pk=page_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=page, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, page_id: str) -> None:
-        return self._delete(pk=page_id, slug=slug)
+    def delete(self, slug: str, page: str) -> None:
+        return self._delete(pk=page, slug=slug)

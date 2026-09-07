@@ -145,7 +145,7 @@ class WorkItems(
         self,
         slug: str,
         project: str,
-        work_item_id: str,
+        work_item: str,
         *,
         fields: Sequence[WorkItemsRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
@@ -153,7 +153,7 @@ class WorkItems(
         """Fetch by UUID. Prefer `ws.work_items.retrieve_by_identifier` when you
         have the human-readable key (e.g. `"ENG-12"`) instead."""
         row = self._retrieve(
-            pk=work_item_id,
+            pk=work_item,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
@@ -180,7 +180,7 @@ class WorkItems(
         self,
         slug: str,
         project: str,
-        work_item_id: str,
+        work_item: str,
         data: UpdateWorkItem,
         *,
         fields: Sequence[WorkItemsPartialUpdateField] | None = None,
@@ -188,15 +188,15 @@ class WorkItems(
     ) -> LoadedWorkItem:
         row = self._update(
             data,
-            pk=work_item_id,
+            pk=work_item,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
         )
         return self._load(row, slug, project, fields=fields)
 
-    def delete(self, slug: str, project: str, work_item_id: str) -> None:
-        return self._delete(pk=work_item_id, slug=slug, project_id=project)
+    def delete(self, slug: str, project: str, work_item: str) -> None:
+        return self._delete(pk=work_item, slug=slug, project_id=project)
 
     def upsert(
         self,
@@ -250,7 +250,7 @@ class WorkItems(
         self,
         slug: str,
         project: str,
-        work_item_id: str,
+        work_item: str,
         *,
         fields: Sequence[WorkItemsArchiveField] | None = None,
         expand: Sequence[str] | None = None,
@@ -262,7 +262,7 @@ class WorkItems(
         item -- an archived row still navigates to its own children."""
         row = self._action(
             "archive",
-            pk=work_item_id,
+            pk=work_item,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
@@ -273,7 +273,7 @@ class WorkItems(
         self,
         slug: str,
         project: str,
-        work_item_id: str,
+        work_item: str,
         *,
         fields: Sequence[WorkItemsUnarchiveField] | None = None,
         expand: Sequence[str] | None = None,
@@ -281,7 +281,7 @@ class WorkItems(
         """Restore an archived work item to active status, returning it."""
         row = self._action(
             "unarchive",
-            pk=work_item_id,
+            pk=work_item,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,

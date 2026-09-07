@@ -32,21 +32,15 @@ class Webhooks(V2Resource[Webhook, CreateWebhook, UpdateWebhook]):
         super().__init__(transport, **scope)
         self.logs = WebhookLogs(transport, **self._scope)
 
-    def list(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
-    ) -> Page[Webhook]:
+    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[Webhook]:
         """One page of the workspace's webhooks."""
         return self._list(params={"fields": fields, **filters})
 
-    def iterate(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
-    ) -> Iterator[Webhook]:
+    def iterate(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Iterator[Webhook]:
         """Every webhook in the workspace, following pages automatically."""
         return self._iter(params={"fields": fields, **filters})
 
-    def retrieve(
-        self, webhook_id: str, *, fields: Sequence[str] | None = None
-    ) -> Webhook:
+    def retrieve(self, webhook_id: str, *, fields: Sequence[str] | None = None) -> Webhook:
         return self._retrieve(pk=webhook_id, params={"fields": fields})
 
     def find_by_name(self, name: str) -> Webhook:

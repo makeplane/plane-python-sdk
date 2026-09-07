@@ -1,7 +1,7 @@
 """Release label catalog (api_v2). Workspace-level, distinct from the
 per-release association (`ReleaseLabels.add`/`.remove`) -- the catalog CRUD
 hits `path` (`.../releases/labels/`) while `add`/`remove` bridge to the
-`extra_paths` override (`.../releases/{release_id}/labels/`) via `url_for`."""
+`extra_paths` override (`.../releases/{release}/labels/`) via `url_for`."""
 
 from __future__ import annotations
 
@@ -75,11 +75,11 @@ class ReleaseLabels(V2Resource[ReleaseLabel, CreateReleaseLabel, UpdateReleaseLa
     def retrieve(
         self,
         slug: str,
-        label_id: str,
+        label: str,
         *,
         fields: Sequence[ReleaseLabelsRetrieveField] | None = None,
     ) -> ReleaseLabel:
-        return self._retrieve(pk=label_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=label, params={"fields": fields}, slug=slug)
 
     def find_by_name(self, slug: str, name: str) -> ReleaseLabel:
         """The one release label with this name; raises if none or several match."""
@@ -99,25 +99,25 @@ class ReleaseLabels(V2Resource[ReleaseLabel, CreateReleaseLabel, UpdateReleaseLa
     def update(
         self,
         slug: str,
-        label_id: str,
+        label: str,
         data: UpdateReleaseLabel,
         *,
         fields: Sequence[ReleaseLabelsPartialUpdateField] | None = None,
     ) -> ReleaseLabel:
-        return self._update(data, pk=label_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=label, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, label_id: str) -> None:
-        return self._delete(pk=label_id, slug=slug)
+    def delete(self, slug: str, label: str) -> None:
+        return self._delete(pk=label, slug=slug)
 
     # -- Per-release membership bridge (alternate path via `extra_paths`) ---
 
-    def add(self, slug: str, release_id: str, label_ids: Sequence[str]) -> builtins.list[str]:
+    def add(self, slug: str, release: str, label_ids: Sequence[str]) -> builtins.list[str]:
         """Attach 1..100 existing catalog labels to this release; returns the
         ids actually added (already-attached ones are omitted). POSTs to the
         `extra_paths["add"]` override, not `path`."""
-        return self._bridge(key="add", ids=label_ids, slug=slug, release_id=release_id)
+        return self._bridge(key="add", ids=label_ids, slug=slug, release_id=release)
 
-    def remove(self, slug: str, release_id: str, label_ids: Sequence[str]) -> builtins.list[str]:
+    def remove(self, slug: str, release: str, label_ids: Sequence[str]) -> builtins.list[str]:
         """Detach 1..100 labels from this release; returns the ids actually
         removed. POSTs to the `extra_paths["remove"]` override, not `path`."""
-        return self._bridge(key="remove", ids=label_ids, slug=slug, release_id=release_id)
+        return self._bridge(key="remove", ids=label_ids, slug=slug, release_id=release)

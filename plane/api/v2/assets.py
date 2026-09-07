@@ -34,9 +34,7 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
         "delete": "assets_destroy",
     }
 
-    def list(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
-    ) -> Page[WorkspaceAsset]:
+    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[WorkspaceAsset]:
         """One page of workspace assets."""
         return self._list(params={"fields": fields, **filters})
 
@@ -46,9 +44,7 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
         """Every workspace asset, following pages automatically."""
         return self._iter(params={"fields": fields, **filters})
 
-    def retrieve(
-        self, asset_id: str, *, fields: Sequence[str] | None = None
-    ) -> WorkspaceAsset:
+    def retrieve(self, asset_id: str, *, fields: Sequence[str] | None = None) -> WorkspaceAsset:
         return self._retrieve(pk=asset_id, params={"fields": fields})
 
     def create(self, data: CreateWorkspaceAsset) -> WorkspaceAssetUploadResult:

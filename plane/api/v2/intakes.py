@@ -23,9 +23,7 @@ class Intakes(V2Resource[IntakeWorkItem, CreateIntakeWorkItem, UpdateIntakeWorkI
         "delete": "intakes_destroy",
     }
 
-    def list(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
-    ) -> Page[IntakeWorkItem]:
+    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[IntakeWorkItem]:
         """One page of intake work items in this project. `**filters` covers the
         golden's query filters directly, e.g. `status=1`, `status__in=[-2, 0]`,
         `work_item_id=...`."""

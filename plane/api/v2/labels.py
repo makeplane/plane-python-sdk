@@ -81,11 +81,11 @@ class Labels(V2Resource[Label, CreateLabel, UpdateLabel]):
         self,
         slug: str,
         project: str,
-        label_id: str,
+        label: str,
         *,
         fields: Sequence[LabelsRetrieveField] | None = None,
     ) -> Label:
-        return self._retrieve(pk=label_id, params={"fields": fields}, slug=slug, project_id=project)
+        return self._retrieve(pk=label, params={"fields": fields}, slug=slug, project_id=project)
 
     def find_by_name(self, slug: str, project: str, name: str) -> Label:
         """The one label with this name; raises if none or several match."""
@@ -105,17 +105,17 @@ class Labels(V2Resource[Label, CreateLabel, UpdateLabel]):
         self,
         slug: str,
         project: str,
-        label_id: str,
+        label: str,
         data: UpdateLabel,
         *,
         fields: Sequence[LabelsPartialUpdateField] | None = None,
     ) -> Label:
         return self._update(
-            data, pk=label_id, params={"fields": fields}, slug=slug, project_id=project
+            data, pk=label, params={"fields": fields}, slug=slug, project_id=project
         )
 
-    def delete(self, slug: str, project: str, label_id: str) -> None:
-        return self._delete(pk=label_id, slug=slug, project_id=project)
+    def delete(self, slug: str, project: str, label: str) -> None:
+        return self._delete(pk=label, slug=slug, project_id=project)
 
     def upsert(
         self,

@@ -90,13 +90,13 @@ class WorkItemComments(V2Resource[WorkItemComment, CreateWorkItemComment, Update
         slug: str,
         project: str,
         work_item: str,
-        comment_id: str,
+        comment: str,
         *,
         fields: Sequence[CommentsRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> WorkItemComment:
         return self._retrieve(
-            pk=comment_id,
+            pk=comment,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
@@ -125,22 +125,22 @@ class WorkItemComments(V2Resource[WorkItemComment, CreateWorkItemComment, Update
         slug: str,
         project: str,
         work_item: str,
-        comment_id: str,
+        comment: str,
         data: UpdateWorkItemComment,
         *,
         fields: Sequence[CommentsPartialUpdateField] | None = None,
     ) -> WorkItemComment:
         return self._update(
             data,
-            pk=comment_id,
+            pk=comment,
             params={"fields": fields},
             slug=slug,
             project_id=project,
             work_item_id=work_item,
         )
 
-    def delete(self, slug: str, project: str, work_item: str, comment_id: str) -> None:
-        return self._delete(pk=comment_id, slug=slug, project_id=project, work_item_id=work_item)
+    def delete(self, slug: str, project: str, work_item: str, comment: str) -> None:
+        return self._delete(pk=comment, slug=slug, project_id=project, work_item_id=work_item)
 
     def upsert(
         self,

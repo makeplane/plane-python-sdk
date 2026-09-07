@@ -80,34 +80,76 @@ PlaneClient
     `client.v2.workspaces.projects.work_items.comments.list("acme", "ENG", "ENG-12")`.
     Read it left to right: every segment that names an actual resource consumes
     one URL path id, in order; a segment that only groups children (`.wiki` on
-    `Workspaces`, `plane/api/v2/wiki_node.py`, holding just `.pages` today —
-    `.collections` isn't wired, `Collections` isn't migrated) consumes none. Path
+    `Workspaces`, `plane/api/v2/wiki_node.py`, holding `.pages` plus a
+    `.collections` placeholder — `Collections` isn't migrated) consumes none. Path
     ids are positional-or-keyword (`states.list(slug="acme", project="ENG")`
     works). `client.v2.users` / `.user_assets` are the only resources kept
     directly on `V2Namespace` (the 6 operations with no workspace in their path).
     A singleton with no primary key of its own (`workspaces.features`,
-    `plane/api/v2/features.py`) hits `url_for`/`_collection_url` directly instead
-    of `_retrieve`/`_update`, which both require a `pk` to append.
+    `plane/api/v2/features.py`) goes through the kernel's
+    `_retrieve_singleton`/`_update_singleton` pair instead of `_retrieve`/`_update`,
+    which both require a `pk` to append.
+  - **Path ids — the naming rule (one rule, no exceptions).** *A path-id parameter
+    is named after the resource it identifies, singular, with **no `_id` suffix**.*
+    So `slug` (the workspace), `project`, `work_item`, `state`, `label`, `page`,
+    `comment`, `release` — the same name whether it is the method's own primary key
+    (`work_items.retrieve(slug, project, work_item)`) or an ancestor's
+    (`work_items.comments.list(slug, project, work_item)`). This is not cosmetic:
+    `Owned` compares a child method's leading parameter names against the parent's
+    `loaded_names` *literally* and refuses the call on a mismatch, so a resource that
+    suffixes its own pk breaks navigation from its parent. Two things keep their
+    golden-derived names and are **not** covered by this rule: the URL templates
+    (`path = ".../projects/{project_id}/work-items/{work_item_id}/comments/"`) and
+    model field names (`WorkItem.state_id`). `tests/v2/test_path_id_naming.py`
+    enforces it across the migrated resources.
   - **Loaded rows.** A resource with children today (`projects`, `work_items`)
     returns a `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic
     model: it carries its own data and reaches its own children with none of the
     ids repeated (`project.states.list()`, `work_item.comments.list()`).
-    `Loaded.build(row, ids, fields)` (`_kernel/loaded.py`) is the mixin; a
-    `Loaded.__getattr__` on a field the request's `fields=` excluded raises
-    `FieldNotRequested` instead of reading as `None` — a `None` you get back is a
-    real null. `Owned(resource, ids, names)` is the other half: it prepends a
-    parent's already-bound ids ahead of a child method's own arguments, and
-    raises `TypeError` up front if the child's leading parameters aren't ordered
-    the way `names` expects, rather than silently sending values into the wrong
-    parameter. `_loaded/project.py` and `_loaded/work_item.py` are today's two
-    `Loaded` subclasses; every migrated resource with children will get one the
-    same way.
+    `Loaded.build(row, ids, fields)` (`_kernel/loaded.py`) is the mixin; reading a
+    field the row does not carry raises `FieldNotRequested` instead of reading as
+    `None` — a `None` you get back is a real null. **Presence is computed from the
+    response** (`row.model_fields_set`), narrowed by `fields=` when the caller passed
+    one — never from the request alone, because the API defers fields on collection
+    reads even when no `fields=` is in play. `Owned(resource, ids, names)` is the
+    other half: it prepends a parent's already-bound ids ahead of a child method's own
+    arguments, and raises `TypeError` up front if the child's leading parameters
+    aren't ordered the way `names` expects, rather than silently sending values into
+    the wrong parameter.
+
+    A navigable resource mixes in `LoadsNavigableRows[LoadedX]`, declares
+    `loaded_model` / `loaded_names`, overrides `_row_id` only where a child URL uses
+    something other than `id` (projects use `identifier`), and then every method that
+    answers with a row returns `self._load(row, *parent_ids, fields=fields)` —
+    including `find_by_name` and verb actions like `archive`. **Any method returning a
+    row of a navigable type returns the loaded form**; mixing plain and loaded returns
+    on one class silently drops navigation.
+
+    **Navigation must be typed, not `Any`.** `Owned.__getattr__` and
+    `Loaded.__getattr__` are hidden behind `if not TYPE_CHECKING`, so each `Loaded`
+    subclass declares an `if TYPE_CHECKING` view class per child built from the
+    kernel's `bind1`/`bind2`/`bind3` helpers — one `staticmethod(bindN(Child.method))`
+    line per method, `N` being how many ids the parent binds. `Concatenate` strips
+    exactly those leading parameters, so `project.states.list()` types as
+    `Page[State]`, unknown keywords are rejected and misspelled methods are errors.
+    `tests/v2/test_typing.py` runs mypy to prove it. `_loaded/project.py` and
+    `_loaded/work_item.py` are today's two `Loaded` subclasses; copy either.
+  - **Wired but not migrated.** Roughly 85 resource groups still use the retired
+    pre-flat shape. Where one is reachable on the tree anyway (`ws.releases` exists
+    for `releases.labels`; `work_items` wires seven children of which only
+    `.comments` is migrated), it is a `PendingMigration` placeholder or a
+    `@pending_flat_migration`-decorated method from `_kernel/pending.py`, which raises
+    `NotImplementedError` naming the resource. Never leave the real unmigrated class
+    wired — it fails with a `MissingPathId` from deep inside the kernel — and never
+    just drop the attribute, which reads as a typo.
   - `_kernel/` holds the shared machinery beyond `loaded.py`:
     `V2Resource.__init__(transport)` takes no bound scope any more —
     `_collection_url`/`_detail_url` build straight from whatever path params a
     call passes — so a resource's methods work identically whether reached
     through the flat tree or constructed directly (most offline tests do the
-    latter). No public v2 method takes `workspace_slug`/`project` parameters as
+    latter). A path id the call never supplied raises `MissingPathId` (exported from
+    `plane.api.v2`) naming the resource, method, template and missing id, not a bare
+    `KeyError`. No public v2 method takes `workspace_slug`/`project` parameters as
     such; the path segment's own leading positional-or-keyword parameters carry
     them, in path order. `_generated/constants.py` is produced by
     `scripts/generate_v2_constants.py` from the api_v2 OpenAPI golden and must
