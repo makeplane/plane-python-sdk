@@ -204,6 +204,28 @@ class TestWorkItemsAPI:
 class TestWorkItemsAPICRUD:
     """Test WorkItems API CRUD operations."""
 
+    def test_update_work_item_preserves_explicit_null_fields(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Explicit nulls clear fields while omitted fields stay absent."""
+        client = PlaneClient(base_url="https://plane.example.com", api_key="secret")
+        observed: dict[str, object] = {}
+
+        def fake_patch(endpoint: str, data: dict[str, object]) -> dict[str, object]:
+            observed.update({"endpoint": endpoint, "data": data})
+            return {}
+
+        monkeypatch.setattr(client.work_items, "_patch", fake_patch)
+
+        client.work_items.update(
+            "team",
+            "project-1",
+            "item-1",
+            UpdateWorkItem(start_date=None, target_date=None),
+        )
+
+        assert observed["data"] == {"start_date": None, "target_date": None}
+
     @pytest.fixture
     def work_item_data(self) -> CreateWorkItem:
         """Create test work item data."""
