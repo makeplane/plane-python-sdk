@@ -71,20 +71,16 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     """Where `_bridge` POSTs when the membership URL is not this resource's own `path`
     (a catalog resource like release labels bridges at `.../releases/{release_id}/labels/`)."""
 
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        """`scope` is the path parameters this resource was bound to at construction
-        (e.g. `slug="acme"`); a resource with no scope requires them per call instead."""
+    def __init__(self, transport: V2Transport) -> None:
         self.transport = transport
-        self._scope: dict[str, Any] = scope
 
     # URL + params
     def _format_path(self, template: str, **path_params: Any) -> str:
-        """Fill `template` from the bound scope plus `path_params` (explicit wins),
-        percent-encoding every value; `safe=""` stops a value from injecting extra
-        URL segments."""
-        merged = {**self._scope, **path_params}
-        encoded = {key: quote(str(value), safe="") for key, value in merged.items()}
-        return template.format(**encoded)
+        """Fill `template` from `path_params`, percent-encoding each value; `safe=""`
+        stops a value from injecting extra URL segments."""
+        return template.format_map(
+            {key: quote(str(value), safe="") for key, value in path_params.items()}
+        )
 
     def _collection_url(self, **path_params: Any) -> str:
         """Build the collection URL, percent-encoding every path param."""
