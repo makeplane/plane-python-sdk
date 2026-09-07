@@ -14,13 +14,7 @@ from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .changelog import ReleaseChangelogResource
 from .comments import ReleaseComments
-
-try:
-    from .labels import ReleaseLabels
-except TypeError:
-    # See `plane/api/v2/collections/__init__.py` for why this is swallowed here:
-    # `ReleaseLabels` still declares the retired `bridge_path`.
-    ReleaseLabels = None  # type: ignore[assignment, misc]
+from .labels import ReleaseLabels
 from .links import ReleaseLinks
 from .tags import ReleaseTags
 from .work_items import ReleaseWorkItems

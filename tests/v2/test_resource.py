@@ -307,10 +307,7 @@ class BridgeRows(V2Resource[Row, WriteRow, PatchRow]):
     """Catalog-style resource whose bridge URL differs from its own `path`."""
 
     path = "/workspaces/{slug}/releases/labels/"
-    extra_paths = {
-        "add": "/workspaces/{slug}/releases/{release_id}/labels/",
-        "remove": "/workspaces/{slug}/releases/{release_id}/labels/",
-    }
+    bridge_path = "/workspaces/{slug}/releases/{release_id}/labels/"
     model = Row
     operations = {"bridge": "releases_labels"}
 

@@ -16,7 +16,10 @@ from .._kernel.resource import V2Resource
 
 class InitiativeLabels(V2Resource[InitiativeLabel, CreateInitiativeLabel, UpdateInitiativeLabel]):
     path = "/workspaces/{slug}/initiatives/labels/"
-    bridge_path = "/workspaces/{slug}/initiatives/{initiative_id}/labels/"
+    extra_paths = {
+        "add": "/workspaces/{slug}/initiatives/{initiative_id}/labels/",
+        "remove": "/workspaces/{slug}/initiatives/{initiative_id}/labels/",
+    }
     model = InitiativeLabel
     operations = {
         "list": "initiative_labels_list",

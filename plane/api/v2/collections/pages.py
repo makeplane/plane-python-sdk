@@ -17,7 +17,10 @@ class CollectionPages(
     V2Resource[CollectionPageSearch, CollectionPagesManage, CollectionPagesManage]
 ):
     path = "/workspaces/{slug}/collections/{collection_id}/"
-    bridge_path = "/workspaces/{slug}/collections/{collection_id}/pages/"
+    extra_paths = {
+        "add": "/workspaces/{slug}/collections/{collection_id}/pages/",
+        "remove": "/workspaces/{slug}/collections/{collection_id}/pages/",
+    }
     model = CollectionPageSearch
     operations = {
         "search": "collections_pages_search",

@@ -50,11 +50,20 @@ def test_url_for_uses_the_override_when_declared(config: Configuration) -> None:
     assert url == "/workspaces/acme/releases/r1/labels/"
 
 
-def test_subclass_declaring_bridge_path_raises_at_definition() -> None:
-    with pytest.raises(TypeError, match="extra_paths"):
+class _Stale(V2Resource[State, State, State]):
+    """A throwaway subclass still declaring the retired `bridge_path` -- exercises
+    `url_for`'s call-time guard. Does not rely on the three real classes that used to
+    declare this, since they no longer do."""
 
-        class _Stale(V2Resource[State, State, State]):
-            path = "/workspaces/{slug}/things/"
-            model = State
-            operations = {}
-            bridge_path = "/workspaces/{slug}/things/{thing_id}/labels/"
+    path = "/workspaces/{slug}/things/"
+    model = State
+    operations = {}
+    bridge_path = "/workspaces/{slug}/things/{thing_id}/labels/"
+
+
+def test_url_for_raises_for_a_subclass_still_declaring_bridge_path(
+    config: Configuration,
+) -> None:
+    stale = _Stale(V2Transport(config))
+    with pytest.raises(TypeError, match="extra_paths"):
+        stale.url_for("add", slug="acme", thing_id="t1")

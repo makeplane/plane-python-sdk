@@ -13,17 +13,7 @@ from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .members import CollectionMembers
-
-try:
-    from .pages import CollectionPages
-except TypeError:
-    # `CollectionPages` still declares the retired `bridge_path` (Task 5 replaced it
-    # with `extra_paths`); `V2Resource.__init_subclass__` now raises the moment that
-    # class body executes. Left broken pending the later task that migrates it --
-    # swallowed here only so importing `plane` doesn't cascade through this package's
-    # `__init__` chain into every unrelated test. Importing `.pages` directly, or
-    # defining any subclass with a stale `bridge_path`, still raises loudly.
-    CollectionPages = None  # type: ignore[assignment, misc]
+from .pages import CollectionPages
 
 __all__ = ["CollectionMembers", "CollectionPages", "Collections"]
 

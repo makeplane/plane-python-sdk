@@ -73,15 +73,6 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     bridges `add`/`remove` at `.../releases/{release_id}/labels/`, not its own
     `.../releases/labels/`)."""
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        if "bridge_path" in cls.__dict__:
-            raise TypeError(
-                f"{cls.__name__} declares 'bridge_path', which V2Resource no longer "
-                "reads (Task 5 replaced it with per-method 'extra_paths' overrides). "
-                'Set `extra_paths = {"add": "...", "remove": "..."}` instead.'
-            )
-
     def __init__(self, transport: V2Transport) -> None:
         self.transport = transport
 
@@ -94,7 +85,18 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         )
 
     def url_for(self, method: str, **path_params: Any) -> str:
-        """The URL for `method`: its override template if it declares one, else `path`."""
+        """The URL for `method`: its override template if it declares one, else `path`.
+
+        Guards at the point of harm, not at import: a subclass that still declares the
+        retired `bridge_path` (pre-Task-5) would otherwise silently build the wrong URL
+        here, so this raises the moment that would happen instead."""
+        if hasattr(self, "bridge_path"):
+            raise TypeError(
+                f"{type(self).__name__} declares 'bridge_path', which V2Resource no "
+                "longer reads (Task 5 replaced it with per-method 'extra_paths' "
+                'overrides). Set `extra_paths = {"add": "...", "remove": "..."}` '
+                "instead."
+            )
         return self._format_path(self.extra_paths.get(method, self.path), **path_params)
 
     def _collection_url(self, **path_params: Any) -> str:

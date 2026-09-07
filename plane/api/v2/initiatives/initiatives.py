@@ -11,19 +11,9 @@ from ....models.v2.initiatives import CreateInitiative, Initiative, UpdateInitia
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
+from .labels import InitiativeLabels
 from .projects import InitiativeProjects
 from .work_items import InitiativeWorkItems
-
-try:
-    from .labels import InitiativeLabels
-except TypeError:
-    # `InitiativeLabels` still declares the retired `bridge_path` (Task 5 replaced it
-    # with `extra_paths`); `V2Resource.__init_subclass__` now raises the moment that
-    # class body executes. Left broken pending the later task that migrates it --
-    # swallowed here only so importing `plane` doesn't cascade through this package's
-    # `__init__` chain into every unrelated test. Importing `.labels` directly, or
-    # defining any subclass with a stale `bridge_path`, still raises loudly.
-    InitiativeLabels = None  # type: ignore[assignment, misc]
 
 __all__ = ["InitiativeLabels", "InitiativeProjects", "InitiativeWorkItems", "Initiatives"]
 
