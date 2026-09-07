@@ -165,17 +165,32 @@ PlaneClient
     aren't wired onto the flat tree yet; `ws.releases.labels` (wired, verbs sit next
     to the CRUD since it's also the label catalog) is the one bridge reachable
     through `client.v2` right now, as
-    `add(slug: str, release_id: str, label_ids: Sequence[str]) -> list[str]` /
-    `remove(slug, release_id, label_ids)` — every leading path id the bridge's own
+    `add(slug: str, release: str, label_ids: Sequence[str]) -> list[str]` /
+    `remove(slug, release, label_ids)` — every leading path id the bridge's own
     URL needs, in path order, not just the parent id, then the ids to add/remove),
     both delegating to `V2Resource._bridge(key=, ids=, **path_params)`. The kernel
     POSTs `{"add": [...]}` or `{"remove": [...]}` only, rejects 0 or >100 ids with
     `ValueError` before the request, and returns the response's `added`/`removed`
-    list. A class whose own `path` is not the bridge URL sets `bridge_path`. The
-    bridge class declares the golden's single manage operationId under the
-    `"bridge"` key of `operations`. The `*Manage*` request/response models stay in
-    `plane/models/v2/*` as the bridge's `model`, but are not exported from
-    `plane.models.v2`.
+    list. A class whose own `path` is not the bridge URL sets `extra_paths`, a
+    `ClassVar[dict[str, str]]` mapping a method name to its own override template;
+    `url_for(method, **path_params)` (called by `_bridge`, and by any other method
+    that needs a non-`path` URL) fills `extra_paths.get(method, self.path)` instead
+    of `self.path` unconditionally. `ReleaseLabels` is the one migrated example: its
+    catalog CRUD hits `path` (`.../releases/labels/`), while
+
+    ```python
+    extra_paths = {
+        "add": "/workspaces/{slug}/releases/{release_id}/labels/",
+        "remove": "/workspaces/{slug}/releases/{release_id}/labels/",
+    }
+    ```
+
+    sends `add`/`remove` to the per-release URL instead. The retired `bridge_path`
+    (a single override for the whole class) is gone; `url_for` raises `TypeError` if
+    a class still declares it. The bridge class declares the golden's single manage
+    operationId under the `"bridge"` key of `operations`. The `*Manage*`
+    request/response models stay in `plane/models/v2/*` as the bridge's `model`, but
+    are not exported from `plane.models.v2`.
   - **Bridge verbs copy the web app CTA.** Properties on a work item type:
     `link`/`unlink` (unlink deletes the property's values on every work item of the
     type). Members of anything else: `add`/`remove`. `workflows.states.attach` is a
