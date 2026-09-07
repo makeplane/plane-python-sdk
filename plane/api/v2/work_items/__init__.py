@@ -13,7 +13,7 @@ from collections.abc import Iterator, Mapping, Sequence
 
 from typing_extensions import Unpack
 
-from ....models.v2.common import BulkWriteResponse, CursorPage, OffsetPage
+from ....models.v2.common import BulkWriteResponse
 from ....models.v2.work_items import CreateWorkItem, UpdateWorkItem, WorkItem
 from .._generated.constants import (
     WorkItemsArchiveField,
@@ -26,6 +26,7 @@ from .._generated.constants import (
     WorkItemsUnarchiveField,
     WorkItemsUpsertField,
 )
+from .._kernel.loaded import LoadsNavigableRows
 from .._kernel.pagination import Page
 from .._kernel.pending import PendingMigration
 from .._kernel.resource import V2Resource
@@ -53,9 +54,13 @@ __all__ = [
 ]
 
 
-class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
+class WorkItems(
+    V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem], LoadsNavigableRows[LoadedWorkItem]
+):
     path = "/workspaces/{slug}/projects/{project_id}/work-items/"
     model = WorkItem
+    loaded_model = LoadedWorkItem
+    loaded_names = ("slug", "project", "work_item")
     operations = {
         "list": "work_items_list",
         "retrieve": "work_items_retrieve",
@@ -116,7 +121,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
             slug=slug,
             project_id=project,
         )
-        return self._load_page(page, slug, project, fields)
+        return self._load_page(page, slug, project, fields=fields)
 
     def iterate(
         self,
@@ -134,7 +139,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
             slug=slug,
             project_id=project,
         )
-        return (self._load(row, slug, project, fields) for row in rows)
+        return (self._load(row, slug, project, fields=fields) for row in rows)
 
     def retrieve(
         self,
@@ -153,7 +158,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
             slug=slug,
             project_id=project,
         )
-        return self._load(row, slug, project, fields)
+        return self._load(row, slug, project, fields=fields)
 
     def create(
         self,
@@ -169,7 +174,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
         row = self._create(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
-        return self._load(row, slug, project, fields)
+        return self._load(row, slug, project, fields=fields)
 
     def update(
         self,
@@ -188,7 +193,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
             slug=slug,
             project_id=project,
         )
-        return self._load(row, slug, project, fields)
+        return self._load(row, slug, project, fields=fields)
 
     def delete(self, slug: str, project: str, work_item_id: str) -> None:
         return self._delete(pk=work_item_id, slug=slug, project_id=project)
@@ -206,7 +211,7 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
         row = self._upsert(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
-        return self._load(row, slug, project, fields)
+        return self._load(row, slug, project, fields=fields)
 
     def bulk_create(
         self,
@@ -276,45 +281,4 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
-        )
-
-    # -- Navigation -----------------------------------------------------------------
-
-    def _load(
-        self,
-        row: WorkItem,
-        slug: str,
-        project: str,
-        fields: Sequence[str] | None = None,
-    ) -> LoadedWorkItem:
-        loaded: LoadedWorkItem = LoadedWorkItem.build(
-            row,
-            ids=(slug, project, row.id),
-            names=("slug", "project", "work_item"),
-            fields=fields,
-        )
-        object.__setattr__(loaded, "_resources", self)
-        return loaded
-
-    def _load_page(
-        self,
-        page: Page[WorkItem],
-        slug: str,
-        project: str,
-        fields: Sequence[str] | None = None,
-    ) -> Page[LoadedWorkItem]:
-        rows = [self._load(row, slug, project, fields) for row in page.data]
-        if isinstance(page, CursorPage):
-            return CursorPage[LoadedWorkItem](
-                data=rows,
-                pagination=page.pagination,
-                has_more=page.has_more,
-                next_cursor=page.next_cursor,
-            )
-        return OffsetPage[LoadedWorkItem](
-            data=rows,
-            pagination=page.pagination,
-            next=page.next,
-            previous=page.previous,
-            total_count=page.total_count,
         )

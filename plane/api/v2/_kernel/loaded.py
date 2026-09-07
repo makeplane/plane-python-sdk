@@ -5,13 +5,17 @@ from __future__ import annotations
 import functools
 import inspect
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Concatenate, Generic, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Concatenate, Generic, ParamSpec, TypeVar, cast
 
 from pydantic import BaseModel
 
 from .errors import FieldNotRequested
+from .pagination import Page
 
 TResource = TypeVar("TResource")
+# Bounded by `BaseModel`, not `Loaded`: a loaded row is both, but `Page` needs the
+# pydantic half and Python has no intersection type to say so.
+TLoaded = TypeVar("TLoaded", bound=BaseModel)
 P = ParamSpec("P")
 R = TypeVar("R")
 
@@ -135,6 +139,66 @@ class Owned(Generic[TResource]):
                 return attribute(*self._ids, *args, **kwargs)
 
             return bound
+
+
+class LoadsNavigableRows(Generic[TLoaded]):
+    """Mixin for a resource whose fetches return `Loaded` rows rather than plain models.
+
+    Every navigable resource needs the same three things -- turn a row into its loaded
+    form, do that across a page, and know which path id a child URL uses for the row --
+    and they were being written out per resource. Mixed in as
+    `LoadsNavigableRows[LoadedProject]`, a resource declares two class attributes and
+    (only where the pk is not `id`) overrides `_row_id`; `retrieve`/`list`/`iterate`/
+    `create`/`update`/`upsert` then all read the same one line.
+
+    Generic over the loaded type so `_load` and `_load_page` keep their precise return
+    types at the call site instead of degrading to `Any`."""
+
+    loaded_model: ClassVar[type[Loaded] | None] = None
+    """The `Loaded` subclass a fetch returns. `None` means the resource is not
+    navigable and `_load` must not be called."""
+
+    loaded_names: ClassVar[tuple[str, ...]] = ()
+    """The parameter name of every path id a *child* of one of these rows needs, in URL
+    order, ending with this row's own (`("slug", "project")` for projects). `Owned`
+    checks a child method's leading parameters against it before prepending anything."""
+
+    def _row_id(self, row: Any) -> Any:
+        """The path id a child URL uses for this row -- its `id`, unless the resource
+        has a readable key the API accepts in its place (projects override this to
+        prefer `identifier`, so children hit `.../projects/ENG/`, not the UUID)."""
+        return row.id
+
+    def _load(
+        self, row: BaseModel, *parent_ids: Any, fields: Sequence[str] | None = None
+    ) -> TLoaded:
+        """A fetched row in its `Loaded` form: the row's own data plus the path ids its
+        children need. `parent_ids` are this resource's own leading path ids in URL
+        order; the row contributes the last one itself, through `_row_id`."""
+        loaded_model = type(self).loaded_model
+        if loaded_model is None:
+            raise TypeError(
+                f"{type(self).__name__} has no `loaded_model`, so it cannot return "
+                "navigable rows. Set it (and `loaded_names`) on the class, or do not "
+                "call `_load`."
+            )
+        loaded = loaded_model.build(
+            row,
+            ids=(*parent_ids, self._row_id(row)),
+            names=self.loaded_names,
+            fields=fields,
+        )
+        # A loaded row reaches its children through the resource that fetched it.
+        object.__setattr__(loaded, "_resources", self)
+        return cast("TLoaded", loaded)
+
+    def _load_page(
+        self, page: Page[Any], *parent_ids: Any, fields: Sequence[str] | None = None
+    ) -> Page[TLoaded]:
+        """`_load` across a page, keeping whichever envelope (offset or cursor) came
+        back and whatever paging state it carries."""
+        rows = [self._load(row, *parent_ids, fields=fields) for row in page.data]
+        return cast("Page[TLoaded]", page.model_copy(update={"data": rows}))
 
 
 # -- Typed views on an `Owned` ------------------------------------------------------

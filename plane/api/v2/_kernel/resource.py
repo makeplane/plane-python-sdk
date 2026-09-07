@@ -260,6 +260,53 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         )
         return self.model.model_validate(payload)  # type: ignore[return-value]
 
+    # Singletons and void actions
+    def _retrieve_singleton(
+        self,
+        *,
+        action: str = "retrieve",
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> TRead:
+        """GET a route whose row *is* the collection -- a workspace (the slug is the
+        key), a feature-toggle set. No pk to append, so this goes through `url_for`
+        rather than `_detail_url`."""
+        payload = self.transport.request(
+            "GET",
+            self.url_for(action, **path_params),
+            params=self._query(params, action=action),
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _update_singleton(
+        self,
+        data: BaseModel,
+        *,
+        action: str = "update",
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> TRead:
+        """PATCH the counterpart of `_retrieve_singleton`."""
+        payload = self.transport.request(
+            "PATCH",
+            self.url_for(action, **path_params),
+            params=self._query(params, action=action),
+            json=data.model_dump(mode="json", exclude_none=True),
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _void_action(
+        self, name: str, *, pk: Any, data: BaseModel | None = None, **path_params: Any
+    ) -> None:
+        """POST a single-row verb action that answers 204 with no body -- the
+        no-response-model twin of `_action`."""
+        self.transport.request(
+            "POST",
+            f"{self._detail_url(pk, name, **path_params)}{name}/",
+            json=data.model_dump(mode="json", exclude_none=True) if data is not None else None,
+        )
+        return None
+
     def _batch(self, action: str, body: dict[str, Any], **path_params: Any) -> BulkWriteResponse:
         payload = self.transport.request(
             "POST", f"{self._collection_url(action, **path_params)}{action}/", json=body

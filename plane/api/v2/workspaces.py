@@ -32,12 +32,6 @@ class Workspaces(V2Resource[Workspace, Never, Never]):
     def retrieve(
         self, slug: str, *, fields: Sequence[WorkspacesRetrieveField] | None = None
     ) -> Workspace:
-        """The workspace detail route has no pk -- the slug is the key -- so this
-        goes straight to the transport rather than through `_retrieve` (which would
-        append a `None` pk segment)."""
-        payload = self.transport.request(
-            "GET",
-            self.url_for("retrieve", slug=slug),
-            params=self._query({"fields": fields}, action="retrieve"),
-        )
-        return self.model.model_validate(payload)
+        """The workspace detail route has no pk -- the slug is the key -- so this is a
+        singleton read, not `_retrieve` (which would append a `None` pk segment)."""
+        return self._retrieve_singleton(action="retrieve", params={"fields": fields}, slug=slug)

@@ -1,6 +1,7 @@
 """Feature toggles (api_v2) -- two GET/PATCH singletons, no `id` in the URL: the
-row IS the collection, so these hit `url_for` directly rather than
-`_retrieve`/`_update` (which both require a `pk` to append).
+row IS the collection, so these go through the kernel's
+`_retrieve_singleton`/`_update_singleton` pair rather than `_retrieve`/`_update`
+(which both require a `pk` to append).
 
 `WorkspaceFeatures` is re-authored flat (leading `slug`, per Task 11); `ProjectFeatures`
 still uses the pre-flat shape and is not yet attached anywhere on the tree."""
@@ -30,16 +31,10 @@ class WorkspaceFeatures(V2Resource[WorkspaceFeature, Never, UpdateWorkspaceFeatu
     }
 
     def get(self, slug: str) -> WorkspaceFeature:
-        payload = self.transport.request("GET", self.url_for("get", slug=slug))
-        return WorkspaceFeature.model_validate(payload)
+        return self._retrieve_singleton(action="get", slug=slug)
 
     def update(self, slug: str, data: UpdateWorkspaceFeature) -> WorkspaceFeature:
-        payload = self.transport.request(
-            "PATCH",
-            self.url_for("update", slug=slug),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return WorkspaceFeature.model_validate(payload)
+        return self._update_singleton(data, action="update", slug=slug)
 
 
 class ProjectFeatures(V2Resource[ProjectFeature, UpdateProjectFeature, UpdateProjectFeature]):
@@ -51,13 +46,7 @@ class ProjectFeatures(V2Resource[ProjectFeature, UpdateProjectFeature, UpdatePro
     }
 
     def retrieve(self) -> ProjectFeature:
-        payload = self.transport.request("GET", self._collection_url())
-        return self.model.model_validate(payload)
+        return self._retrieve_singleton(action="retrieve")
 
     def update(self, data: UpdateProjectFeature) -> ProjectFeature:
-        payload = self.transport.request(
-            "PATCH",
-            self._collection_url(),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return self.model.model_validate(payload)
+        return self._update_singleton(data, action="update")
