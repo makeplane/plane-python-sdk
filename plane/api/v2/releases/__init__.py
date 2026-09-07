@@ -41,14 +41,14 @@ class Releases(V2Resource[Release, CreateRelease, UpdateRelease]):
         "delete": "releases_destroy",
     }
 
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        super().__init__(transport, **scope)
-        self.comments = ReleaseComments(transport, **self._scope)
-        self.links = ReleaseLinks(transport, **self._scope)
-        self.labels = ReleaseLabels(transport, **self._scope)
-        self.tags = ReleaseTags(transport, **self._scope)
-        self.changelog = ReleaseChangelogResource(transport, **self._scope)
-        self.work_items = ReleaseWorkItems(transport, **self._scope)
+    def __init__(self, transport: V2Transport) -> None:
+        super().__init__(transport)
+        self.comments = ReleaseComments(transport)
+        self.links = ReleaseLinks(transport)
+        self.labels = ReleaseLabels(transport)
+        self.tags = ReleaseTags(transport)
+        self.changelog = ReleaseChangelogResource(transport)
+        self.work_items = ReleaseWorkItems(transport)
 
     # -- Workspace-scoped CRUD ----------------------------------------------------
 

@@ -37,6 +37,7 @@ from .teamspaces import Teamspaces
 from .users import Users
 from .views import ProjectViews, WorkspaceViews
 from .webhooks import Webhooks
+from .wiki_node import Wiki
 from .work_item_properties import WorkItemProperties, WorkspaceWorkItemProperties
 from .work_item_relation_definitions import WorkItemRelationDefinitions
 from .work_item_templates import ProjectWorkItemTemplates, WorkspaceWorkItemTemplates
@@ -98,6 +99,7 @@ __all__ = [
     "Users",
     "V2Namespace",
     "Webhooks",
+    "Wiki",
     "WikiPages",
     "WorkItemProperties",
     "WorkItemRelationDefinitions",

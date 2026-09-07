@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict
 class WorkspaceFeature(BaseModel):
     model_config = ConfigDict(extra="allow")
 
-    id: str
+    id: str | None = None
     is_customer_enabled: bool | None = None
     is_initiative_enabled: bool | None = None
     is_member_project_creation_enabled: bool | None = None

@@ -1,13 +1,24 @@
 """Release label catalog (api_v2). Workspace-level, distinct from the
-per-release association (`ReleaseLabels.add`/`.remove`)."""
+per-release association (`ReleaseLabels.add`/`.remove`) -- the catalog CRUD
+hits `path` (`.../releases/labels/`) while `add`/`remove` bridge to the
+`extra_paths` override (`.../releases/{release_id}/labels/`) via `url_for`."""
 
 from __future__ import annotations
 
 import builtins
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.releases import CreateReleaseLabel, ReleaseLabel, UpdateReleaseLabel
+from .._generated.constants import (
+    ReleaseLabelsCreateField,
+    ReleaseLabelsListField,
+    ReleaseLabelsListFilters,
+    ReleaseLabelsListOrderBy,
+    ReleaseLabelsPartialUpdateField,
+    ReleaseLabelsRetrieveField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -30,48 +41,83 @@ class ReleaseLabels(V2Resource[ReleaseLabel, CreateReleaseLabel, UpdateReleaseLa
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[ReleaseLabelsListField] | None = None,
+        order_by: ReleaseLabelsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[ReleaseLabelsListFilters],
     ) -> Page[ReleaseLabel]:
         """One page of the workspace's release-label catalog."""
-        return self._list(params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[ReleaseLabelsListField] | None = None,
+        order_by: ReleaseLabelsListOrderBy | None = None,
+        **filters: Unpack[ReleaseLabelsListFilters],
     ) -> Iterator[ReleaseLabel]:
         """Every release label in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
 
-    def retrieve(self, label_id: str, *, fields: Sequence[str] | None = None) -> ReleaseLabel:
-        return self._retrieve(pk=label_id, params={"fields": fields})
+    def retrieve(
+        self,
+        slug: str,
+        label_id: str,
+        *,
+        fields: Sequence[ReleaseLabelsRetrieveField] | None = None,
+    ) -> ReleaseLabel:
+        return self._retrieve(pk=label_id, params={"fields": fields}, slug=slug)
 
-    def find_by_name(self, name: str) -> ReleaseLabel:
+    def find_by_name(self, slug: str, name: str) -> ReleaseLabel:
         """The one release label with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        return self._find_one(filters={"name": name}, slug=slug)
 
-    def create(self, data: CreateReleaseLabel) -> ReleaseLabel:
+    def create(
+        self,
+        slug: str,
+        data: CreateReleaseLabel,
+        *,
+        fields: Sequence[ReleaseLabelsCreateField] | None = None,
+    ) -> ReleaseLabel:
         """Define a new label in the workspace catalog. To put an existing
         label on a release, use `.add` instead."""
-        return self._create(data)
+        return self._create(data, params={"fields": fields}, slug=slug)
 
-    def update(self, label_id: str, data: UpdateReleaseLabel) -> ReleaseLabel:
-        return self._update(data, pk=label_id)
+    def update(
+        self,
+        slug: str,
+        label_id: str,
+        data: UpdateReleaseLabel,
+        *,
+        fields: Sequence[ReleaseLabelsPartialUpdateField] | None = None,
+    ) -> ReleaseLabel:
+        return self._update(data, pk=label_id, params={"fields": fields}, slug=slug)
 
-    def delete(self, label_id: str) -> None:
-        return self._delete(pk=label_id)
+    def delete(self, slug: str, label_id: str) -> None:
+        return self._delete(pk=label_id, slug=slug)
 
-    # -- Per-release membership bridge --------------------------------------
+    # -- Per-release membership bridge (alternate path via `extra_paths`) ---
 
-    def add(self, release_id: str, label_ids: Sequence[str]) -> builtins.list[str]:
+    def add(self, slug: str, release_id: str, label_ids: Sequence[str]) -> builtins.list[str]:
         """Attach 1..100 existing catalog labels to this release; returns the
-        ids actually added (already-attached ones are omitted)."""
-        return self._bridge(key="add", ids=label_ids, release_id=release_id)
+        ids actually added (already-attached ones are omitted). POSTs to the
+        `extra_paths["add"]` override, not `path`."""
+        return self._bridge(key="add", ids=label_ids, slug=slug, release_id=release_id)
 
-    def remove(self, release_id: str, label_ids: Sequence[str]) -> builtins.list[str]:
+    def remove(self, slug: str, release_id: str, label_ids: Sequence[str]) -> builtins.list[str]:
         """Detach 1..100 labels from this release; returns the ids actually
-        removed."""
-        return self._bridge(key="remove", ids=label_ids, release_id=release_id)
+        removed. POSTs to the `extra_paths["remove"]` override, not `path`."""
+        return self._bridge(key="remove", ids=label_ids, slug=slug, release_id=release_id)

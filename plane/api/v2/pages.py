@@ -5,10 +5,25 @@ A wiki page can belong to a `Collection` (`collection_id`)."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ...models.v2.pages import CreatePage, UpdatePage
 from ...models.v2.pages import Page as PageModel
+from ._generated.constants import (
+    ProjectPagesCreateField,
+    ProjectPagesListField,
+    ProjectPagesListFilters,
+    ProjectPagesListOrderBy,
+    ProjectPagesPartialUpdateField,
+    ProjectPagesRetrieveField,
+    WorkspacePagesCreateField,
+    WorkspacePagesListField,
+    WorkspacePagesListFilters,
+    WorkspacePagesListOrderBy,
+    WorkspacePagesPartialUpdateField,
+    WorkspacePagesRetrieveField,
+)
 from ._kernel.errors import MultipleMatchesFound, NoMatchFound
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
@@ -29,38 +44,65 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
 
     def list(
         self,
+        slug: str,
+        project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectPagesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: ProjectPagesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[ProjectPagesListFilters],
     ) -> Page[PageModel]:
         """One page of pages in this project."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+        )
 
     def iterate(
         self,
+        slug: str,
+        project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectPagesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: ProjectPagesListOrderBy | None = None,
+        **filters: Unpack[ProjectPagesListFilters],
     ) -> Iterator[PageModel]:
         """Every page in this project, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+        )
 
     def retrieve(
         self,
+        slug: str,
+        project: str,
         page_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectPagesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> PageModel:
-        return self._retrieve(pk=page_id, params={"fields": fields, "expand": expand})
+        return self._retrieve(
+            pk=page_id, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+        )
 
-    def find_by_name(self, name: str) -> PageModel:
+    def find_by_name(self, slug: str, project: str, name: str) -> PageModel:
         """The one page with this name; raises if none or several match.
 
         Filters client-side: no `?name=` in the golden; live it returned every page (confirmed)."""
-        matches = [row for row in self.iterate() if row.name == name]
+        matches = [row for row in self.iterate(slug, project) if row.name == name]
         if not matches:
             raise NoMatchFound(f"No ProjectPages matched name={name!r}.")
         if len(matches) > 1:
@@ -70,14 +112,31 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
             )
         return matches[0]
 
-    def create(self, data: CreatePage) -> PageModel:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        project: str,
+        data: CreatePage,
+        *,
+        fields: Sequence[ProjectPagesCreateField] | None = None,
+    ) -> PageModel:
+        return self._create(data, params={"fields": fields}, slug=slug, project_id=project)
 
-    def update(self, page_id: str, data: UpdatePage) -> PageModel:
-        return self._update(data, pk=page_id)
+    def update(
+        self,
+        slug: str,
+        project: str,
+        page_id: str,
+        data: UpdatePage,
+        *,
+        fields: Sequence[ProjectPagesPartialUpdateField] | None = None,
+    ) -> PageModel:
+        return self._update(
+            data, pk=page_id, params={"fields": fields}, slug=slug, project_id=project
+        )
 
-    def delete(self, page_id: str) -> None:
-        return self._delete(pk=page_id)
+    def delete(self, slug: str, project: str, page_id: str) -> None:
+        return self._delete(pk=page_id, slug=slug, project_id=project)
 
 
 class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
@@ -96,38 +155,58 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkspacePagesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorkspacePagesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[WorkspacePagesListFilters],
     ) -> Page[PageModel]:
         """One page of workspace wiki pages."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkspacePagesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorkspacePagesListOrderBy | None = None,
+        **filters: Unpack[WorkspacePagesListFilters],
     ) -> Iterator[PageModel]:
         """Every workspace wiki page, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+        )
 
     def retrieve(
         self,
+        slug: str,
         page_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkspacePagesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> PageModel:
-        return self._retrieve(pk=page_id, params={"fields": fields, "expand": expand})
+        return self._retrieve(pk=page_id, params={"fields": fields, "expand": expand}, slug=slug)
 
-    def find_by_name(self, name: str) -> PageModel:
+    def find_by_name(self, slug: str, name: str) -> PageModel:
         """The one wiki page with this name; raises if none or several match.
 
         Filters client-side -- see `ProjectPages.find_by_name` (same confirmed gap)."""
-        matches = [row for row in self.iterate() if row.name == name]
+        matches = [row for row in self.iterate(slug) if row.name == name]
         if not matches:
             raise NoMatchFound(f"No WikiPages matched name={name!r}.")
         if len(matches) > 1:
@@ -137,14 +216,27 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
             )
         return matches[0]
 
-    def create(self, data: CreatePage) -> PageModel:
+    def create(
+        self,
+        slug: str,
+        data: CreatePage,
+        *,
+        fields: Sequence[WorkspacePagesCreateField] | None = None,
+    ) -> PageModel:
         """Create a workspace wiki page. Omitting `data.collection_id` auto-assigns
         the default (public) collection (confirmed live) -- a private page needs an
         explicit private `collection_id`."""
-        return self._create(data)
+        return self._create(data, params={"fields": fields}, slug=slug)
 
-    def update(self, page_id: str, data: UpdatePage) -> PageModel:
-        return self._update(data, pk=page_id)
+    def update(
+        self,
+        slug: str,
+        page_id: str,
+        data: UpdatePage,
+        *,
+        fields: Sequence[WorkspacePagesPartialUpdateField] | None = None,
+    ) -> PageModel:
+        return self._update(data, pk=page_id, params={"fields": fields}, slug=slug)
 
-    def delete(self, page_id: str) -> None:
-        return self._delete(pk=page_id)
+    def delete(self, slug: str, page_id: str) -> None:
+        return self._delete(pk=page_id, slug=slug)
