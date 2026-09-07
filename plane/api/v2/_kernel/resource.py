@@ -67,9 +67,11 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     path: ClassVar[str]
     model: ClassVar[type[BaseModel]]
     operations: ClassVar[dict[str, str]]
-    bridge_path: ClassVar[str | None] = None
-    """Where `_bridge` POSTs when the membership URL is not this resource's own `path`
-    (a catalog resource like release labels bridges at `.../releases/{release_id}/labels/`)."""
+    extra_paths: ClassVar[dict[str, str]] = {}
+    """Per-method override templates: a method name that POSTs (or otherwise builds
+    its URL) somewhere other than `path` (a catalog resource like release labels
+    bridges `add`/`remove` at `.../releases/{release_id}/labels/`, not its own
+    `.../releases/labels/`)."""
 
     def __init__(self, transport: V2Transport) -> None:
         self.transport = transport
@@ -81,6 +83,10 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         return template.format_map(
             {key: quote(str(value), safe="") for key, value in path_params.items()}
         )
+
+    def url_for(self, method: str, **path_params: Any) -> str:
+        """The URL for `method`: its override template if it declares one, else `path`."""
+        return self._format_path(self.extra_paths.get(method, self.path), **path_params)
 
     def _collection_url(self, **path_params: Any) -> str:
         """Build the collection URL, percent-encoding every path param."""
@@ -276,11 +282,11 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
 
     def _bridge(self, *, key: str, ids: Sequence[Any], **path_params: Any) -> list[str]:
         """One side of a membership bridge: POST `{key: [...]}` (`key` is `"add"` or
-        `"remove"`) to `bridge_path` (or `path`) and return the ids the server reports
-        as actually changed -- `added` for `add`, `removed` for `remove`, `[]` when the
-        key is absent. Entries may be plain ids or pydantic rows (serialized with
-        `exclude_none`). 0 or more than `BRIDGE_MAX_IDS` entries raise `ValueError`
-        before any request is sent."""
+        `"remove"`) to `url_for(key, ...)` (its `extra_paths` override, or `path`) and
+        return the ids the server reports as actually changed -- `added` for `add`,
+        `removed` for `remove`, `[]` when the key is absent. Entries may be plain ids
+        or pydantic rows (serialized with `exclude_none`). 0 or more than
+        `BRIDGE_MAX_IDS` entries raise `ValueError` before any request is sent."""
         try:
             result_key = _BRIDGE_RESULT_KEYS[key]
         except KeyError:
@@ -298,7 +304,7 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
             )
             for entry in entries
         ]
-        url = self._format_path(self.bridge_path or self.path, **path_params)
+        url = self.url_for(key, **path_params)
         payload = self.transport.request("POST", url, json={key: body})
         return list(payload.get(result_key) or [])
 
