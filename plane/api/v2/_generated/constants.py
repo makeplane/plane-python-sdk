@@ -2,6 +2,7 @@
 Source: ../plane-ee-preview/apps/api/plane/api_v2/core/schema/openapi
 Regenerate: python scripts/generate_v2_constants.py <path-to>/api_v2/core/schema/openapi"""
 
+from collections.abc import Sequence
 from typing import Literal
 
 from typing_extensions import TypedDict
@@ -10642,7 +10643,7 @@ class EstimatesListFilters(TypedDict, total=False):
     name: str
     search: str
     type: str
-    type__in: str
+    type__in: Sequence[str]
 
 
 class GroupSyncProjectMappingsListFilters(TypedDict, total=False):
@@ -10663,7 +10664,7 @@ class InitiativesListFilters(TypedDict, total=False):
     name: str
     search: str
     state: str
-    state__in: str
+    state__in: Sequence[str]
 
 
 class IntakesListFilters(TypedDict, total=False):
@@ -10672,7 +10673,7 @@ class IntakesListFilters(TypedDict, total=False):
     search: str
     source: str
     status: int
-    status__in: str
+    status__in: Sequence[int]
     work_item_id: str
 
 
@@ -10714,7 +10715,7 @@ class ModulesListFilters(TypedDict, total=False):
     name: str
     search: str
     status: str
-    status__in: str
+    status__in: Sequence[str]
 
 
 class PagesListFilters(TypedDict, total=False):
@@ -10759,9 +10760,9 @@ class ProjectAutomationsListFilters(TypedDict, total=False):
 
 class ProjectMembersListFilters(TypedDict, total=False):
     member_id: str
-    member_id__in: str
+    member_id__in: Sequence[str]
     role: str
-    role__in: str
+    role__in: Sequence[str]
     search: str
 
 
@@ -10802,7 +10803,7 @@ class ProjectsListFilters(TypedDict, total=False):
     name: str
     network: int
     priority: str
-    priority__in: str
+    priority__in: Sequence[str]
     search: str
 
 
@@ -10838,7 +10839,7 @@ class ReleasesListFilters(TypedDict, total=False):
     release_date: str
     search: str
     status: str
-    status__in: str
+    status__in: Sequence[str]
     tag_id: str
     target_date: str
 
@@ -10854,7 +10855,7 @@ class StatesListFilters(TypedDict, total=False):
     external_id: str
     external_source: str
     group: str
-    group__in: str
+    group__in: Sequence[str]
     is_default: bool
     name: str
     search: str
@@ -10912,41 +10913,41 @@ class WorkItemTypesSchemaFilters(TypedDict, total=False):
 
 class WorkItemsListFilters(TypedDict, total=False):
     assignee_id: str
-    assignee_id__in: str
+    assignee_id__in: Sequence[str]
     assignee_id__isnull: bool
     created_at__gte: str
     created_at__lte: str
     cycle_id: str
-    cycle_id__in: str
+    cycle_id__in: Sequence[str]
     cycle_id__isnull: bool
     external_id: str
     external_source: str
     is_draft: bool
     label_id: str
-    label_id__in: str
+    label_id__in: Sequence[str]
     label_id__isnull: bool
     module_id: str
-    module_id__in: str
+    module_id__in: Sequence[str]
     module_id__isnull: bool
     parent_id: str
-    parent_id__in: str
+    parent_id__in: Sequence[str]
     parent_id__isnull: bool
     priority: str
-    priority__in: str
+    priority__in: Sequence[str]
     project_id: str
-    project_id__in: str
+    project_id__in: Sequence[str]
     search: str
     sequence_id: int
     start_date__gte: str
     start_date__lte: str
     state_group: str
-    state_group__in: str
+    state_group__in: Sequence[str]
     state_id: str
-    state_id__in: str
+    state_id__in: Sequence[str]
     target_date__gte: str
     target_date__lte: str
     type_id: str
-    type_id__in: str
+    type_id__in: Sequence[str]
     updated_at__gte: str
     updated_at__lte: str
 
@@ -10992,9 +10993,9 @@ class WorkspaceAutomationsListFilters(TypedDict, total=False):
 
 class WorkspaceMembersListFilters(TypedDict, total=False):
     member_id: str
-    member_id__in: str
+    member_id__in: Sequence[str]
     role: str
-    role__in: str
+    role__in: Sequence[str]
     search: str
 
 
@@ -11049,40 +11050,40 @@ class WorkspaceWorkItemTypesListFilters(TypedDict, total=False):
 
 class WorkspaceWorkItemsListFilters(TypedDict, total=False):
     assignee_id: str
-    assignee_id__in: str
+    assignee_id__in: Sequence[str]
     assignee_id__isnull: bool
     created_at__gte: str
     created_at__lte: str
     cycle_id: str
-    cycle_id__in: str
+    cycle_id__in: Sequence[str]
     cycle_id__isnull: bool
     external_id: str
     external_source: str
     is_draft: bool
     label_id: str
-    label_id__in: str
+    label_id__in: Sequence[str]
     label_id__isnull: bool
     module_id: str
-    module_id__in: str
+    module_id__in: Sequence[str]
     module_id__isnull: bool
     parent_id: str
-    parent_id__in: str
+    parent_id__in: Sequence[str]
     parent_id__isnull: bool
     priority: str
-    priority__in: str
+    priority__in: Sequence[str]
     project_id: str
-    project_id__in: str
+    project_id__in: Sequence[str]
     search: str
     sequence_id: int
     start_date__gte: str
     start_date__lte: str
     state_group: str
-    state_group__in: str
+    state_group__in: Sequence[str]
     state_id: str
-    state_id__in: str
+    state_id__in: Sequence[str]
     target_date__gte: str
     target_date__lte: str
     type_id: str
-    type_id__in: str
+    type_id__in: Sequence[str]
     updated_at__gte: str
     updated_at__lte: str

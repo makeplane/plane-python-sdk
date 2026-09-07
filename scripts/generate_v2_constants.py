@@ -11,6 +11,7 @@ HEADER_TEMPLATE = '''\
 Source: {source_dir}
 Regenerate: python scripts/generate_v2_constants.py <path-to>/api_v2/core/schema/openapi"""
 
+from collections.abc import Sequence
 from typing import Literal
 
 from typing_extensions import TypedDict
@@ -41,6 +42,20 @@ def _literal_aliases(fields: dict[str, list[str]], order_by: dict[str, list[str]
     return "\n".join(lines)
 
 
+def _filter_hint(schema: dict[str, Any]) -> str:
+    """Python type hint for one query parameter's schema. `array` becomes `Sequence[<item>]`,
+    with the element type resolved through `_JSON_TO_PYTHON` -- falls back to plain `str` when
+    the parameter isn't an array, or is an array whose `items.type` is missing/unmapped (the
+    kernel's `_query` comma-joins any list/tuple/set, matching the golden's
+    `style: form, explode: false` query params either way)."""
+    param_type = schema.get("type", "string")
+    if param_type == "array":
+        item_type = schema.get("items", {}).get("type")
+        element_hint = _JSON_TO_PYTHON.get(item_type) if item_type else None
+        return f"Sequence[{element_hint}]" if element_hint else "str"
+    return _JSON_TO_PYTHON.get(param_type, "str")
+
+
 def _filters_typeddicts(operations: dict[str, list[dict[str, Any]]]) -> str:
     """One `TypedDict(total=False)` per list operation, from its non-reserved query params."""
     blocks: list[str] = []
@@ -50,7 +65,7 @@ def _filters_typeddicts(operations: dict[str, list[dict[str, Any]]]) -> str:
             name = parameter.get("name")
             if parameter.get("in") != "query" or name in _RESERVED_QUERY_PARAMS:
                 continue
-            hint = _JSON_TO_PYTHON.get(parameter.get("schema", {}).get("type", "string"), "str")
+            hint = _filter_hint(parameter.get("schema", {}))
             entries.append(f"    {name}: {hint}")
         if not entries:
             continue
@@ -79,7 +94,7 @@ def _format(source: str) -> str:
         raise SystemExit(f"generate_v2_constants: black failed to format output: {exc}") from exc
 
 
-def main(openapi_dir: str) -> None:
+def main(openapi_dir: str, output_dir: str | None = None) -> None:
     root = pathlib.Path(openapi_dir)
 
     root_document = json.loads((root / "root.json").read_text())
@@ -178,7 +193,10 @@ def main(openapi_dir: str) -> None:
 
     content = _format("".join(lines))
 
-    target = pathlib.Path(__file__).parent.parent / "plane" / "api" / "v2" / "_generated"
+    if output_dir is None:
+        target = pathlib.Path(__file__).parent.parent / "plane" / "api" / "v2" / "_generated"
+    else:
+        target = pathlib.Path(output_dir)
     target.mkdir(parents=True, exist_ok=True)
     (target / "__init__.py").write_text("")
     (target / "constants.py").write_text(content)
@@ -190,4 +208,4 @@ def main(openapi_dir: str) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
