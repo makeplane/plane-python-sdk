@@ -1,26 +1,43 @@
 """Projects (api_v2). `project` accepts a UUID or its bare identifier (e.g.
 `"ENG"`) everywhere -- no separate lookup needed. Adds `archive`/`unarchive`/
-`summary`/`role_distribution`; no `bulk_delete` (delete cascades everything in it)."""
+`summary`/`role_distribution`; no `bulk_delete` (delete cascades everything in it).
+
+A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as
+a `LoadedProject`: it carries the row's data and can reach `.states`/`.labels`
+without the caller repeating `slug`/`project`."""
 
 from __future__ import annotations
 
 import builtins
 from collections.abc import Iterator, Mapping, Sequence
-from typing import Any
-from urllib.parse import quote
 
-from ...models.v2.common import BulkWriteResponse
+from typing_extensions import Unpack
+
+from ...models.v2.common import BulkWriteResponse, CursorPage, OffsetPage
 from ...models.v2.project_role_distribution import ProjectRoleDistribution
 from ...models.v2.projects import CreateProject, Project, ProjectSummary, UpdateProject
+from ._generated.constants import (
+    ProjectsCreateField,
+    ProjectsListField,
+    ProjectsListFilters,
+    ProjectsListOrderBy,
+    ProjectsPartialUpdateField,
+    ProjectsRetrieveField,
+    ProjectsUpsertField,
+)
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
+from ._loaded.project import LoadedProject
 from .labels import Labels
 from .states import States
 
 
 class Projects(V2Resource[Project, CreateProject, UpdateProject]):
     path = "/workspaces/{slug}/projects/"
+    extra_paths = {
+        "role_distribution": "/workspaces/{slug}/project-role-distribution/",
+    }
     model = Project
     operations = {
         "list": "projects_list",
@@ -44,109 +61,182 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectsListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
-    ) -> Page[Project]:
-        """One page of projects in the workspace.
-
-        `**filters` covers `name`, `identifier`, `network`, `priority`, `is_archived`."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        order_by: ProjectsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[ProjectsListFilters],
+    ) -> Page[LoadedProject]:
+        """One page of projects in the workspace."""
+        page = self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
+        return self._load_page(page, slug)
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectsListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: ProjectsListOrderBy | None = None,
+        **filters: Unpack[ProjectsListFilters],
     ) -> Iterator[Project]:
         """Every project in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+        )
 
     def retrieve(
         self,
+        slug: str,
         project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectsRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Project:
+    ) -> LoadedProject:
         """Fetch a project. `project` accepts a UUID or its bare identifier
         (e.g. `"ENG"`) -- api_v2's flagship readable-identifier resource: no
         separate lookup is needed to go from a known key to a UUID."""
-        return self._retrieve(pk=project, params={"fields": fields, "expand": expand})
+        row = self._retrieve(pk=project, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug)
 
-    def find_by_name(self, name: str) -> Project:
+    def find_by_name(self, slug: str, name: str) -> Project:
         """The one project with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        return self._find_one(filters={"name": name}, slug=slug)
 
-    def create(self, data: CreateProject) -> Project:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateProject,
+        *,
+        fields: Sequence[ProjectsCreateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> LoadedProject:
+        row = self._create(data, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug)
 
-    def update(self, project: str, data: UpdateProject) -> Project:
+    def update(
+        self,
+        slug: str,
+        project: str,
+        data: UpdateProject,
+        *,
+        fields: Sequence[ProjectsPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Project:
         """`project` accepts a UUID or its bare identifier (e.g. `"ENG"`)."""
-        return self._update(data, pk=project)
+        return self._update(
+            data, pk=project, params={"fields": fields, "expand": expand}, slug=slug
+        )
 
-    def delete(self, project: str) -> None:
+    def delete(self, slug: str, project: str) -> None:
         """`project` accepts a UUID or its bare identifier (e.g. `"ENG"`).
         Deleting a project cascades its work items, cycles, modules, pages and
         members."""
-        return self._delete(pk=project)
+        return self._delete(pk=project, slug=slug)
 
-    def upsert(self, data: CreateProject) -> Project:
+    def upsert(
+        self,
+        slug: str,
+        data: CreateProject,
+        *,
+        fields: Sequence[ProjectsUpsertField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Project:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(data)
+        return self._upsert(data, params={"fields": fields, "expand": expand}, slug=slug)
 
     def bulk_create(
         self,
+        slug: str,
         items: builtins.list[CreateProject],
         *,
         all_or_none: bool = False,
     ) -> BulkWriteResponse:
-        return self._bulk_create(items, all_or_none=all_or_none)
+        return self._bulk_create(items, all_or_none=all_or_none, slug=slug)
 
     def bulk_update(
         self,
-        items: builtins.list[Mapping[str, Any]],
+        slug: str,
+        items: builtins.list[Mapping[str, object]],
         *,
         all_or_none: bool = False,
     ) -> BulkWriteResponse:
         """Each item is `{"id": <uuid>, ...fields to change}`. No `bulk_delete`
         exists for projects -- use `delete` per project."""
-        return self._bulk_update(items, all_or_none=all_or_none)
+        return self._bulk_update(items, all_or_none=all_or_none, slug=slug)
 
     # -- Custom actions -----------------------------------------------------------
     # None go through `_action`: response shapes/bodies don't match `self.model`.
 
-    def archive(self, project: str) -> None:
+    def archive(self, slug: str, project: str) -> None:
         """Archive a project. 204, no response body."""
-        self.transport.request("POST", f"{self._detail_url(project)}archive/")
+        self.transport.request("POST", f"{self._detail_url(project, slug=slug)}archive/")
         return None
 
-    def unarchive(self, project: str) -> None:
+    def unarchive(self, slug: str, project: str) -> None:
         """Restore an archived project. 204, no response body."""
-        self.transport.request("POST", f"{self._detail_url(project)}unarchive/")
+        self.transport.request("POST", f"{self._detail_url(project, slug=slug)}unarchive/")
         return None
 
-    def summary(self, project: str, *, counts: Sequence[str] | None = None) -> ProjectSummary:
+    def summary(
+        self,
+        slug: str,
+        project: str,
+        *,
+        counts: Sequence[str] | None = None,
+    ) -> ProjectSummary:
         """Project identity plus resource counts (v1 summary parity).
 
         `counts` narrows the response to specific count keys; omit for all of them."""
-        params: dict[str, Any] = {}
-        if counts is not None:
-            params["counts"] = ",".join(counts) if not isinstance(counts, str) else counts
         payload = self.transport.request(
-            "GET", f"{self._detail_url(project)}summary/", params=params or None
+            "GET",
+            f"{self._detail_url(project, slug=slug)}summary/",
+            params=self._query({"counts": counts}, action="summary"),
         )
         return ProjectSummary.model_validate(payload)
 
-    def role_distribution(self) -> ProjectRoleDistribution:
+    def role_distribution(self, slug: str) -> ProjectRoleDistribution:
         """Workspace-wide counts of members per project role. A single read-only
         report, not a paginated collection -- one object per workspace, no `id`."""
-        payload = self.transport.request("GET", self._role_distribution_url())
+        payload = self.transport.request("GET", self.url_for("role_distribution", slug=slug))
         return ProjectRoleDistribution.model_validate(payload)
 
-    def _role_distribution_url(self) -> str:
-        # A sibling path of this resource's own collection URL, not a sub-path of it.
-        slug = self._scope["slug"]
-        return f"/workspaces/{quote(str(slug), safe='')}/project-role-distribution/"
+    # -- Navigation -----------------------------------------------------------------
+
+    def _load(self, row: Project, slug: str) -> LoadedProject:
+        loaded: LoadedProject = LoadedProject.build(
+            row, ids=(slug, row.identifier or row.id), names=("slug", "project")
+        )
+        object.__setattr__(loaded, "_resources", self)
+        return loaded
+
+    def _load_page(self, page: Page[Project], slug: str) -> Page[LoadedProject]:
+        rows = [self._load(row, slug) for row in page.data]
+        if isinstance(page, CursorPage):
+            return CursorPage[LoadedProject](
+                data=rows,
+                pagination=page.pagination,
+                has_more=page.has_more,
+                next_cursor=page.next_cursor,
+            )
+        return OffsetPage[LoadedProject](
+            data=rows,
+            pagination=page.pagination,
+            next=page.next,
+            previous=page.previous,
+            total_count=page.total_count,
+        )
