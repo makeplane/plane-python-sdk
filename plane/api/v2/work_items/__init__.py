@@ -27,6 +27,7 @@ from .._generated.constants import (
     WorkItemsUpsertField,
 )
 from .._kernel.pagination import Page
+from .._kernel.pending import PendingMigration
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .._loaded.work_item import LoadedWorkItem
@@ -72,12 +73,19 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
     def __init__(self, transport: V2Transport) -> None:
         super().__init__(transport)
         self.comments = WorkItemComments(transport)
-        self.attachments = WorkItemAttachments(transport)
-        self.links = WorkItemLinks(transport)
-        self.worklogs = WorkItemWorklogs(transport)
-        self.activities = WorkItemActivities(transport)
-        self.relations = WorkItemRelations(transport)
-        self.dependencies = WorkItemDependencies(transport)
+        # The other six children still take only `work_item_id`, so reaching them
+        # through the flat tree would build `/workspaces/{slug}/...` with no slug.
+        # Placeholders keep `import plane` working and name the gap when used.
+        self.attachments = PendingMigration(
+            "WorkItemAttachments", reached_as="work_items.attachments"
+        )
+        self.links = PendingMigration("WorkItemLinks", reached_as="work_items.links")
+        self.worklogs = PendingMigration("WorkItemWorklogs", reached_as="work_items.worklogs")
+        self.activities = PendingMigration("WorkItemActivities", reached_as="work_items.activities")
+        self.relations = PendingMigration("WorkItemRelations", reached_as="work_items.relations")
+        self.dependencies = PendingMigration(
+            "WorkItemDependencies", reached_as="work_items.dependencies"
+        )
 
     # -- CRUD ---------------------------------------------------------------
 

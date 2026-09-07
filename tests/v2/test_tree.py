@@ -1,3 +1,4 @@
+import pytest
 import responses
 
 from plane.api.v2 import V2Namespace
@@ -51,3 +52,69 @@ def test_workspaces_retrieve(config: Configuration) -> None:
     workspace = V2Namespace(config).workspaces.retrieve("acme")
 
     assert workspace.slug == "acme"
+
+
+# -- Wired but not yet migrated ---------------------------------------------------
+# `Workspaces` wires `Releases` for the sake of `releases.labels`, and `WorkItems`
+# wires seven children of which one is migrated. Everything else on those branches
+# used to fail with a bare `KeyError: 'slug'` from inside the kernel; each now says
+# what it is and that migration is pending.
+
+
+@pytest.mark.parametrize(
+    ("reach", "expected"),
+    [
+        (lambda v2: v2.workspaces.releases.list(), "Releases.list()"),
+        (lambda v2: v2.workspaces.releases.retrieve("r1"), "Releases.retrieve()"),
+        (lambda v2: v2.workspaces.releases.comments.list(), "ReleaseComments"),
+        (lambda v2: v2.workspaces.releases.links.list(), "ReleaseLinks"),
+        (lambda v2: v2.workspaces.releases.tags.list(), "ReleaseTags"),
+        (lambda v2: v2.workspaces.releases.changelog.retrieve("r1"), "ReleaseChangelogResource"),
+        (lambda v2: v2.workspaces.releases.work_items.add("r1", ["w1"]), "ReleaseWorkItems"),
+        (lambda v2: v2.workspaces.projects.work_items.activities.list("wi1"), "WorkItemActivities"),
+        (
+            lambda v2: v2.workspaces.projects.work_items.attachments.list("wi1"),
+            "WorkItemAttachments",
+        ),
+        (lambda v2: v2.workspaces.projects.work_items.links.list("wi1"), "WorkItemLinks"),
+        (lambda v2: v2.workspaces.projects.work_items.worklogs.list("wi1"), "WorkItemWorklogs"),
+        (lambda v2: v2.workspaces.projects.work_items.relations.list("wi1"), "WorkItemRelations"),
+        (
+            lambda v2: v2.workspaces.projects.work_items.dependencies.list("wi1"),
+            "WorkItemDependencies",
+        ),
+        (lambda v2: v2.workspaces.wiki.collections.list(), "Collections"),
+    ],
+)
+def test_unmigrated_branches_name_themselves_instead_of_raising_keyerror(
+    config: Configuration, reach, expected: str
+) -> None:
+    with pytest.raises(NotImplementedError) as raised:
+        reach(V2Namespace(config))
+
+    message = str(raised.value)
+    assert expected in message
+    assert "not migrated to the flat v2 shape yet" in message
+
+
+@responses.activate
+def test_the_migrated_sibling_on_an_unmigrated_branch_still_works(config: Configuration) -> None:
+    """`releases.labels` is why `Releases` is wired at all -- placeholders next to it
+    must not take it down."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/releases/labels/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    V2Namespace(config).workspaces.releases.labels.list("acme")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/releases/labels/"
+    )
+
+
+def test_wiki_collections_is_present_rather_than_a_bare_attribute_error(
+    config: Configuration,
+) -> None:
+    """Leaving the attribute off gave `AttributeError`, which reads like a typo."""
+    assert hasattr(V2Namespace(config).workspaces.wiki, "collections")
