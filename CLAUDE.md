@@ -122,15 +122,18 @@ PlaneClient
     `ws.initiatives.projects` — both design-intent today, since `cycles`/`initiatives`
     aren't wired onto the flat tree yet; `ws.releases.labels` (wired, verbs sit next
     to the CRUD since it's also the label catalog) is the one bridge reachable
-    through `client.v2` right now) exposing exactly `add(parent_id, ids) -> list[str]`
-    and `remove(parent_id, ids) -> list[str]`, both delegating to
-    `V2Resource._bridge(key=, ids=, **path_params)`. The kernel POSTs `{"add": [...]}`
-    or `{"remove": [...]}` only, rejects 0 or >100 ids with `ValueError` before the
-    request, and returns the response's `added`/`removed` list. A class whose own
-    `path` is not the bridge URL sets `bridge_path`. The bridge class declares the
-    golden's single manage operationId under the `"bridge"` key of `operations`. The
-    `*Manage*` request/response models stay in `plane/models/v2/*` as the bridge's
-    `model`, but are not exported from `plane.models.v2`.
+    through `client.v2` right now, as
+    `add(slug: str, release_id: str, label_ids: Sequence[str]) -> list[str]` /
+    `remove(slug, release_id, label_ids)` — every leading path id the bridge's own
+    URL needs, in path order, not just the parent id, then the ids to add/remove),
+    both delegating to `V2Resource._bridge(key=, ids=, **path_params)`. The kernel
+    POSTs `{"add": [...]}` or `{"remove": [...]}` only, rejects 0 or >100 ids with
+    `ValueError` before the request, and returns the response's `added`/`removed`
+    list. A class whose own `path` is not the bridge URL sets `bridge_path`. The
+    bridge class declares the golden's single manage operationId under the
+    `"bridge"` key of `operations`. The `*Manage*` request/response models stay in
+    `plane/models/v2/*` as the bridge's `model`, but are not exported from
+    `plane.models.v2`.
   - **Bridge verbs copy the web app CTA.** Properties on a work item type:
     `link`/`unlink` (unlink deletes the property's values on every work item of the
     type). Members of anything else: `add`/`remove`. `workflows.states.attach` is a

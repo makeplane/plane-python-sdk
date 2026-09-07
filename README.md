@@ -299,10 +299,18 @@ client.v2.workspaces.projects.states.list("acme", "ENG", not_a_filter="x")
 ### What else is wired
 
 `releases.labels` sits on `workspaces` too (`client.v2.workspaces.releases.labels`)
-and, being both a catalog *and* a membership bridge, additionally exposes
-`add(release_id, ids)`/`remove(release_id, ids)` to attach/detach existing labels
-from a specific release — parent id first, then 1..100 ids; an empty list, or more
-than 100, raises `ValueError` before any request is sent.
+and, being both a catalog *and* a membership bridge, additionally exposes `add`/
+`remove` to attach/detach existing labels on a specific release. Both take every
+path id the bridge's own URL needs — the workspace slug, then the release id —
+ahead of 1..100 label ids to add/remove:
+
+```python
+client.v2.workspaces.releases.labels.add("acme", release.id, [label.id])
+client.v2.workspaces.releases.labels.remove("acme", release.id, [label.id])
+```
+
+An empty list, or more than 100 ids, raises `ValueError` before any request is
+sent.
 
 ### Errors
 
