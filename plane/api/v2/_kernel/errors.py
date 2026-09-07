@@ -82,3 +82,7 @@ class NoMatchFound(PlaneError):
 
 class MultipleMatchesFound(PlaneError):
     """An identity lookup matched more than one row."""
+
+
+class FieldNotRequested(AttributeError):
+    """Raised when reading a field that the request's `fields=` excluded."""
