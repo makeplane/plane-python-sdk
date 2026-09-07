@@ -7,6 +7,7 @@ directly."""
 from ...config import Configuration
 from ._kernel.errors import (
     FieldError,
+    FieldNotRequested,
     MissingPathId,
     MultipleMatchesFound,
     NoMatchFound,
@@ -77,6 +78,7 @@ __all__ = [
     "Cycles",
     "Estimates",
     "FieldError",
+    "FieldNotRequested",
     "GroupSync",
     "Initiatives",
     "Intakes",

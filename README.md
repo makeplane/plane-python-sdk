@@ -269,19 +269,22 @@ and every migrated resource with children will pick it up the same way.
 
 Every read field except `id` is optional at the model level, because `?fields=`
 and collection deferral can both omit any field the server would otherwise send.
-On a Loaded row, *reading* a field the request didn't ask for raises
+On a Loaded row, *reading* a field the response didn't carry raises
 `FieldNotRequested` instead of silently returning `None` — a `None` you get back is
 a real null, not a sign the data was never fetched:
 
 ```python
-from plane.api.v2._kernel.errors import FieldNotRequested
+from plane.api.v2 import FieldNotRequested
 
 p = client.v2.workspaces.projects.retrieve("acme", "ENG", fields=["id"])
 p.name          # raises FieldNotRequested -- "name" was not requested
-```
 
-(`FieldNotRequested` isn't re-exported from `plane.api.v2` yet, unlike the other
-v2 error types below — a follow-on task will fold it into the public export list.)
+# The same holds with no `fields=` at all: presence follows what the server
+# actually returned, so a row the collection route deferred fields on still
+# raises rather than handing back a `None` that looks like real data.
+row = client.v2.workspaces.projects.list("acme").data[0]
+row.description  # raises FieldNotRequested if the list route omitted it
+```
 
 ### Typing is not decorative
 
