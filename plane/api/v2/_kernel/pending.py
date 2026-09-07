@@ -32,6 +32,8 @@ class PendingMigration:
         self._reached_as = reached_as
 
     def __getattr__(self, name: str) -> Any:
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError(name)
         raise NotImplementedError(
             f"{self._resource} is not migrated to the flat v2 shape yet, so "
             f"`{self._reached_as}.{name}` cannot be used: its methods do not accept "

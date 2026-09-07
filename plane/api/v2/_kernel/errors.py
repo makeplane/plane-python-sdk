@@ -92,4 +92,9 @@ class MissingPathId(PlaneError):
 
 
 class FieldNotRequested(AttributeError):
-    """Raised when reading a field that the request's `fields=` excluded."""
+    """Raised when reading a field that the request's `fields=` excluded.
+
+    Subclasses `AttributeError` on purpose, so `hasattr` on a loaded row behaves
+    sensibly; one consequence is that `getattr(row, "name", None)` silently swallows
+    this and returns the default instead of propagating it -- access the attribute
+    directly where that would matter."""

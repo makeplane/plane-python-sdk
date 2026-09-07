@@ -32,7 +32,7 @@ class Loaded:
         cls,
         row: BaseModel,
         ids: tuple[Any, ...],
-        fields: Sequence[str] | None = None,
+        fields: Sequence[str] | str | None = None,
         names: tuple[str, ...] | None = None,
     ) -> Any:
         # Presence is what the *server returned*, never what the caller asked for.
@@ -42,9 +42,17 @@ class Loaded:
         # the response's own record of which keys actually arrived.
         returned = set(row.model_fields_set)
         if fields is not None:
+            # `fields=` accepts the same two forms `encode_fields` does: a sequence of
+            # names, or one comma-joined string (`"id,name"`). Left as a bare string,
+            # `set(fields)` would iterate it character by character instead of
+            # splitting it, marking every real field name absent.
+            if isinstance(fields, str):
+                requested = {part.strip() for part in fields.split(",") if part.strip()}
+            else:
+                requested = set(fields)
             # A caller that asked for fewer fields than the server sent still sees only
             # what it asked for; `id` is always available.
-            returned &= set(fields) | {"id"}
+            returned &= requested | {"id"}
         data = {key: value for key, value in row.model_dump().items() if key in returned}
         obj = cls.model_construct(**data)  # type: ignore[attr-defined]
         # `model_construct` back-fills declared defaults, so a field the server never

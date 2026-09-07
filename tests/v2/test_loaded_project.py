@@ -118,6 +118,28 @@ def test_list_with_fields_raises_on_an_unrequested_field_for_a_page_row(
 
 
 @responses.activate
+def test_retrieve_with_a_comma_joined_fields_string_reads_normally(
+    config: Configuration,
+) -> None:
+    """`fields="id,name"` is the same request as `fields=["id", "name"]`
+    (`encode_fields` accepts both); `Loaded.build` must normalise it the same way
+    instead of iterating the string character by character, which marked every
+    real field name absent."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/",
+        json={"id": "p1", "name": "Engineering"},
+    )
+
+    project = V2Namespace(config).workspaces.projects.retrieve(
+        "acme", "ENG", fields="id,name"  # type: ignore[arg-type]
+    )
+
+    assert project.name == "Engineering"
+    with pytest.raises(FieldNotRequested, match="identifier"):
+        _ = project.identifier
+
+
+@responses.activate
 def test_retrieve_with_fields_reads_a_requested_but_null_field_as_none(
     config: Configuration,
 ) -> None:
