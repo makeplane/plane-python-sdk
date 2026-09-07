@@ -4,6 +4,7 @@ import responses
 from plane.api.v2 import V2Namespace
 from plane.api.v2._kernel.errors import FieldNotRequested
 from plane.config import Configuration
+from plane.models.v2.projects import UpdateProject
 
 
 @responses.activate
@@ -128,3 +129,64 @@ def test_retrieve_with_fields_reads_a_requested_but_null_field_as_none(
     project = V2Namespace(config).workspaces.projects.retrieve("acme", "ENG", fields=["id", "name"])
 
     assert project.name is None
+
+
+# -- `iterate`/`update`/`upsert` must return navigable rows too, like `retrieve`/
+# `create`/`list` -- a caller who switches from `list` to `iterate` to page
+# through results must not silently lose navigation.
+
+
+@responses.activate
+def test_iterate_yields_navigable_rows(config: Configuration) -> None:
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/",
+        json={
+            "data": [{"id": "p1", "identifier": "ENG", "name": "Engineering"}],
+            "pagination": {"style": "offset"},
+        },
+    )
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    row = next(iter(V2Namespace(config).workspaces.projects.iterate("acme")))
+    row.states.list()
+
+    assert responses.calls[-1].request.url.endswith("/projects/ENG/states/")
+
+
+@responses.activate
+def test_iterate_with_fields_raises_on_an_unrequested_field(config: Configuration) -> None:
+    """The generator must not materialise the whole page eagerly to forward
+    `fields` -- exercised here by only ever serving one page."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/",
+        json={"data": [{"id": "p1"}], "pagination": {"style": "offset"}},
+    )
+
+    row = next(iter(V2Namespace(config).workspaces.projects.iterate("acme", fields=["id"])))
+
+    assert len(row._present) == 1
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = row.name
+
+
+@responses.activate
+def test_update_returns_a_navigable_row(config: Configuration) -> None:
+    responses.patch(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/",
+        json={"id": "p1", "identifier": "ENG", "name": "Eng Team"},
+    )
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/labels/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    project = V2Namespace(config).workspaces.projects.update(
+        "acme", "ENG", UpdateProject(name="Eng Team")
+    )
+    project.labels.list()
+
+    assert project.name == "Eng Team"
+    assert responses.calls[-1].request.url.endswith("/projects/ENG/labels/")

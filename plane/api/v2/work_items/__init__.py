@@ -119,13 +119,14 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
         expand: Sequence[str] | None = None,
         order_by: WorkItemsListOrderBy | None = None,
         **filters: Unpack[WorkItemsListFilters],
-    ) -> Iterator[WorkItem]:
+    ) -> Iterator[LoadedWorkItem]:
         """Every work item in this project, following pages automatically."""
-        return self._iter(
+        rows = self._iter(
             params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
             slug=slug,
             project_id=project,
         )
+        return (self._load(row, slug, project, fields) for row in rows)
 
     def retrieve(
         self,
@@ -171,14 +172,15 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
         *,
         fields: Sequence[WorkItemsPartialUpdateField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> WorkItem:
-        return self._update(
+    ) -> LoadedWorkItem:
+        row = self._update(
             data,
             pk=work_item_id,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
         )
+        return self._load(row, slug, project, fields)
 
     def delete(self, slug: str, project: str, work_item_id: str) -> None:
         return self._delete(pk=work_item_id, slug=slug, project_id=project)
@@ -191,11 +193,12 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
         *,
         fields: Sequence[WorkItemsUpsertField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> WorkItem:
+    ) -> LoadedWorkItem:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(
+        row = self._upsert(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields)
 
     def bulk_create(
         self,

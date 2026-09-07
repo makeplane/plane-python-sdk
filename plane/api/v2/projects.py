@@ -94,12 +94,13 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
         expand: Sequence[str] | None = None,
         order_by: ProjectsListOrderBy | None = None,
         **filters: Unpack[ProjectsListFilters],
-    ) -> Iterator[Project]:
+    ) -> Iterator[LoadedProject]:
         """Every project in the workspace, following pages automatically."""
-        return self._iter(
+        rows = self._iter(
             params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
             slug=slug,
         )
+        return (self._load(row, slug, fields) for row in rows)
 
     def retrieve(
         self,
@@ -138,11 +139,10 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
         *,
         fields: Sequence[ProjectsPartialUpdateField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Project:
+    ) -> LoadedProject:
         """`project` accepts a UUID or its bare identifier (e.g. `"ENG"`)."""
-        return self._update(
-            data, pk=project, params={"fields": fields, "expand": expand}, slug=slug
-        )
+        row = self._update(data, pk=project, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug, fields)
 
     def delete(self, slug: str, project: str) -> None:
         """`project` accepts a UUID or its bare identifier (e.g. `"ENG"`).
@@ -157,9 +157,10 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
         *,
         fields: Sequence[ProjectsUpsertField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Project:
+    ) -> LoadedProject:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(data, params={"fields": fields, "expand": expand}, slug=slug)
+        row = self._upsert(data, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug, fields)
 
     def bulk_create(
         self,

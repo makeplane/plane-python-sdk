@@ -8,8 +8,9 @@ WS = "https://api.example.com/api/v2/workspaces/acme"
 
 @responses.activate
 def test_grouping_node_consumes_no_id(config: Configuration) -> None:
-    responses.get(f"{WS}/pages/", json={"data": [], "pagination": {"style": "offset"},
-                                        "total_count": 0})
+    responses.get(
+        f"{WS}/pages/", json={"data": [], "pagination": {"style": "offset"}, "total_count": 0}
+    )
 
     V2Namespace(config).workspaces.wiki.pages.list("acme")
 
@@ -18,7 +19,7 @@ def test_grouping_node_consumes_no_id(config: Configuration) -> None:
 
 @responses.activate
 def test_singleton_has_no_pk(config: Configuration) -> None:
-    responses.get(f"{WS}/features/", json={"is_project_grouping_enabled": True})
+    responses.get(f"{WS}/features/", json={"id": "f1", "is_project_grouping_enabled": True})
 
     features = V2Namespace(config).workspaces.features.get("acme")
 
@@ -37,8 +38,10 @@ def test_bridge_uses_its_override_template(config: Configuration) -> None:
 
 @responses.activate
 def test_catalog_list_uses_the_primary_template(config: Configuration) -> None:
-    responses.get(f"{WS}/releases/labels/", json={"data": [], "pagination": {"style": "offset"},
-                                                  "total_count": 0})
+    responses.get(
+        f"{WS}/releases/labels/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
 
     V2Namespace(config).workspaces.releases.labels.list("acme")
 

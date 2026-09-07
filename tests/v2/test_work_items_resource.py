@@ -330,6 +330,59 @@ def test_retrieve_with_fields_reads_a_requested_but_null_field_as_none(
     assert row.name is None
 
 
+# -- `iterate`/`update`/`upsert` must return navigable rows too, like `retrieve`/
+# `create`/`list` -- a caller who switches from `list` to `iterate` to page
+# through results must not silently lose navigation.
+
+
+@responses.activate
+def test_iterate_yields_navigable_rows(work_items: WorkItems) -> None:
+    responses.get(
+        f"{BASE}/",
+        json={"data": [{"id": "wi-1"}], "pagination": {"style": "offset"}},
+    )
+    responses.get(
+        f"{BASE}/wi-1/comments/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    row = next(iter(work_items.iterate("acme", "ENG")))
+    row.comments.list()
+
+    assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
+
+
+@responses.activate
+def test_iterate_with_fields_raises_on_an_unrequested_field(work_items: WorkItems) -> None:
+    """The generator must not materialise the whole page eagerly to forward
+    `fields` -- exercised here by only ever serving one page."""
+    responses.get(
+        f"{BASE}/",
+        json={"data": [{"id": "wi-1"}], "pagination": {"style": "offset"}},
+    )
+
+    row = next(iter(work_items.iterate("acme", "ENG", fields=["id"])))
+
+    assert len(row._present) == 1
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = row.name
+
+
+@responses.activate
+def test_update_returns_a_navigable_row(work_items: WorkItems) -> None:
+    responses.patch(f"{BASE}/wi-1/", json={"id": "wi-1", "name": "Renamed"})
+    responses.get(
+        f"{BASE}/wi-1/comments/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    row = work_items.update("acme", "ENG", "wi-1", UpdateWorkItem(name="Renamed"))
+    row.comments.list()
+
+    assert row.name == "Renamed"
+    assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
+
+
 # -- Signpost: coverage dropped pending migration, not silently lost --------------
 
 
