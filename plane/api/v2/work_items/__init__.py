@@ -1,18 +1,35 @@
 """Work items (api_v2) -- the hardest, and largest, api_v2 resource family.
 Project-scoped, with `archive`/`unarchive` plus nested `.comments`/`.attachments`/
-`.links`/`.worklogs`/`.activities`/`.relations`/`.dependencies`."""
+`.links`/`.worklogs`/`.activities`/`.relations`/`.dependencies`.
+
+A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as
+a `LoadedWorkItem`: it carries the row's data and can reach `.comments` without
+the caller repeating `slug`/`project`/`work_item`."""
 
 from __future__ import annotations
 
 import builtins
 from collections.abc import Iterator, Mapping, Sequence
-from typing import Any
 
-from ....models.v2.common import BulkWriteResponse
+from typing_extensions import Unpack
+
+from ....models.v2.common import BulkWriteResponse, CursorPage, OffsetPage
 from ....models.v2.work_items import CreateWorkItem, UpdateWorkItem, WorkItem
+from .._generated.constants import (
+    WorkItemsArchiveField,
+    WorkItemsCreateField,
+    WorkItemsListField,
+    WorkItemsListFilters,
+    WorkItemsListOrderBy,
+    WorkItemsPartialUpdateField,
+    WorkItemsRetrieveField,
+    WorkItemsUnarchiveField,
+    WorkItemsUpsertField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
+from .._loaded.work_item import LoadedWorkItem
 from .activities import WorkItemActivities
 from .attachments import WorkItemAttachments
 from .comments import WorkItemComments
@@ -52,105 +69,226 @@ class WorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
         "bulk_delete": "work_items_bulk_delete",
     }
 
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        super().__init__(transport, **scope)
-        self.comments = WorkItemComments(transport, **self._scope)
-        self.attachments = WorkItemAttachments(transport, **self._scope)
-        self.links = WorkItemLinks(transport, **self._scope)
-        self.worklogs = WorkItemWorklogs(transport, **self._scope)
-        self.activities = WorkItemActivities(transport, **self._scope)
-        self.relations = WorkItemRelations(transport, **self._scope)
-        self.dependencies = WorkItemDependencies(transport, **self._scope)
+    def __init__(self, transport: V2Transport) -> None:
+        super().__init__(transport)
+        self.comments = WorkItemComments(transport)
+        self.attachments = WorkItemAttachments(transport)
+        self.links = WorkItemLinks(transport)
+        self.worklogs = WorkItemWorklogs(transport)
+        self.activities = WorkItemActivities(transport)
+        self.relations = WorkItemRelations(transport)
+        self.dependencies = WorkItemDependencies(transport)
 
     # -- CRUD ---------------------------------------------------------------
 
     def list(
         self,
+        slug: str,
+        project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkItemsListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
-    ) -> Page[WorkItem]:
+        order_by: WorkItemsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[WorkItemsListFilters],
+    ) -> Page[LoadedWorkItem]:
         """One page of work items in this project.
 
         `**filters` covers `state_id`, `priority`, `assignee_id__in`, `state_group`, `search`."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        page = self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+        )
+        return self._load_page(page, slug, project)
 
     def iterate(
         self,
+        slug: str,
+        project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkItemsListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorkItemsListOrderBy | None = None,
+        **filters: Unpack[WorkItemsListFilters],
     ) -> Iterator[WorkItem]:
         """Every work item in this project, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+        )
 
     def retrieve(
         self,
+        slug: str,
+        project: str,
         work_item_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkItemsRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> WorkItem:
+    ) -> LoadedWorkItem:
         """Fetch by UUID. Prefer `ws.work_items.retrieve_by_identifier` when you
         have the human-readable key (e.g. `"ENG-12"`) instead."""
-        return self._retrieve(pk=work_item_id, params={"fields": fields, "expand": expand})
+        row = self._retrieve(
+            pk=work_item_id,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+        )
+        return self._load(row, slug, project)
 
-    def create(self, data: CreateWorkItem) -> WorkItem:
+    def create(
+        self,
+        slug: str,
+        project: str,
+        data: CreateWorkItem,
+        *,
+        fields: Sequence[WorkItemsCreateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> LoadedWorkItem:
         """Create a work item. Prefer readable fields over ids where you have them
         (e.g. `CreateWorkItem(name=..., state="Todo", labels=["bug"])`)."""
-        return self._create(data)
+        row = self._create(
+            data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+        )
+        return self._load(row, slug, project)
 
-    def update(self, work_item_id: str, data: UpdateWorkItem) -> WorkItem:
-        return self._update(data, pk=work_item_id)
+    def update(
+        self,
+        slug: str,
+        project: str,
+        work_item_id: str,
+        data: UpdateWorkItem,
+        *,
+        fields: Sequence[WorkItemsPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> WorkItem:
+        return self._update(
+            data,
+            pk=work_item_id,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+        )
 
-    def delete(self, work_item_id: str) -> None:
-        return self._delete(pk=work_item_id)
+    def delete(self, slug: str, project: str, work_item_id: str) -> None:
+        return self._delete(pk=work_item_id, slug=slug, project_id=project)
 
-    def upsert(self, data: CreateWorkItem) -> WorkItem:
+    def upsert(
+        self,
+        slug: str,
+        project: str,
+        data: CreateWorkItem,
+        *,
+        fields: Sequence[WorkItemsUpsertField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> WorkItem:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(data)
+        return self._upsert(
+            data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+        )
 
     def bulk_create(
-        self, items: builtins.list[CreateWorkItem], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        items: builtins.list[CreateWorkItem],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
-        return self._bulk_create(items, all_or_none=all_or_none)
+        return self._bulk_create(items, all_or_none=all_or_none, slug=slug, project_id=project)
 
     def bulk_update(
-        self, items: builtins.list[Mapping[str, Any]], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        items: builtins.list[Mapping[str, object]],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
         """Each item is `{"id": <uuid>, ...fields to change}`."""
-        return self._bulk_update(items, all_or_none=all_or_none)
+        return self._bulk_update(items, all_or_none=all_or_none, slug=slug, project_id=project)
 
     def bulk_delete(
-        self, ids: builtins.list[str], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        ids: builtins.list[str],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
-        return self._bulk_delete(ids, all_or_none=all_or_none)
+        return self._bulk_delete(ids, all_or_none=all_or_none, slug=slug, project_id=project)
 
     # -- Custom verb actions ------------------------------------------------------
 
     def archive(
         self,
+        slug: str,
+        project: str,
         work_item_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkItemsArchiveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> WorkItem:
         """Archive a work item, returning it. Only work items in a completed or
         cancelled state can be archived (server-enforced)."""
         return self._action(
-            "archive", pk=work_item_id, params={"fields": fields, "expand": expand}
+            "archive",
+            pk=work_item_id,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
         )
 
     def unarchive(
         self,
+        slug: str,
+        project: str,
         work_item_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkItemsUnarchiveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> WorkItem:
         """Restore an archived work item to active status, returning it."""
         return self._action(
-            "unarchive", pk=work_item_id, params={"fields": fields, "expand": expand}
+            "unarchive",
+            pk=work_item_id,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+        )
+
+    # -- Navigation -----------------------------------------------------------------
+
+    def _load(self, row: WorkItem, slug: str, project: str) -> LoadedWorkItem:
+        loaded: LoadedWorkItem = LoadedWorkItem.build(
+            row, ids=(slug, project, row.id), names=("slug", "project", "work_item")
+        )
+        object.__setattr__(loaded, "_resources", self)
+        return loaded
+
+    def _load_page(self, page: Page[WorkItem], slug: str, project: str) -> Page[LoadedWorkItem]:
+        rows = [self._load(row, slug, project) for row in page.data]
+        if isinstance(page, CursorPage):
+            return CursorPage[LoadedWorkItem](
+                data=rows,
+                pagination=page.pagination,
+                has_more=page.has_more,
+                next_cursor=page.next_cursor,
+            )
+        return OffsetPage[LoadedWorkItem](
+            data=rows,
+            pagination=page.pagination,
+            next=page.next,
+            previous=page.previous,
+            total_count=page.total_count,
         )

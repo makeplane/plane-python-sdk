@@ -31,6 +31,7 @@ from ._kernel.transport import V2Transport
 from ._loaded.project import LoadedProject
 from .labels import Labels
 from .states import States
+from .work_items import WorkItems
 
 
 class Projects(V2Resource[Project, CreateProject, UpdateProject]):
@@ -58,6 +59,7 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
         super().__init__(transport)
         self.states = States(transport)
         self.labels = Labels(transport)
+        self.work_items = WorkItems(transport)
 
     def list(
         self,
