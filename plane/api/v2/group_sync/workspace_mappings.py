@@ -56,7 +56,9 @@ class GroupSyncWorkspaceMappings(
     def create(self, data: CreateWorkspaceGroupMapping) -> WorkspaceGroupMapping:
         return self._create(data)
 
-    def update(self, mapping_id: str, data: UpdateWorkspaceGroupMapping) -> WorkspaceGroupMapping:
+    def update(
+        self, mapping_id: str, data: UpdateWorkspaceGroupMapping
+    ) -> WorkspaceGroupMapping:
         return self._update(data, pk=mapping_id)
 
     def delete(self, mapping_id: str) -> None:

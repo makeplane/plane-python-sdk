@@ -50,7 +50,9 @@ class ProjectAutomations(V2Resource[Automation, CreateAutomation, UpdateAutomati
         self.nodes = ProjectAutomationNodes(transport, **self._scope)
         self.activities = ProjectAutomationActivities(transport, **self._scope)
 
-    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[Automation]:
+    def list(
+        self, *, fields: Sequence[str] | None = None, **filters: Any
+    ) -> Page[Automation]:
         """One page of automations in this project.
 
         `**filters` covers `is_enabled`, `is_global`, `name`, `scope`, `status`, `search`."""
@@ -62,7 +64,9 @@ class ProjectAutomations(V2Resource[Automation, CreateAutomation, UpdateAutomati
         """Every automation in this project, following pages automatically."""
         return self._iter(params={"fields": fields, **filters})
 
-    def retrieve(self, automation_id: str, *, fields: Sequence[str] | None = None) -> Automation:
+    def retrieve(
+        self, automation_id: str, *, fields: Sequence[str] | None = None
+    ) -> Automation:
         return self._retrieve(pk=automation_id, params={"fields": fields})
 
     def find_by_name(self, name: str) -> Automation:
@@ -108,7 +112,9 @@ class WorkspaceAutomations(V2Resource[Automation, CreateAutomation, UpdateAutoma
         self.nodes = WorkspaceAutomationNodes(transport, **self._scope)
         self.activities = WorkspaceAutomationActivities(transport, **self._scope)
 
-    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[Automation]:
+    def list(
+        self, *, fields: Sequence[str] | None = None, **filters: Any
+    ) -> Page[Automation]:
         """One page of workspace-level (global, not-project-tied) automations."""
         return self._list(params={"fields": fields, **filters})
 
@@ -118,7 +124,9 @@ class WorkspaceAutomations(V2Resource[Automation, CreateAutomation, UpdateAutoma
         """Every workspace-level automation, following pages automatically."""
         return self._iter(params={"fields": fields, **filters})
 
-    def retrieve(self, automation_id: str, *, fields: Sequence[str] | None = None) -> Automation:
+    def retrieve(
+        self, automation_id: str, *, fields: Sequence[str] | None = None
+    ) -> Automation:
         return self._retrieve(pk=automation_id, params={"fields": fields})
 
     def find_by_name(self, name: str) -> Automation:
@@ -144,3 +152,4 @@ class WorkspaceAutomations(V2Resource[Automation, CreateAutomation, UpdateAutoma
             json=data.model_dump(mode="json", exclude_none=True),
         )
         return None
+

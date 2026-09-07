@@ -47,7 +47,9 @@ class WorkItemTypes(V2Resource[WorkItemType, CreateWorkItemType, UpdateWorkItemT
         super().__init__(transport, **scope)
         self.properties = WorkItemTypeProperties(transport, **self._scope)
 
-    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[WorkItemType]:
+    def list(
+        self, *, fields: Sequence[str] | None = None, **filters: Any
+    ) -> Page[WorkItemType]:
         """One page of work item types in this project."""
         return self._list(params={"fields": fields, **filters})
 
@@ -57,7 +59,9 @@ class WorkItemTypes(V2Resource[WorkItemType, CreateWorkItemType, UpdateWorkItemT
         """Every work item type in this project, following pages automatically."""
         return self._iter(params={"fields": fields, **filters})
 
-    def retrieve(self, type_id: str, *, fields: Sequence[str] | None = None) -> WorkItemType:
+    def retrieve(
+        self, type_id: str, *, fields: Sequence[str] | None = None
+    ) -> WorkItemType:
         return self._retrieve(pk=type_id, params={"fields": fields})
 
     def find_by_name(self, name: str) -> WorkItemType:
@@ -95,7 +99,9 @@ class WorkItemTypes(V2Resource[WorkItemType, CreateWorkItemType, UpdateWorkItemT
         )
         return None
 
-    def mark_default(self, type_id: str, *, fields: Sequence[str] | None = None) -> WorkItemType:
+    def mark_default(
+        self, type_id: str, *, fields: Sequence[str] | None = None
+    ) -> WorkItemType:
         """Make this the project's default work item type for new work items."""
         return self._action("mark-default", pk=type_id, params={"fields": fields})
 
@@ -125,7 +131,9 @@ class WorkspaceWorkItemTypes(V2Resource[WorkItemType, CreateWorkItemType, Update
         super().__init__(transport, **scope)
         self.properties = WorkspaceWorkItemTypeProperties(transport, **self._scope)
 
-    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[WorkItemType]:
+    def list(
+        self, *, fields: Sequence[str] | None = None, **filters: Any
+    ) -> Page[WorkItemType]:
         """One page of work item types across the whole workspace."""
         return self._list(params={"fields": fields, **filters})
 
@@ -151,6 +159,8 @@ class WorkspaceWorkItemTypes(V2Resource[WorkItemType, CreateWorkItemType, Update
     def delete(self, type_id: str) -> None:
         return self._delete(pk=type_id)
 
-    def mark_default(self, type_id: str, *, fields: Sequence[str] | None = None) -> WorkItemType:
+    def mark_default(
+        self, type_id: str, *, fields: Sequence[str] | None = None
+    ) -> WorkItemType:
         """Make this the workspace's default work item type."""
         return self._action("mark-default", pk=type_id, params={"fields": fields})

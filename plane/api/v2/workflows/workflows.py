@@ -32,11 +32,15 @@ class Workflows(V2Resource[Workflow, CreateWorkflow, UpdateWorkflow]):
         self.states = WorkflowStates(transport, **self._scope)
         self.transitions = WorkflowTransitions(transport, **self._scope)
 
-    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[Workflow]:
+    def list(
+        self, *, fields: Sequence[str] | None = None, **filters: Any
+    ) -> Page[Workflow]:
         """One page of workflows in this project."""
         return self._list(params={"fields": fields, **filters})
 
-    def iterate(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Iterator[Workflow]:
+    def iterate(
+        self, *, fields: Sequence[str] | None = None, **filters: Any
+    ) -> Iterator[Workflow]:
         """Every workflow in this project, following pages automatically."""
         return self._iter(params={"fields": fields, **filters})
 

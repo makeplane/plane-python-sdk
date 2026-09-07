@@ -21,7 +21,9 @@ class WorkItemRelations(
 
     def list(self, work_item_id: str) -> WorkItemRelationList:
         """Every related work item id, grouped by relation-definition direction."""
-        payload = self.transport.request("GET", self._collection_url(work_item_id=work_item_id))
+        payload = self.transport.request(
+            "GET", self._collection_url(work_item_id=work_item_id)
+        )
         return self.model.model_validate(payload)
 
     def create(self, work_item_id: str, data: WorkItemRelationCreate) -> WorkItemRelationList:
