@@ -10,9 +10,27 @@ HEADER_TEMPLATE = '''\
 """Generated from the api_v2 OpenAPI golden (version {api_version}) -- never hand-edited.
 Source: {source_dir}
 Regenerate: python scripts/generate_v2_constants.py <path-to>/api_v2/core/schema/openapi"""
+
+from typing import Literal
 '''
 
 LINE_LENGTH = 100
+
+
+def _camel(operation_id: str) -> str:
+    """`states_list` -> `StatesList`."""
+    return "".join(part.title() for part in operation_id.split("_"))
+
+
+def _literal_aliases(fields: dict[str, list[str]], order_by: dict[str, list[str]]) -> str:
+    lines: list[str] = []
+    for operation_id in sorted(fields):
+        values = ", ".join(json.dumps(value) for value in sorted(fields[operation_id]))
+        lines.append(f"{_camel(operation_id)}Field = Literal[{values}]")
+    for operation_id in sorted(order_by):
+        values = ", ".join(json.dumps(value) for value in sorted(order_by[operation_id]))
+        lines.append(f"{_camel(operation_id)}OrderBy = Literal[{values}]")
+    return "\n".join(lines)
 
 
 def _format(source: str) -> str:
@@ -124,7 +142,9 @@ def main(openapi_dir: str) -> None:
     for operation_id, values in sorted(expand.items()):
         lines.append(f"    {operation_id!r}: frozenset({values!r}),\n")
     lines.append("}\n\n")
-    lines.append(f"ERROR_CODES: frozenset[str] = frozenset({codes!r})\n")
+    lines.append(f"ERROR_CODES: frozenset[str] = frozenset({codes!r})\n\n")
+    lines.append(_literal_aliases(fields, order_by))
+    lines.append("\n")
 
     content = _format("".join(lines))
 
