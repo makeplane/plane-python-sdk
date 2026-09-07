@@ -84,5 +84,12 @@ class MultipleMatchesFound(PlaneError):
     """An identity lookup matched more than one row."""
 
 
+class MissingPathId(PlaneError):
+    """A resource method was called without one of the path ids its URL needs.
+
+    Raised instead of the bare `KeyError` that `str.format_map` would otherwise
+    produce, which named the template key and nothing else."""
+
+
 class FieldNotRequested(AttributeError):
     """Raised when reading a field that the request's `fields=` excluded."""

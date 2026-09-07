@@ -5,7 +5,13 @@ plain attribute, reached by attribute access, never a chain of locator calls.
 directly."""
 
 from ...config import Configuration
-from ._kernel.errors import FieldError, MultipleMatchesFound, NoMatchFound, PlaneAPIError
+from ._kernel.errors import (
+    FieldError,
+    MissingPathId,
+    MultipleMatchesFound,
+    NoMatchFound,
+    PlaneAPIError,
+)
 from ._kernel.transport import V2Transport
 from .artifacts import Artifacts
 from .assets import UserAssets, WorkspaceAssets
@@ -77,6 +83,7 @@ __all__ = [
     "Invitations",
     "Labels",
     "Milestones",
+    "MissingPathId",
     "Modules",
     "MultipleMatchesFound",
     "NoMatchFound",

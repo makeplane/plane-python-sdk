@@ -1,5 +1,6 @@
 import pytest
 
+from plane.api.v2._kernel.errors import MissingPathId
 from plane.api.v2._kernel.resource import V2Resource
 from plane.api.v2._kernel.transport import V2Transport
 from plane.config import Configuration
@@ -10,6 +11,11 @@ class _Probe(V2Resource[State, State, State]):
     path = "/workspaces/{slug}/projects/{project_id}/states/"
     model = State
     operations = {"list": "states_list"}
+
+    def list(self, slug: str, project: str | None = None) -> object:
+        """Deliberately lets `project` be omitted, to reach the kernel with a path
+        id missing the way an unmigrated resource does."""
+        return self._list(slug=slug, **({} if project is None else {"project_id": project}))
 
 
 @pytest.fixture
@@ -27,8 +33,22 @@ def test_collection_url_comes_only_from_call_arguments(probe: _Probe) -> None:
     assert url == "/workspaces/acme/projects/ENG/states/"
 
 
-def test_missing_path_parameter_is_a_clear_error(probe: _Probe) -> None:
-    with pytest.raises(KeyError, match="project_id"):
+def test_missing_path_parameter_names_the_resource_method_and_template(probe: _Probe) -> None:
+    """`str.format_map` would raise a bare `KeyError('project_id')`. That is the
+    first failure most callers hit -- a leading id forgotten on the flat path, or a
+    resource whose flat migration is still pending -- so it is wrapped."""
+    with pytest.raises(MissingPathId) as raised:
+        probe.list("acme")
+
+    message = str(raised.value)
+    assert "_Probe.list()" in message
+    assert "'project_id'" in message
+    assert "/workspaces/{slug}/projects/{project_id}/states/" in message
+    assert "ids supplied: slug" in message
+
+
+def test_missing_path_parameter_is_raised_from_url_building_too(probe: _Probe) -> None:
+    with pytest.raises(MissingPathId, match="project_id"):
         probe._collection_url(slug="acme")
 
 

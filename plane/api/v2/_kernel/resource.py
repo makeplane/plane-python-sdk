@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from ....models.v2.common import BulkWriteResponse
 from .._generated.constants import BULK_MAX_ITEMS, EXPAND, FIELDS, ORDER_BY
-from .errors import MultipleMatchesFound, NoMatchFound
+from .errors import MissingPathId, MultipleMatchesFound, NoMatchFound
 from .pagination import Page, iterate, parse_page
 from .transport import V2Transport
 
@@ -77,12 +77,28 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         self.transport = transport
 
     # URL + params
-    def _format_path(self, template: str, **path_params: Any) -> str:
+    def _format_path(self, template: str, action: str, /, **path_params: Any) -> str:
         """Fill `template` from `path_params`, percent-encoding each value; `safe=""`
-        stops a value from injecting extra URL segments."""
-        return template.format_map(
-            {key: quote(str(value), safe="") for key, value in path_params.items()}
-        )
+        stops a value from injecting extra URL segments.
+
+        A path id the call never supplied is the first failure most callers hit --
+        reaching a resource whose flat migration is still pending, or forgetting a
+        leading id on the flat path. `str.format_map` would report that as a bare
+        `KeyError('project_id')`, naming the template key and nothing else, so it is
+        re-raised as `MissingPathId` naming the resource, the method, the template,
+        the id that is missing and the ids that were supplied."""
+        try:
+            return template.format_map(
+                {key: quote(str(value), safe="") for key, value in path_params.items()}
+            )
+        except KeyError as missing:
+            name = missing.args[0]
+            supplied = ", ".join(sorted(path_params)) or "none"
+            raise MissingPathId(
+                f"{type(self).__name__}.{action}() needs the path id {name!r}, which "
+                f"was not supplied. The URL template is {template!r}; ids supplied: "
+                f"{supplied}. Pass every path id the template names, in path order."
+            ) from None
 
     def url_for(self, method: str, **path_params: Any) -> str:
         """The URL for `method`: its override template if it declares one, else `path`.
@@ -97,14 +113,17 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
                 'overrides). Set `extra_paths = {"add": "...", "remove": "..."}` '
                 "instead."
             )
-        return self._format_path(self.extra_paths.get(method, self.path), **path_params)
+        return self._format_path(self.extra_paths.get(method, self.path), method, **path_params)
 
-    def _collection_url(self, **path_params: Any) -> str:
-        """Build the collection URL, percent-encoding every path param."""
-        return self._format_path(self.path, **path_params)
+    def _collection_url(self, action: str = "<call>", /, **path_params: Any) -> str:
+        """Build the collection URL, percent-encoding every path param.
 
-    def _detail_url(self, pk: Any, **path_params: Any) -> str:
-        base = self._collection_url(**path_params)
+        `action` is the calling method's name; it is positional-only so it can never
+        collide with a path param, and only feeds the `MissingPathId` message."""
+        return self._format_path(self.path, action, **path_params)
+
+    def _detail_url(self, pk: Any, action: str = "<call>", /, **path_params: Any) -> str:
+        base = self._collection_url(action, **path_params)
         return f"{base}{quote(str(pk), safe='')}/"
 
     def _query(self, params: Mapping[str, Any] | None, *, action: str) -> dict[str, Any]:
@@ -158,7 +177,7 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     def _list(self, *, params: Mapping[str, Any] | None = None, **path_params: Any) -> Page[TRead]:
         payload = self.transport.request(
             "GET",
-            self._collection_url(**path_params),
+            self._collection_url("list", **path_params),
             params=self._query(params, action="list"),
         )
         return parse_page(payload, self.model)  # type: ignore[arg-type]
@@ -166,7 +185,7 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     def _iter(
         self, *, params: Mapping[str, Any] | None = None, **path_params: Any
     ) -> Iterator[TRead]:
-        url = self._collection_url(**path_params)
+        url = self._collection_url("iterate", **path_params)
 
         def fetch(query: dict[str, Any]) -> Page[TRead]:
             payload = self.transport.request("GET", url, params=query)
@@ -179,7 +198,7 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     ) -> TRead:
         payload = self.transport.request(
             "GET",
-            self._detail_url(pk, **path_params),
+            self._detail_url(pk, "retrieve", **path_params),
             params=self._query(params, action="retrieve"),
         )
         return self.model.model_validate(payload)  # type: ignore[return-value]
@@ -189,7 +208,7 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     ) -> TRead:
         payload = self.transport.request(
             "POST",
-            self._collection_url(**path_params),
+            self._collection_url("create", **path_params),
             params=self._query(params, action="create"),
             json=data.model_dump(mode="json", exclude_none=True),
         )
@@ -200,14 +219,14 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
     ) -> TRead:
         payload = self.transport.request(
             "PATCH",
-            self._detail_url(pk, **path_params),
+            self._detail_url(pk, "update", **path_params),
             params=self._query(params, action="update"),
             json=data.model_dump(mode="json", exclude_none=True),
         )
         return self.model.model_validate(payload)  # type: ignore[return-value]
 
     def _delete(self, *, pk: Any, **path_params: Any) -> None:
-        self.transport.request("DELETE", self._detail_url(pk, **path_params))
+        self.transport.request("DELETE", self._detail_url(pk, "delete", **path_params))
         return None
 
     def _upsert(
@@ -216,7 +235,7 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         """Create, or reconcile an existing row on (external_source, external_id)."""
         payload = self.transport.request(
             "POST",
-            f"{self._collection_url(**path_params)}upsert/",
+            f"{self._collection_url('upsert', **path_params)}upsert/",
             params=self._query(params, action="upsert"),
             json=data.model_dump(mode="json", exclude_none=True),
         )
@@ -235,7 +254,7 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         row as `model`; `name` also keys `operations` for `fields`/`expand` validation."""
         payload = self.transport.request(
             "POST",
-            f"{self._detail_url(pk, **path_params)}{name}/",
+            f"{self._detail_url(pk, name, **path_params)}{name}/",
             params=self._query(params, action=name),
             json=data.model_dump(mode="json", exclude_none=True) if data is not None else None,
         )
@@ -243,7 +262,7 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
 
     def _batch(self, action: str, body: dict[str, Any], **path_params: Any) -> BulkWriteResponse:
         payload = self.transport.request(
-            "POST", f"{self._collection_url(**path_params)}{action}/", json=body
+            "POST", f"{self._collection_url(action, **path_params)}{action}/", json=body
         )
         return BulkWriteResponse.model_validate(payload)
 
