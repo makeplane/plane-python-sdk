@@ -254,16 +254,20 @@ class WorkItems(
         *,
         fields: Sequence[WorkItemsArchiveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> WorkItem:
+    ) -> LoadedWorkItem:
         """Archive a work item, returning it. Only work items in a completed or
-        cancelled state can be archived (server-enforced)."""
-        return self._action(
+        cancelled state can be archived (server-enforced).
+
+        Returns a loaded row, like every other method here that answers with a work
+        item -- an archived row still navigates to its own children."""
+        row = self._action(
             "archive",
             pk=work_item_id,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
         )
+        return self._load(row, slug, project, fields=fields)
 
     def unarchive(
         self,
@@ -273,12 +277,13 @@ class WorkItems(
         *,
         fields: Sequence[WorkItemsUnarchiveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> WorkItem:
+    ) -> LoadedWorkItem:
         """Restore an archived work item to active status, returning it."""
-        return self._action(
+        row = self._action(
             "unarchive",
             pk=work_item_id,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
         )
+        return self._load(row, slug, project, fields=fields)

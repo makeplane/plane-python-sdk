@@ -122,9 +122,13 @@ class Projects(
         row = self._retrieve(pk=project, params={"fields": fields, "expand": expand}, slug=slug)
         return self._load(row, slug, fields=fields)
 
-    def find_by_name(self, slug: str, name: str) -> Project:
-        """The one project with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name}, slug=slug)
+    def find_by_name(self, slug: str, name: str) -> LoadedProject:
+        """The one project with this name; raises if none or several match.
+
+        Returns the same loaded row `retrieve` does -- a lookup that hands back a
+        plain model would silently drop `.states`/`.labels`/`.work_items`."""
+        row = self._find_one(filters={"name": name}, slug=slug)
+        return self._load(row, slug)
 
     def create(
         self,

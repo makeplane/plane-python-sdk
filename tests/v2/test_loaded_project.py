@@ -253,3 +253,24 @@ def test_a_field_the_server_returned_but_the_caller_narrowed_away_stays_hidden(
     assert project._present == frozenset({"id", "identifier"})
     with pytest.raises(FieldNotRequested, match="name"):
         _ = project.name
+
+
+@responses.activate
+def test_find_by_name_returns_a_navigable_row(config: Configuration) -> None:
+    """A lookup that answered with a plain `Project` silently dropped navigation."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/",
+        json={
+            "data": [{"id": "p1", "identifier": "ENG", "name": "Engineering"}],
+            "pagination": {"style": "offset"},
+        },
+    )
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/states/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    project = V2Namespace(config).workspaces.projects.find_by_name("acme", "Engineering")
+    project.states.list()
+
+    assert responses.calls[-1].request.url.endswith("/projects/ENG/states/")

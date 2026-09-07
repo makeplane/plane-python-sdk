@@ -450,3 +450,36 @@ def test_a_field_the_server_returned_but_the_caller_narrowed_away_stays_hidden(
     assert row._present == frozenset({"id"})
     with pytest.raises(FieldNotRequested, match="name"):
         _ = row.name
+
+
+# -- Every method answering with a row of a navigable type returns the loaded form --
+
+
+@responses.activate
+def test_archive_returns_a_navigable_row(work_items: WorkItems) -> None:
+    responses.post(
+        f"{BASE}/wi-1/archive/", json={"id": "wi-1", "archived_at": "2026-01-01T00:00:00Z"}
+    )
+    responses.get(
+        f"{BASE}/wi-1/comments/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    row = work_items.archive("acme", "ENG", "wi-1")
+    row.comments.list()
+
+    assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
+
+
+@responses.activate
+def test_unarchive_returns_a_navigable_row(work_items: WorkItems) -> None:
+    responses.post(f"{BASE}/wi-1/unarchive/", json={"id": "wi-1", "archived_at": None})
+    responses.get(
+        f"{BASE}/wi-1/comments/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    row = work_items.unarchive("acme", "ENG", "wi-1")
+    row.comments.list()
+
+    assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
