@@ -353,9 +353,39 @@ def test_iterate_yields_navigable_rows(work_items: WorkItems) -> None:
 
 
 @responses.activate
+def test_iterate_is_lazy_and_costs_exactly_one_request_for_one_row(
+    work_items: WorkItems,
+) -> None:
+    """Two pages are on offer and only one row is taken, so an eager implementation
+    would show up as a second request. Mocking a single page -- as this test used to
+    -- cannot tell the two apart: `has_more`/`next` would be exhausted either way."""
+    responses.get(
+        f"{BASE}/",
+        json={
+            "data": [{"id": "wi-1"}, {"id": "wi-2"}],
+            "pagination": {"style": "offset"},
+            "next": 2,
+        },
+    )
+    responses.get(
+        f"{BASE}/",
+        json={"data": [{"id": "wi-3"}], "pagination": {"style": "offset"}, "next": None},
+    )
+
+    rows = work_items.iterate("acme", "ENG")
+    first = next(iter(rows))
+
+    assert first.id == "wi-1"
+    assert len(responses.calls) == 1
+
+    # The second page arrives only once the generator is driven past the first.
+    assert [row.id for row in rows] == ["wi-2", "wi-3"]
+    assert len(responses.calls) == 2
+
+
+@responses.activate
 def test_iterate_with_fields_raises_on_an_unrequested_field(work_items: WorkItems) -> None:
-    """The generator must not materialise the whole page eagerly to forward
-    `fields` -- exercised here by only ever serving one page."""
+    """`fields=` must survive the trip through the generator, not just through `list`."""
     responses.get(
         f"{BASE}/",
         json={"data": [{"id": "wi-1"}], "pagination": {"style": "offset"}},

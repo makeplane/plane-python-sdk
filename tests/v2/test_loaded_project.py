@@ -157,9 +157,41 @@ def test_iterate_yields_navigable_rows(config: Configuration) -> None:
 
 
 @responses.activate
+def test_iterate_is_lazy_and_costs_exactly_one_request_for_one_row(
+    config: Configuration,
+) -> None:
+    """Two pages on offer, one row taken: an eager implementation would make a second
+    request. A single mocked page cannot discriminate."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/",
+        json={
+            "data": [{"id": "p1", "identifier": "ENG"}, {"id": "p2", "identifier": "OPS"}],
+            "pagination": {"style": "offset"},
+            "next": 2,
+        },
+    )
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/",
+        json={
+            "data": [{"id": "p3", "identifier": "MKT"}],
+            "pagination": {"style": "offset"},
+            "next": None,
+        },
+    )
+
+    rows = V2Namespace(config).workspaces.projects.iterate("acme")
+    first = next(iter(rows))
+
+    assert first.id == "p1"
+    assert len(responses.calls) == 1
+
+    assert [row.id for row in rows] == ["p2", "p3"]
+    assert len(responses.calls) == 2
+
+
+@responses.activate
 def test_iterate_with_fields_raises_on_an_unrequested_field(config: Configuration) -> None:
-    """The generator must not materialise the whole page eagerly to forward
-    `fields` -- exercised here by only ever serving one page."""
+    """`fields=` must survive the trip through the generator, not just through `list`."""
     responses.get(
         "https://api.example.com/api/v2/workspaces/acme/projects/",
         json={"data": [{"id": "p1"}], "pagination": {"style": "offset"}},
