@@ -18,3 +18,7 @@ class LoadedProject(Loaded, Project):
     @property
     def labels(self) -> Owned:
         return Owned(self._resources.labels, self._ids, self._id_names)
+
+    @property
+    def work_items(self) -> Owned:
+        return Owned(self._resources.work_items, self._ids, self._id_names)

@@ -283,3 +283,17 @@ def test_fetched_work_item_reaches_comments_with_no_ids_repeated(
     work_item.comments.list()
 
     assert responses.calls[1].request.url.endswith("/work-items/w1/comments/")
+
+
+# -- Signpost: coverage dropped pending migration, not silently lost --------------
+
+
+@pytest.mark.parametrize(
+    "resource", ["attachments", "links", "worklogs", "activities", "relations", "dependencies"]
+)
+def test_sub_resource_coverage_pending_flat_pattern_migration(resource: str) -> None:
+    """Not a real test: `WorkItem<Resource>` still uses the retired single-id
+    (`work_item_id`-only) shape, so its offline coverage was removed here when
+    `WorkItems` moved to the flat pattern in task 10. Restore real tests for it
+    once it is migrated too."""
+    pytest.skip(f"WorkItem{resource.title()} coverage removed pending flat-pattern migration")

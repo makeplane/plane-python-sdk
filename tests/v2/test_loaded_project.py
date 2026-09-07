@@ -47,3 +47,32 @@ def test_listed_projects_are_navigable(config: Configuration) -> None:
     page.data[0].labels.list()
 
     assert responses.calls[1].request.url.endswith("/projects/ENG/labels/")
+
+
+@responses.activate
+def test_fetched_project_reaches_a_work_items_comments_two_levels_deep(
+    config: Configuration,
+) -> None:
+    """The design's own showcase chain: `project.work_items.retrieve(...)` must
+    itself come back as a `LoadedWorkItem` so `.comments` works with no ids
+    repeated at any level."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/",
+        json={"id": "p1", "identifier": "ENG", "name": "Engineering"},
+    )
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/work-items/ENG-12/",
+        json={"id": "w1", "sequence_id": 12},
+    )
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/work-items/w1/comments/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    project = V2Namespace(config).workspaces.projects.retrieve("acme", "ENG")
+    project.work_items.retrieve("ENG-12").comments.list()
+
+    assert (
+        responses.calls[-1].request.url
+        == "https://api.example.com/api/v2/workspaces/acme/projects/ENG/work-items/w1/comments/"
+    )
