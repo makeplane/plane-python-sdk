@@ -10,8 +10,6 @@ from typing import Any
 import pytest
 
 from plane.api.v2 import PlaneAPIError
-from plane.api.v2.project import Project
-from plane.api.v2.workspace import Workspace
 from plane.client import PlaneClient
 from plane.models.v2.work_item_properties import (
     CreateWorkItemProperty,
@@ -26,16 +24,16 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
+def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
     return client.v2.workspace(workspace_slug).project(project_id)
 
 
 @pytest.fixture
-def ws(client: PlaneClient, workspace_slug: str) -> Workspace:
+def ws(client: PlaneClient, workspace_slug: str) -> Any:
     return client.v2.workspace(workspace_slug)
 
 
-def _create_project_property_or_skip(proj: Project, data: CreateWorkItemProperty) -> Any:
+def _create_project_property_or_skip(proj: Any, data: CreateWorkItemProperty) -> Any:
     try:
         return proj.work_item_properties.create(data)
     except PlaneAPIError as exc:
@@ -63,8 +61,8 @@ def project_property(client: PlaneClient, workspace_slug: str, project_id: str) 
         pass
 
 
-def _create_workspace_property_or_skip(ws: Workspace, data: CreateWorkItemProperty) -> Any:
-    """Workspace-scoped property writes require workspace-managed mode
+def _create_workspace_property_or_skip(ws: Any, data: CreateWorkItemProperty) -> Any:
+    """Any-scoped property writes require workspace-managed mode
     symmetrically to `_create_project_property_or_skip` above
     (`views/workspace_work_item_properties.py`)."""
     try:
@@ -95,7 +93,7 @@ def workspace_property(client: PlaneClient, workspace_slug: str) -> Iterator[Any
 
 
 class TestProjectScopedProperties:
-    def test_create_returns_the_written_fields(self, proj: Project) -> None:
+    def test_create_returns_the_written_fields(self, proj: Any) -> None:
         name = unique_name("wip-create")
         created = _create_project_property_or_skip(
             proj, CreateWorkItemProperty(display_name=name, property_type="TEXT")
@@ -107,7 +105,7 @@ class TestProjectScopedProperties:
         finally:
             proj.work_item_properties.delete(created.id)
 
-    def test_retrieve_returns_the_created_row(self, proj: Project, project_property: Any) -> None:
+    def test_retrieve_returns_the_created_row(self, proj: Any, project_property: Any) -> None:
         fetched = proj.work_item_properties.retrieve(project_property.id)
         assert fetched.id == project_property.id
 
@@ -125,7 +123,7 @@ class TestProjectScopedProperties:
         assert project_property.id in by_id
         assert by_id == by_key
 
-    def test_patch_updates_only_the_given_fields(self, proj: Project) -> None:
+    def test_patch_updates_only_the_given_fields(self, proj: Any) -> None:
         created = _create_project_property_or_skip(
             proj,
             CreateWorkItemProperty(display_name=unique_name("wip-patch"), property_type="TEXT"),
@@ -141,7 +139,7 @@ class TestProjectScopedProperties:
         finally:
             proj.work_item_properties.delete(created.id)
 
-    def test_delete_then_retrieve_404s(self, proj: Project) -> None:
+    def test_delete_then_retrieve_404s(self, proj: Any) -> None:
         created = _create_project_property_or_skip(
             proj, CreateWorkItemProperty(display_name=unique_name("wip-del"), property_type="TEXT")
         )
@@ -150,18 +148,18 @@ class TestProjectScopedProperties:
             proj.work_item_properties.retrieve(created.id)
         assert exc_info.value.status == 404
 
-    def test_fields_returns_a_sparse_row(self, proj: Project, project_property: Any) -> None:
+    def test_fields_returns_a_sparse_row(self, proj: Any, project_property: Any) -> None:
         fetched = proj.work_item_properties.retrieve(project_property.id, fields=["id"])
         assert fetched.id == project_property.id
         assert fetched.display_name is None
 
-    def test_invalid_fields_is_rejected_client_side(self, proj: Project) -> None:
+    def test_invalid_fields_is_rejected_client_side(self, proj: Any) -> None:
         with pytest.raises(ValueError, match="bogus"):
             proj.work_item_properties.list(fields=["bogus"])
 
 
 class TestProjectScopedOptions:
-    def test_crud(self, proj: Project, project_property: Any) -> None:
+    def test_crud(self, proj: Any, project_property: Any) -> None:
         created = proj.work_item_properties.options.create(
             project_property.id, CreateWorkItemPropertyOption(name=unique_name("wip-opt"))
         )
@@ -182,7 +180,7 @@ class TestProjectScopedOptions:
         finally:
             proj.work_item_properties.options.delete(project_property.id, created.id)
 
-    def test_delete_then_retrieve_404s(self, proj: Project, project_property: Any) -> None:
+    def test_delete_then_retrieve_404s(self, proj: Any, project_property: Any) -> None:
         created = proj.work_item_properties.options.create(
             project_property.id, CreateWorkItemPropertyOption(name=unique_name("wip-opt-del"))
         )
@@ -193,7 +191,7 @@ class TestProjectScopedOptions:
 
 
 class TestWorkspaceScopedProperties:
-    def test_create_returns_the_written_fields(self, ws: Workspace) -> None:
+    def test_create_returns_the_written_fields(self, ws: Any) -> None:
         name = unique_name("wswip-create")
         created = _create_workspace_property_or_skip(
             ws, CreateWorkItemProperty(display_name=name, property_type="TEXT")
@@ -204,11 +202,11 @@ class TestWorkspaceScopedProperties:
         finally:
             ws.work_item_properties.delete(created.id)
 
-    def test_retrieve_returns_the_created_row(self, ws: Workspace, workspace_property: Any) -> None:
+    def test_retrieve_returns_the_created_row(self, ws: Any, workspace_property: Any) -> None:
         fetched = ws.work_item_properties.retrieve(workspace_property.id)
         assert fetched.id == workspace_property.id
 
-    def test_patch_updates_only_the_given_fields(self, ws: Workspace) -> None:
+    def test_patch_updates_only_the_given_fields(self, ws: Any) -> None:
         created = _create_workspace_property_or_skip(
             ws,
             CreateWorkItemProperty(display_name=unique_name("wswip-patch"), property_type="TEXT"),
@@ -222,7 +220,7 @@ class TestWorkspaceScopedProperties:
         finally:
             ws.work_item_properties.delete(created.id)
 
-    def test_delete_then_retrieve_404s(self, ws: Workspace) -> None:
+    def test_delete_then_retrieve_404s(self, ws: Any) -> None:
         created = _create_workspace_property_or_skip(
             ws, CreateWorkItemProperty(display_name=unique_name("wswip-del"), property_type="TEXT")
         )
@@ -233,7 +231,7 @@ class TestWorkspaceScopedProperties:
 
 
 class TestWorkspaceScopedOptions:
-    def test_crud(self, ws: Workspace, workspace_property: Any) -> None:
+    def test_crud(self, ws: Any, workspace_property: Any) -> None:
         created = ws.work_item_properties.options.create(
             workspace_property.id, CreateWorkItemPropertyOption(name=unique_name("wswip-opt"))
         )
@@ -256,7 +254,7 @@ class TestWorkspaceScopedOptions:
 
 
 class TestContexts:
-    def test_crud(self, ws: Workspace, project_id: str, workspace_property: Any) -> None:
+    def test_crud(self, ws: Any, project_id: str, workspace_property: Any) -> None:
         created = ws.work_item_properties.contexts.create(
             workspace_property.id,
             # `issue_type_ids` is required unless `applies_to_all_work_item_types`;
@@ -287,7 +285,7 @@ class TestContexts:
             ws.work_item_properties.contexts.delete(workspace_property.id, created.id)
 
     def test_delete_then_retrieve_404s(
-        self, ws: Workspace, project_id: str, workspace_property: Any
+        self, ws: Any, project_id: str, workspace_property: Any
     ) -> None:
         created = ws.work_item_properties.contexts.create(
             workspace_property.id,

@@ -10,7 +10,6 @@ from typing import Any
 import pytest
 
 from plane.api.v2._kernel.errors import PlaneAPIError
-from plane.api.v2.project import Project
 from plane.client import PlaneClient
 from plane.models.v2.milestones import CreateMilestone
 
@@ -18,12 +17,12 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
+def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
     return client.v2.workspace(workspace_slug).project(project_id)
 
 
 @pytest.fixture
-def milestone(proj: Project) -> dict[str, Any]:
+def milestone(proj: Any) -> dict[str, Any]:
     created = proj.milestones.create(CreateMilestone(title=unique_name("milestone")))
     return created.model_dump()
 
@@ -31,7 +30,7 @@ def milestone(proj: Project) -> dict[str, Any]:
 class TestMilestoneWorkItems:
     def test_work_items_add_then_remove(
         self,
-        proj: Project,
+        proj: Any,
         milestone: dict[str, Any],
         work_item: Any,
     ) -> None:
@@ -43,7 +42,7 @@ class TestMilestoneWorkItems:
 
     def test_work_items_add_unknown_milestone_is_404(
         self,
-        proj: Project,
+        proj: Any,
         work_item: Any,
     ) -> None:
         with pytest.raises(PlaneAPIError) as exc_info:

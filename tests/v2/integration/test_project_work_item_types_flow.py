@@ -10,8 +10,6 @@ from typing import Any
 import pytest
 
 from plane.api.v2 import PlaneAPIError
-from plane.api.v2.project import Project
-from plane.api.v2.workspace import Workspace
 from plane.client import PlaneClient
 from plane.models.v2.work_item_properties import (
     CreateWorkItemProperty,
@@ -34,22 +32,22 @@ def _id(row: Any) -> str:
 
 
 @pytest.fixture
-def ws(client: PlaneClient, workspace_slug: str) -> Workspace:
+def ws(client: PlaneClient, workspace_slug: str) -> Any:
     return client.v2.workspace(workspace_slug)
 
 
 @pytest.fixture
-def proj(ws: Workspace, project_id: str) -> Project:
+def proj(ws: Any, project_id: str) -> Any:
     return ws.project(project_id)
 
 
 @pytest.fixture(autouse=True)
-def _require_project_mode(ws: Workspace) -> None:
+def _require_project_mode(ws: Any) -> None:
     if ws.features.retrieve().is_work_item_types_enabled:
         pytest.skip("workspace manages work item types at the workspace level; needs project mode")
 
 
-def test_project_work_item_types_flow(proj: Project) -> None:
+def test_project_work_item_types_flow(proj: Any) -> None:
     suffix = unique_name("")[1:]
     created_work_items: list[str] = []
     attached: list[str] = []
@@ -131,12 +129,12 @@ def test_project_work_item_types_flow(proj: Project) -> None:
         )
         created_work_items.append(item.id)
         assert item.custom_fields is not None
-        assert item.custom_fields[sev_key]["value"] == "high"  # type: ignore[index]
-        assert item.custom_fields[tier_key]["value_detail"]["name"] == "Gold"  # type: ignore[index]
+        assert item.custom_fields[sev_key]["value"] == "high"
+        assert item.custom_fields[tier_key]["value_detail"]["name"] == "Gold"
 
         fetched = proj.work_items.retrieve(item.id)
         assert fetched.custom_fields is not None
-        assert fetched.custom_fields[sev_key]["value"] == "high"  # type: ignore[index]
+        assert fetched.custom_fields[sev_key]["value"] == "high"
 
         # 10. the readable `type` name resolves to the same type
         item2 = proj.work_items.create(CreateWorkItem(name="E2E by type name", type=type_name))

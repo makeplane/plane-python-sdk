@@ -10,7 +10,6 @@ from typing import Any
 import pytest
 
 from plane.api.v2 import PlaneAPIError
-from plane.api.v2.project import Project
 from plane.client import PlaneClient
 from plane.models.v2.work_item_templates import (
     CreateWorkItemTemplate,
@@ -23,12 +22,12 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
+def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
     return client.v2.workspace(workspace_slug).project(project_id)
 
 
 @pytest.fixture
-def project_template(proj: Project) -> Iterator[Any]:
+def project_template(proj: Any) -> Iterator[Any]:
     created = proj.work_item_templates.create(
         CreateWorkItemTemplate(
             name=unique_name("template"),
@@ -43,24 +42,22 @@ def project_template(proj: Project) -> Iterator[Any]:
 
 
 class TestProjectWorkItemTemplates:
-    def test_list_includes_the_created_template(
-        self, proj: Project, project_template: Any
-    ) -> None:
+    def test_list_includes_the_created_template(self, proj: Any, project_template: Any) -> None:
         page = proj.work_item_templates.list()
         assert any(row.id == project_template.id for row in page.data)
 
-    def test_retrieve_returns_the_seed_data(self, proj: Project, project_template: Any) -> None:
+    def test_retrieve_returns_the_seed_data(self, proj: Any, project_template: Any) -> None:
         fetched = proj.work_item_templates.retrieve(project_template.id)
         assert fetched.id == project_template.id
         assert fetched.template_data is not None
 
-    def test_patch_updates_the_name(self, proj: Project, project_template: Any) -> None:
+    def test_patch_updates_the_name(self, proj: Any, project_template: Any) -> None:
         updated = proj.work_item_templates.update(
             project_template.id, UpdateWorkItemTemplate(name="Renamed template")
         )
         assert updated.name == "Renamed template"
 
-    def test_use_instantiates_a_work_item(self, proj: Project, project_template: Any) -> None:
+    def test_use_instantiates_a_work_item(self, proj: Any, project_template: Any) -> None:
         work_item = proj.work_item_templates.use(project_template.id)
         try:
             assert work_item.id
@@ -68,7 +65,7 @@ class TestProjectWorkItemTemplates:
         finally:
             proj.work_items.delete(work_item.id)
 
-    def test_use_honors_a_name_override(self, proj: Project, project_template: Any) -> None:
+    def test_use_honors_a_name_override(self, proj: Any, project_template: Any) -> None:
         work_item = proj.work_item_templates.use(
             project_template.id, WorkItemTemplateUse(name="Overridden name")
         )
@@ -77,7 +74,7 @@ class TestProjectWorkItemTemplates:
         finally:
             proj.work_items.delete(work_item.id)
 
-    def test_delete_then_retrieve_404s(self, proj: Project) -> None:
+    def test_delete_then_retrieve_404s(self, proj: Any) -> None:
         created = proj.work_item_templates.create(
             CreateWorkItemTemplate(
                 name=unique_name("template"), template_data=WorkItemTemplateData(name="Throwaway")
@@ -95,7 +92,7 @@ class TestWorkspaceWorkItemTemplates:
         created = templates.create(
             CreateWorkItemTemplate(
                 name=unique_name("ws-template"),
-                template_data=WorkItemTemplateData(name="Workspace templated item"),
+                template_data=WorkItemTemplateData(name="Any templated item"),
             ),
         )
         try:

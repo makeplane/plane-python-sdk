@@ -1,6 +1,8 @@
 """api_v2 surface. Reached as `client.v2`.
-Chain `.workspace(slug)`/`.project(project)` (zero-I/O locators) for most
-resources; 6 have no workspace in their path and sit on `V2Namespace` directly."""
+Flat tree: `client.v2.workspaces.projects.states` (etc.) -- every resource is a
+plain attribute, reached by attribute access, never a chain of locator calls.
+`users`/`user_assets` have no workspace in their path and sit on `V2Namespace`
+directly."""
 
 from ...config import Configuration
 from ._kernel.errors import FieldError, MultipleMatchesFound, NoMatchFound, PlaneAPIError
@@ -26,7 +28,6 @@ from .modules import Modules
 from .pages import ProjectPages, WikiPages
 from .permission_schemes import PermissionSchemes
 from .permissions import ProjectPermissions, WorkspacePermissions
-from .project import Project
 from .projects import Projects
 from .releases import Releases
 from .roles import Roles
@@ -36,7 +37,6 @@ from .teamspaces import Teamspaces
 from .users import Users
 from .views import ProjectViews, WorkspaceViews
 from .webhooks import Webhooks
-from .wiki import Wiki
 from .work_item_properties import WorkItemProperties, WorkspaceWorkItemProperties
 from .work_item_relation_definitions import WorkItemRelationDefinitions
 from .work_item_templates import ProjectWorkItemTemplates, WorkspaceWorkItemTemplates
@@ -44,22 +44,17 @@ from .work_item_types import WorkItemTypes, WorkspaceWorkItemTypes
 from .work_items import WorkItems, WorkspaceWorkItems
 from .workflows import Workflows
 from .worklogs import ProjectWorklogs
-from .workspace import Workspace
+from .workspaces import Workspaces
 
 
 class V2Namespace:
-    """The 6 non-workspace-scoped operations, plus the workspace locator.
-
-    Everything else is reached via `.workspace(slug)` (`Workspace`) and `.project(project)`."""
+    """Root of the flat path: `client.v2.workspaces.projects.states.list(slug, project)`."""
 
     def __init__(self, config: Configuration) -> None:
         self.transport = V2Transport(config)
         self.users = Users(self.transport)
         self.user_assets = UserAssets(self.transport)
-
-    def workspace(self, workspace_slug: str) -> Workspace:
-        """Bind a workspace. Makes no request."""
-        return Workspace(self.transport, workspace_slug)
+        self.workspaces = Workspaces(self.transport)
 
 
 __all__ = [
@@ -88,7 +83,6 @@ __all__ = [
     "ProjectPermissions",
     "WorkspacePermissions",
     "PlaneAPIError",
-    "Project",
     "ProjectFeatures",
     "ProjectMembers",
     "ProjectPages",
@@ -104,7 +98,6 @@ __all__ = [
     "Users",
     "V2Namespace",
     "Webhooks",
-    "Wiki",
     "WikiPages",
     "WorkItemProperties",
     "WorkItemRelationDefinitions",
@@ -113,7 +106,7 @@ __all__ = [
     "WorkspaceWorkItemTemplates",
     "WorkItemTypes",
     "Workflows",
-    "Workspace",
+    "Workspaces",
     "WorkspaceAssets",
     "WorkspaceFeatures",
     "WorkspaceMembers",

@@ -12,7 +12,6 @@ from typing import Any
 import pytest
 
 from plane.api.v2 import PlaneAPIError
-from plane.api.v2.project import Project
 from plane.client import PlaneClient
 from plane.models.v2.cycles import CreateCycle, UpdateCycle
 from plane.models.v2.work_items import CreateWorkItem
@@ -21,12 +20,12 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
+def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
     return client.v2.workspace(workspace_slug).project(project_id)
 
 
 @pytest.fixture
-def completed_cycle(proj: Project) -> Iterator[Any]:
+def completed_cycle(proj: Any) -> Iterator[Any]:
     """A cycle whose date window is already in the past -- the only shape
     `transfer` accepts as a source (server-enforced). Not eligible for
     `.work_items.add(...)` -- see the module docstring."""
@@ -46,7 +45,7 @@ def completed_cycle(proj: Project) -> Iterator[Any]:
 
 
 @pytest.fixture
-def open_cycle(proj: Project) -> Iterator[Any]:
+def open_cycle(proj: Any) -> Iterator[Any]:
     """A cycle whose window is entirely in the future -- eligible for `add`,
     reliably rejected by `transfer` as a source."""
     now = datetime.now(timezone.utc)
@@ -65,7 +64,7 @@ def open_cycle(proj: Project) -> Iterator[Any]:
 
 
 @pytest.fixture
-def destination_cycle(proj: Project) -> Iterator[Any]:
+def destination_cycle(proj: Any) -> Iterator[Any]:
     created = proj.cycles.create(CreateCycle(name=unique_name("cycle-destination")))
     yield created
     try:
@@ -75,7 +74,7 @@ def destination_cycle(proj: Project) -> Iterator[Any]:
 
 
 @pytest.fixture
-def work_item(proj: Project) -> Iterator[Any]:
+def work_item(proj: Any) -> Iterator[Any]:
     created = proj.work_items.create(CreateWorkItem(name=unique_name("wi-cycle-actions")))
     yield created
     try:
@@ -85,7 +84,7 @@ def work_item(proj: Project) -> Iterator[Any]:
 
 
 def test_work_items_add_then_remove(
-    proj: Project,
+    proj: Any,
     open_cycle: Any,
     work_item: Any,
 ) -> None:
@@ -97,7 +96,7 @@ def test_work_items_add_then_remove(
 
 
 def test_transfer_moves_incomplete_work_items(
-    proj: Project,
+    proj: Any,
     destination_cycle: Any,
     work_item: Any,
 ) -> None:
@@ -130,7 +129,7 @@ def test_transfer_moves_incomplete_work_items(
 
 
 def test_transfer_from_an_incomplete_cycle_is_rejected(
-    proj: Project,
+    proj: Any,
     open_cycle: Any,
     destination_cycle: Any,
 ) -> None:

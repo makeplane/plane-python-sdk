@@ -10,8 +10,6 @@ from typing import Any
 import pytest
 
 from plane.api.v2 import PlaneAPIError
-from plane.api.v2.project import Project
-from plane.api.v2.workspace import Workspace
 from plane.client import PlaneClient
 from plane.models.v2.work_item_types import CreateWorkItemType, UpdateWorkItemType
 
@@ -36,17 +34,17 @@ def _skip_on_mode_conflict(exc: PlaneAPIError) -> None:
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
+def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
     return client.v2.workspace(workspace_slug).project(project_id)
 
 
 @pytest.fixture
-def ws(client: PlaneClient, workspace_slug: str) -> Workspace:
+def ws(client: PlaneClient, workspace_slug: str) -> Any:
     return client.v2.workspace(workspace_slug)
 
 
 @pytest.fixture
-def work_item_type(proj: Project) -> Iterator[Any]:
+def work_item_type(proj: Any) -> Iterator[Any]:
     """One freshly created, non-default work item type, deleted afterwards.
     Skips if this workspace runs in workspace-managed mode (see module
     docstring) -- project-scoped type writes are a 409 there by design."""
@@ -63,7 +61,7 @@ def work_item_type(proj: Project) -> Iterator[Any]:
 
 
 class TestWorkItemTypesCrud:
-    def test_list_and_retrieve(self, proj: Project, work_item_type: Any) -> None:
+    def test_list_and_retrieve(self, proj: Any, work_item_type: Any) -> None:
         page = proj.work_item_types.list()
         assert any(row.id == work_item_type.id for row in page.data)
 
@@ -71,12 +69,12 @@ class TestWorkItemTypesCrud:
         assert fetched.id == work_item_type.id
         assert fetched.is_default is not True
 
-    def test_update_only_touches_given_fields(self, proj: Project, work_item_type: Any) -> None:
+    def test_update_only_touches_given_fields(self, proj: Any, work_item_type: Any) -> None:
         new_name = unique_name("wit-renamed")
         updated = proj.work_item_types.update(work_item_type.id, UpdateWorkItemType(name=new_name))
         assert updated.name == new_name
 
-    def test_delete_then_retrieve_404s(self, proj: Project) -> None:
+    def test_delete_then_retrieve_404s(self, proj: Any) -> None:
         try:
             created = proj.work_item_types.create(CreateWorkItemType(name=unique_name("wit-del")))
         except PlaneAPIError as exc:
@@ -89,7 +87,7 @@ class TestWorkItemTypesCrud:
 
 
 class TestWorkItemTypesActions:
-    def test_mark_default_then_schema(self, proj: Project, work_item_type: Any) -> None:
+    def test_mark_default_then_schema(self, proj: Any, work_item_type: Any) -> None:
         # Restore the prior default afterwards: a default type cannot be deleted (409).
         prior = next((row for row in proj.work_item_types.list().data if row.is_default), None)
         try:
@@ -102,7 +100,7 @@ class TestWorkItemTypesActions:
             if prior is not None:
                 proj.work_item_types.mark_default(prior.id)
 
-    def test_enable_epic_type_is_idempotent(self, proj: Project) -> None:
+    def test_enable_epic_type_is_idempotent(self, proj: Any) -> None:
         # `enable` returns the project's DEFAULT (non-epic) type -- the epic type
         # is created as a side effect, not returned (`views/work_item_types.py`
         # `enable()` responds with `default_type`, which is always `is_epic=False`).
@@ -118,9 +116,7 @@ class TestWorkItemTypesActions:
         types = proj.work_item_types.list().data
         assert any(row.is_epic for row in types)
 
-    def test_import_types_enables_a_workspace_type_on_the_project(
-        self, proj: Project, ws: Workspace
-    ) -> None:
+    def test_import_types_enables_a_workspace_type_on_the_project(self, proj: Any, ws: Any) -> None:
         workspace_types = ws.work_item_types.list().data
         project_type_ids = {row.id for row in proj.work_item_types.list().data}
         candidates = [row for row in workspace_types if row.id not in project_type_ids]
@@ -135,11 +131,11 @@ class TestWorkItemTypesActions:
 
 
 class TestWorkspaceWorkItemTypes:
-    """Workspace-level types use a different path template than project-scoped
+    """Any-level types use a different path template than project-scoped
     ones -- covered separately rather than assumed to agree."""
 
     @pytest.fixture
-    def workspace_work_item_type(self, ws: Workspace) -> Iterator[Any]:
+    def workspace_work_item_type(self, ws: Any) -> Iterator[Any]:
         try:
             created = ws.work_item_types.create(
                 CreateWorkItemType(name=unique_name("workspace-wit"))
@@ -153,14 +149,14 @@ class TestWorkspaceWorkItemTypes:
         except Exception:
             pass
 
-    def test_list_and_retrieve(self, ws: Workspace, workspace_work_item_type: Any) -> None:
+    def test_list_and_retrieve(self, ws: Any, workspace_work_item_type: Any) -> None:
         page = ws.work_item_types.list()
         assert any(row.id == workspace_work_item_type.id for row in page.data)
 
         fetched = ws.work_item_types.retrieve(workspace_work_item_type.id)
         assert fetched.id == workspace_work_item_type.id
 
-    def test_mark_default(self, ws: Workspace, workspace_work_item_type: Any) -> None:
+    def test_mark_default(self, ws: Any, workspace_work_item_type: Any) -> None:
         # Restore the prior default afterwards: a default type cannot be deleted (409).
         prior = next((row for row in ws.work_item_types.list().data if row.is_default), None)
         try:
@@ -190,13 +186,13 @@ class TestWorkItemTypeProperties:
             pytest.skip("workspace has no work item property definitions to attach")
         return str(data[0]["id"])
 
-    def test_list_is_empty_on_a_fresh_type(self, proj: Project, work_item_type: Any) -> None:
+    def test_list_is_empty_on_a_fresh_type(self, proj: Any, work_item_type: Any) -> None:
         page = proj.work_item_types.properties.list(work_item_type.id)
         assert page.data == []
 
     def test_attach_then_list_then_detach(
         self,
-        proj: Project,
+        proj: Any,
         work_item_type: Any,
         attachable_property_id: str,
     ) -> None:

@@ -14,6 +14,9 @@ from ...models.v2.project_role_distribution import ProjectRoleDistribution
 from ...models.v2.projects import CreateProject, Project, ProjectSummary, UpdateProject
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
+from ._kernel.transport import V2Transport
+from .labels import Labels
+from .states import States
 
 
 class Projects(V2Resource[Project, CreateProject, UpdateProject]):
@@ -33,6 +36,11 @@ class Projects(V2Resource[Project, CreateProject, UpdateProject]):
         "summary": "projects_summary",
         "role_distribution": "project_role_distribution",
     }
+
+    def __init__(self, transport: V2Transport) -> None:
+        super().__init__(transport)
+        self.states = States(transport)
+        self.labels = Labels(transport)
 
     def list(
         self,

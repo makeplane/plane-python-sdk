@@ -311,6 +311,7 @@ from .workflows import (
     WorkflowTransition,
 )
 from .worklogs_summary import WorklogSummaryEntry
+from .workspaces import Workspace
 
 __all__ = [
     "Access",
@@ -548,4 +549,5 @@ __all__ = [
     "BulkCreateWorkspaceInvites",
     "CreateWorkspaceInvite",
     "WorkspaceMemberRemove",
+    "Workspace",
 ]

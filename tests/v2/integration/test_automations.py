@@ -11,8 +11,6 @@ import pytest
 
 from plane.api.v2 import PlaneAPIError
 from plane.api.v2.automations import ProjectAutomations, WorkspaceAutomations
-from plane.api.v2.project import Project
-from plane.api.v2.workspace import Workspace
 from plane.client import PlaneClient
 from plane.models.v2.automations import (
     CreateAutomation,
@@ -26,22 +24,22 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
+def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
     return client.v2.workspace(workspace_slug).project(project_id)
 
 
 @pytest.fixture
-def ws(client: PlaneClient, workspace_slug: str) -> Workspace:
+def ws(client: PlaneClient, workspace_slug: str) -> Any:
     return client.v2.workspace(workspace_slug)
 
 
 @pytest.fixture
-def project_automations(proj: Project) -> ProjectAutomations:
+def project_automations(proj: Any) -> ProjectAutomations:
     return proj.automations
 
 
 @pytest.fixture
-def workspace_automations(ws: Workspace) -> WorkspaceAutomations:
+def workspace_automations(ws: Any) -> WorkspaceAutomations:
     return ws.automations
 
 
@@ -96,7 +94,7 @@ class TestProjectAutomationsCrud:
 
     def test_list_by_project_key_agrees_with_list_by_id(
         self,
-        ws: Workspace,
+        ws: Any,
         project_id: str,
         project_key: str,
         project_automation: Any,

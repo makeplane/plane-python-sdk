@@ -10,7 +10,6 @@ from typing import Any
 import pytest
 
 from plane.api.v2 import PlaneAPIError
-from plane.api.v2.project import Project
 from plane.client import PlaneClient
 from plane.models.v2.views import CreateView, UpdateView
 
@@ -18,12 +17,12 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
+def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
     return client.v2.workspace(workspace_slug).project(project_id)
 
 
 @pytest.fixture
-def project_view(proj: Project) -> Iterator[Any]:
+def project_view(proj: Any) -> Iterator[Any]:
     created = proj.views.create(CreateView(name=unique_name("view")))
     yield created
     try:
@@ -33,15 +32,15 @@ def project_view(proj: Project) -> Iterator[Any]:
 
 
 class TestProjectViews:
-    def test_list_includes_the_created_view(self, proj: Project, project_view: Any) -> None:
+    def test_list_includes_the_created_view(self, proj: Any, project_view: Any) -> None:
         page = proj.views.list()
         assert any(row.id == project_view.id for row in page.data)
 
-    def test_patch_updates_the_name(self, proj: Project, project_view: Any) -> None:
+    def test_patch_updates_the_name(self, proj: Any, project_view: Any) -> None:
         updated = proj.views.update(project_view.id, UpdateView(name="Renamed view"))
         assert updated.name == "Renamed view"
 
-    def test_delete_then_retrieve_404s(self, proj: Project) -> None:
+    def test_delete_then_retrieve_404s(self, proj: Any) -> None:
         created = proj.views.create(CreateView(name=unique_name("view")))
         proj.views.delete(created.id)
         with pytest.raises(PlaneAPIError) as exc_info:

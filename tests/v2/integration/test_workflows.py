@@ -4,10 +4,11 @@ as every other file in this directory."""
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from plane.api.v2 import PlaneAPIError
-from plane.api.v2.project import Project
 from plane.client import PlaneClient
 from plane.models.v2.workflows import (
     CreateWorkflow,
@@ -22,12 +23,12 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Project:
+def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
     return client.v2.workspace(workspace_slug).project(project_id)
 
 
 class TestWorkflows:
-    def test_crud_and_nested_states_and_transitions(self, proj: Project) -> None:
+    def test_crud_and_nested_states_and_transitions(self, proj: Any) -> None:
         """One end-to-end pass: create a workflow, attach a state, add a
         transition, then tear everything down; a fresh project always has
         >=2 default states."""
@@ -81,9 +82,7 @@ class TestWorkflows:
                 ),
             )
             try:
-                fetched_transition = proj.workflows.transitions.retrieve(
-                    created.id, transition.id
-                )
+                fetched_transition = proj.workflows.transitions.retrieve(created.id, transition.id)
                 assert fetched_transition.transition_state_id == target_state.id
 
                 patched_transition = proj.workflows.transitions.update(
