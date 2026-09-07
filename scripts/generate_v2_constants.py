@@ -12,9 +12,17 @@ Source: {source_dir}
 Regenerate: python scripts/generate_v2_constants.py <path-to>/api_v2/core/schema/openapi"""
 
 from typing import Literal
+
+from typing_extensions import TypedDict
 '''
 
 LINE_LENGTH = 100
+
+_RESERVED_QUERY_PARAMS = frozenset(
+    {"fields", "expand", "order_by", "offset", "per_page", "paginate", "count"}
+)
+
+_JSON_TO_PYTHON = {"string": "str", "integer": "int", "boolean": "bool", "number": "float"}
 
 
 def _camel(operation_id: str) -> str:
@@ -31,6 +39,24 @@ def _literal_aliases(fields: dict[str, list[str]], order_by: dict[str, list[str]
         values = ", ".join(json.dumps(value) for value in sorted(order_by[operation_id]))
         lines.append(f"{_camel(operation_id)}OrderBy = Literal[{values}]")
     return "\n".join(lines)
+
+
+def _filters_typeddicts(operations: dict[str, list[dict[str, Any]]]) -> str:
+    """One `TypedDict(total=False)` per list operation, from its non-reserved query params."""
+    blocks: list[str] = []
+    for operation_id in sorted(operations):
+        entries = []
+        for parameter in operations[operation_id]:
+            name = parameter.get("name")
+            if parameter.get("in") != "query" or name in _RESERVED_QUERY_PARAMS:
+                continue
+            hint = _JSON_TO_PYTHON.get(parameter.get("schema", {}).get("type", "string"), "str")
+            entries.append(f"    {name}: {hint}")
+        if not entries:
+            continue
+        body = "\n".join(sorted(entries))
+        blocks.append(f"class {_camel(operation_id)}Filters(TypedDict, total=False):\n{body}")
+    return "\n\n\n".join(blocks)
 
 
 def _format(source: str) -> str:
@@ -73,6 +99,7 @@ def main(openapi_dir: str) -> None:
     fields: dict[str, list[str]] = {}
     order_by: dict[str, list[str]] = {}
     expand: dict[str, list[str]] = {}
+    operation_parameters: dict[str, list[dict[str, Any]]] = {}
     for operations in paths.values():
         for method, operation in operations.items():
             if method not in {"get", "post", "patch", "delete", "put"}:
@@ -81,6 +108,7 @@ def main(openapi_dir: str) -> None:
             if not operation_id:
                 continue
             operation_ids.add(operation_id)
+            operation_parameters[operation_id] = operation.get("parameters", [])
             for parameter in operation.get("parameters", []):
                 enum = parameter.get("schema", {}).get("enum")
                 if not enum:
@@ -144,6 +172,8 @@ def main(openapi_dir: str) -> None:
     lines.append("}\n\n")
     lines.append(f"ERROR_CODES: frozenset[str] = frozenset({codes!r})\n\n")
     lines.append(_literal_aliases(fields, order_by))
+    lines.append("\n\n")
+    lines.append(_filters_typeddicts(operation_parameters))
     lines.append("\n")
 
     content = _format("".join(lines))

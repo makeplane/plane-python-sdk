@@ -1,8 +1,10 @@
 """Generated from the api_v2 OpenAPI golden (version 2.0.0) -- never hand-edited.
-Source: ../../plane-ee/apps/api/plane/api_v2/core/schema/openapi
+Source: ../plane-ee-workspace-discovery/apps/api/plane/api_v2/core/schema/openapi
 Regenerate: python scripts/generate_v2_constants.py <path-to>/api_v2/core/schema/openapi"""
 
 from typing import Literal
+
+from typing_extensions import TypedDict
 
 API_VERSION = "2.0.0"
 
@@ -416,6 +418,7 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "workspaces_artifacts_update_partial_update",
         "workspaces_permissions_me_retrieve",
         "workspaces_projects_permissions_me_retrieve",
+        "workspaces_retrieve",
     ]
 )
 
@@ -5524,6 +5527,20 @@ FIELDS: dict[str, frozenset[str]] = {
             "type_id",
         ]
     ),
+    "workspaces_retrieve": frozenset(
+        [
+            "all",
+            "created_at",
+            "id",
+            "logo_url",
+            "name",
+            "organization_size",
+            "owner_id",
+            "slug",
+            "timezone",
+            "updated_at",
+        ]
+    ),
 }
 
 ORDER_BY: dict[str, frozenset[str]] = {
@@ -10369,6 +10386,18 @@ WorkspaceWorkItemsListField = Literal[
     "target_date",
     "type_id",
 ]
+WorkspacesRetrieveField = Literal[
+    "all",
+    "created_at",
+    "id",
+    "logo_url",
+    "name",
+    "organization_size",
+    "owner_id",
+    "slug",
+    "timezone",
+    "updated_at",
+]
 ActivitiesListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 AssetsListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 AttachmentsListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
@@ -10530,3 +10559,527 @@ WorkspaceWorkItemsListOrderBy = Literal[
     "state_group",
     "updated_at",
 ]
+
+
+class ActivitiesListFilters(TypedDict, total=False):
+    actor_id: str
+    created_at__gte: str
+    created_at__lte: str
+    field: str
+    search: str
+    verb: str
+
+
+class AttachmentsListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    is_uploaded: bool
+
+
+class AuditLogsListFilters(TypedDict, total=False):
+    actor_id: str
+    category: str
+    created_after: str
+    created_before: str
+    event_name: str
+    ip_address: str
+    outcome: str
+    project_id: str
+    search: str
+    target_id: str
+    target_type: str
+
+
+class CommentsListFilters(TypedDict, total=False):
+    access: str
+    external_id: str
+    external_source: str
+    search: str
+
+
+class CustomerPropertiesListFilters(TypedDict, total=False):
+    is_active: bool
+    is_required: bool
+    name: str
+    property_type: str
+    search: str
+
+
+class CustomerRequestsListFilters(TypedDict, total=False):
+    search: str
+
+
+class CustomersListFilters(TypedDict, total=False):
+    contract_status: str
+    domain: str
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+    stage: str
+
+
+class CyclesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    owned_by_id: str
+    search: str
+
+
+class EstimatePointsListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    key: int
+    search: str
+    value: str
+
+
+class EstimatesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+    type: str
+    type__in: str
+
+
+class GroupSyncProjectMappingsListFilters(TypedDict, total=False):
+    search: str
+
+
+class GroupSyncWorkspaceMappingsListFilters(TypedDict, total=False):
+    search: str
+
+
+class InitiativeLabelsListFilters(TypedDict, total=False):
+    name: str
+    search: str
+
+
+class InitiativesListFilters(TypedDict, total=False):
+    lead_id: str
+    name: str
+    search: str
+    state: str
+    state__in: str
+
+
+class IntakesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    search: str
+    source: str
+    status: int
+    status__in: str
+    work_item_id: str
+
+
+class LabelsListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    parent_id: str
+    parent_id__isnull: bool
+    search: str
+
+
+class LinksListFilters(TypedDict, total=False):
+    search: str
+    title: str
+    url: str
+
+
+class MembersListFilters(TypedDict, total=False):
+    accepted: bool
+    email: str
+    search: str
+
+
+class MilestonesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+    target_date: str
+    target_date__gte: str
+    target_date__lte: str
+
+
+class ModulesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    lead_id: str
+    name: str
+    search: str
+    status: str
+    status__in: str
+
+
+class PagesListFilters(TypedDict, total=False):
+    access: int
+    is_default: bool
+    is_global: bool
+    owned_by_id: str
+    search: str
+
+
+class PermissionSchemesListFilters(TypedDict, total=False):
+    search: str
+
+
+class ProjectAutomationActivitiesListFilters(TypedDict, total=False):
+    created_at__gt: str
+    field: str
+    verb: str
+
+
+class ProjectAutomationEdgesListFilters(TypedDict, total=False):
+    source_node_id: str
+    target_node_id: str
+
+
+class ProjectAutomationNodesListFilters(TypedDict, total=False):
+    handler_name: str
+    is_enabled: bool
+    name: str
+    node_type: str
+    search: str
+
+
+class ProjectAutomationsListFilters(TypedDict, total=False):
+    is_enabled: bool
+    is_global: bool
+    name: str
+    scope: str
+    search: str
+    status: str
+
+
+class ProjectMembersListFilters(TypedDict, total=False):
+    member_id: str
+    member_id__in: str
+    role: str
+    role__in: str
+    search: str
+
+
+class ProjectPagesListFilters(TypedDict, total=False):
+    access: int
+    collection_id: str
+    external_id: str
+    external_source: str
+    is_global: bool
+    is_locked: bool
+    owned_by_id: str
+    parent_id: str
+    search: str
+    type: str
+
+
+class ProjectViewsListFilters(TypedDict, total=False):
+    access: int
+    is_locked: bool
+    name: str
+    owned_by_id: str
+    search: str
+
+
+class ProjectWorkItemTemplatesListFilters(TypedDict, total=False):
+    is_published: bool
+    search: str
+    short_id: str
+
+
+class ProjectsListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    identifier: str
+    include_archived: bool
+    is_archived: bool
+    key: str
+    name: str
+    network: int
+    priority: str
+    priority__in: str
+    search: str
+
+
+class ProjectsSummaryFilters(TypedDict, total=False):
+    counts: str
+
+
+class ReleaseCommentsListFilters(TypedDict, total=False):
+    is_resolved: bool
+    parent_id: str
+    search: str
+
+
+class ReleaseLabelsListFilters(TypedDict, total=False):
+    name: str
+    search: str
+
+
+class ReleaseLinksListFilters(TypedDict, total=False):
+    search: str
+
+
+class ReleaseTagsListFilters(TypedDict, total=False):
+    search: str
+    version: str
+
+
+class ReleasesListFilters(TypedDict, total=False):
+    is_latest: bool
+    is_prerelease: bool
+    lead_id: str
+    name: str
+    release_date: str
+    search: str
+    status: str
+    status__in: str
+    tag_id: str
+    target_date: str
+
+
+class RolesListFilters(TypedDict, total=False):
+    is_system: bool
+    namespace: str
+    search: str
+    slug: str
+
+
+class StatesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    group: str
+    group__in: str
+    is_default: bool
+    name: str
+    search: str
+
+
+class StickiesListFilters(TypedDict, total=False):
+    color: str
+    owner_id: str
+    search: str
+
+
+class TeamspacesListFilters(TypedDict, total=False):
+    lead_id: str
+    name: str
+    search: str
+
+
+class WebhooksListFilters(TypedDict, total=False):
+    is_active: bool
+    name: str
+    search: str
+    url: str
+
+
+class WorkItemPropertiesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+
+
+class WorkItemPropertyContextsListFilters(TypedDict, total=False):
+    name: str
+    search: str
+
+
+class WorkItemPropertyOptionsListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+
+
+class WorkItemTypesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+
+
+class WorkItemTypesSchemaFilters(TypedDict, total=False):
+    include: str
+
+
+class WorkItemsListFilters(TypedDict, total=False):
+    assignee_id: str
+    assignee_id__in: str
+    assignee_id__isnull: bool
+    created_at__gte: str
+    created_at__lte: str
+    cycle_id: str
+    cycle_id__in: str
+    cycle_id__isnull: bool
+    external_id: str
+    external_source: str
+    is_draft: bool
+    label_id: str
+    label_id__in: str
+    label_id__isnull: bool
+    module_id: str
+    module_id__in: str
+    module_id__isnull: bool
+    parent_id: str
+    parent_id__in: str
+    parent_id__isnull: bool
+    priority: str
+    priority__in: str
+    project_id: str
+    project_id__in: str
+    search: str
+    sequence_id: int
+    start_date__gte: str
+    start_date__lte: str
+    state_group: str
+    state_group__in: str
+    state_id: str
+    state_id__in: str
+    target_date__gte: str
+    target_date__lte: str
+    type_id: str
+    type_id__in: str
+    updated_at__gte: str
+    updated_at__lte: str
+
+
+class WorkflowsListFilters(TypedDict, total=False):
+    search: str
+
+
+class WorklogsListFilters(TypedDict, total=False):
+    duration__gte: int
+    duration__lte: int
+    logged_by_id: str
+    search: str
+
+
+class WorkspaceAutomationActivitiesListFilters(TypedDict, total=False):
+    created_at__gt: str
+    field: str
+    verb: str
+
+
+class WorkspaceAutomationEdgesListFilters(TypedDict, total=False):
+    source_node_id: str
+    target_node_id: str
+
+
+class WorkspaceAutomationNodesListFilters(TypedDict, total=False):
+    handler_name: str
+    is_enabled: bool
+    name: str
+    node_type: str
+    search: str
+
+
+class WorkspaceAutomationsListFilters(TypedDict, total=False):
+    is_enabled: bool
+    is_global: bool
+    name: str
+    scope: str
+    search: str
+    status: str
+
+
+class WorkspaceMembersListFilters(TypedDict, total=False):
+    member_id: str
+    member_id__in: str
+    role: str
+    role__in: str
+    search: str
+
+
+class WorkspacePagesListFilters(TypedDict, total=False):
+    access: int
+    collection_id: str
+    external_id: str
+    external_source: str
+    is_global: bool
+    is_locked: bool
+    owned_by_id: str
+    parent_id: str
+    search: str
+    type: str
+
+
+class WorkspaceViewsListFilters(TypedDict, total=False):
+    access: int
+    is_locked: bool
+    name: str
+    owned_by_id: str
+    search: str
+
+
+class WorkspaceWorkItemPropertiesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+
+
+class WorkspaceWorkItemPropertyOptionsListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+
+
+class WorkspaceWorkItemTemplatesListFilters(TypedDict, total=False):
+    is_published: bool
+    search: str
+    short_id: str
+
+
+class WorkspaceWorkItemTypesListFilters(TypedDict, total=False):
+    external_id: str
+    external_source: str
+    name: str
+    search: str
+
+
+class WorkspaceWorkItemsListFilters(TypedDict, total=False):
+    assignee_id: str
+    assignee_id__in: str
+    assignee_id__isnull: bool
+    created_at__gte: str
+    created_at__lte: str
+    cycle_id: str
+    cycle_id__in: str
+    cycle_id__isnull: bool
+    external_id: str
+    external_source: str
+    is_draft: bool
+    label_id: str
+    label_id__in: str
+    label_id__isnull: bool
+    module_id: str
+    module_id__in: str
+    module_id__isnull: bool
+    parent_id: str
+    parent_id__in: str
+    parent_id__isnull: bool
+    priority: str
+    priority__in: str
+    project_id: str
+    project_id__in: str
+    search: str
+    sequence_id: int
+    start_date__gte: str
+    start_date__lte: str
+    state_group: str
+    state_group__in: str
+    state_id: str
+    state_id__in: str
+    target_date__gte: str
+    target_date__lte: str
+    type_id: str
+    type_id__in: str
+    updated_at__gte: str
+    updated_at__lte: str

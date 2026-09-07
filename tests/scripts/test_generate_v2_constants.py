@@ -45,3 +45,24 @@ def test_emits_literal_field_alias(tmp_path: pathlib.Path) -> None:
 
     assert 'StatesListField = Literal["all", "id", "name"]' in generated
     assert 'StatesListOrderBy = Literal["-name", "name"]' in generated
+
+
+def test_emits_filters_typeddict(tmp_path: pathlib.Path) -> None:
+    root = _write_golden(tmp_path)
+    states = root / "paths" / "states.json"
+    document = json.loads(states.read_text())
+    operation = document["/api/v2/workspaces/{slug}/projects/{project_id}/states/"]["get"]
+    operation["parameters"] += [
+        {"name": "name", "in": "query", "schema": {"type": "string"}},
+        {"name": "is_default", "in": "query", "schema": {"type": "boolean"}},
+        {"name": "per_page", "in": "query", "schema": {"type": "integer"}},
+    ]
+    states.write_text(json.dumps(document))
+
+    subprocess.run([sys.executable, "scripts/generate_v2_constants.py", str(root)], check=True)
+    generated = pathlib.Path("plane/api/v2/_generated/constants.py").read_text()
+
+    assert "class StatesListFilters(TypedDict, total=False):" in generated
+    assert "    name: str" in generated
+    assert "    is_default: bool" in generated
+    assert "    per_page:" not in generated
