@@ -200,13 +200,23 @@ work_items = client.work_items.list(
 
 `client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
 
-The chain is the **only** public form: bind a workspace once
-(`client.v2.workspace(slug)`), then a project inside it once more
-(`.project(project)`) — both are zero-I/O locators, not requests. Every v2
-resource hangs off one of the two as a plain attribute; nothing takes a
-`workspace_slug`/`project` parameter directly, because the scope you bound already
-supplies it. `client.v2.users` and `client.v2.user_assets` are the only exceptions
-— the 6 v2 operations with no workspace in their path stay directly on `client.v2`.
+**This is a migration in progress.** Roughly 85 of the ~120 v2 resource groups are
+still on an older, pre-migration shape and are not reachable through `client.v2` yet
+(a later release wires them in). What follows documents only what is reachable
+today: `states`, `labels`, `projects`, `work_items` (with `comments`), `workspaces`,
+`wiki.pages`, `features` and `releases.labels`. Notably, `wiki.collections` is *not*
+wired yet — `Collections` itself hasn't been migrated — so `client.v2.workspaces.wiki`
+only has `.pages`.
+
+The bound-locator chain from earlier releases (`client.v2.workspace(slug).project(key)`)
+is **gone**. There are two ways to reach a resource now:
+
+### 1. The flat path
+
+A static tree, reached by plain attribute access. Read it left to right: every
+segment that names an actual resource consumes one URL path id (a workspace slug,
+a project key, a work item identifier, ...); a segment that only *groups* children
+(`wiki`) consumes none.
 
 ```python
 from plane import PlaneClient
@@ -214,102 +224,87 @@ from plane.models.v2 import CreateState
 
 client = PlaneClient(base_url="https://api.plane.so", api_key="...")
 
-# Bind once -- "acme" is a workspace slug, "ENG" a project key (a UUID works too)
-eng = client.v2.workspace("acme").project("ENG")
+client.v2.users.me()
+client.v2.workspaces.retrieve("acme")
+client.v2.workspaces.projects.states.list("acme", "ENG", fields=["id", "name"])
+client.v2.workspaces.projects.work_items.comments.list("acme", "ENG", "ENG-12")
+client.v2.workspaces.wiki.pages.list("acme")   # `wiki` groups, consumes no id
+client.v2.workspaces.features.get("acme")      # singleton: no primary key at all
 
-# Projects address by key; states resolve by name
-todo = eng.states.find_by_name("Todo")
-
-# Ask for only the fields you need
-for state in eng.states.iterate(fields=["id", "name"]):
-    print(state.id, state.name)
-
-eng.states.create(CreateState(name="In Review", color="#4ECDC4"))
-
-# Batches report per row; partial success is the default
-result = eng.states.bulk_create([CreateState(name="QA", color="#fff")])
-result.raise_for_failures()
+client.v2.workspaces.projects.states.create(
+    "acme", "ENG", CreateState(name="In Review", color="#4ECDC4")
+)
 ```
 
-Sparse responses mean every read field except `id` is optional — check for `None`
-rather than assuming a field is present.
-
-`eng.labels` follows the same shape as `eng.states`: `list`, `iterate`, `retrieve`,
-`find_by_name`, `create`, `update`, `delete`, `upsert`, `bulk_create`, `bulk_update`,
-`bulk_delete`. Models: `State`, `CreateState`, `UpdateState`, `Label`, `CreateLabel`,
-`UpdateLabel`, `BulkWriteResponse`, `OffsetPage`, `CursorPage`, all importable from
-`plane.models.v2`.
-
-`eng.cycles`, `eng.modules` and `eng.milestones` offer the same CRUD/upsert/bulk
-surface. Milestones' identifying field is `title`, not `name`, but `find_by_name`
-still takes a `name` argument — the API's own list filter aliases `?name=` to the
-`title` column. Models: `Cycle`, `CreateCycle`, `UpdateCycle`, `Module`, `CreateModule`,
-`UpdateModule`, `ModuleStatus`, `Milestone`, `CreateMilestone`, `UpdateMilestone`, all
-importable from `plane.models.v2`.
-
-Wiki resources are workspace-scoped, reached under `.wiki`:
+Path ids are plain positional-or-keyword parameters, so they can be passed by
+keyword too — handy when a call's own arguments would otherwise read ambiguously:
 
 ```python
-from plane.models.v2 import CreatePage
-
-ws = client.v2.workspace("acme")
-
-# A public page created without `collection_id` lands in the workspace's default
-# ("General") collection server-side; private pages need an explicit private one.
-handbook = ws.wiki.collections.find_by_name("Engineering handbook")
-ws.wiki.pages.create(CreatePage(name="Runbook", collection_id=handbook.id))
-ws.wiki.collections.default()          # the default collection, resolved by `is_default`
+client.v2.workspaces.projects.states.list(slug="acme", project="ENG")
 ```
 
-Work items follow the same pattern, and readable identifiers come first:
+### 2. Loaded rows
+
+A resource with children (today, that's `projects` and `work_items`) doesn't just
+hand back a bare pydantic model from `retrieve`/`list`/`iterate` — it hands back a
+row that carries its own data *and* already knows where it lives, so the row's own
+children are reached with none of the ids repeated:
 
 ```python
-from plane.models.v2 import CreateWorkItem
-
-eng = client.v2.workspace("acme").project("ENG")
-item = eng.work_items.create(CreateWorkItem(name="Fix login bug", state="Todo", labels=["bug"]))
-eng.work_items.comments.list(item.id)
-
-# By human key, with no project needed -- `ws.work_items` spans every project
-ws.work_items.retrieve_by_identifier("ENG-12")
+p = client.v2.workspaces.projects.retrieve("acme", "ENG")
+p.name
+p.states.list()                                    # no "acme", "ENG" to repeat
+item = p.work_items.retrieve("ENG-12")
+item.comments.list()                                # same, one level deeper
 ```
 
-Every other resource hangs off the same two locators with the same shape --
-`ws.members`, `ws.releases.comments`, `eng.cycles`, `eng.work_item_types.properties`,
-... -- and none of them take `workspace_slug`/`project` arguments: the locator
-supplies both.
+`list` and `iterate` yield these same navigable rows, not bare pydantic models —
+`for project in client.v2.workspaces.projects.iterate("acme"): project.states.list()`
+works with no extra plumbing. Resources without children today (`states`, `labels`,
+`workspaces`, `wiki.pages`, `features`, `releases.labels`) still return plain
+pydantic models — the `Loaded` mixin (`plane/api/v2/_kernel/loaded.py`) is generic
+and every migrated resource with children will pick it up the same way.
 
-Membership between two resources is a *bridge* sub-resource with two verbs, `add` and
-`remove` -- parent id first, then 1..100 ids -- each returning the ids the server
-actually changed (already-present / already-absent ids are omitted):
+### Sparse responses raise, they don't lie
+
+Every read field except `id` is optional at the model level, because `?fields=`
+and collection deferral can both omit any field the server would otherwise send.
+On a Loaded row, *reading* a field the request didn't ask for raises
+`FieldNotRequested` instead of silently returning `None` — a `None` you get back is
+a real null, not a sign the data was never fetched:
 
 ```python
-proj.cycles.work_items.add(sprint.id, [item.id, subtask.id])   # -> ["<item id>", ...]
-proj.cycles.work_items.remove(sprint.id, [subtask.id])
-proj.modules.work_items.add(module.id, ids)
-proj.milestones.work_items.add(milestone.id, ids)
-ws.customers.work_items.add(customer.id, ids)
-ws.releases.work_items.add(release.id, ids)
-ws.releases.labels.add(release.id, [label.id])       # `.labels.create` defines a label;
-ws.initiatives.labels.add(initiative.id, [label.id]) # `.labels.add` puts one on a row
-ws.initiatives.projects.add(initiative.id, [project.id])
-ws.initiatives.work_items.add(initiative.id, ids)
-ws.wiki.collections.pages.add(collection.id, [page.id])
-ws.wiki.collections.members.add(collection.id, [CollectionMemberAdd(member_id=user.id)])
-ws.wiki.collections.members.remove(collection.id, [user.id])
+from plane.api.v2._kernel.errors import FieldNotRequested
+
+p = client.v2.workspaces.projects.retrieve("acme", "ENG", fields=["id"])
+p.name          # raises FieldNotRequested -- "name" was not requested
 ```
 
-An empty list, or more than 100 ids, raises `ValueError` before any request is sent.
-Custom properties on a work item type use the web app's own words instead:
-`eng.work_item_types.properties.link(type_id, [property_id])` and
-`.unlink(type_id, property_id)` -- unlinking deletes that property's values on every
-work item of the type.
+(`FieldNotRequested` isn't re-exported from `plane.api.v2` yet, unlike the other
+v2 error types below — a follow-on task will fold it into the public export list.)
 
-Lookups by readable key are server-side wherever the API filters on one:
-`ws.roles.find_by_slug("admin", namespace="workspace")`,
-`eng.estimates.points.find_by_key(estimate.id, 3)`, and `find_by_name` on
-properties (`name` is the property key such as `story_points`, not the label), their
-options, and workspace property contexts.
+### Typing is not decorative
+
+Field names, `order_by` values and filter keyword names are all generated
+`Literal`/`TypedDict` types (from `plane/api/v2/_generated/constants.py`, produced
+from the api_v2 OpenAPI golden), and the package ships a `py.typed` marker so a
+type checker actually reads them. A typo in a filter keyword is a `mypy` error,
+not a runtime surprise:
+
+```python
+# mypy rejects this: "not_a_filter" isn't in StatesListFilters
+client.v2.workspaces.projects.states.list("acme", "ENG", not_a_filter="x")
+```
+
+### What else is wired
+
+`releases.labels` sits on `workspaces` too (`client.v2.workspaces.releases.labels`)
+and, being both a catalog *and* a membership bridge, additionally exposes
+`add(release_id, ids)`/`remove(release_id, ids)` to attach/detach existing labels
+from a specific release — parent id first, then 1..100 ids; an empty list, or more
+than 100, raises `ValueError` before any request is sent.
+
+### Errors
 
 Errors from `client.v2` calls raise `PlaneAPIError` (RFC 9457 problem detail —
 `.status`, `.type`, `.code`, `.detail`, `.errors`), and `find_by_name` raises
@@ -324,24 +319,17 @@ from plane.api.v2 import MultipleMatchesFound, NoMatchFound, PlaneAPIError
 # from plane import MultipleMatchesFound, NoMatchFound, PlaneAPIError
 
 try:
-    state = eng.states.find_by_name("Todo")
+    todo = client.v2.workspaces.projects.states.find_by_name("acme", "ENG", "Todo")
 except NoMatchFound:
     ...
 except MultipleMatchesFound:
     ...
 
 try:
-    eng.states.create(CreateState(name="", color="#fff"))
+    client.v2.workspaces.projects.states.create("acme", "ENG", CreateState(name="", color="#fff"))
 except PlaneAPIError as e:
     print(e.status, e.code, e.detail)
 ```
-
-Bulk writes (`bulk_create`, `bulk_update`, `bulk_delete`) cap at 50 rows per call and
-answer HTTP 200 even when some rows fail — call `result.raise_for_failures()` to turn
-partial failure into an exception, or inspect `result.failures` yourself. An empty
-batch is rejected client-side with a `ValueError` before any request is sent — the API
-itself 400s on `[]` (every bulk schema requires at least one row), so the client mirrors
-that instead of round-tripping a request guaranteed to fail.
 
 ## Architecture
 

@@ -69,29 +69,60 @@ PlaneClient
 - `plane/client/` — `PlaneClient` (API key / access token auth) and `OAuthClient` (OAuth 2.0 flows).
 - `plane/errors/` — `PlaneError` → `HttpError`, `ConfigurationError`.
 - `plane/config.py` — `Configuration` and `RetryConfig` dataclasses.
-- `plane/api/v2/` — the v2 surface. The chain is the only public form:
-  `client.v2.workspace(slug)` (`Workspace`, `plane/api/v2/workspace.py`) and
-  `.project(project)` (`Project`, `plane/api/v2/project.py`) are zero-I/O locators
-  that bind `slug`/`project_id` once; every v2 resource hangs off one of them as a
-  plain attribute (`.wiki` on `Workspace` is itself a small locator, `Wiki` in
-  `plane/api/v2/wiki.py`, holding `.pages`/`.collections`). `client.v2.users` /
-  `.user_assets` are the only resources kept directly on `V2Namespace` (the 6
-  operations with no workspace in their path). `_kernel/` holds the shared
-  machinery: `V2Resource.__init__(transport, **scope)` stores the bound scope,
-  and `_collection_url`/`_detail_url` merge it with any explicitly passed path
-  params (explicit wins) — a resource constructed with no scope (most offline
-  tests do this) behaves exactly as if every path param were passed per call, so
-  a resource's methods work identically whether or not it was reached through
-  the chain. No public v2 method takes `workspace_slug`/`project` parameters —
-  the locator supplies both; leaf ids (`work_item_id`, `release_id`, ...) stay as
-  the first positional argument. `_generated/constants.py` is produced by
-  `scripts/generate_v2_constants.py` from the api_v2 OpenAPI golden and must
-  never be hand-edited.
+- `plane/api/v2/` — the v2 surface (`client.v2`), **migration in progress**: roughly
+  85 of the ~120 resource groups are still on the retired pre-flat shape and are
+  not wired onto the tree below (`Collections`, most of `work_items/` beyond
+  `.comments`, etc. — see each file's own docstring for whether it's wired). The
+  bound-locator chain (`client.v2.workspace(slug).project(project)`) is **gone**.
+  There are two ways into a resource now:
+  - **The flat path.** A static tree reached by plain attribute access, e.g.
+    `client.v2.workspaces.projects.states.list("acme", "ENG")`,
+    `client.v2.workspaces.projects.work_items.comments.list("acme", "ENG", "ENG-12")`.
+    Read it left to right: every segment that names an actual resource consumes
+    one URL path id, in order; a segment that only groups children (`.wiki` on
+    `Workspaces`, `plane/api/v2/wiki_node.py`, holding just `.pages` today —
+    `.collections` isn't wired, `Collections` isn't migrated) consumes none. Path
+    ids are positional-or-keyword (`states.list(slug="acme", project="ENG")`
+    works). `client.v2.users` / `.user_assets` are the only resources kept
+    directly on `V2Namespace` (the 6 operations with no workspace in their path).
+    A singleton with no primary key of its own (`workspaces.features`,
+    `plane/api/v2/features.py`) hits `url_for`/`_collection_url` directly instead
+    of `_retrieve`/`_update`, which both require a `pk` to append.
+  - **Loaded rows.** A resource with children today (`projects`, `work_items`)
+    returns a `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic
+    model: it carries its own data and reaches its own children with none of the
+    ids repeated (`project.states.list()`, `work_item.comments.list()`).
+    `Loaded.build(row, ids, fields)` (`_kernel/loaded.py`) is the mixin; a
+    `Loaded.__getattr__` on a field the request's `fields=` excluded raises
+    `FieldNotRequested` instead of reading as `None` — a `None` you get back is a
+    real null. `Owned(resource, ids, names)` is the other half: it prepends a
+    parent's already-bound ids ahead of a child method's own arguments, and
+    raises `TypeError` up front if the child's leading parameters aren't ordered
+    the way `names` expects, rather than silently sending values into the wrong
+    parameter. `_loaded/project.py` and `_loaded/work_item.py` are today's two
+    `Loaded` subclasses; every migrated resource with children will get one the
+    same way.
+  - `_kernel/` holds the shared machinery beyond `loaded.py`:
+    `V2Resource.__init__(transport)` takes no bound scope any more —
+    `_collection_url`/`_detail_url` build straight from whatever path params a
+    call passes — so a resource's methods work identically whether reached
+    through the flat tree or constructed directly (most offline tests do the
+    latter). No public v2 method takes `workspace_slug`/`project` parameters as
+    such; the path segment's own leading positional-or-keyword parameters carry
+    them, in path order. `_generated/constants.py` is produced by
+    `scripts/generate_v2_constants.py` from the api_v2 OpenAPI golden and must
+    never be hand-edited — it is also what makes field names, `order_by` values
+    and filter keyword names real generated `Literal`/`TypedDict` types instead
+    of loose strings, which is why the package ships a `py.typed` marker
+    (`tests/v2/test_typing.py` proves a type checker actually rejects an unknown
+    filter keyword).
   - **Bridges.** Membership between two resources (`.../cycles/{id}/work-items/`,
     `.../releases/{id}/labels/`, `.../collections/{id}/members/`, ...) is never a
     `manage_*(add=, remove=)` method. It is a sub-resource (`proj.cycles.work_items`,
-    `ws.initiatives.projects`; on a catalog resource such as `ws.releases.labels` the
-    verbs sit next to the CRUD) exposing exactly `add(parent_id, ids) -> list[str]`
+    `ws.initiatives.projects` — both design-intent today, since `cycles`/`initiatives`
+    aren't wired onto the flat tree yet; `ws.releases.labels` (wired, verbs sit next
+    to the CRUD since it's also the label catalog) is the one bridge reachable
+    through `client.v2` right now) exposing exactly `add(parent_id, ids) -> list[str]`
     and `remove(parent_id, ids) -> list[str]`, both delegating to
     `V2Resource._bridge(key=, ids=, **path_params)`. The kernel POSTs `{"add": [...]}`
     or `{"remove": [...]}` only, rejects 0 or >100 ids with `ValueError` before the

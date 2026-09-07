@@ -19,7 +19,7 @@ def test_unrequested_field_raises_and_names_what_was_asked_for() -> None:
     row = State(id="1", name="Todo")
     loaded = LoadedState.build(row, ids=("acme",), fields=["id", "name"])
     with pytest.raises(FieldNotRequested, match="group"):
-        loaded.group
+        _ = loaded.group
 
 
 def test_requested_but_null_field_reads_as_none() -> None:
