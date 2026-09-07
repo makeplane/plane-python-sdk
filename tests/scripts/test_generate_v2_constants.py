@@ -66,3 +66,22 @@ def test_emits_filters_typeddict(tmp_path: pathlib.Path) -> None:
     assert "    name: str" in generated
     assert "    is_default: bool" in generated
     assert "    per_page:" not in generated
+
+
+def test_display_name_filter_survives_regeneration_from_the_real_golden() -> None:
+    """Regression pin on the *committed* output (not a fixture): a golden regenerated from a
+    stale branch can silently drop a real, shipped query parameter (`display_name` on the
+    property list operations) without any fixture-based test noticing. This reads the real
+    committed `constants.py` and asserts the field is still there."""
+    generated = pathlib.Path("plane/api/v2/_generated/constants.py").read_text()
+
+    marker = "class WorkItemPropertiesListFilters(TypedDict, total=False):"
+    start = generated.index(marker)
+    end = generated.index("\n\n", start)
+    block = generated[start:end]
+
+    assert "    display_name: str" in block, (
+        "WorkItemPropertiesListFilters is missing `display_name: str` -- the golden used to "
+        "regenerate constants.py is stale (predates the display_name query parameter shipping "
+        "on the property list operations)."
+    )

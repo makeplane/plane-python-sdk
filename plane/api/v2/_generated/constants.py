@@ -1,5 +1,5 @@
 """Generated from the api_v2 OpenAPI golden (version 2.0.0) -- never hand-edited.
-Source: ../plane-ee-workspace-discovery/apps/api/plane/api_v2/core/schema/openapi
+Source: ../plane-ee-preview/apps/api/plane/api_v2/core/schema/openapi
 Regenerate: python scripts/generate_v2_constants.py <path-to>/api_v2/core/schema/openapi"""
 
 from typing import Literal
@@ -10598,6 +10598,7 @@ class CommentsListFilters(TypedDict, total=False):
 
 
 class CustomerPropertiesListFilters(TypedDict, total=False):
+    display_name: str
     is_active: bool
     is_required: bool
     name: str
@@ -10879,6 +10880,7 @@ class WebhooksListFilters(TypedDict, total=False):
 
 
 class WorkItemPropertiesListFilters(TypedDict, total=False):
+    display_name: str
     external_id: str
     external_source: str
     name: str
@@ -11018,6 +11020,7 @@ class WorkspaceViewsListFilters(TypedDict, total=False):
 
 
 class WorkspaceWorkItemPropertiesListFilters(TypedDict, total=False):
+    display_name: str
     external_id: str
     external_source: str
     name: str
