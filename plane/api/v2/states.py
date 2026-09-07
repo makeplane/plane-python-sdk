@@ -10,10 +10,13 @@ from typing_extensions import Unpack
 from ...models.v2.common import BulkWriteResponse
 from ...models.v2.states import CreateState, State, UpdateState
 from ._generated.constants import (
+    StatesCreateField,
     StatesListField,
     StatesListFilters,
     StatesListOrderBy,
+    StatesPartialUpdateField,
     StatesRetrieveField,
+    StatesUpsertField,
 )
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
@@ -41,11 +44,19 @@ class States(V2Resource[State, CreateState, UpdateState]):
         *,
         fields: Sequence[StatesListField] | None = None,
         order_by: StatesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
         **filters: Unpack[StatesListFilters],
     ) -> Page[State]:
         """One page of states in this project."""
         return self._list(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )
@@ -80,18 +91,42 @@ class States(V2Resource[State, CreateState, UpdateState]):
         """The one state with this name; raises if none or several match."""
         return self._find_one(filters={"name": name}, slug=slug, project_id=project)
 
-    def create(self, slug: str, project: str, data: CreateState) -> State:
-        return self._create(data, slug=slug, project_id=project)
+    def create(
+        self,
+        slug: str,
+        project: str,
+        data: CreateState,
+        *,
+        fields: Sequence[StatesCreateField] | None = None,
+    ) -> State:
+        return self._create(data, params={"fields": fields}, slug=slug, project_id=project)
 
-    def update(self, slug: str, project: str, state_id: str, data: UpdateState) -> State:
-        return self._update(data, pk=state_id, slug=slug, project_id=project)
+    def update(
+        self,
+        slug: str,
+        project: str,
+        state_id: str,
+        data: UpdateState,
+        *,
+        fields: Sequence[StatesPartialUpdateField] | None = None,
+    ) -> State:
+        return self._update(
+            data, pk=state_id, params={"fields": fields}, slug=slug, project_id=project
+        )
 
     def delete(self, slug: str, project: str, state_id: str) -> None:
         return self._delete(pk=state_id, slug=slug, project_id=project)
 
-    def upsert(self, slug: str, project: str, data: CreateState) -> State:
+    def upsert(
+        self,
+        slug: str,
+        project: str,
+        data: CreateState,
+        *,
+        fields: Sequence[StatesUpsertField] | None = None,
+    ) -> State:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(data, slug=slug, project_id=project)
+        return self._upsert(data, params={"fields": fields}, slug=slug, project_id=project)
 
     def bulk_create(
         self,
