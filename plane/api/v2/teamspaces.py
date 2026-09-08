@@ -4,9 +4,18 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ...models.v2.teamspaces import CreateTeamspace, Teamspace, UpdateTeamspace
+from ._generated.constants import (
+    TeamspacesCreateField,
+    TeamspacesListField,
+    TeamspacesListFilters,
+    TeamspacesListOrderBy,
+    TeamspacesPartialUpdateField,
+    TeamspacesRetrieveField,
+)
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 
@@ -24,46 +33,80 @@ class Teamspaces(V2Resource[Teamspace, CreateTeamspace, UpdateTeamspace]):
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[TeamspacesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: TeamspacesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[TeamspacesListFilters],
     ) -> Page[Teamspace]:
         """One page of teamspaces. `**filters` covers the golden's query filters
         directly, e.g. `lead_id=...`, `name="Platform"`, `search="plat"`."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[TeamspacesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: TeamspacesListOrderBy | None = None,
+        **filters: Unpack[TeamspacesListFilters],
     ) -> Iterator[Teamspace]:
         """Every teamspace, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+        )
 
     def retrieve(
         self,
+        slug: str,
         teamspace_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[TeamspacesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> Teamspace:
         return self._retrieve(
             pk=teamspace_id,
             params={"fields": fields, "expand": expand},
+            slug=slug,
         )
 
-    def find_by_name(self, name: str) -> Teamspace:
+    def find_by_name(self, slug: str, name: str) -> Teamspace:
         """The one teamspace with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        return self._find_one(filters={"name": name}, slug=slug)
 
-    def create(self, data: CreateTeamspace) -> Teamspace:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateTeamspace,
+        *,
+        fields: Sequence[TeamspacesCreateField] | None = None,
+    ) -> Teamspace:
+        return self._create(data, params={"fields": fields}, slug=slug)
 
-    def update(self, teamspace_id: str, data: UpdateTeamspace) -> Teamspace:
-        return self._update(data, pk=teamspace_id)
+    def update(
+        self,
+        slug: str,
+        teamspace_id: str,
+        data: UpdateTeamspace,
+        *,
+        fields: Sequence[TeamspacesPartialUpdateField] | None = None,
+    ) -> Teamspace:
+        return self._update(data, pk=teamspace_id, params={"fields": fields}, slug=slug)
 
-    def delete(self, teamspace_id: str) -> None:
-        return self._delete(pk=teamspace_id)
+    def delete(self, slug: str, teamspace_id: str) -> None:
+        return self._delete(pk=teamspace_id, slug=slug)

@@ -1,5 +1,10 @@
 """Offline coverage for project/workspace work item templates plus the project-only `use` action,
-which returns a `WorkItem`."""
+which returns a `WorkItem`.
+
+`WorkspaceWorkItemTemplates` is migrated flat (leading `slug`), per Task 3.
+`ProjectWorkItemTemplates` is a project-level twin (depth 2) that is out of scope
+here -- left on the pre-flat shape; its tests below still error on construction
+until a later task migrates it."""
 
 from __future__ import annotations
 
@@ -29,7 +34,7 @@ def project_templates(config: Configuration) -> ProjectWorkItemTemplates:
 
 @pytest.fixture
 def workspace_templates(config: Configuration) -> WorkspaceWorkItemTemplates:
-    return WorkspaceWorkItemTemplates(V2Transport(config), slug="acme")
+    return WorkspaceWorkItemTemplates(V2Transport(config))
 
 
 @responses.activate
@@ -114,16 +119,72 @@ def test_workspace_templates_crud(workspace_templates: WorkspaceWorkItemTemplate
         json={"id": "2", "name": "Feature request"},
         status=201,
     )
+    responses.patch(
+        f"{BASE}/workspaces/acme/work-item-templates/2/",
+        json={"id": "2", "name": "Feature"},
+    )
+    responses.delete(f"{BASE}/workspaces/acme/work-item-templates/2/", status=204)
 
-    page = workspace_templates.list()
+    page = workspace_templates.list("acme")
     assert page.data[0].name == "Bug report"
+    assert responses.calls[0].request.url.startswith(f"{BASE}/workspaces/acme/work-item-templates/")
 
     created = workspace_templates.create(
+        "acme",
         CreateWorkItemTemplate(
             name="Feature request", template_data=WorkItemTemplateData(name="Feature request")
         ),
     )
     assert created.id == "2"
+    assert responses.calls[1].request.url == f"{BASE}/workspaces/acme/work-item-templates/"
+
+    updated = workspace_templates.update("acme", created.id, UpdateWorkItemTemplate(name="Feature"))
+    assert updated.name == "Feature"
+    assert responses.calls[2].request.url == f"{BASE}/workspaces/acme/work-item-templates/2/"
+
+    assert workspace_templates.delete("acme", created.id) is None
+    assert responses.calls[3].request.url == f"{BASE}/workspaces/acme/work-item-templates/2/"
+
+
+@responses.activate
+def test_workspace_templates_retrieve(workspace_templates: WorkspaceWorkItemTemplates) -> None:
+    responses.get(
+        f"{BASE}/workspaces/acme/work-item-templates/1/", json={"id": "1", "name": "Bug report"}
+    )
+
+    template = workspace_templates.retrieve("acme", "1")
+
+    assert template.name == "Bug report"
+    assert responses.calls[0].request.url == f"{BASE}/workspaces/acme/work-item-templates/1/"
+
+
+@responses.activate
+def test_workspace_templates_iterate(workspace_templates: WorkspaceWorkItemTemplates) -> None:
+    responses.get(
+        f"{BASE}/workspaces/acme/work-item-templates/",
+        json={"data": [{"id": "1", "name": "Bug report"}], "pagination": {"style": "offset"}},
+    )
+
+    rows = list(workspace_templates.iterate("acme"))
+
+    assert rows[0].id == "1"
+    assert responses.calls[0].request.url.startswith(f"{BASE}/workspaces/acme/work-item-templates/")
+
+
+@responses.activate
+def test_workspace_templates_list_per_page_and_offset(
+    workspace_templates: WorkspaceWorkItemTemplates,
+) -> None:
+    responses.get(
+        f"{BASE}/workspaces/acme/work-item-templates/",
+        json={"data": [], "pagination": {"style": "offset"}},
+    )
+
+    workspace_templates.list("acme", per_page=12, offset=24)
+
+    request_url = responses.calls[0].request.url
+    assert "per_page=12" in request_url
+    assert "offset=24" in request_url
 
 
 def test_workspace_templates_have_no_use_action(

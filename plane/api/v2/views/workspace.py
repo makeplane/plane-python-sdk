@@ -4,9 +4,18 @@ different path template than `ProjectViews`, same read/write shape."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.views import CreateView, UpdateView, View
+from .._generated.constants import (
+    WorkspaceViewsCreateField,
+    WorkspaceViewsListField,
+    WorkspaceViewsListFilters,
+    WorkspaceViewsListOrderBy,
+    WorkspaceViewsPartialUpdateField,
+    WorkspaceViewsRetrieveField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -24,39 +33,72 @@ class WorkspaceViews(V2Resource[View, CreateView, UpdateView]):
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkspaceViewsListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorkspaceViewsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[WorkspaceViewsListFilters],
     ) -> Page[View]:
         """One page of workspace-level views. `**filters` covers `access`,
         `is_locked`, `name`, `owned_by_id`."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkspaceViewsListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorkspaceViewsListOrderBy | None = None,
+        **filters: Unpack[WorkspaceViewsListFilters],
     ) -> Iterator[View]:
         """Every workspace-level view, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+        )
 
     def retrieve(
         self,
+        slug: str,
         view_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkspaceViewsRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> View:
-        return self._retrieve(pk=view_id, params={"fields": fields, "expand": expand})
+        return self._retrieve(pk=view_id, params={"fields": fields, "expand": expand}, slug=slug)
 
-    def create(self, data: CreateView) -> View:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateView,
+        *,
+        fields: Sequence[WorkspaceViewsCreateField] | None = None,
+    ) -> View:
+        return self._create(data, params={"fields": fields}, slug=slug)
 
-    def update(self, view_id: str, data: UpdateView) -> View:
-        return self._update(data, pk=view_id)
+    def update(
+        self,
+        slug: str,
+        view_id: str,
+        data: UpdateView,
+        *,
+        fields: Sequence[WorkspaceViewsPartialUpdateField] | None = None,
+    ) -> View:
+        return self._update(data, pk=view_id, params={"fields": fields}, slug=slug)
 
-    def delete(self, view_id: str) -> None:
-        return self._delete(pk=view_id)
+    def delete(self, slug: str, view_id: str) -> None:
+        return self._delete(pk=view_id, slug=slug)

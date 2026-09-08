@@ -5,12 +5,17 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
 
 from ...models.v2.work_item_relation_definitions import (
     CreateWorkItemRelationDefinition,
     UpdateWorkItemRelationDefinition,
     WorkItemRelationDefinition,
+)
+from ._generated.constants import (
+    WorkItemRelationDefinitionsCreateField,
+    WorkItemRelationDefinitionsListField,
+    WorkItemRelationDefinitionsPartialUpdateField,
+    WorkItemRelationDefinitionsRetrieveField,
 )
 from ._kernel.errors import MultipleMatchesFound, NoMatchFound
 from ._kernel.pagination import Page
@@ -36,35 +41,42 @@ class WorkItemRelationDefinitions(
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[WorkItemRelationDefinitionsListField] | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
     ) -> Page[WorkItemRelationDefinition]:
-        """One page of relation definitions."""
-        return self._list(params={"fields": fields, **filters})
+        """One page of relation definitions. The golden offers no query filters
+        or `order_by` on this operation."""
+        return self._list(
+            params={"fields": fields, "per_page": per_page, "offset": offset},
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[WorkItemRelationDefinitionsListField] | None = None,
     ) -> Iterator[WorkItemRelationDefinition]:
         """Every relation definition, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(params={"fields": fields}, slug=slug)
 
     def retrieve(
         self,
+        slug: str,
         definition_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkItemRelationDefinitionsRetrieveField] | None = None,
     ) -> WorkItemRelationDefinition:
-        return self._retrieve(pk=definition_id, params={"fields": fields})
+        return self._retrieve(pk=definition_id, params={"fields": fields}, slug=slug)
 
-    def find_by_name(self, name: str) -> WorkItemRelationDefinition:
+    def find_by_name(self, slug: str, name: str) -> WorkItemRelationDefinition:
         """The one relation definition with this name; raises if none or several
         match. Filters client-side: no `?name=` filter exists; row count is
         always small, so a full scan is cheap."""
-        matches = [row for row in self.iterate() if row.name == name]
+        matches = [row for row in self.iterate(slug) if row.name == name]
         if not matches:
             raise NoMatchFound(f"No WorkItemRelationDefinitions matched name={name!r}.")
         if len(matches) > 1:
@@ -74,15 +86,24 @@ class WorkItemRelationDefinitions(
             )
         return matches[0]
 
-    def create(self, data: CreateWorkItemRelationDefinition) -> WorkItemRelationDefinition:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateWorkItemRelationDefinition,
+        *,
+        fields: Sequence[WorkItemRelationDefinitionsCreateField] | None = None,
+    ) -> WorkItemRelationDefinition:
+        return self._create(data, params={"fields": fields}, slug=slug)
 
     def update(
         self,
+        slug: str,
         definition_id: str,
         data: UpdateWorkItemRelationDefinition,
+        *,
+        fields: Sequence[WorkItemRelationDefinitionsPartialUpdateField] | None = None,
     ) -> WorkItemRelationDefinition:
-        return self._update(data, pk=definition_id)
+        return self._update(data, pk=definition_id, params={"fields": fields}, slug=slug)
 
-    def delete(self, definition_id: str) -> None:
-        return self._delete(pk=definition_id)
+    def delete(self, slug: str, definition_id: str) -> None:
+        return self._delete(pk=definition_id, slug=slug)

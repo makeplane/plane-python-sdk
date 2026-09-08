@@ -4,9 +4,18 @@ CRUD; rows are implicitly owner-scoped server-side (a member only sees their own
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ...models.v2.stickies import CreateSticky, Sticky, UpdateSticky
+from ._generated.constants import (
+    StickiesCreateField,
+    StickiesListField,
+    StickiesListFilters,
+    StickiesListOrderBy,
+    StickiesPartialUpdateField,
+    StickiesRetrieveField,
+)
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 
@@ -24,36 +33,68 @@ class Stickies(V2Resource[Sticky, CreateSticky, UpdateSticky]):
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[StickiesListField] | None = None,
+        order_by: StickiesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[StickiesListFilters],
     ) -> Page[Sticky]:
         """One page of stickies. `**filters` covers the golden's query filters
         directly, e.g. `color="#fff"`, `owner_id=...`, `search="todo"`."""
-        return self._list(params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[StickiesListField] | None = None,
+        order_by: StickiesListOrderBy | None = None,
+        **filters: Unpack[StickiesListFilters],
     ) -> Iterator[Sticky]:
         """Every sticky, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(
+            params={"fields": fields, "order_by": order_by, **filters},
+            slug=slug,
+        )
 
     def retrieve(
         self,
+        slug: str,
         sticky_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[StickiesRetrieveField] | None = None,
     ) -> Sticky:
-        return self._retrieve(pk=sticky_id, params={"fields": fields})
+        return self._retrieve(pk=sticky_id, params={"fields": fields}, slug=slug)
 
-    def create(self, data: CreateSticky) -> Sticky:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateSticky,
+        *,
+        fields: Sequence[StickiesCreateField] | None = None,
+    ) -> Sticky:
+        return self._create(data, params={"fields": fields}, slug=slug)
 
-    def update(self, sticky_id: str, data: UpdateSticky) -> Sticky:
-        return self._update(data, pk=sticky_id)
+    def update(
+        self,
+        slug: str,
+        sticky_id: str,
+        data: UpdateSticky,
+        *,
+        fields: Sequence[StickiesPartialUpdateField] | None = None,
+    ) -> Sticky:
+        return self._update(data, pk=sticky_id, params={"fields": fields}, slug=slug)
 
-    def delete(self, sticky_id: str) -> None:
-        return self._delete(pk=sticky_id)
+    def delete(self, slug: str, sticky_id: str) -> None:
+        return self._delete(pk=sticky_id, slug=slug)
