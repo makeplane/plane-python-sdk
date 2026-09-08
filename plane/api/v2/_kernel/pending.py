@@ -1,9 +1,12 @@
 """Placeholders for v2 resources that are wired onto the tree but not yet migrated.
 
-Roughly 85 of the ~120 v2 resource groups still use the retired pre-flat shape: their
+A shrinking batch of v2 resource groups still use the retired pre-flat shape: their
 methods omit the leading path ids (`slug`, `project`, ...) that their URL template
-names. Attaching one to the flat tree anyway meant every call failed inside the kernel
--- a bare `KeyError('slug')` before `MissingPathId` existed, and an unhelpful one after.
+names. How many remain moves every time a migration plan lands a batch, so the
+count is not restated here -- the repo `CLAUDE.md` tracks the current figure, and
+each unmigrated file's own docstring says so. Attaching one to the flat tree
+anyway meant every call failed inside the kernel -- a bare `KeyError('slug')`
+before `MissingPathId` existed, and an unhelpful one after.
 
 Dropping the attribute instead would only trade that for `AttributeError`, which reads
 like a typo rather than like unfinished work. So the attribute stays, holding a

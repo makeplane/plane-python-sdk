@@ -2,8 +2,30 @@ import pytest
 import responses
 
 from plane.api.v2 import V2Namespace
+from plane.api.v2.artifacts import Artifacts
+from plane.api.v2.assets import WorkspaceAssets
+from plane.api.v2.audit_logs import AuditLogs
+from plane.api.v2.customer_properties import CustomerProperties
+from plane.api.v2.group_sync import (
+    GroupSync,
+    GroupSyncConfigResource,
+    GroupSyncProjectMappings,
+    GroupSyncWorkspaceMappings,
+)
+from plane.api.v2.invitations import Invitations
 from plane.api.v2.labels import Labels
+from plane.api.v2.members import WorkspaceMembers
+from plane.api.v2.permission_schemes import PermissionSchemes
+from plane.api.v2.permissions import WorkspacePermissions
+from plane.api.v2.releases.tags import ReleaseTags
+from plane.api.v2.roles import Roles
 from plane.api.v2.states import States
+from plane.api.v2.stickies import Stickies
+from plane.api.v2.teamspaces import Teamspaces
+from plane.api.v2.views import WorkspaceViews
+from plane.api.v2.work_item_relation_definitions import WorkItemRelationDefinitions
+from plane.api.v2.work_item_templates import WorkspaceWorkItemTemplates
+from plane.api.v2.work_items import WorkspaceWorkItems
 from plane.config import Configuration
 
 
@@ -122,33 +144,91 @@ def test_wiki_collections_is_present_rather_than_a_bare_attribute_error(
 # -- Task 5: wiring the migrated resources onto the tree ---------------------------
 
 
-def test_workspace_exposes_every_migrated_resource(config: Configuration) -> None:
-    ws = V2Namespace(config).workspaces
-    for name in (
-        "artifacts",
-        "assets",
-        "audit_logs",
+# Single source of truth for every resource this task attached to the tree: one row
+# per attachment, not a bare `hasattr`. `hasattr` passes even when an attribute is
+# wired to the wrong class -- checking `isinstance` plus the exact collection URL
+# for a known slug is what actually catches that. Plans 3 and 4 will attach roughly
+# 58 more resources the same way -- add a row here, not a new pattern, when they do.
+# `expected_url` is `None` only for `group_sync` itself: it is a grouping node like
+# `Wiki` (see `plane/api/v2/wiki_node.py`), with no `path` of its own -- its three
+# children each get their own row with a real URL instead.
+WORKSPACE_TREE_ATTACHMENTS = [
+    ("artifacts", lambda ws: ws.artifacts, Artifacts, "/workspaces/acme/artifacts/"),
+    ("assets", lambda ws: ws.assets, WorkspaceAssets, "/workspaces/acme/assets/"),
+    ("audit_logs", lambda ws: ws.audit_logs, AuditLogs, "/workspaces/acme/audit-logs/"),
+    (
         "customer_properties",
-        "group_sync",
-        "invitations",
-        "members",
+        lambda ws: ws.customer_properties,
+        CustomerProperties,
+        "/workspaces/acme/customer-properties/",
+    ),
+    ("group_sync", lambda ws: ws.group_sync, GroupSync, None),
+    ("invitations", lambda ws: ws.invitations, Invitations, "/workspaces/acme/invitations/"),
+    ("members", lambda ws: ws.members, WorkspaceMembers, "/workspaces/acme/members/"),
+    (
         "permission_schemes",
+        lambda ws: ws.permission_schemes,
+        PermissionSchemes,
+        "/workspaces/acme/permission-schemes/",
+    ),
+    (
         "permissions",
-        "roles",
-        "stickies",
-        "teamspaces",
-        "views",
+        lambda ws: ws.permissions,
+        WorkspacePermissions,
+        "/workspaces/acme/permissions/me/",
+    ),
+    ("roles", lambda ws: ws.roles, Roles, "/workspaces/acme/roles/"),
+    ("stickies", lambda ws: ws.stickies, Stickies, "/workspaces/acme/stickies/"),
+    ("teamspaces", lambda ws: ws.teamspaces, Teamspaces, "/workspaces/acme/teamspaces/"),
+    ("views", lambda ws: ws.views, WorkspaceViews, "/workspaces/acme/views/"),
+    (
         "work_item_relation_definitions",
+        lambda ws: ws.work_item_relation_definitions,
+        WorkItemRelationDefinitions,
+        "/workspaces/acme/work-item-relation-definitions/",
+    ),
+    (
         "work_item_templates",
-        "work_items",
-    ):
-        assert hasattr(ws, name), f"workspaces.{name} is not wired"
+        lambda ws: ws.work_item_templates,
+        WorkspaceWorkItemTemplates,
+        "/workspaces/acme/work-item-templates/",
+    ),
+    ("work_items", lambda ws: ws.work_items, WorkspaceWorkItems, "/workspaces/acme/work-items/"),
+    (
+        "group_sync.config",
+        lambda ws: ws.group_sync.config,
+        GroupSyncConfigResource,
+        "/workspaces/acme/group-sync/config/",
+    ),
+    (
+        "group_sync.project_mappings",
+        lambda ws: ws.group_sync.project_mappings,
+        GroupSyncProjectMappings,
+        "/workspaces/acme/group-sync/project-mappings/",
+    ),
+    (
+        "group_sync.workspace_mappings",
+        lambda ws: ws.group_sync.workspace_mappings,
+        GroupSyncWorkspaceMappings,
+        "/workspaces/acme/group-sync/workspace-mappings/",
+    ),
+    ("releases.tags", lambda ws: ws.releases.tags, ReleaseTags, "/workspaces/acme/releases/tags/"),
+]
 
 
-def test_group_sync_children_are_reachable(config: Configuration) -> None:
-    group_sync = V2Namespace(config).workspaces.group_sync
-    for name in ("config", "project_mappings", "workspace_mappings"):
-        assert hasattr(group_sync, name)
+@pytest.mark.parametrize(
+    ("name", "getter", "expected_class", "expected_url"),
+    WORKSPACE_TREE_ATTACHMENTS,
+    ids=[row[0] for row in WORKSPACE_TREE_ATTACHMENTS],
+)
+def test_workspace_tree_attachment_is_the_right_class_at_the_right_url(
+    config: Configuration, name, getter, expected_class, expected_url
+) -> None:
+    resource = getter(V2Namespace(config).workspaces)
+
+    assert isinstance(resource, expected_class), f"{name} is not a {expected_class.__name__}"
+    if expected_url is not None:
+        assert resource._collection_url(slug="acme") == expected_url, name
 
 
 @responses.activate
