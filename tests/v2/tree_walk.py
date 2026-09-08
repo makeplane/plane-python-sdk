@@ -51,26 +51,16 @@ WALK_CONFIG = Configuration(base_path="https://api.example.com", api_key="secret
 """Constructing the tree makes no request (see `test_tree.py`), so any config works."""
 
 
-UNMIGRATED_RESOURCES = frozenset(
-    {
-        # workflows
-        "WorkflowStates",
-        "WorkflowTransitions",
-        "Workflows",
-    }
-)
+UNMIGRATED_RESOURCES: frozenset[str] = frozenset()
 """Resource classes still on the retired pre-flat shape, excluded from the sweeps.
 
-**This list may only shrink.** It is what remains of the plan-4 backlog: workflows,
-the last family deferred by this plan's scope ruling. Its methods omit the leading
-path ids their URL templates name and still spell their ids `<resource>_id`, so
-sweeping them would report dozens of violations that the migration itself is going
-to rewrite.
+**Empty.** Workflows (`Workflows`, `WorkflowStates`, `WorkflowTransitions`) were
+the last family on this list -- the plan-4 backlog is paid off, and every
+`V2Resource` subclass in the package is now swept by every rule below.
 
-Deleting a name from here is part of migrating that class -- and
-`tests/v2/test_path_id_naming.py` makes it compulsory rather than optional: it
-fails if an opted-out class turns out to be wired onto the tree or flat-shaped, and
-it fails if this list ever grows.
+**This list may only shrink**, and `tests/v2/test_path_id_naming.py` still
+enforces that: it fails if a name is ever added back, and it fails if an
+opted-out class turns out to be wired onto the tree or flat-shaped.
 """
 
 
