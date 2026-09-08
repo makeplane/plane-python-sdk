@@ -5,12 +5,21 @@ default value/requiredness there."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.work_item_properties import (
     CreateWorkItemPropertyContext,
     UpdateWorkItemPropertyContext,
     WorkItemPropertyContext,
+)
+from .._generated.constants import (
+    WorkItemPropertyContextsCreateField,
+    WorkItemPropertyContextsListField,
+    WorkItemPropertyContextsListFilters,
+    WorkItemPropertyContextsListOrderBy,
+    WorkItemPropertyContextsPartialUpdateField,
+    WorkItemPropertyContextsRetrieveField,
 )
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
@@ -33,50 +42,83 @@ class WorkItemPropertyContexts(
 
     def list(
         self,
-        property_id: str,
+        slug: str,
+        property: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[WorkItemPropertyContextsListField] | None = None,
+        order_by: WorkItemPropertyContextsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[WorkItemPropertyContextsListFilters],
     ) -> Page[WorkItemPropertyContext]:
         """One page of a workspace property's contexts."""
-        return self._list(property_id=property_id, params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            property_id=property,
+        )
 
     def iterate(
         self,
-        property_id: str,
+        slug: str,
+        property: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[WorkItemPropertyContextsListField] | None = None,
+        order_by: WorkItemPropertyContextsListOrderBy | None = None,
+        **filters: Unpack[WorkItemPropertyContextsListFilters],
     ) -> Iterator[WorkItemPropertyContext]:
         """Every context on a workspace property, following pages automatically."""
-        return self._iter(property_id=property_id, params={"fields": fields, **filters})
+        return self._iter(
+            params={"fields": fields, "order_by": order_by, **filters},
+            slug=slug,
+            property_id=property,
+        )
 
     def retrieve(
         self,
-        property_id: str,
-        context_id: str,
+        slug: str,
+        property: str,
+        context: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkItemPropertyContextsRetrieveField] | None = None,
     ) -> WorkItemPropertyContext:
-        return self._retrieve(pk=context_id, property_id=property_id, params={"fields": fields})
+        return self._retrieve(
+            pk=context, params={"fields": fields}, slug=slug, property_id=property
+        )
 
-    def find_by_name(self, property_id: str, name: str) -> WorkItemPropertyContext:
+    def find_by_name(self, slug: str, property: str, name: str) -> WorkItemPropertyContext:
         """The one context on this property with this name; raises if none or
         several match."""
-        return self._find_one(filters={"name": name}, property_id=property_id)
+        return self._find_one(filters={"name": name}, slug=slug, property_id=property)
 
     def create(
-        self, property_id: str, data: CreateWorkItemPropertyContext
+        self,
+        slug: str,
+        property: str,
+        data: CreateWorkItemPropertyContext,
+        *,
+        fields: Sequence[WorkItemPropertyContextsCreateField] | None = None,
     ) -> WorkItemPropertyContext:
-        return self._create(data, property_id=property_id)
+        return self._create(data, params={"fields": fields}, slug=slug, property_id=property)
 
     def update(
         self,
-        property_id: str,
-        context_id: str,
+        slug: str,
+        property: str,
+        context: str,
         data: UpdateWorkItemPropertyContext,
+        *,
+        fields: Sequence[WorkItemPropertyContextsPartialUpdateField] | None = None,
     ) -> WorkItemPropertyContext:
-        return self._update(data, pk=context_id, property_id=property_id)
+        return self._update(
+            data, pk=context, params={"fields": fields}, slug=slug, property_id=property
+        )
 
-    def delete(self, property_id: str, context_id: str) -> None:
-        return self._delete(pk=context_id, property_id=property_id)
+    def delete(self, slug: str, property: str, context: str) -> None:
+        return self._delete(pk=context, slug=slug, property_id=property)

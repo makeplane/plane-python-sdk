@@ -34,14 +34,18 @@ from tests.v2.tree_walk import WALK_CONFIG, child_resources, navigable_resource_
 
 NAVIGATION_ALIASES: dict[str, dict[str, str]] = {
     "LoadedEstimate": {"points": "estimate_points"},
+    "LoadedWorkItemProperty": {"options": "property_options"},
+    "LoadedWorkspaceWorkItemProperty": {"options": "property_options"},
 }
 """Child attribute name -> navigation property name, where the two must differ.
 
-One entry, and it earns itself: `Estimate.points` is a real API field (the inline
-point data `expand=["points"]` returns), so `LoadedEstimate` cannot name its
-navigation property `points` without shadowing it -- it is `estimate_points`. Any
-other divergence is a bug, not an alias; add a row here only with a reason of the
-same kind."""
+`Estimate.points` is a real API field (the inline point data `expand=["points"]`
+returns), so `LoadedEstimate` cannot name its navigation property `points` without
+shadowing it -- it is `estimate_points`. `WorkItemProperty.options` is the same
+shape of collision (the inlined choices for OPTION-type properties), so both
+`LoadedWorkItemProperty` and `LoadedWorkspaceWorkItemProperty` expose their
+`options` child as `property_options`. Any other divergence is a bug, not an
+alias; add a row here only with a reason of the same kind."""
 
 NAVIGABLE = navigable_resource_classes()
 

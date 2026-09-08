@@ -53,16 +53,6 @@ WALK_CONFIG = Configuration(base_path="https://api.example.com", api_key="secret
 
 UNMIGRATED_RESOURCES = frozenset(
     {
-        # work item types and properties (both flavours)
-        "WorkItemProperties",
-        "WorkItemPropertyContexts",
-        "WorkItemPropertyOptions",
-        "WorkItemTypeProperties",
-        "WorkItemTypes",
-        "WorkspaceWorkItemProperties",
-        "WorkspaceWorkItemPropertyOptions",
-        "WorkspaceWorkItemTypeProperties",
-        "WorkspaceWorkItemTypes",
         # workflows
         "WorkflowStates",
         "WorkflowTransitions",
@@ -71,12 +61,11 @@ UNMIGRATED_RESOURCES = frozenset(
 )
 """Resource classes still on the retired pre-flat shape, excluded from the sweeps.
 
-**This list may only shrink.** It is the plan-4 backlog written down: every family
-deferred by this plan's scope ruling (collections, customers, initiatives, the four
-remaining release children, both automations flavours, work item types and
-properties, workflows). Their methods omit the leading path ids their URL templates
-name and still spell their ids `<resource>_id`, so sweeping them would report
-dozens of violations that the migration itself is going to rewrite.
+**This list may only shrink.** It is what remains of the plan-4 backlog: workflows,
+the last family deferred by this plan's scope ruling. Its methods omit the leading
+path ids their URL templates name and still spell their ids `<resource>_id`, so
+sweeping them would report dozens of violations that the migration itself is going
+to rewrite.
 
 Deleting a name from here is part of migrating that class -- and
 `tests/v2/test_path_id_naming.py` makes it compulsory rather than optional: it
