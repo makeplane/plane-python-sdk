@@ -124,7 +124,12 @@ PlaneClient
     golden-derived names and are **not** covered by this rule: the URL templates
     (`path = ".../projects/{project_id}/work-items/{work_item_id}/comments/"`) and
     model field names (`WorkItem.state_id`). `tests/v2/test_path_id_naming.py`
-    enforces it across the migrated resources.
+    enforces it across the migrated resources, and derives that set rather than
+    listing it: `tests/v2/tree_walk.py` walks the live tree from `V2Namespace` and
+    also picks up any class whose `list` already consumes every path id its template
+    names, so a newly migrated resource is swept the moment it exists. A hand-written
+    list of what to check is what let a whole batch of violations ship green once —
+    never reintroduce one.
   - **Loaded rows.** A resource with children today (`projects`, `work_items`)
     returns a `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic
     model: it carries its own data and reaches its own children with none of the
@@ -176,13 +181,29 @@ PlaneClient
     `plane.api.v2`) naming the resource, method, template and missing id, not a bare
     `KeyError`. No public v2 method takes `workspace_slug`/`project` parameters as
     such; the path segment's own leading positional-or-keyword parameters carry
-    them, in path order. `_generated/constants.py` is produced by
+    them, in path order. A custom verb whose *response envelope* is not a row of
+    the resource's own `model` (`artifacts.publish`, `invitations.bulk`,
+    `members.remove`, `work_items.retrieve_by_identifier`) goes through
+    `_custom_request` / `_custom_action` / `_custom_action_list` — never a
+    hand-rolled `transport.request`, which silently skips `_query`'s
+    `fields`/`expand` validation. They take the response `model` explicitly and
+    build either URL shape: with `pk` the verb hangs off a row
+    (`{detail}/{action}/`, `_action`'s URL), without one it goes through `url_for`
+    and its `extra_paths` override. Where the response *is* a row of `model`, keep
+    using `_action`/`_void_action`. `_generated/constants.py` is produced by
     `scripts/generate_v2_constants.py` from the api_v2 OpenAPI golden and must
     never be hand-edited — it is also what makes field names, `order_by` values
     and filter keyword names real generated `Literal`/`TypedDict` types instead
     of loose strings, which is why the package ships a `py.typed` marker
     (`tests/v2/test_typing.py` proves a type checker actually rejects an unknown
-    filter keyword).
+    filter keyword). Every option the golden offers an operation must be reachable
+    on the method: `tests/v2/test_expand_coverage.py` sweeps the migrated resources
+    against the golden's `EXPAND` table and fails on any method that omits an
+    `expand` the API accepts (`delete` excepted — 204, no body to shape). Where a
+    resource spells filters out one by one instead of `**filters: Unpack[...]`
+    (`Roles`, because the golden's `?slug=` collides with the path id `slug`), pin
+    the hand-written set against the generated `TypedDict` so a regeneration cannot
+    quietly add an unreachable filter — see `tests/v2/test_roles_resource.py`.
   - **Bridges.** Membership between two resources (`.../cycles/{id}/work-items/`,
     `.../releases/{id}/labels/`, `.../collections/{id}/members/`, ...) is never a
     `manage_*(add=, remove=)` method. It is a sub-resource (`proj.cycles.work_items`,
