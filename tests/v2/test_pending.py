@@ -24,7 +24,7 @@ def test_dunder_probe_raises_attribute_error_not_not_implemented_error() -> None
     placeholder = PendingMigration("WorkItemAttachments", reached_as="work_items.attachments")
 
     with pytest.raises(AttributeError) as raised:
-        placeholder.__deepcopy__
+        _ = placeholder.__deepcopy__
 
     assert not isinstance(raised.value, NotImplementedError)
 
@@ -42,7 +42,7 @@ def test_touching_a_real_placeholder_attribute_still_raises_not_implemented_erro
     placeholder = PendingMigration("WorkItemAttachments", reached_as="work_items.attachments")
 
     with pytest.raises(NotImplementedError, match="WorkItemAttachments"):
-        placeholder.list
+        _ = placeholder.list
 
 
 @responses.activate

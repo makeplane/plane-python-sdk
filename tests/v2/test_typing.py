@@ -46,6 +46,23 @@ def test_unknown_filter_is_a_type_error(tmp_path) -> None:
     assert "not_a_filter" in result.stdout
 
 
+def test_a_migrated_workspace_resource_rejects_an_unknown_filter(tmp_path) -> None:
+    """A resource wired in this plan (not the pre-existing `projects.states` case
+    above) still gets real filter-keyword checking through `Unpack[...Filters]`."""
+    result = _mypy(
+        tmp_path,
+        """
+        from plane.api.v2 import V2Namespace
+        from plane.config import Configuration
+
+        v2 = V2Namespace(Configuration(base_path="https://x", api_key="k"))
+        v2.workspaces.teamspaces.list("acme", not_a_filter="x")
+        """,
+    )
+    assert result.returncode != 0
+    assert "not_a_filter" in result.stdout
+
+
 # -- Loaded-row navigation is typed, not `Any` (spec 3.2, 4) ---------------------
 
 

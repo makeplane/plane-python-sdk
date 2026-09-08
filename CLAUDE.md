@@ -69,10 +69,24 @@ PlaneClient
 - `plane/client/` — `PlaneClient` (API key / access token auth) and `OAuthClient` (OAuth 2.0 flows).
 - `plane/errors/` — `PlaneError` → `HttpError`, `ConfigurationError`.
 - `plane/config.py` — `Configuration` and `RetryConfig` dataclasses.
-- `plane/api/v2/` — the v2 surface (`client.v2`), **migration in progress**: roughly
-  85 of the ~120 resource groups are still on the retired pre-flat shape and are
-  not wired onto the tree below (`Collections`, most of `work_items/` beyond
+- `plane/api/v2/` — the v2 surface (`client.v2`), **migration in progress**: of the
+  roughly 78 resource classes still on the retired pre-flat shape when this round
+  began, 20 workspace-level ones are now migrated and wired onto the tree, leaving
+  roughly 58 not wired below (`Collections`, most of `work_items/` beyond
   `.comments`, etc. — see each file's own docstring for whether it's wired). The
+  20 newly wired resources are all reached under `client.v2.workspaces.`, each
+  taking the workspace slug as its leading argument: `artifacts`, `assets`,
+  `audit_logs`, `customer_properties`, `invitations`, `members`,
+  `permission_schemes`, `permissions`, `roles`, `stickies`, `teamspaces`, `views`,
+  `work_item_relation_definitions`, `work_item_templates`, and `work_items` (a
+  distinct, workspace-wide, list-only resource, not the project-scoped
+  `workspaces.projects.work_items` whose own children are still mostly
+  `PendingMigration`), plus the grouping node `group_sync` (`.config`,
+  `.project_mappings`, `.workspace_mappings`, none of which consume a project id
+  despite `project_mappings`' name) and `releases.tags`.
+  `client.v2.workspaces.roles.list("acme", role_slug="admin")` is worth flagging:
+  the workspace slug is the positional argument, while the role's own slug filter
+  is spelled `role_slug` because it would otherwise collide with it. The
   bound-locator chain (`client.v2.workspace(slug).project(project)`) is **gone**.
   There are two ways into a resource now:
   - **The flat path.** A static tree reached by plain attribute access, e.g.
@@ -134,10 +148,12 @@ PlaneClient
     `Page[State]`, unknown keywords are rejected and misspelled methods are errors.
     `tests/v2/test_typing.py` runs mypy to prove it. `_loaded/project.py` and
     `_loaded/work_item.py` are today's two `Loaded` subclasses; copy either.
-  - **Wired but not migrated.** Roughly 85 resource groups still use the retired
-    pre-flat shape. Where one is reachable on the tree anyway (`ws.releases` exists
-    for `releases.labels`; `work_items` wires seven children of which only
-    `.comments` is migrated), it is a `PendingMigration` placeholder or a
+  - **Wired but not migrated.** Roughly 58 resource classes still use the retired
+    pre-flat shape (down from ~78 before the 20 workspace-level resources listed
+    above were migrated). Where one is reachable on the tree anyway (`ws.releases`
+    exists for `releases.labels` and `releases.tags`; `work_items` wires seven
+    children of which only `.comments` is migrated), it is a `PendingMigration`
+    placeholder or a
     `@pending_flat_migration`-decorated method from `_kernel/pending.py`, which raises
     `NotImplementedError` naming the resource. Never leave the real unmigrated class
     wired — it fails with a `MissingPathId` from deep inside the kernel — and never

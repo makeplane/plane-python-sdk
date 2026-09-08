@@ -45,9 +45,7 @@ def test_find_by_name(projects: Projects) -> None:
             "pagination": {"style": "offset"},
         },
         match=[
-            matchers.query_param_matcher(
-                {"name": "Engineering", "per_page": "2", "count": "False"}
-            )
+            matchers.query_param_matcher({"name": "Engineering", "per_page": "2", "count": "False"})
         ],
     )
 
@@ -185,10 +183,7 @@ def test_role_distribution_hits_the_sibling_workspace_path(projects: Projects) -
 
     assert report.total_memberships == 3
     assert report.roles[0].name == "Admin"
-    assert (
-        responses.calls[0].request.url
-        == f"{BASE}/workspaces/acme/project-role-distribution/"
-    )
+    assert responses.calls[0].request.url == f"{BASE}/workspaces/acme/project-role-distribution/"
 
 
 @responses.activate

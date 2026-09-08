@@ -200,13 +200,37 @@ work_items = client.work_items.list(
 
 `client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
 
-**This is a migration in progress.** Roughly 85 of the ~120 v2 resource groups are
-still on an older, pre-migration shape and are not reachable through `client.v2` yet
-(a later release wires them in). What follows documents only what is reachable
-today: `states`, `labels`, `projects`, `work_items` (with `comments`), `workspaces`,
-`wiki.pages`, `features` and `releases.labels`. Notably, `wiki.collections` is *not*
-wired yet — `Collections` itself hasn't been migrated — so `client.v2.workspaces.wiki`
-only has `.pages`.
+**This is a migration in progress.** Of the roughly 78 v2 resource classes that were
+still on the older, pre-migration shape when this round of work began, 20
+workspace-level resources have now been migrated and wired onto the flat tree,
+leaving roughly 58 still unreachable through `client.v2` (a later release wires
+them in). What follows documents only what is reachable today.
+
+Previously wired: `states`, `labels`, `projects`, `work_items` (with `comments`),
+`workspaces`, `wiki.pages`, `features` and `releases.labels`. Notably,
+`wiki.collections` is *not* wired yet — `Collections` itself hasn't been migrated —
+so `client.v2.workspaces.wiki` only has `.pages`.
+
+Newly wired in this round, all directly on `client.v2.workspaces`: `artifacts`,
+`assets`, `audit_logs`, `customer_properties`, `invitations`, `members`,
+`permission_schemes`, `permissions`, `roles`, `stickies`, `teamspaces`, `views`,
+`work_item_relation_definitions`, `work_item_templates`, and `work_items` (a
+distinct, workspace-wide, list-only resource — `client.v2.workspaces.work_items`,
+not to be confused with the project-scoped `client.v2.workspaces.projects.work_items`
+above, which still only has `.comments` migrated among its own children), plus
+the grouping node `group_sync` (`.config`, `.project_mappings`,
+`.workspace_mappings`) and `releases.tags`. Each takes the workspace slug as its
+leading argument, e.g. `client.v2.workspaces.roles.list("acme")` or
+`client.v2.workspaces.group_sync.config.get("acme")`.
+
+Two of these are worth calling out because they surprise people:
+
+- `client.v2.workspaces.roles.list("acme", role_slug="admin")` — the workspace
+  slug is the positional argument; the *role's* own slug filter is `role_slug`,
+  spelled out rather than folded into `**filters`, because the two would
+  otherwise collide.
+- `client.v2.workspaces.group_sync.project_mappings` is workspace-level despite
+  the name — it takes only the workspace slug, no project.
 
 The bound-locator chain from earlier releases (`client.v2.workspace(slug).project(key)`)
 is **gone**. There are two ways to reach a resource now:
@@ -314,6 +338,22 @@ client.v2.workspaces.releases.labels.remove("acme", release.id, [label.id])
 
 An empty list, or more than 100 ids, raises `ValueError` before any request is
 sent.
+
+`workspaces.permissions` is a singleton like `features`, reached with just the
+slug and no primary key:
+
+```python
+client.v2.workspaces.permissions.me("acme")
+```
+
+`group_sync` groups three resources under one namespace without consuming a path
+id itself — each child still takes its own leading `slug`:
+
+```python
+client.v2.workspaces.group_sync.config.get("acme")
+client.v2.workspaces.group_sync.project_mappings.list("acme")
+client.v2.workspaces.group_sync.workspace_mappings.list("acme")
+```
 
 ### Errors
 

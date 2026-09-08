@@ -25,10 +25,16 @@ def _write_golden(tmp_path: pathlib.Path) -> pathlib.Path:
                     "get": {
                         "operationId": "states_list",
                         "parameters": [
-                            {"name": "fields", "in": "query",
-                             "schema": {"type": "string", "enum": ["all", "id", "name"]}},
-                            {"name": "order_by", "in": "query",
-                             "schema": {"type": "string", "enum": ["name", "-name"]}},
+                            {
+                                "name": "fields",
+                                "in": "query",
+                                "schema": {"type": "string", "enum": ["all", "id", "name"]},
+                            },
+                            {
+                                "name": "order_by",
+                                "in": "query",
+                                "schema": {"type": "string", "enum": ["name", "-name"]},
+                            },
                         ],
                     }
                 }
