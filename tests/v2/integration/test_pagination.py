@@ -1,6 +1,11 @@
 """Pagination against a real server: both envelopes, and `iterate()` auto-paging
 both. Rows are tagged with a per-class `external_source` marker and seeded once
-per class to keep the rate-limited API key's request cost down."""
+per class to keep the rate-limited API key's request cost down.
+
+Reached off the loaded `project` row. Until this refresh these four scenarios were
+not expressible at all: `paginate="cursor"` and a `per_page` on `iterate` were
+written here against an SDK that had neither -- see
+`tests/v2/test_pagination_coverage.py` for the gap that hid, and how."""
 
 from __future__ import annotations
 
@@ -9,7 +14,7 @@ from typing import Any, NamedTuple
 
 import pytest
 
-from plane.client import PlaneClient
+from plane.api.v2 import LoadedProject
 
 from .helpers import SPECS, ResourceSpec, unique_name
 
@@ -31,10 +36,8 @@ def spec(request: pytest.FixtureRequest) -> ResourceSpec:
 
 
 @pytest.fixture(scope="class")
-def seeded(
-    client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
-) -> Iterator[Seeded]:
-    ops = spec.ops(client, workspace_slug, project_id)
+def seeded(project: LoadedProject, spec: ResourceSpec) -> Iterator[Seeded]:
+    ops = spec.on(project)
     marker = unique_name(f"{spec.key}-pg")
     items = [
         spec.make_write(
@@ -86,3 +89,34 @@ class TestPagination:
             )
         )
         assert {row.id for row in rows} == set(seeded.ids)
+
+    def test_cursor_page_two_can_be_fetched_by_hand(self, seeded: Seeded) -> None:
+        """The half `iterate` hides: a caller holding a `next_cursor` must be able to
+        spend it. Before `list` took `cursor` there was no way to, so asking for the
+        cursor envelope by hand was a dead end after page one."""
+        first = seeded.ops.list(
+            external_source=seeded.marker,
+            per_page=PER_PAGE,
+            paginate="cursor",
+            order_by="created_at",
+        )
+        second = seeded.ops.list(
+            external_source=seeded.marker,
+            per_page=PER_PAGE,
+            paginate="cursor",
+            order_by="created_at",
+            cursor=first.next_cursor,
+        )
+        assert {row.id for row in second.data}.isdisjoint({row.id for row in first.data})
+        assert {row.id for row in first.data} | {row.id for row in second.data} <= set(seeded.ids)
+
+    def test_count_false_drops_the_total_count(self, seeded: Seeded) -> None:
+        """`?count=false` skips the `COUNT(*)`; the rows still come back, `total_count`
+        does not. The kernel's `_find_one` has always sent this -- no caller could."""
+        counted = seeded.ops.list(external_source=seeded.marker, per_page=PER_PAGE)
+        uncounted = seeded.ops.list(
+            external_source=seeded.marker, per_page=PER_PAGE, count=False
+        )
+        assert counted.total_count == ROW_COUNT
+        assert uncounted.total_count is None
+        assert len(uncounted.data) == PER_PAGE

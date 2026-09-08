@@ -22,7 +22,7 @@ from typing import Any
 
 import pytest
 
-from plane.api.v2 import LoadedProject, PlaneAPIError
+from plane.api.v2 import LoadedProject, LoadedWorkspace, PlaneAPIError
 from plane.client import PlaneClient
 from plane.models.v2.projects import CreateProject
 from plane.models.v2.work_items import CreateWorkItem
@@ -85,6 +85,22 @@ def client(base_url: str, api_key: str) -> PlaneClient:
     plane_client = PlaneClient(base_url=base_url, api_key=api_key)
     _install_rate_limit_retry(plane_client.v2.transport)
     return plane_client
+
+
+@pytest.fixture(scope="session")
+def workspace(client: PlaneClient, workspace_slug: str) -> LoadedWorkspace:
+    """The test workspace as a loaded row, reaching all 25 workspace-scoped families
+    with the slug bound once (`workspace.roles.list()`).
+
+    The suite deliberately uses **both** ways into a resource, file by file, and says
+    which in each file's docstring. Roughly: a file whose subject is the URL itself --
+    an id that can be spelled two ways, a path a bridge overrides, a resource with no
+    workspace in its path -- goes through the flat tree and passes ids explicitly; a
+    file whose subject is a resource's behaviour goes through this row or through the
+    `project` one below. A suite that used only the flat path would leave every
+    `Owned` binding in the SDK untested against a real server, and one that used only
+    loaded rows would never check that a path id can be a key as well as a uuid."""
+    return client.v2.workspaces.retrieve(workspace_slug)
 
 
 @pytest.fixture(scope="session")

@@ -9,8 +9,7 @@ from typing import Any
 
 import pytest
 
-from plane.api.v2 import PlaneAPIError
-from plane.client import PlaneClient
+from plane.api.v2 import LoadedProject, PlaneAPIError
 from plane.models.v2.work_item_types import CreateWorkItemType, UpdateWorkItemType
 
 from .helpers import unique_name
@@ -34,99 +33,94 @@ def _skip_on_mode_conflict(exc: PlaneAPIError) -> None:
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
-    return client.v2.workspace(workspace_slug).project(project_id)
-
-
-@pytest.fixture
 def ws(client: PlaneClient, workspace_slug: str) -> Any:
     return client.v2.workspace(workspace_slug)
 
 
 @pytest.fixture
-def work_item_type(proj: Any) -> Iterator[Any]:
+def work_item_type(project: LoadedProject) -> Iterator[Any]:
     """One freshly created, non-default work item type, deleted afterwards.
     Skips if this workspace runs in workspace-managed mode (see module
     docstring) -- project-scoped type writes are a 409 there by design."""
     try:
-        created = proj.work_item_types.create(CreateWorkItemType(name=unique_name("wit")))
+        created = project.work_item_types.create(CreateWorkItemType(name=unique_name("wit")))
     except PlaneAPIError as exc:
         _skip_on_mode_conflict(exc)
         raise  # pragma: no cover -- _skip_on_mode_conflict always raises or skips
     yield created
     try:
-        proj.work_item_types.delete(created.id)
+        project.work_item_types.delete(created.id)
     except Exception:
         pass
 
 
 class TestWorkItemTypesCrud:
-    def test_list_and_retrieve(self, proj: Any, work_item_type: Any) -> None:
-        page = proj.work_item_types.list()
+    def test_list_and_retrieve(self, project: LoadedProject, work_item_type: Any) -> None:
+        page = project.work_item_types.list()
         assert any(row.id == work_item_type.id for row in page.data)
 
-        fetched = proj.work_item_types.retrieve(work_item_type.id)
+        fetched = project.work_item_types.retrieve(work_item_type.id)
         assert fetched.id == work_item_type.id
         assert fetched.is_default is not True
 
-    def test_update_only_touches_given_fields(self, proj: Any, work_item_type: Any) -> None:
+    def test_update_only_touches_given_fields(self, project: LoadedProject, work_item_type: Any) -> None:
         new_name = unique_name("wit-renamed")
-        updated = proj.work_item_types.update(work_item_type.id, UpdateWorkItemType(name=new_name))
+        updated = project.work_item_types.update(work_item_type.id, UpdateWorkItemType(name=new_name))
         assert updated.name == new_name
 
-    def test_delete_then_retrieve_404s(self, proj: Any) -> None:
+    def test_delete_then_retrieve_404s(self, project: LoadedProject) -> None:
         try:
-            created = proj.work_item_types.create(CreateWorkItemType(name=unique_name("wit-del")))
+            created = project.work_item_types.create(CreateWorkItemType(name=unique_name("wit-del")))
         except PlaneAPIError as exc:
             _skip_on_mode_conflict(exc)
             raise  # pragma: no cover
-        proj.work_item_types.delete(created.id)
+        project.work_item_types.delete(created.id)
         with pytest.raises(PlaneAPIError) as exc_info:
-            proj.work_item_types.retrieve(created.id)
+            project.work_item_types.retrieve(created.id)
         assert exc_info.value.status == 404
 
 
 class TestWorkItemTypesActions:
-    def test_mark_default_then_schema(self, proj: Any, work_item_type: Any) -> None:
+    def test_mark_default_then_schema(self, project: LoadedProject, work_item_type: Any) -> None:
         # Restore the prior default afterwards: a default type cannot be deleted (409).
-        prior = next((row for row in proj.work_item_types.list().data if row.is_default), None)
+        prior = next((row for row in project.work_item_types.list().data if row.is_default), None)
         try:
-            marked = proj.work_item_types.mark_default(work_item_type.id)
+            marked = project.work_item_types.mark_default(work_item_type.id)
             assert marked.is_default is True
 
-            schema = proj.work_item_types.schema(work_item_type.id)
+            schema = project.work_item_types.schema(work_item_type.id)
             assert schema.type_id == work_item_type.id
         finally:
             if prior is not None:
-                proj.work_item_types.mark_default(prior.id)
+                project.work_item_types.mark_default(prior.id)
 
-    def test_enable_epic_type_is_idempotent(self, proj: Any) -> None:
+    def test_enable_epic_type_is_idempotent(self, project: LoadedProject) -> None:
         # `enable` returns the project's DEFAULT (non-epic) type -- the epic type
         # is created as a side effect, not returned (`views/work_item_types.py`
         # `enable()` responds with `default_type`, which is always `is_epic=False`).
         try:
-            first = proj.work_item_types.enable()
+            first = project.work_item_types.enable()
         except PlaneAPIError as exc:
             _skip_on_mode_conflict(exc)
             raise  # pragma: no cover
-        second = proj.work_item_types.enable()
+        second = project.work_item_types.enable()
         assert first.id == second.id
         assert second.is_epic is False
 
-        types = proj.work_item_types.list().data
+        types = project.work_item_types.list().data
         assert any(row.is_epic for row in types)
 
-    def test_import_types_enables_a_workspace_type_on_the_project(self, proj: Any, ws: Any) -> None:
+    def test_import_types_enables_a_workspace_type_on_the_project(self, project: LoadedProject, ws: Any) -> None:
         workspace_types = ws.work_item_types.list().data
-        project_type_ids = {row.id for row in proj.work_item_types.list().data}
+        project_type_ids = {row.id for row in project.work_item_types.list().data}
         candidates = [row for row in workspace_types if row.id not in project_type_ids]
         if not candidates:
             pytest.skip("no workspace-level work item type is available to import")
         target = candidates[0]
 
-        proj.work_item_types.import_types([target.id])
+        project.work_item_types.import_types([target.id])
 
-        imported_ids = {row.id for row in proj.work_item_types.list().data}
+        imported_ids = {row.id for row in project.work_item_types.list().data}
         assert target.id in imported_ids
 
 
@@ -186,28 +180,28 @@ class TestWorkItemTypeProperties:
             pytest.skip("workspace has no work item property definitions to attach")
         return str(data[0]["id"])
 
-    def test_list_is_empty_on_a_fresh_type(self, proj: Any, work_item_type: Any) -> None:
-        page = proj.work_item_types.properties.list(work_item_type.id)
+    def test_list_is_empty_on_a_fresh_type(self, project: LoadedProject, work_item_type: Any) -> None:
+        page = project.work_item_types.properties.list(work_item_type.id)
         assert page.data == []
 
     def test_attach_then_list_then_detach(
         self,
-        proj: Any,
+        project: LoadedProject,
         work_item_type: Any,
         attachable_property_id: str,
     ) -> None:
-        attached = proj.work_item_types.properties.link(work_item_type.id, [attachable_property_id])
+        attached = project.work_item_types.properties.link(work_item_type.id, [attachable_property_id])
         assert attachable_property_id in attached.properties
         try:
-            page = proj.work_item_types.properties.list(work_item_type.id)
+            page = project.work_item_types.properties.list(work_item_type.id)
             assert any(p.id == attachable_property_id for p in page.data)
 
-            fetched = proj.work_item_types.properties.retrieve(
+            fetched = project.work_item_types.properties.retrieve(
                 work_item_type.id, attachable_property_id
             )
             assert fetched.id == attachable_property_id
         finally:
-            proj.work_item_types.properties.unlink(work_item_type.id, attachable_property_id)
+            project.work_item_types.properties.unlink(work_item_type.id, attachable_property_id)
 
-        page_after = proj.work_item_types.properties.list(work_item_type.id)
+        page_after = project.work_item_types.properties.list(work_item_type.id)
         assert all(p.id != attachable_property_id for p in page_after.data)

@@ -1,22 +1,24 @@
 """`find_by_name` against a real server: single, zero, and multiple match.
 The `?name=` filter is case-insensitive but uniqueness is case-sensitive, so
-two differently-cased rows both legally exist and both match one lookup."""
+two differently-cased rows both legally exist and both match one lookup.
+
+Reached off the loaded `project` row (`project.states.find_by_name(name)`), so the
+server-side `_find_one` shape is exercised through navigation, not only flat."""
 
 from __future__ import annotations
 
 import pytest
 
-from plane.api.v2 import MultipleMatchesFound, NoMatchFound
-from plane.client import PlaneClient
+from plane.api.v2 import LoadedProject, MultipleMatchesFound, NoMatchFound
 
 from .helpers import ResourceSpec, unique_name
 
 
 class TestFindByName:
     def test_single_match(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         name = unique_name(f"{spec.key}-single")
         created = ops.create(spec.make_write(name))
         try:
@@ -26,16 +28,16 @@ class TestFindByName:
             ops.delete(created.id)
 
     def test_zero_match_raises_no_match_found(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         with pytest.raises(NoMatchFound):
             ops.find_by_name(unique_name(f"{spec.key}-does-not-exist"))
 
     def test_multiple_match_raises_multiple_matches_found(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         base = unique_name(f"{spec.key}-multi")
         lower = ops.create(spec.make_write(base.lower()))
         upper = ops.create(spec.make_write(base.upper()))

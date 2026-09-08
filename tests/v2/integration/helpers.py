@@ -1,6 +1,29 @@
 """Harness shared by CRUD-style tests across states/labels/cycles/modules/milestones
-via `SPECS`. `CONVERTED_SPECS` is the subset whose bound, zero-argument methods
-actually work live today; the rest still take `(workspace_slug, project, ...)`."""
+via `SPECS`.
+
+All five families are children of `Projects`, so each is reachable **both ways in**,
+and a `ResourceSpec` offers one accessor per way:
+
+* `spec.flat(client)` -- the static tree (`client.v2.workspaces.projects.states`).
+  Every call carries `(slug, project, ...)` itself, so the caller chooses what to put
+  in the project slot. That is the only way to express the uuid-vs-key parity checks
+  (`test_crud.py`, `test_scope_parity.py`): a project id and its identifier must
+  address the same rows.
+* `spec.on(project)` -- navigation off a `LoadedProject`, zero ids repeated
+  (`project.states.list()`). Used by `test_find_one`/`test_upsert`/`test_bulk`/
+  `test_errors`/`test_pagination`, so the loaded-row half of the surface is exercised
+  against a real server by the same generic scenarios, not just by hand-written
+  one-offs.
+
+`spec.on` cannot serve the parity checks: `Projects._row_id` is `identifier`, so a row
+fetched by uuid still binds its children with the identifier. Which is the right
+behaviour, and exactly why the two accessors are not interchangeable.
+
+Both return `Any`: the attribute is chosen by name at runtime, so this is the one
+corner of the suite `tests/v2/test_integration_surface.py` cannot type-check. Keep it
+thin for that reason -- the parametrized scenarios stay generic, and anything worth
+checking statically gets a hand-written call site elsewhere.
+"""
 
 from __future__ import annotations
 
@@ -33,7 +56,6 @@ class ResourceSpec:
     read_model: type[Any]
     name_field: str = "name"  # the write/read model's own identifying field
     has_color: bool = False  # only states/labels carry a `color` field
-    converted: bool = True  # False for cycles/modules/milestones -- see module docstring
 
     def make_write(self, name: str, **overrides: Any) -> Any:
         body: dict[str, Any] = {self.name_field: name}
@@ -49,11 +71,15 @@ class ResourceSpec:
         """A patch that renames the row, whatever the underlying field is called."""
         return self.patch_model(**{self.name_field: value})
 
-    def ops(self, client: Any, workspace_slug: str, project: str) -> Any:
-        """The chained resource for this spec -- the only way to reach it now
-        that the flat form is gone. `project` accepts a project id or its key."""
-        scope = client.v2.workspace(workspace_slug).project(project)
-        return getattr(scope, self.key)
+    def flat(self, client: Any) -> Any:
+        """This spec's resource on the static tree. Every call takes `(slug, project,
+        ...)`, and the project slot accepts a project id or its identifier."""
+        return getattr(client.v2.workspaces.projects, self.key)
+
+    def on(self, project: Any) -> Any:
+        """This spec's resource reached off a fetched `LoadedProject` -- the loaded-row
+        way in, with the workspace and project ids already bound."""
+        return getattr(project, self.key)
 
 
 SPECS: dict[str, ResourceSpec] = {
@@ -76,14 +102,12 @@ SPECS: dict[str, ResourceSpec] = {
         write_model=CreateCycle,
         patch_model=UpdateCycle,
         read_model=Cycle,
-        converted=False,
     ),
     "modules": ResourceSpec(
         key="modules",
         write_model=CreateModule,
         patch_model=UpdateModule,
         read_model=Module,
-        converted=False,
     ),
     "milestones": ResourceSpec(
         key="milestones",
@@ -91,11 +115,5 @@ SPECS: dict[str, ResourceSpec] = {
         patch_model=UpdateMilestone,
         read_model=Milestone,
         name_field="title",
-        converted=False,
     ),
 }
-
-# The subset whose classes have actually dropped `(workspace_slug, project, ...)`
-# from every method (this phase's exemplars) -- `ops()` only works zero-argument
-# for these today. C1 should widen this set as it converts cycles/modules/milestones.
-CONVERTED_SPECS: dict[str, ResourceSpec] = {k: v for k, v in SPECS.items() if v.converted}

@@ -1,22 +1,24 @@
 """bulk_create/bulk_update/bulk_delete against a real server: all-success,
 partial failure (200 with per-row detail), and `all_or_none=True` turning
-that into a 409, using a real name conflict rather than a pydantic reject."""
+that into a 409, using a real name conflict rather than a pydantic reject.
+
+Reached off the loaded `project` row -- bulk writes are the widest set of methods
+a navigation property has to forward, so they are worth driving that way."""
 
 from __future__ import annotations
 
 import pytest
 
-from plane.api.v2 import PlaneAPIError
-from plane.client import PlaneClient
+from plane.api.v2 import LoadedProject, PlaneAPIError
 
 from .helpers import ResourceSpec, unique_name
 
 
 class TestBulkCreate:
     def test_all_rows_succeed(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         items = [spec.make_write(unique_name(f"{spec.key}-bc")) for _ in range(3)]
         result = ops.bulk_create(items)
         try:
@@ -27,9 +29,9 @@ class TestBulkCreate:
             ops.bulk_delete([row.id for row in result.results])
 
     def test_partial_failure_reports_the_failing_row(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         taken_name = unique_name(f"{spec.key}-taken")
         existing = ops.create(spec.make_write(taken_name))
         good_name = unique_name(f"{spec.key}-ok")
@@ -52,9 +54,9 @@ class TestBulkCreate:
             ops.delete(existing.id)
 
     def test_all_or_none_turns_a_failing_row_into_409(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         taken_name = unique_name(f"{spec.key}-taken-aon")
         existing = ops.create(spec.make_write(taken_name))
         good_name = unique_name(f"{spec.key}-ok-aon")
@@ -76,9 +78,9 @@ class TestBulkCreate:
 
 class TestBulkUpdate:
     def test_all_rows_succeed(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         created = ops.bulk_create(
             [spec.make_write(unique_name(f"{spec.key}-bu")) for _ in range(2)]
         )
@@ -93,9 +95,9 @@ class TestBulkUpdate:
             ops.bulk_delete(ids)
 
     def test_partial_failure_on_unknown_id(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         created = ops.create(spec.make_write(unique_name(f"{spec.key}-bu-ok")))
         missing_id = "00000000-0000-0000-0000-000000000000"
         try:
@@ -118,9 +120,9 @@ class TestBulkUpdate:
 
 class TestBulkDelete:
     def test_all_rows_succeed(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         created = ops.bulk_create(
             [spec.make_write(unique_name(f"{spec.key}-bd")) for _ in range(2)]
         )
@@ -130,9 +132,9 @@ class TestBulkDelete:
         assert result.failed == 0
 
     def test_partial_failure_on_unknown_id(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         created = ops.create(spec.make_write(unique_name(f"{spec.key}-bd-ok")))
         missing_id = "00000000-0000-0000-0000-000000000000"
         result = ops.bulk_delete([created.id, missing_id])
@@ -146,15 +148,15 @@ class TestBulkEmptyBatchRejectedClientSide:
     than round-trip a request the server always 400s on `minItems: 1`."""
 
     def test_bulk_create_empty_batch_never_hits_the_network(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         with pytest.raises(ValueError, match="non-empty"):
             ops.bulk_create([])
 
     def test_bulk_delete_empty_batch_never_hits_the_network(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         with pytest.raises(ValueError, match="non-empty"):
             ops.bulk_delete([])

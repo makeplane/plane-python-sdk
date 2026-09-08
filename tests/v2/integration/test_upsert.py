@@ -1,19 +1,21 @@
 """`upsert` against a real server: the create path and the reconcile path,
 keyed on `(external_source, external_id)` -- posting the same pair twice
-must update the existing row in place, not create a second one."""
+must update the existing row in place, not create a second one.
+
+Reached off the loaded `project` row."""
 
 from __future__ import annotations
 
-from plane.client import PlaneClient
+from plane.api.v2 import LoadedProject
 
 from .helpers import ResourceSpec, unique_name
 
 
 class TestUpsert:
     def test_upsert_creates_when_no_row_matches(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         marker = unique_name(f"{spec.key}-upsert-create")
         created = ops.upsert(spec.make_write(marker, external_source=marker, external_id="1"))
         try:
@@ -23,9 +25,9 @@ class TestUpsert:
             ops.delete(created.id)
 
     def test_upsert_reconciles_on_second_call(
-        self, client: PlaneClient, workspace_slug: str, project_id: str, spec: ResourceSpec
+        self, project: LoadedProject, spec: ResourceSpec
     ) -> None:
-        ops = spec.ops(client, workspace_slug, project_id)
+        ops = spec.on(project)
         marker = unique_name(f"{spec.key}-upsert-reconcile")
         first = ops.upsert(spec.make_write(marker, external_source=marker, external_id="1"))
         renamed = f"{marker}-renamed"

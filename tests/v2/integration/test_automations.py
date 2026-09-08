@@ -1,4 +1,4 @@
-"""Live coverage for `proj.automations`/`ws.automations`; not parametrized
+"""Live coverage for `project.automations`/`ws.automations`; not parametrized
 through `helpers.SPECS` (separate scopes, sub-resources, custom actions).
 Not verified against a live server yet."""
 
@@ -9,9 +9,8 @@ from typing import Any
 
 import pytest
 
-from plane.api.v2 import PlaneAPIError
+from plane.api.v2 import LoadedProject, PlaneAPIError
 from plane.api.v2.automations import ProjectAutomations, WorkspaceAutomations
-from plane.client import PlaneClient
 from plane.models.v2.automations import (
     CreateAutomation,
     CreateAutomationEdge,
@@ -24,18 +23,13 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def proj(client: PlaneClient, workspace_slug: str, project_id: str) -> Any:
-    return client.v2.workspace(workspace_slug).project(project_id)
-
-
-@pytest.fixture
 def ws(client: PlaneClient, workspace_slug: str) -> Any:
     return client.v2.workspace(workspace_slug)
 
 
 @pytest.fixture
-def project_automations(proj: Any) -> ProjectAutomations:
-    return proj.automations
+def project_automations(project: LoadedProject) -> ProjectAutomations:
+    return project.automations
 
 
 @pytest.fixture

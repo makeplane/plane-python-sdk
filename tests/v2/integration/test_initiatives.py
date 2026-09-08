@@ -1,13 +1,18 @@
-"""Live coverage for `client.v2.workspace(slug).initiatives`, plus its
-workspace-level `labels` sub-resource and child-management actions; skips
-(never fails) when required env vars are absent."""
+"""Live coverage for `client.v2.workspaces.initiatives`, plus its workspace-level
+`labels` catalog and its three per-initiative membership bridges.
+
+Both ways in, and the split is the resource's own shape rather than a preference.
+`InitiativeLabels` is *two* things behind one class: a workspace-level label catalog
+at `path`, and a per-initiative membership bridge at `extra_paths["add"]/["remove"]`.
+The catalog half has no initiative to hang off, so it is reached down the flat path
+with the slug passed explicitly; the bridge half is reached off a loaded initiative
+(`initiative.labels.add([...])`), which is where the initiative id comes from."""
 
 from __future__ import annotations
 
 import pytest
 
-from plane.api.v2 import PlaneAPIError
-from plane.api.v2.initiatives import Initiatives
+from plane.api.v2 import LoadedWorkspace, PlaneAPIError
 from plane.client import PlaneClient
 from plane.models.v2.initiatives import (
     CreateInitiative,
@@ -20,30 +25,27 @@ from plane.models.v2.work_items import CreateWorkItem
 from .helpers import unique_name
 
 
-@pytest.fixture(scope="module")
-def initiatives(client: PlaneClient, workspace_slug: str) -> Initiatives:
-    return client.v2.workspace(workspace_slug).initiatives
-
-
 class TestInitiatives:
-    def test_crud(self, initiatives: Initiatives) -> None:
-        created = initiatives.create(CreateInitiative(name=unique_name("initiative")))
+    def test_crud(self, workspace: LoadedWorkspace) -> None:
+        created = workspace.initiatives.create(CreateInitiative(name=unique_name("initiative")))
         try:
-            fetched = initiatives.retrieve(created.id, expand=["lead"])
+            fetched = workspace.initiatives.retrieve(created.id, expand=["lead"])
             assert fetched.id == created.id
 
-            page = initiatives.list()
+            page = workspace.initiatives.list()
             assert any(i.id == created.id for i in page.data)
 
-            updated = initiatives.update(created.id, UpdateInitiative(state="ACTIVE"))
+            updated = workspace.initiatives.update(created.id, UpdateInitiative(state="ACTIVE"))
             assert updated.state == "ACTIVE"
 
-            assert initiatives.find_by_name(created.name).id == created.id
+            name = created.name
+            assert name is not None
+            assert workspace.initiatives.find_by_name(name).id == created.id
         finally:
-            initiatives.delete(created.id)
+            workspace.initiatives.delete(created.id)
 
         with pytest.raises(PlaneAPIError) as exc_info:
-            initiatives.retrieve(created.id)
+            workspace.initiatives.retrieve(created.id)
         assert exc_info.value.status == 404
 
     def test_labels_projects_and_work_items_add(
@@ -51,49 +53,64 @@ class TestInitiatives:
         client: PlaneClient,
         workspace_slug: str,
         project_id: str,
-        initiatives: Initiatives,
+        workspace: LoadedWorkspace,
     ) -> None:
-        initiative = initiatives.create(CreateInitiative(name=unique_name("initiative-manage")))
-        label = initiatives.labels.create(
-            CreateInitiativeLabel(name=unique_name("initiative-label"))
+        labels = client.v2.workspaces.initiatives.labels
+        initiative = workspace.initiatives.create(
+            CreateInitiative(name=unique_name("initiative-manage"))
         )
-        work_items = client.v2.workspace(workspace_slug).project(project_id).work_items
-        work_item = work_items.create(CreateWorkItem(name=unique_name("wi-initiative-link")))
+        label = labels.create(
+            workspace_slug, CreateInitiativeLabel(name=unique_name("initiative-label"))
+        )
+        work_items = client.v2.workspaces.projects.work_items
+        work_item = work_items.create(
+            workspace_slug, project_id, CreateWorkItem(name=unique_name("wi-initiative-link"))
+        )
         try:
-            labels_result = initiatives.labels.add(initiative.id, [label.id])
+            # The bridge half, off the loaded initiative: no id repeated.
+            labels_result = initiative.labels.add([label.id])
             assert label.id in labels_result
 
-            projects_result = initiatives.projects.add(initiative.id, [project_id])
+            projects_result = initiative.projects.add([project_id])
             assert project_id in projects_result
 
-            work_items_result = initiatives.work_items.add(initiative.id, [work_item.id])
+            work_items_result = initiative.work_items.add([work_item.id])
             assert work_item.id in work_items_result
 
-            refreshed = initiatives.retrieve(initiative.id)
+            refreshed = workspace.initiatives.retrieve(initiative.id)
             assert refreshed.label_ids and label.id in refreshed.label_ids
             assert refreshed.project_ids and project_id in refreshed.project_ids
         finally:
-            work_items.delete(work_item.id)
-            initiatives.labels.delete(label.id)
-            initiatives.delete(initiative.id)
+            work_items.delete(workspace_slug, project_id, work_item.id)
+            labels.delete(workspace_slug, label.id)
+            workspace.initiatives.delete(initiative.id)
 
     def test_labels_crud_is_workspace_level_not_nested_under_an_initiative(
-        self, initiatives: Initiatives
+        self, client: PlaneClient, workspace_slug: str
     ) -> None:
-        created = initiatives.labels.create(
-            CreateInitiativeLabel(name=unique_name("initiative-label"))
+        """The catalog half, and the reason this file is not purely loaded-row: the
+        URL is `/workspaces/{slug}/initiatives/labels/`, with no initiative in it, so
+        there is no row for these calls to hang off. A loaded initiative reaches only
+        the `add`/`remove` bridge."""
+        labels = client.v2.workspaces.initiatives.labels
+        created = labels.create(
+            workspace_slug, CreateInitiativeLabel(name=unique_name("initiative-label"))
         )
         try:
-            fetched = initiatives.labels.retrieve(created.id)
+            fetched = labels.retrieve(workspace_slug, created.id)
             assert fetched.id == created.id
 
-            updated = initiatives.labels.update(created.id, UpdateInitiativeLabel(color="#123456"))
+            updated = labels.update(
+                workspace_slug, created.id, UpdateInitiativeLabel(color="#123456")
+            )
             assert updated.color == "#123456"
 
-            assert initiatives.labels.find_by_name(created.name).id == created.id
+            name = created.name
+            assert name is not None
+            assert labels.find_by_name(workspace_slug, name).id == created.id
         finally:
-            initiatives.labels.delete(created.id)
+            labels.delete(workspace_slug, created.id)
 
         with pytest.raises(PlaneAPIError) as exc_info:
-            initiatives.labels.retrieve(created.id)
+            labels.retrieve(workspace_slug, created.id)
         assert exc_info.value.status == 404
