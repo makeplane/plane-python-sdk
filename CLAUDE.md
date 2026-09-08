@@ -320,10 +320,26 @@ PlaneClient
     `link`/`unlink` (unlink deletes the property's values on every work item of the
     type). Members of anything else: `add`/`remove`. `workflows.states.attach` is a
     different bridge (POST `{state_ids}`) and keeps its name.
-  - **Lookups.** `find_by_<key>` is server-side via `_find_one` only where the golden
-    list op has that filter (`roles.find_by_slug`, `estimates.points.find_by_key`,
-    `find_by_name` on properties/options/contexts); property `name` is the machine
-    key, not the `display_name` label.
+  - **Lookups.** `find_by_<key>` is **server-side via `_find_one` by default** — one
+    request with `per_page=2`, which is what tells "no match" apart from "ambiguous".
+    33 of the 38 `find_by_*` methods in the package are that shape. It is written
+    this way round deliberately: the earlier wording read as an exhaustive list of
+    the server-side cases, naming three of the 33, so the common case looked like the
+    exception.
+
+    A method scans client-side **only where the golden's list operation has no filter
+    for that key**, and there are five: `Collections.find_by_name` (the API silently
+    ignores a `?name=`, confirmed live), `ProjectPages.find_by_name` and
+    `WikiPages.find_by_name`, `Roles.find_by_name` (`roles_list` filters on
+    `is_system`/`namespace`/`search`/`slug`, not `name` — its sibling
+    `find_by_slug` *is* server-side) and
+    `WorkItemRelationDefinitions.find_by_name`. Each says so in its own docstring;
+    the docstrings have always been right, and they are the thing to trust over any
+    list here. A new `find_by_*` joins the default unless the golden leaves it no
+    choice.
+
+    Property `name` is the machine key, not the `display_name` label — resources
+    carrying both offer `find_by_name` and `find_by_display_name` separately.
 - `plane/models/v2/` — v2 pydantic models. Read models mark every field except `id`
   optional, because `?fields=` and collection deferral can omit any of them.
 
