@@ -78,55 +78,56 @@ PlaneClient
 - `plane/client/` — `PlaneClient` (API key / access token auth) and `OAuthClient` (OAuth 2.0 flows).
 - `plane/errors/` — `PlaneError` → `HttpError`, `ConfigurationError`.
 - `plane/config.py` — `Configuration` and `RetryConfig` dataclasses.
-- `plane/api/v2/` — the v2 surface (`client.v2`), **still mid-migration, not
-  complete**: 90 `V2Resource` subclasses exist in the package
-  (`tests/v2/tree_walk.py`'s `all_resource_classes()`); 55 are migrated to the
-  flat shape and swept by the rule tests, 35 remain on the retired pre-flat shape
-  (`tests/v2/tree_walk.py`'s `UNMIGRATED_RESOURCES` — collections, customers,
-  initiatives, both automations flavours, the four release children still
-  behind `.labels`/`.tags`, work item types and properties, and workflows;
-  written down by name, and that list may only shrink, never grow). Count
-  resources, not grouping nodes: `wiki` and `group_sync` hold no `V2Resource`
-  base, `path` or `operations` of their own — they only group children
-  (`wiki.pages`, `group_sync.config`) — so neither is in either count; an
-  earlier plan inflated its remaining-count by treating a grouping node as a
-  resource, so don't repeat that.
+- `plane/api/v2/` — the v2 surface (`client.v2`). **Migration complete**: all 90
+  `V2Resource` subclasses in the package (`tests/v2/tree_walk.py`'s
+  `all_resource_classes()`) are on the flat shape and swept by the rule tests.
+  `tests/v2/tree_walk.py`'s `UNMIGRATED_RESOURCES` — the opt-out list the sweeps
+  excluded a class by naming it in — is now `frozenset()`; nothing is opted out
+  any more, and `test_path_id_naming.py` still enforces that it can only shrink,
+  never grow, so it cannot silently regain a member. Count resources, not
+  grouping nodes: `wiki` and `group_sync` hold no `V2Resource` base, `path` or
+  `operations` of their own — they only group children (`wiki.pages`,
+  `wiki.collections`, `group_sync.config`) — so neither is in the 90.
 
-  The whole project band is now migrated and wired onto
-  `client.v2.workspaces.projects`: alongside the already-present `states`,
-  `labels` and `work_items`, it also carries `cycles`, `milestones`, `modules`,
+  The whole project band is wired onto `client.v2.workspaces.projects`:
+  `states`, `labels`, `work_items`, `cycles`, `milestones`, `modules`,
   `estimates`, `intakes`, `members`, `views`, `features`, `permissions`,
-  `work_item_templates`, `worklogs` and `pages` — and a fetched project reaches
-  all fifteen of them (`project.cycles.list()`, `project.permissions.me()`), not
-  just the three it used to. Five families gained navigable
-  rows of their own — a fetched row reaches its child with no ids repeated:
-  `cycles`, `milestones`, `modules`, `estimates` (whose child is
+  `work_item_templates`, `worklogs`, `pages`, `automations`,
+  `work_item_properties`, `work_item_types` and `workflows` — nineteen
+  children, and a fetched project reaches every one of them that is itself
+  navigable (`project.cycles.list()`, `project.permissions.me()`). Eighteen of
+  the 90 classes are navigable — `projects`, `work_items`, `cycles`,
+  `milestones`, `modules`, `estimates`, `webhooks`, `collections`, `customers`,
+  `initiatives`, `releases`, `work_item_types`, `work_item_properties`,
+  `automations` and `workflows` (the middle three each have a separate
+  project-scoped and workspace-scoped resource class, each independently
+  navigable, which is where 15 families become 18 classes) — a fetched row
+  reaches its child with no ids repeated. `estimates`' child is
   `estimate_points`, not `points` — `Estimate.points` is itself an API field,
-  returned inline by `expand=["points"]`) and `webhooks` (`webhook.logs`;
-  webhooks are workspace-scoped, not part of the project band). A fetched work
-  item now reaches all seven of its children — `comments`, `attachments`,
-  `links`, `worklogs`, `activities`, `relations`, `dependencies` — where six of
-  them used to raise `NotImplementedError`.
+  returned inline by `expand=["points"]`. `webhooks` is workspace-scoped, not
+  part of the project band, reached via `.logs`. A fetched work item reaches
+  all seven of its children — `comments`, `attachments`, `links`, `worklogs`,
+  `activities`, `relations`, `dependencies`.
 
   `client.v2.workspaces.roles.list("acme", role_slug="admin")` is worth flagging:
   the workspace slug is the positional argument, while the role's own slug filter
   is spelled `role_slug` because it would otherwise collide with it. The
   bound-locator chain (`client.v2.workspace(slug).project(project)`) is **gone**.
-  There are two ways into a resource now:
+  There are two ways into a resource:
   - **The flat path.** A static tree reached by plain attribute access, e.g.
     `client.v2.workspaces.projects.states.list("acme", "ENG")`,
     `client.v2.workspaces.projects.work_items.comments.list("acme", "ENG", "ENG-12")`.
     Read it left to right: every segment that names an actual resource consumes
     one URL path id, in order; a segment that only groups children (`.wiki` on
-    `Workspaces`, `plane/api/v2/wiki_node.py`, holding `.pages` plus a
-    `.collections` placeholder — `Collections` isn't migrated) consumes none. Path
-    ids are positional-or-keyword (`states.list(slug="acme", project="ENG")`
-    works). `client.v2.users` / `.user_assets` are the only resources kept
-    directly on `V2Namespace` (the 6 operations with no workspace in their path).
-    A singleton with no primary key of its own (`workspaces.features`,
-    `plane/api/v2/features.py`) goes through the kernel's
-    `_retrieve_singleton`/`_update_singleton` pair instead of `_retrieve`/`_update`,
-    which both require a `pk` to append.
+    `Workspaces`, `plane/api/v2/wiki_node.py`, holding `.pages` and
+    `.collections`, both real resources — neither is a placeholder) consumes
+    none. Path ids are positional-or-keyword (`states.list(slug="acme",
+    project="ENG")` works). `client.v2.users` / `.user_assets` are the only
+    resources kept directly on `V2Namespace` (the 6 operations with no
+    workspace in their path). A singleton with no primary key of its own
+    (`workspaces.features`, `plane/api/v2/features.py`) goes through the
+    kernel's `_retrieve_singleton`/`_update_singleton` pair instead of
+    `_retrieve`/`_update`, which both require a `pk` to append.
   - **Path ids — the naming rule (one rule, no exceptions).** *A path-id parameter
     is named after the resource it identifies, singular, with **no `_id` suffix**.*
     So `slug` (the workspace), `project`, `work_item`, `state`, `label`, `page`,
@@ -139,31 +140,27 @@ PlaneClient
     golden-derived names and are **not** covered by this rule: the URL templates
     (`path = ".../projects/{project_id}/work-items/{work_item_id}/comments/"`) and
     model field names (`WorkItem.state_id`). `tests/v2/test_path_id_naming.py`
-    enforces it across the migrated resources. **The rule for what "migrated"
-    means to a sweep**: `tests/v2/tree_walk.py` enumerates every `V2Resource`
-    subclass in the package (`all_resource_classes()`) and sweeps all of them
-    *except* the ones named in `UNMIGRATED_RESOURCES`, an explicit opt-out list —
-    not a heuristic selection (wired-onto-the-tree, or "`list` already looks
-    flat-shaped") the way earlier rounds picked members. A class opts out only by
-    being named there, and `test_path_id_naming.py` itself enforces that the list
-    may only shrink: it fails if a name in it turns out to be wired onto the tree
-    or already flat-shaped, and it fails if the list grows. "Grows" is checked as
-    *membership*, not size — `BASELINE_OPT_OUT`, a frozenset of the 35 names the
-    list held when the enumeration landed, asserted as
-    `UNMIGRATED_RESOURCES <= BASELINE_OPT_OUT`. A size ceiling (or even an equality
-    on the size) still lets a swap through: drop one name, add another, count
-    unchanged, sweep still green. Removals need no edit; when the list empties,
-    delete both. "Flat-shaped" is judged over *every* public method
+    enforces it across every resource. **The set under test is enumerated, not
+    hand-picked**: `tests/v2/tree_walk.py`'s `all_resource_classes()` returns
+    every `V2Resource` subclass in the package, minus `UNMIGRATED_RESOURCES` —
+    an explicit opt-out list, not a heuristic selection (wired-onto-the-tree, or
+    "`list` already looks flat-shaped") the way earlier rounds picked members.
+    `UNMIGRATED_RESOURCES` is `frozenset()` now — every class is swept — and
+    `test_path_id_naming.py` still enforces that it can only shrink (never
+    regain a name once removed), so a regression can't quietly opt a class back
+    out. "Flat-shaped" is judged over *every* public method
     (`flat_shaped_resource_classes()`), not over `list` alone — a bridge, a
-    singleton or a dict-shaped resource has no `list`, so the older heuristic could
-    never have caught one of those being migrated while staying opted out. A
-    hand-picked selection is what let a whole batch of violations ship green once —
-    never reintroduce one.
-  - **Loaded rows.** A resource with children today (`projects`, `work_items`,
-    `cycles`, `milestones`, `modules`, `estimates`, `webhooks`) returns a
-    `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic model: it
-    carries its own data and reaches its own children with none of the ids
-    repeated (`project.states.list()`, `work_item.comments.list()`,
+    singleton or a dict-shaped resource has no `list`, so a heuristic keyed on
+    `list` could never have caught one of those being migrated while staying
+    opted out. A hand-picked selection is what let a whole batch of violations
+    ship green once — never reintroduce one.
+  - **Loaded rows.** A resource with children (`projects`, `work_items`,
+    `cycles`, `milestones`, `modules`, `estimates`, `webhooks`, `collections`,
+    `customers`, `initiatives`, `releases`, `work_item_types`,
+    `work_item_properties`, `automations`, `workflows` — 18 of the 90 classes)
+    returns a `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic
+    model: it carries its own data and reaches its own children with none of the
+    ids repeated (`project.states.list()`, `work_item.comments.list()`,
     `cycle.work_items.add(["w1"])`).
     `Loaded.build(row, ids, fields)` (`_kernel/loaded.py`) is the mixin; reading a
     field the row does not carry raises `FieldNotRequested` instead of reading as
@@ -209,23 +206,11 @@ PlaneClient
     exactly those leading parameters, so `project.states.list()` types as
     `Page[State]`, unknown keywords are rejected and misspelled methods are errors.
     `tests/v2/test_typing.py` runs mypy to prove it. `_loaded/` holds one module
-    per `Loaded` subclass today — `project.py`, `work_item.py`, `cycle.py`,
-    `milestone.py`, `module.py`, `estimate.py`, `webhook.py`; copy whichever is
+    per `Loaded` subclass — `project.py`, `work_item.py`, `cycle.py`,
+    `milestone.py`, `module.py`, `estimate.py`, `webhook.py`, `collection.py`,
+    `customer.py`, `initiative.py`, `release.py`, `work_item_type.py`,
+    `work_item_property.py`, `automation.py`, `workflow.py`; copy whichever is
     closest in shape (single bridge-only child vs. several plain-CRUD children).
-  - **Wired but not migrated.** 35 resource classes still use the retired
-    pre-flat shape (`UNMIGRATED_RESOURCES` in `tests/v2/tree_walk.py` — the
-    plan-4 backlog: collections, customers, initiatives, both automations
-    flavours, the four release children still behind `.labels`/`.tags`, work
-    item types and properties, workflows). Where one is reachable on the tree
-    anyway (`ws.releases` exists for the migrated `.labels` and `.tags`, but its
-    `.comments`, `.links`, `.changelog` and `.work_items` are not), it is a
-    `PendingMigration` placeholder or a `@pending_flat_migration`-decorated
-    method from `_kernel/pending.py`, which raises `NotImplementedError` naming
-    the resource. Never leave the real unmigrated class wired — it fails with a
-    `MissingPathId` from deep inside the kernel — and never just drop the
-    attribute, which reads as a typo. The work item and project bands are now
-    fully migrated: every child `work_items` and `projects` wire is real, none
-    of them `PendingMigration` any more.
   - `_kernel/` holds the shared machinery beyond `loaded.py`:
     `V2Resource.__init__(transport)` takes no bound scope any more —
     `_collection_url`/`_detail_url` build straight from whatever path params a
@@ -251,7 +236,7 @@ PlaneClient
     of loose strings, which is why the package ships a `py.typed` marker
     (`tests/v2/test_typing.py` proves a type checker actually rejects an unknown
     filter keyword). Every option the golden offers an operation must be reachable
-    on the method: `tests/v2/test_expand_coverage.py` sweeps the migrated resources
+    on the method: `tests/v2/test_expand_coverage.py` sweeps every resource class
     against the golden's `EXPAND` table and fails on any method that omits an
     `expand` the API accepts (`delete` excepted — 204, no body to shape). The same
     goes for `fields`: it is exposed wherever the golden declares `?fields=` for an
@@ -275,10 +260,10 @@ PlaneClient
     `.../releases/{id}/labels/`, `.../collections/{id}/members/`, ...) is never a
     `manage_*(add=, remove=)` method. It is a sub-resource
     (`client.v2.workspaces.projects.cycles.work_items`, and likewise for
-    `milestones.work_items` / `modules.work_items` — all three wired and reachable
-    through `client.v2` now, and through a fetched row's own `.work_items`
-    property: `cycle.work_items.add(["w1"])`). `ws.initiatives.projects` is still
-    design-intent only, since `initiatives` isn't migrated yet.
+    `milestones.work_items` / `modules.work_items` / `initiatives.projects` /
+    `initiatives.work_items` / `customers.work_items` / `releases.work_items` —
+    all wired and reachable through `client.v2`, and through a fetched row's own
+    property: `cycle.work_items.add(["w1"])`).
     `ws.releases.labels` (verbs sit next to the CRUD since it's also the label
     catalog) is another reachable bridge, as
     `add(slug: str, release: str, label_ids: Sequence[str]) -> list[str]` /
@@ -291,7 +276,7 @@ PlaneClient
     `ClassVar[dict[str, str]]` mapping a method name to its own override template;
     `url_for(method, **path_params)` (called by `_bridge`, and by any other method
     that needs a non-`path` URL) fills `extra_paths.get(method, self.path)` instead
-    of `self.path` unconditionally. `ReleaseLabels` is the one migrated example: its
+    of `self.path` unconditionally. `ReleaseLabels` is one example: its
     catalog CRUD hits `path` (`.../releases/labels/`), while
 
     ```python

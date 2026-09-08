@@ -99,6 +99,43 @@ def test_misspelled_method_on_a_loaded_rows_child_is_a_type_error(tmp_path) -> N
     assert 'has no attribute "lst"' in result.stdout, result.stdout
 
 
+def test_navigation_stays_typed_three_levels_deep(tmp_path) -> None:
+    """The chain the surface is built around: a loaded project's work items, and a
+    loaded work item's comments, both stay real types the whole way down rather
+    than collapsing to `Any` once two navigation hops have happened."""
+    result = _mypy(
+        tmp_path,
+        _SETUP
+        + textwrap.dedent(
+            """
+            work_item = project.work_items.retrieve("ENG-12")
+            reveal_type(work_item)
+            reveal_type(work_item.comments.list())
+            """
+        ),
+    )
+
+    revealed = [line for line in result.stdout.splitlines() if "Revealed type" in line]
+    assert len(revealed) == 2, result.stdout
+    assert all("Any" not in line for line in revealed), revealed
+    assert "LoadedWorkItem" in revealed[0], revealed[0]
+    assert "WorkItemComment" in revealed[1], revealed[1]
+
+
+def test_misspelled_method_three_levels_deep_is_a_type_error(tmp_path) -> None:
+    """Same chain, but the mistake is on the third hop (`comments`, reached through
+    `project` and `work_items`) -- confirm the checker still catches it, and that
+    it fails for exactly this typo rather than some other, incidental error."""
+    result = _mypy(
+        tmp_path,
+        _SETUP + 'project.work_items.retrieve("ENG-12").comments.lst()\n',
+    )
+
+    assert result.returncode != 0
+    assert result.stdout.count("error:") == 1, result.stdout
+    assert 'has no attribute "lst"' in result.stdout, result.stdout
+
+
 def test_unknown_keyword_on_a_loaded_rows_child_is_a_type_error(tmp_path) -> None:
     """Binding the parent's ids must not throw away the child's own parameter
     checking -- `Concatenate` keeps the rest of the signature intact."""

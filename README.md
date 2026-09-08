@@ -200,46 +200,33 @@ work_items = client.work_items.list(
 
 `client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
 
-**This is a migration in progress — the v2 SDK surface is not complete.** The
-package defines 90 `V2Resource` subclasses in total (`tests/v2/tree_walk.py`'s
-`all_resource_classes()`, the enumeration the test suite itself sweeps). Of
-those, 55 are migrated to the flat shape below and reachable through `client.v2`;
-35 remain on the retired pre-migration shape (`tests/v2/tree_walk.py`'s
-`UNMIGRATED_RESOURCES` — collections, customers, initiatives, both automations
-flavours, four release children still behind `.labels`/`.tags`, work item types
-and properties, and workflows). That 35 is a written-down list, not an estimate,
-and it may only shrink as later rounds migrate more of it — a class comes off
-the list only once it's actually flat-shaped and wired. Counting resources means
-not counting grouping nodes: `wiki` and `group_sync` hold no `V2Resource` base,
-`path` or `operations` of their own (they only group children — `wiki.pages`,
-`group_sync.config`) and are excluded from both the 90 and the 55/35 split. What
-follows documents only what is reachable today.
+The v2 surface is complete: every one of the 90 `V2Resource` subclasses in the
+package (`tests/v2/tree_walk.py`'s `all_resource_classes()`, the enumeration the
+test suite itself sweeps) is on the flat shape described below and reachable
+through `client.v2`. Counting resources means not counting grouping nodes:
+`wiki` and `group_sync` hold no `V2Resource` base, `path` or `operations` of
+their own — they only group children (`wiki.pages`, `wiki.collections`,
+`group_sync.config`) — and are outside the 90.
 
 Wired directly on `client.v2.workspaces`: `artifacts`, `assets`, `audit_logs`,
-`customer_properties`, `invitations`, `members`, `permission_schemes`,
-`permissions`, `roles`, `stickies`, `teamspaces`, `views`, `webhooks` (with
-`.logs`), `work_item_relation_definitions`, `work_item_templates`, and
-`work_items` (a distinct, workspace-wide, list-only resource, not to be
-confused with the project-scoped `client.v2.workspaces.projects.work_items`
-below), plus the grouping nodes `wiki` (`.pages` only — `.collections` isn't
-migrated yet) and `group_sync` (`.config`, `.project_mappings`,
-`.workspace_mappings`) and `releases` (`.labels`, `.tags` — its `.comments`,
-`.links`, `.changelog` and `.work_items` aren't migrated yet). Each takes the
-workspace slug as its leading argument, e.g. `client.v2.workspaces.roles.list("acme")`
-or `client.v2.workspaces.group_sync.config.get("acme")`.
+`automations`, `customer_properties`, `customers`, `features`, `initiatives`,
+`invitations`, `members`, `permission_schemes`, `permissions`, `projects`,
+`releases` (`.labels`, `.tags`, `.comments`, `.links`, `.changelog`,
+`.work_items`), `roles`, `stickies`, `teamspaces`, `views`, `webhooks` (with
+`.logs`), `work_item_properties`, `work_item_relation_definitions`,
+`work_item_templates`, `work_item_types`, and `work_items` (a distinct,
+workspace-wide, list-only resource, not to be confused with the project-scoped
+`client.v2.workspaces.projects.work_items` below), plus the grouping nodes
+`wiki` (`.pages`, `.collections`) and `group_sync` (`.config`,
+`.project_mappings`, `.workspace_mappings`). Each takes the workspace slug as
+its leading argument, e.g. `client.v2.workspaces.roles.list("acme")` or
+`client.v2.workspaces.group_sync.config.get("acme")`.
 
-**The whole project band is now migrated and wired** onto
-`client.v2.workspaces.projects`: `states`, `labels`, `work_items`, `cycles`,
-`milestones`, `modules`, `estimates`, `intakes`, `members`, `views`, `features`,
-`permissions`, `work_item_templates`, `worklogs` and `pages`. Five of those
-families gained navigable rows of their own — a fetched row reaches its child
-with no ids repeated: `cycles`, `milestones`, `modules`, `estimates` (whose
-child is `estimate_points`, not `points` — `Estimate.points` is itself an API
-field, returned inline by `expand=["points"]`) and `webhooks` (`webhook.logs`,
-workspace-scoped rather than project-scoped). A fetched work item now reaches
-all seven of its children — `comments`, `attachments`, `links`, `worklogs`,
-`activities`, `relations`, `dependencies` — where six of them used to raise
-`NotImplementedError`.
+The whole project band is wired onto `client.v2.workspaces.projects`: `states`,
+`labels`, `work_items`, `cycles`, `milestones`, `modules`, `estimates`,
+`intakes`, `members`, `views`, `features`, `permissions`, `work_item_templates`,
+`worklogs`, `pages`, `automations`, `work_item_properties`, `work_item_types`
+and `workflows`.
 
 Two of these are worth calling out because they surprise people:
 
@@ -287,11 +274,14 @@ client.v2.workspaces.projects.states.list(slug="acme", project="ENG")
 
 ### 2. Loaded rows
 
-A resource with children (today, that's `projects`, `work_items`, `cycles`,
-`milestones`, `modules`, `estimates` and `webhooks`) doesn't just hand back a
-bare pydantic model from `retrieve`/`list`/`iterate` — it hands back a row that
-carries its own data *and* already knows where it lives, so the row's own
-children are reached with none of the ids repeated:
+A resource with children (`projects`, `work_items`, `cycles`, `milestones`,
+`modules`, `estimates`, `webhooks`, `collections`, `customers`, `initiatives`,
+`releases`, `work_item_types`, `work_item_properties`, `automations` and
+`workflows` — 18 of the 90 classes, some families having a separate
+project-scoped and workspace-scoped resource, each independently navigable)
+doesn't just hand back a bare pydantic model from `retrieve`/`list`/`iterate` —
+it hands back a row that carries its own data *and* already knows where it
+lives, so the row's own children are reached with none of the ids repeated:
 
 ```python
 p = client.v2.workspaces.projects.retrieve("acme", "ENG")
@@ -311,18 +301,29 @@ cycle.name
 cycle.work_items.add(["w1"])       # moves work item "w1" into this cycle
 ```
 
-The same navigable shape holds for `milestones`, `modules` (both via their own
-`.work_items` bridge), `estimates` (via `.estimate_points` — not `.points`,
-which is the row's own inline-expand field) and `webhooks` (via `.logs`, its
-delivery log).
+The same navigable shape holds throughout: `milestones`/`modules` via their own
+`.work_items` bridge; `estimates` via `.estimate_points` (not `.points`, which
+is the row's own inline-expand field); `webhooks` via `.logs`, its delivery
+log; `collections` via `.members`/`.pages`; `customers` via `.requests`,
+`.property_values`, `.work_items`; `initiatives` via `.labels`, `.projects`,
+`.work_items`; `releases` via `.labels`, `.tags`, `.comments`, `.links`,
+`.changelog`, `.work_items`; `work_item_types` via `.properties`;
+`work_item_properties` via `.property_options` (plus `.contexts` on the
+workspace-scoped resource only); `automations` via `.edges`, `.nodes`,
+`.activities`; and `workflows` via `.states`, `.transitions`. A work item
+itself reaches all seven of its own children this way — `comments`,
+`attachments`, `links`, `worklogs`, `activities`, `relations`, `dependencies`.
 
 `list` and `iterate` yield these same navigable rows, not bare pydantic models —
 `for project in client.v2.workspaces.projects.iterate("acme"): project.states.list()`
 works with no extra plumbing. Resources without children (`states`, `labels`,
 `workspaces`, `wiki.pages`, `features`, `releases.labels`, `intakes`, and most
 other leaf resources) still return plain pydantic models — the `Loaded` mixin
-(`plane/api/v2/_kernel/loaded.py`) is generic and every migrated resource with
-children picks it up the same way.
+(`plane/api/v2/_kernel/loaded.py`) is generic and every resource with children
+picks it up the same way. `tests/v2/test_loaded_navigation.py` sweeps every
+class that declares a `loaded_model` and fails if its row's navigation
+properties don't match its resource's own children exactly — see
+[the four rules the tests enforce](#the-four-rules-the-tests-enforce) below.
 
 ### Sparse responses raise, they don't lie
 
@@ -357,6 +358,55 @@ not a runtime surprise:
 # mypy rejects this: "not_a_filter" isn't in StatesListFilters
 client.v2.workspaces.projects.states.list("acme", "ENG", not_a_filter="x")
 ```
+
+Navigation off a loaded row is typed the same way, not `Any`: `project.states.list()`
+resolves to `Page[State]`, a misspelled child (`project.states.lst()`) or an unknown
+keyword on it is still a `mypy` error, and this holds several hops deep — a fetched
+work item reached through a fetched project still resolves its `.comments.list()` to
+a real model, not a collapsed `Any`. `tests/v2/test_typing.py` runs mypy over probe
+scripts to prove it, rather than trusting it by inspection.
+
+### The four rules the tests enforce
+
+Four properties of the surface are each enforced by a sweep in `tests/v2/`, over
+every one of the 90 resource classes (`tests/v2/tree_walk.py`'s
+`all_resource_classes()`) rather than a hand-picked subset — so a newly added
+resource is covered the moment it exists, with nothing to remember to add it to:
+
+- **Path-id naming** (`tests/v2/test_path_id_naming.py`). Every path-id parameter
+  is named after the resource it identifies, singular, with no `_id` suffix —
+  `slug`, `project`, `work_item`, `state`, `label`, `page`, `comment`, `release`,
+  and so on, the same name whether it's a method's own primary key or an
+  ancestor's. This isn't cosmetic: `Owned` (the mechanism behind loaded-row
+  navigation) matches a child method's leading parameter names against its
+  parent's literally, so a resource that suffixed its own id would silently break
+  navigation from its parent. URL templates and model field names keep their own
+  golden-derived names (`{project_id}`, `WorkItem.state_id`) — this rule is about
+  method parameters only.
+- **`expand` exposure** (`tests/v2/test_expand_coverage.py`). Wherever the api_v2
+  OpenAPI golden declares an operation can expand a relation, the SDK method
+  exposes an `expand` parameter for it. A method that just omits the parameter
+  makes that capability unreachable from the SDK with no error to notice it by —
+  which is exactly how eleven methods shipped without it before this sweep
+  existed.
+- **`fields` exposure** (`tests/v2/test_fields_coverage.py`). The same shape for
+  `?fields=`: wherever the golden declares it for an operation, the method exposes
+  it. The one deliberate exception is a response that cannot be re-fetched — a
+  secret shown once (`Webhooks.regenerate`) or a presigned-upload envelope whose
+  extra data exists only in that one reply (`WorkItemAttachments.create`,
+  `WorkspaceAssets.create`, `UserAssets.create`) — where projecting fields could
+  silently and irrecoverably drop data the caller has no second chance at. Those
+  are named, with their reason, in the test's own `ONE_TIME_RESPONSES` set, and
+  the reason is repeated in the method's docstring so the next reader doesn't
+  "fix" the omission back.
+- **Loaded-row navigation completeness** (`tests/v2/test_loaded_navigation.py`).
+  For every resource that declares a `loaded_model`, its `Loaded` row type's
+  navigation properties must be exactly the child resources the resource class
+  itself attaches — no more, no fewer, and each must wrap its own child rather
+  than a copy-pasted sibling's. This is what closes the gap a name-only
+  comparison would miss: a resource can attach fifteen children while its row
+  exposes three, with every other test still green, unless something checks the
+  two sides against each other.
 
 ### What else is wired
 
