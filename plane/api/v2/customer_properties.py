@@ -78,11 +78,11 @@ class CustomerProperties(
     def retrieve(
         self,
         slug: str,
-        property_id: str,
+        property: str,
         *,
         fields: Sequence[CustomerPropertiesRetrieveField] | None = None,
     ) -> CustomerProperty:
-        return self._retrieve(pk=property_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=property, params={"fields": fields}, slug=slug)
 
     def find_by_name(self, slug: str, name: str) -> CustomerProperty:
         """The one customer property with this name; raises if none or several
@@ -106,12 +106,12 @@ class CustomerProperties(
     def update(
         self,
         slug: str,
-        property_id: str,
+        property: str,
         data: UpdateCustomerProperty,
         *,
         fields: Sequence[CustomerPropertiesPartialUpdateField] | None = None,
     ) -> CustomerProperty:
-        return self._update(data, pk=property_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=property, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, property_id: str) -> None:
-        return self._delete(pk=property_id, slug=slug)
+    def delete(self, slug: str, property: str) -> None:
+        return self._delete(pk=property, slug=slug)

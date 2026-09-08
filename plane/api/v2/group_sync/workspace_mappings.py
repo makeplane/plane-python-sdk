@@ -72,11 +72,11 @@ class GroupSyncWorkspaceMappings(
     def retrieve(
         self,
         slug: str,
-        mapping_id: str,
+        mapping: str,
         *,
         fields: Sequence[GroupSyncWorkspaceMappingsRetrieveField] | None = None,
     ) -> WorkspaceGroupMapping:
-        return self._retrieve(pk=mapping_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=mapping, params={"fields": fields}, slug=slug)
 
     def create(
         self,
@@ -90,12 +90,12 @@ class GroupSyncWorkspaceMappings(
     def update(
         self,
         slug: str,
-        mapping_id: str,
+        mapping: str,
         data: UpdateWorkspaceGroupMapping,
         *,
         fields: Sequence[GroupSyncWorkspaceMappingsUpdateField] | None = None,
     ) -> WorkspaceGroupMapping:
-        return self._update(data, pk=mapping_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=mapping, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, mapping_id: str) -> None:
-        return self._delete(pk=mapping_id, slug=slug)
+    def delete(self, slug: str, mapping: str) -> None:
+        return self._delete(pk=mapping, slug=slug)

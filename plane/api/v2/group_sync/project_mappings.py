@@ -68,11 +68,11 @@ class GroupSyncProjectMappings(V2Resource[GroupMapping, CreateGroupMapping, Upda
     def retrieve(
         self,
         slug: str,
-        mapping_id: str,
+        mapping: str,
         *,
         fields: Sequence[GroupSyncProjectMappingsRetrieveField] | None = None,
     ) -> GroupMapping:
-        return self._retrieve(pk=mapping_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=mapping, params={"fields": fields}, slug=slug)
 
     def create(
         self,
@@ -86,12 +86,12 @@ class GroupSyncProjectMappings(V2Resource[GroupMapping, CreateGroupMapping, Upda
     def update(
         self,
         slug: str,
-        mapping_id: str,
+        mapping: str,
         data: UpdateGroupMapping,
         *,
         fields: Sequence[GroupSyncProjectMappingsUpdateField] | None = None,
     ) -> GroupMapping:
-        return self._update(data, pk=mapping_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=mapping, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, mapping_id: str) -> None:
-        return self._delete(pk=mapping_id, slug=slug)
+    def delete(self, slug: str, mapping: str) -> None:
+        return self._delete(pk=mapping, slug=slug)

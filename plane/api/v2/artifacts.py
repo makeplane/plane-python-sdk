@@ -32,23 +32,23 @@ class Artifacts(V2Resource[ArtifactDetail, CreateArtifact, UpdateArtifactUpdate]
         )
         return Artifact.model_validate(payload)
 
-    def retrieve(self, slug: str, artifact_id: str) -> ArtifactDetail:
+    def retrieve(self, slug: str, artifact: str) -> ArtifactDetail:
         """Metadata + the current version's HTML."""
-        return self._retrieve(pk=artifact_id, slug=slug)
+        return self._retrieve(pk=artifact, slug=slug)
 
-    def publish(self, slug: str, artifact_id: str) -> ArtifactPublish:
+    def publish(self, slug: str, artifact: str) -> ArtifactPublish:
         """Publish (anchor) an artifact for public hosting. No request body."""
         payload = self.transport.request(
-            "POST", f"{self._detail_url(artifact_id, 'publish', slug=slug)}publish/"
+            "POST", f"{self._detail_url(artifact, 'publish', slug=slug)}publish/"
         )
         return ArtifactPublish.model_validate(payload)
 
-    def update(self, slug: str, artifact_id: str, data: UpdateArtifactUpdate) -> ArtifactUpdated:
+    def update(self, slug: str, artifact: str, data: UpdateArtifactUpdate) -> ArtifactUpdated:
         """Append a new HTML version (each call creates the next version wholesale
         -- there is no true partial update)."""
         payload = self.transport.request(
             "PATCH",
-            f"{self._detail_url(artifact_id, 'update', slug=slug)}update/",
+            f"{self._detail_url(artifact, 'update', slug=slug)}update/",
             json=data.model_dump(mode="json", exclude_none=True),
         )
         return ArtifactUpdated.model_validate(payload)

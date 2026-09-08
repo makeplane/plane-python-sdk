@@ -79,9 +79,9 @@ class Roles(V2Resource[Role, Role, Role]):
         )
 
     def retrieve(
-        self, slug: str, role_id: str, *, fields: Sequence[RolesRetrieveField] | None = None
+        self, slug: str, role: str, *, fields: Sequence[RolesRetrieveField] | None = None
     ) -> Role:
-        return self._retrieve(pk=role_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=role, params={"fields": fields}, slug=slug)
 
     def find_by_name(self, slug: str, name: str, *, namespace: str | None = None) -> Role:
         """The one role with this name; raises if none or several match. Filters

@@ -74,12 +74,12 @@ class WorkspaceViews(V2Resource[View, CreateView, UpdateView]):
     def retrieve(
         self,
         slug: str,
-        view_id: str,
+        view: str,
         *,
         fields: Sequence[WorkspaceViewsRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> View:
-        return self._retrieve(pk=view_id, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._retrieve(pk=view, params={"fields": fields, "expand": expand}, slug=slug)
 
     def create(
         self,
@@ -93,12 +93,12 @@ class WorkspaceViews(V2Resource[View, CreateView, UpdateView]):
     def update(
         self,
         slug: str,
-        view_id: str,
+        view: str,
         data: UpdateView,
         *,
         fields: Sequence[WorkspaceViewsPartialUpdateField] | None = None,
     ) -> View:
-        return self._update(data, pk=view_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=view, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, view_id: str) -> None:
-        return self._delete(pk=view_id, slug=slug)
+    def delete(self, slug: str, view: str) -> None:
+        return self._delete(pk=view, slug=slug)

@@ -1,5 +1,5 @@
 """Release tag catalog (api_v2). Workspace-level catalog of release tags.
-**Golden/server mismatch (confirmed live):** golden implies `tag_id` accepts
+**Golden/server mismatch (confirmed live):** golden implies `tag` accepts
 `version:<value>`; it 404s -- resolve via `find_by_version` first."""
 
 from __future__ import annotations
@@ -66,12 +66,12 @@ class ReleaseTags(V2Resource[ReleaseTag, CreateReleaseTag, UpdateReleaseTag]):
         return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
 
     def retrieve(
-        self, slug: str, tag_id: str, *, fields: Sequence[ReleaseTagsRetrieveField] | None = None
+        self, slug: str, tag: str, *, fields: Sequence[ReleaseTagsRetrieveField] | None = None
     ) -> ReleaseTag:
-        """`tag_id` is the tag's UUID -- see the module docstring for why a
+        """`tag` is the tag's UUID -- see the module docstring for why a
         `version:<value>` form is not accepted despite the golden's summary
         implying it is."""
-        return self._retrieve(pk=tag_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=tag, params={"fields": fields}, slug=slug)
 
     def find_by_version(self, slug: str, version: str) -> ReleaseTag:
         """The one release tag with this version; raises if none or several
@@ -91,14 +91,14 @@ class ReleaseTags(V2Resource[ReleaseTag, CreateReleaseTag, UpdateReleaseTag]):
     def update(
         self,
         slug: str,
-        tag_id: str,
+        tag: str,
         data: UpdateReleaseTag,
         *,
         fields: Sequence[ReleaseTagsPartialUpdateField] | None = None,
     ) -> ReleaseTag:
-        """`tag_id` is the tag's UUID -- see the module docstring."""
-        return self._update(data, pk=tag_id, params={"fields": fields}, slug=slug)
+        """`tag` is the tag's UUID -- see the module docstring."""
+        return self._update(data, pk=tag, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, tag_id: str) -> None:
-        """`tag_id` is the tag's UUID -- see the module docstring."""
-        return self._delete(pk=tag_id, slug=slug)
+    def delete(self, slug: str, tag: str) -> None:
+        """`tag` is the tag's UUID -- see the module docstring."""
+        return self._delete(pk=tag, slug=slug)

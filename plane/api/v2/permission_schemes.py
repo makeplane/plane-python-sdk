@@ -68,8 +68,8 @@ class PermissionSchemes(V2Resource[PermissionScheme, PermissionScheme, Permissio
     def retrieve(
         self,
         slug: str,
-        scheme_id: str,
+        scheme: str,
         *,
         fields: Sequence[PermissionSchemesRetrieveField] | None = None,
     ) -> PermissionScheme:
-        return self._retrieve(pk=scheme_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=scheme, params={"fields": fields}, slug=slug)

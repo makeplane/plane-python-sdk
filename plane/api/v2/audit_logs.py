@@ -68,8 +68,8 @@ class AuditLogs(V2Resource[AuditLog, AuditLog, AuditLog]):
     def retrieve(
         self,
         slug: str,
-        log_id: str,
+        log: str,
         *,
         fields: Sequence[AuditLogsRetrieveField] | None = None,
     ) -> AuditLog:
-        return self._retrieve(pk=log_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=log, params={"fields": fields}, slug=slug)

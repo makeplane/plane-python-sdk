@@ -71,11 +71,11 @@ class Stickies(V2Resource[Sticky, CreateSticky, UpdateSticky]):
     def retrieve(
         self,
         slug: str,
-        sticky_id: str,
+        sticky: str,
         *,
         fields: Sequence[StickiesRetrieveField] | None = None,
     ) -> Sticky:
-        return self._retrieve(pk=sticky_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=sticky, params={"fields": fields}, slug=slug)
 
     def create(
         self,
@@ -89,12 +89,12 @@ class Stickies(V2Resource[Sticky, CreateSticky, UpdateSticky]):
     def update(
         self,
         slug: str,
-        sticky_id: str,
+        sticky: str,
         data: UpdateSticky,
         *,
         fields: Sequence[StickiesPartialUpdateField] | None = None,
     ) -> Sticky:
-        return self._update(data, pk=sticky_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=sticky, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, sticky_id: str) -> None:
-        return self._delete(pk=sticky_id, slug=slug)
+    def delete(self, slug: str, sticky: str) -> None:
+        return self._delete(pk=sticky, slug=slug)

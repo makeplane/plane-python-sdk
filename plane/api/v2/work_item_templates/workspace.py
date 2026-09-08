@@ -77,11 +77,11 @@ class WorkspaceWorkItemTemplates(
     def retrieve(
         self,
         slug: str,
-        template_id: str,
+        template: str,
         *,
         fields: Sequence[WorkspaceWorkItemTemplatesRetrieveField] | None = None,
     ) -> WorkItemTemplate:
-        return self._retrieve(pk=template_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=template, params={"fields": fields}, slug=slug)
 
     def create(
         self,
@@ -95,12 +95,12 @@ class WorkspaceWorkItemTemplates(
     def update(
         self,
         slug: str,
-        template_id: str,
+        template: str,
         data: UpdateWorkItemTemplate,
         *,
         fields: Sequence[WorkspaceWorkItemTemplatesPartialUpdateField] | None = None,
     ) -> WorkItemTemplate:
-        return self._update(data, pk=template_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=template, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, template_id: str) -> None:
-        return self._delete(pk=template_id, slug=slug)
+    def delete(self, slug: str, template: str) -> None:
+        return self._delete(pk=template, slug=slug)

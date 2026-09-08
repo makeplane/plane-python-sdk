@@ -75,11 +75,11 @@ class Invitations(V2Resource[WorkspaceInvite, CreateWorkspaceInvite, CreateWorks
     def retrieve(
         self,
         slug: str,
-        invitation_id: str,
+        invitation: str,
         *,
         fields: Sequence[MembersRetrieveField] | None = None,
     ) -> WorkspaceInvite:
-        return self._retrieve(pk=invitation_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=invitation, params={"fields": fields}, slug=slug)
 
     def create(
         self,
@@ -90,8 +90,8 @@ class Invitations(V2Resource[WorkspaceInvite, CreateWorkspaceInvite, CreateWorks
     ) -> WorkspaceInvite:
         return self._create(data, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, invitation_id: str) -> None:
-        return self._delete(pk=invitation_id, slug=slug)
+    def delete(self, slug: str, invitation: str) -> None:
+        return self._delete(pk=invitation, slug=slug)
 
     def bulk(
         self,

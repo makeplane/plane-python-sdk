@@ -66,11 +66,11 @@ class WorkItemRelationDefinitions(
     def retrieve(
         self,
         slug: str,
-        definition_id: str,
+        definition: str,
         *,
         fields: Sequence[WorkItemRelationDefinitionsRetrieveField] | None = None,
     ) -> WorkItemRelationDefinition:
-        return self._retrieve(pk=definition_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=definition, params={"fields": fields}, slug=slug)
 
     def find_by_name(self, slug: str, name: str) -> WorkItemRelationDefinition:
         """The one relation definition with this name; raises if none or several
@@ -98,12 +98,12 @@ class WorkItemRelationDefinitions(
     def update(
         self,
         slug: str,
-        definition_id: str,
+        definition: str,
         data: UpdateWorkItemRelationDefinition,
         *,
         fields: Sequence[WorkItemRelationDefinitionsPartialUpdateField] | None = None,
     ) -> WorkItemRelationDefinition:
-        return self._update(data, pk=definition_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=definition, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, definition_id: str) -> None:
-        return self._delete(pk=definition_id, slug=slug)
+    def delete(self, slug: str, definition: str) -> None:
+        return self._delete(pk=definition, slug=slug)

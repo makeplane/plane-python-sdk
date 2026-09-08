@@ -74,13 +74,13 @@ class Teamspaces(V2Resource[Teamspace, CreateTeamspace, UpdateTeamspace]):
     def retrieve(
         self,
         slug: str,
-        teamspace_id: str,
+        teamspace: str,
         *,
         fields: Sequence[TeamspacesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> Teamspace:
         return self._retrieve(
-            pk=teamspace_id,
+            pk=teamspace,
             params={"fields": fields, "expand": expand},
             slug=slug,
         )
@@ -101,12 +101,12 @@ class Teamspaces(V2Resource[Teamspace, CreateTeamspace, UpdateTeamspace]):
     def update(
         self,
         slug: str,
-        teamspace_id: str,
+        teamspace: str,
         data: UpdateTeamspace,
         *,
         fields: Sequence[TeamspacesPartialUpdateField] | None = None,
     ) -> Teamspace:
-        return self._update(data, pk=teamspace_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=teamspace, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, teamspace_id: str) -> None:
-        return self._delete(pk=teamspace_id, slug=slug)
+    def delete(self, slug: str, teamspace: str) -> None:
+        return self._delete(pk=teamspace, slug=slug)

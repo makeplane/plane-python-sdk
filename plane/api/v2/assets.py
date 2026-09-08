@@ -72,9 +72,9 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
         return self._iter(params={"fields": fields, "order_by": order_by}, slug=slug)
 
     def retrieve(
-        self, slug: str, asset_id: str, *, fields: Sequence[AssetsRetrieveField] | None = None
+        self, slug: str, asset: str, *, fields: Sequence[AssetsRetrieveField] | None = None
     ) -> WorkspaceAsset:
-        return self._retrieve(pk=asset_id, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=asset, params={"fields": fields}, slug=slug)
 
     def create(self, slug: str, data: CreateWorkspaceAsset) -> WorkspaceAssetUploadResult:
         """Registers the asset's metadata and returns presigned upload instructions;
@@ -89,15 +89,15 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
     def update(
         self,
         slug: str,
-        asset_id: str,
+        asset: str,
         data: WorkspaceAssetConfirm,
         *,
         fields: Sequence[AssetsPartialUpdateField] | None = None,
     ) -> WorkspaceAsset:
-        return self._update(data, pk=asset_id, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=asset, params={"fields": fields}, slug=slug)
 
-    def delete(self, slug: str, asset_id: str) -> None:
-        return self._delete(pk=asset_id, slug=slug)
+    def delete(self, slug: str, asset: str) -> None:
+        return self._delete(pk=asset, slug=slug)
 
 
 class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
@@ -125,8 +125,8 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
         automatically."""
         return self._iter(params={"fields": fields, **filters})
 
-    def retrieve(self, asset_id: str, *, fields: Sequence[str] | None = None) -> UserAsset:
-        return self._retrieve(pk=asset_id, params={"fields": fields})
+    def retrieve(self, asset: str, *, fields: Sequence[str] | None = None) -> UserAsset:
+        return self._retrieve(pk=asset, params={"fields": fields})
 
     def create(self, data: CreateUserAsset) -> UserAssetUploadResult:
         """Registers the asset's metadata and returns presigned upload
@@ -136,8 +136,8 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
         )
         return UserAssetUploadResult.model_validate(payload)
 
-    def update(self, asset_id: str, data: UserAssetConfirm) -> UserAsset:
-        return self._update(data, pk=asset_id)
+    def update(self, asset: str, data: UserAssetConfirm) -> UserAsset:
+        return self._update(data, pk=asset)
 
-    def delete(self, asset_id: str) -> None:
-        return self._delete(pk=asset_id)
+    def delete(self, asset: str) -> None:
+        return self._delete(pk=asset)
