@@ -115,3 +115,26 @@ def test_misspelled_field_on_a_loaded_row_is_a_type_error(tmp_path) -> None:
 
     assert result.returncode != 0
     assert 'has no attribute "nmae"' in result.stdout, result.stdout
+
+
+# -- A newly navigable family (cycles) gets the same typed navigation ------------
+
+_CYCLE_SETUP = _SETUP + 'cycle = v2.workspaces.projects.cycles.retrieve("acme", "ENG", "c1")\n'
+
+
+def test_a_loaded_cycles_child_navigation_is_not_any(tmp_path) -> None:
+    """`cycle.work_items` must carry the bridge resource's own type, not collapse to
+    `Any`, now that cycles are wired onto the tree alongside work items."""
+    result = _mypy(tmp_path, _CYCLE_SETUP + "reveal_type(cycle.work_items)\n")
+
+    revealed = [line for line in result.stdout.splitlines() if "Revealed type" in line]
+    assert len(revealed) == 1, result.stdout
+    assert "Any" not in revealed[0], revealed[0]
+    assert "_OwnedCycleWorkItems" in revealed[0], revealed[0]
+
+
+def test_misspelled_method_on_a_loaded_cycles_child_is_a_type_error(tmp_path) -> None:
+    result = _mypy(tmp_path, _CYCLE_SETUP + 'cycle.work_items.ad(["w1"])\n')
+
+    assert result.returncode != 0
+    assert 'has no attribute "ad"' in result.stdout, result.stdout

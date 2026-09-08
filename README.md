@@ -200,30 +200,46 @@ work_items = client.work_items.list(
 
 `client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
 
-**This is a migration in progress.** Of the roughly 78 v2 resource classes that were
-still on the older, pre-migration shape when this round of work began, 19
-workspace-level resources have now been migrated and wired onto the flat tree —
-15 direct resources plus the 3 children of the `group_sync` grouping node (itself
-not a resource, same as `wiki`) plus `releases.tags` — leaving roughly 59 still
-unreachable through `client.v2` (a later release wires them in). What follows
-documents only what is reachable today.
+**This is a migration in progress — the v2 SDK surface is not complete.** The
+package defines 90 `V2Resource` subclasses in total (`tests/v2/tree_walk.py`'s
+`all_resource_classes()`, the enumeration the test suite itself sweeps). Of
+those, 55 are migrated to the flat shape below and reachable through `client.v2`;
+35 remain on the retired pre-migration shape (`tests/v2/tree_walk.py`'s
+`UNMIGRATED_RESOURCES` — collections, customers, initiatives, both automations
+flavours, four release children still behind `.labels`/`.tags`, work item types
+and properties, and workflows). That 35 is a written-down list, not an estimate,
+and it may only shrink as later rounds migrate more of it — a class comes off
+the list only once it's actually flat-shaped and wired. Counting resources means
+not counting grouping nodes: `wiki` and `group_sync` hold no `V2Resource` base,
+`path` or `operations` of their own (they only group children — `wiki.pages`,
+`group_sync.config`) and are excluded from both the 90 and the 55/35 split. What
+follows documents only what is reachable today.
 
-Previously wired: `states`, `labels`, `projects`, `work_items` (with `comments`),
-`workspaces`, `wiki.pages`, `features` and `releases.labels`. Notably,
-`wiki.collections` is *not* wired yet — `Collections` itself hasn't been migrated —
-so `client.v2.workspaces.wiki` only has `.pages`.
+Wired directly on `client.v2.workspaces`: `artifacts`, `assets`, `audit_logs`,
+`customer_properties`, `invitations`, `members`, `permission_schemes`,
+`permissions`, `roles`, `stickies`, `teamspaces`, `views`, `webhooks` (with
+`.logs`), `work_item_relation_definitions`, `work_item_templates`, and
+`work_items` (a distinct, workspace-wide, list-only resource, not to be
+confused with the project-scoped `client.v2.workspaces.projects.work_items`
+below), plus the grouping nodes `wiki` (`.pages` only — `.collections` isn't
+migrated yet) and `group_sync` (`.config`, `.project_mappings`,
+`.workspace_mappings`) and `releases` (`.labels`, `.tags` — its `.comments`,
+`.links`, `.changelog` and `.work_items` aren't migrated yet). Each takes the
+workspace slug as its leading argument, e.g. `client.v2.workspaces.roles.list("acme")`
+or `client.v2.workspaces.group_sync.config.get("acme")`.
 
-Newly wired in this round, all directly on `client.v2.workspaces`: `artifacts`,
-`assets`, `audit_logs`, `customer_properties`, `invitations`, `members`,
-`permission_schemes`, `permissions`, `roles`, `stickies`, `teamspaces`, `views`,
-`work_item_relation_definitions`, `work_item_templates`, and `work_items` (a
-distinct, workspace-wide, list-only resource — `client.v2.workspaces.work_items`,
-not to be confused with the project-scoped `client.v2.workspaces.projects.work_items`
-above, which still only has `.comments` migrated among its own children), plus
-the grouping node `group_sync` (`.config`, `.project_mappings`,
-`.workspace_mappings`) and `releases.tags`. Each takes the workspace slug as its
-leading argument, e.g. `client.v2.workspaces.roles.list("acme")` or
-`client.v2.workspaces.group_sync.config.get("acme")`.
+**The whole project band is now migrated and wired** onto
+`client.v2.workspaces.projects`: `states`, `labels`, `work_items`, `cycles`,
+`milestones`, `modules`, `estimates`, `intakes`, `members`, `views`, `features`,
+`permissions`, `work_item_templates`, `worklogs` and `pages`. Five of those
+families gained navigable rows of their own — a fetched row reaches its child
+with no ids repeated: `cycles`, `milestones`, `modules`, `estimates` (whose
+child is `estimate_points`, not `points` — `Estimate.points` is itself an API
+field, returned inline by `expand=["points"]`) and `webhooks` (`webhook.logs`,
+workspace-scoped rather than project-scoped). A fetched work item now reaches
+all seven of its children — `comments`, `attachments`, `links`, `worklogs`,
+`activities`, `relations`, `dependencies` — where six of them used to raise
+`NotImplementedError`.
 
 Two of these are worth calling out because they surprise people:
 
@@ -271,9 +287,10 @@ client.v2.workspaces.projects.states.list(slug="acme", project="ENG")
 
 ### 2. Loaded rows
 
-A resource with children (today, that's `projects` and `work_items`) doesn't just
-hand back a bare pydantic model from `retrieve`/`list`/`iterate` — it hands back a
-row that carries its own data *and* already knows where it lives, so the row's own
+A resource with children (today, that's `projects`, `work_items`, `cycles`,
+`milestones`, `modules`, `estimates` and `webhooks`) doesn't just hand back a
+bare pydantic model from `retrieve`/`list`/`iterate` — it hands back a row that
+carries its own data *and* already knows where it lives, so the row's own
 children are reached with none of the ids repeated:
 
 ```python
@@ -284,12 +301,28 @@ item = p.work_items.retrieve("ENG-12")
 item.comments.list()                                # same, one level deeper
 ```
 
+Membership bridges hang off a loaded row the same way. A fetched cycle reaches
+its own work-item membership without repeating `"acme"`, `"ENG"` or the cycle's
+own id:
+
+```python
+cycle = client.v2.workspaces.projects.cycles.retrieve("acme", "ENG", "c1")
+cycle.name
+cycle.work_items.add(["w1"])       # moves work item "w1" into this cycle
+```
+
+The same navigable shape holds for `milestones`, `modules` (both via their own
+`.work_items` bridge), `estimates` (via `.estimate_points` — not `.points`,
+which is the row's own inline-expand field) and `webhooks` (via `.logs`, its
+delivery log).
+
 `list` and `iterate` yield these same navigable rows, not bare pydantic models —
 `for project in client.v2.workspaces.projects.iterate("acme"): project.states.list()`
-works with no extra plumbing. Resources without children today (`states`, `labels`,
-`workspaces`, `wiki.pages`, `features`, `releases.labels`) still return plain
-pydantic models — the `Loaded` mixin (`plane/api/v2/_kernel/loaded.py`) is generic
-and every migrated resource with children will pick it up the same way.
+works with no extra plumbing. Resources without children (`states`, `labels`,
+`workspaces`, `wiki.pages`, `features`, `releases.labels`, `intakes`, and most
+other leaf resources) still return plain pydantic models — the `Loaded` mixin
+(`plane/api/v2/_kernel/loaded.py`) is generic and every migrated resource with
+children picks it up the same way.
 
 ### Sparse responses raise, they don't lie
 

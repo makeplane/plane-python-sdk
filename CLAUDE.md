@@ -78,21 +78,34 @@ PlaneClient
 - `plane/client/` — `PlaneClient` (API key / access token auth) and `OAuthClient` (OAuth 2.0 flows).
 - `plane/errors/` — `PlaneError` → `HttpError`, `ConfigurationError`.
 - `plane/config.py` — `Configuration` and `RetryConfig` dataclasses.
-- `plane/api/v2/` — the v2 surface (`client.v2`), **migration in progress**: of the
-  roughly 78 resource classes still on the retired pre-flat shape when this round
-  began, 19 are now migrated and wired onto the tree, leaving roughly 59 not wired
-  below (`Collections`, most of `work_items/` beyond `.comments`, etc. — see each
-  file's own docstring for whether it's wired). Count resources, not grouping
-  nodes: `group_sync` itself has no `V2Resource` base, `path` or `operations` (it
-  only groups children, exactly like `wiki`), so the 19 are 15 direct workspace
-  resources — `artifacts`, `assets`, `audit_logs`, `customer_properties`,
-  `invitations`, `members`, `permission_schemes`, `permissions`, `roles`,
-  `stickies`, `teamspaces`, `views`, `work_item_relation_definitions`,
-  `work_item_templates`, and `work_items` (a distinct, workspace-wide, list-only
-  resource, not the project-scoped `workspaces.projects.work_items` whose own
-  children are still mostly `PendingMigration`) — plus `group_sync`'s 3 children
-  (`.config`, `.project_mappings`, `.workspace_mappings`, none of which consume a
-  project id despite `project_mappings`' name) plus `releases.tags`.
+- `plane/api/v2/` — the v2 surface (`client.v2`), **still mid-migration, not
+  complete**: 90 `V2Resource` subclasses exist in the package
+  (`tests/v2/tree_walk.py`'s `all_resource_classes()`); 55 are migrated to the
+  flat shape and swept by the rule tests, 35 remain on the retired pre-flat shape
+  (`tests/v2/tree_walk.py`'s `UNMIGRATED_RESOURCES` — collections, customers,
+  initiatives, both automations flavours, the four release children still
+  behind `.labels`/`.tags`, work item types and properties, and workflows;
+  written down by name, and that list may only shrink, never grow). Count
+  resources, not grouping nodes: `wiki` and `group_sync` hold no `V2Resource`
+  base, `path` or `operations` of their own — they only group children
+  (`wiki.pages`, `group_sync.config`) — so neither is in either count; an
+  earlier plan inflated its remaining-count by treating a grouping node as a
+  resource, so don't repeat that.
+
+  The whole project band is now migrated and wired onto
+  `client.v2.workspaces.projects`: alongside the already-present `states`,
+  `labels` and `work_items`, it also carries `cycles`, `milestones`, `modules`,
+  `estimates`, `intakes`, `members`, `views`, `features`, `permissions`,
+  `work_item_templates`, `worklogs` and `pages`. Five families gained navigable
+  rows of their own — a fetched row reaches its child with no ids repeated:
+  `cycles`, `milestones`, `modules`, `estimates` (whose child is
+  `estimate_points`, not `points` — `Estimate.points` is itself an API field,
+  returned inline by `expand=["points"]`) and `webhooks` (`webhook.logs`;
+  webhooks are workspace-scoped, not part of the project band). A fetched work
+  item now reaches all seven of its children — `comments`, `attachments`,
+  `links`, `worklogs`, `activities`, `relations`, `dependencies` — where six of
+  them used to raise `NotImplementedError`.
+
   `client.v2.workspaces.roles.list("acme", role_slug="admin")` is worth flagging:
   the workspace slug is the positional argument, while the role's own slug filter
   is spelled `role_slug` because it would otherwise collide with it. The
@@ -124,16 +137,23 @@ PlaneClient
     golden-derived names and are **not** covered by this rule: the URL templates
     (`path = ".../projects/{project_id}/work-items/{work_item_id}/comments/"`) and
     model field names (`WorkItem.state_id`). `tests/v2/test_path_id_naming.py`
-    enforces it across the migrated resources, and derives that set rather than
-    listing it: `tests/v2/tree_walk.py` walks the live tree from `V2Namespace` and
-    also picks up any class whose `list` already consumes every path id its template
-    names, so a newly migrated resource is swept the moment it exists. A hand-written
-    list of what to check is what let a whole batch of violations ship green once —
-    never reintroduce one.
-  - **Loaded rows.** A resource with children today (`projects`, `work_items`)
-    returns a `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic
-    model: it carries its own data and reaches its own children with none of the
-    ids repeated (`project.states.list()`, `work_item.comments.list()`).
+    enforces it across the migrated resources. **The rule for what "migrated"
+    means to a sweep**: `tests/v2/tree_walk.py` enumerates every `V2Resource`
+    subclass in the package (`all_resource_classes()`) and sweeps all of them
+    *except* the ones named in `UNMIGRATED_RESOURCES`, an explicit opt-out list —
+    not a heuristic selection (wired-onto-the-tree, or "`list` already looks
+    flat-shaped") the way earlier rounds picked members. A class opts out only by
+    being named there, and `test_path_id_naming.py` itself enforces that the list
+    may only shrink: it fails if a name in it turns out to be wired onto the tree
+    or already flat-shaped, and it fails if the list grows. A hand-picked
+    selection is what let a whole batch of violations ship green once — never
+    reintroduce one.
+  - **Loaded rows.** A resource with children today (`projects`, `work_items`,
+    `cycles`, `milestones`, `modules`, `estimates`, `webhooks`) returns a
+    `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic model: it
+    carries its own data and reaches its own children with none of the ids
+    repeated (`project.states.list()`, `work_item.comments.list()`,
+    `cycle.work_items.add(["w1"])`).
     `Loaded.build(row, ids, fields)` (`_kernel/loaded.py`) is the mixin; reading a
     field the row does not carry raises `FieldNotRequested` instead of reading as
     `None` — a `None` you get back is a real null. **Presence is computed from the
@@ -160,18 +180,24 @@ PlaneClient
     line per method, `N` being how many ids the parent binds. `Concatenate` strips
     exactly those leading parameters, so `project.states.list()` types as
     `Page[State]`, unknown keywords are rejected and misspelled methods are errors.
-    `tests/v2/test_typing.py` runs mypy to prove it. `_loaded/project.py` and
-    `_loaded/work_item.py` are today's two `Loaded` subclasses; copy either.
-  - **Wired but not migrated.** Roughly 59 resource classes still use the retired
-    pre-flat shape (down from ~78 before the 19 resources listed above were
-    migrated). Where one is reachable on the tree anyway (`ws.releases`
-    exists for `releases.labels` and `releases.tags`; `work_items` wires seven
-    children of which only `.comments` is migrated), it is a `PendingMigration`
-    placeholder or a
-    `@pending_flat_migration`-decorated method from `_kernel/pending.py`, which raises
-    `NotImplementedError` naming the resource. Never leave the real unmigrated class
-    wired — it fails with a `MissingPathId` from deep inside the kernel — and never
-    just drop the attribute, which reads as a typo.
+    `tests/v2/test_typing.py` runs mypy to prove it. `_loaded/` holds one module
+    per `Loaded` subclass today — `project.py`, `work_item.py`, `cycle.py`,
+    `milestone.py`, `module.py`, `estimate.py`, `webhook.py`; copy whichever is
+    closest in shape (single bridge-only child vs. several plain-CRUD children).
+  - **Wired but not migrated.** 35 resource classes still use the retired
+    pre-flat shape (`UNMIGRATED_RESOURCES` in `tests/v2/tree_walk.py` — the
+    plan-4 backlog: collections, customers, initiatives, both automations
+    flavours, the four release children still behind `.labels`/`.tags`, work
+    item types and properties, workflows). Where one is reachable on the tree
+    anyway (`ws.releases` exists for the migrated `.labels` and `.tags`, but its
+    `.comments`, `.links`, `.changelog` and `.work_items` are not), it is a
+    `PendingMigration` placeholder or a `@pending_flat_migration`-decorated
+    method from `_kernel/pending.py`, which raises `NotImplementedError` naming
+    the resource. Never leave the real unmigrated class wired — it fails with a
+    `MissingPathId` from deep inside the kernel — and never just drop the
+    attribute, which reads as a typo. The work item and project bands are now
+    fully migrated: every child `work_items` and `projects` wire is real, none
+    of them `PendingMigration` any more.
   - `_kernel/` holds the shared machinery beyond `loaded.py`:
     `V2Resource.__init__(transport)` takes no bound scope any more —
     `_collection_url`/`_detail_url` build straight from whatever path params a
@@ -214,15 +240,18 @@ PlaneClient
     quietly add an unreachable filter — see `tests/v2/test_roles_resource.py`.
   - **Bridges.** Membership between two resources (`.../cycles/{id}/work-items/`,
     `.../releases/{id}/labels/`, `.../collections/{id}/members/`, ...) is never a
-    `manage_*(add=, remove=)` method. It is a sub-resource (`proj.cycles.work_items`,
-    `ws.initiatives.projects` — both design-intent today, since `cycles`/`initiatives`
-    aren't wired onto the flat tree yet; `ws.releases.labels` (wired, verbs sit next
-    to the CRUD since it's also the label catalog) is the one bridge reachable
-    through `client.v2` right now, as
+    `manage_*(add=, remove=)` method. It is a sub-resource
+    (`client.v2.workspaces.projects.cycles.work_items`, and likewise for
+    `milestones.work_items` / `modules.work_items` — all three wired and reachable
+    through `client.v2` now, and through a fetched row's own `.work_items`
+    property: `cycle.work_items.add(["w1"])`). `ws.initiatives.projects` is still
+    design-intent only, since `initiatives` isn't migrated yet.
+    `ws.releases.labels` (verbs sit next to the CRUD since it's also the label
+    catalog) is another reachable bridge, as
     `add(slug: str, release: str, label_ids: Sequence[str]) -> list[str]` /
     `remove(slug, release, label_ids)` — every leading path id the bridge's own
-    URL needs, in path order, not just the parent id, then the ids to add/remove),
-    both delegating to `V2Resource._bridge(key=, ids=, **path_params)`. The kernel
+    URL needs, in path order, not just the parent id, then the ids to add/remove.
+    Every bridge delegates to `V2Resource._bridge(key=, ids=, **path_params)`. The kernel
     POSTs `{"add": [...]}` or `{"remove": [...]}` only, rejects 0 or >100 ids with
     `ValueError` before the request, and returns the response's `added`/`removed`
     list. A class whose own `path` is not the bridge URL sets `extra_paths`, a
