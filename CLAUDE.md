@@ -216,7 +216,11 @@ PlaneClient
     answers with a row returns `self._load(row, *parent_ids, fields=fields)` —
     including `find_by_name` and verb actions like `archive`. **Any method returning a
     row of a navigable type returns the loaded form**; mixing plain and loaded returns
-    on one class silently drops navigation.
+    on one class silently drops navigation. `tests/v2/test_iterate_parity.py` guards
+    the pair that actually broke this way once: for every navigable class, `iterate`
+    must yield the type `list` returns, with the parent ids threaded on page 2 as
+    well as page 1 — a raw row from `iterate` has no navigation, and the divergence
+    shows up only at the call site.
 
     **One class is exempt, structurally: `WorkspaceWorkItems`** (the workspace-wide
     listing, `plane/api/v2/work_items/workspace.py`). Its rows are plain `WorkItem`s.
