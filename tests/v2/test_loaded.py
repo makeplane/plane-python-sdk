@@ -52,6 +52,44 @@ def test_a_field_the_server_sent_but_the_caller_did_not_ask_for_stays_hidden() -
         _ = loaded.name
 
 
+# -- Forward compatibility ---------------------------------------------------------
+# The v2 read models are `extra="allow"` so a field the API starts sending stays
+# readable before the SDK declares it (CLAUDE.md, "Response models"). `Loaded`
+# shadows `BaseModel.__getattr__`, which is where pydantic keeps those extras, so
+# without a fall-through the guarantee held on a plain row and silently died on a
+# loaded one -- while `model_dump()` and `_present` both still reported the field.
+
+
+def test_a_field_the_server_sent_but_the_model_does_not_declare_is_readable() -> None:
+    row = State.model_validate({"id": "1", "name": "Todo", "brand_new_field": "x"})
+    loaded = LoadedState.build(row, ids=("acme",), fields=None)
+
+    assert loaded.brand_new_field == "x"
+    assert "brand_new_field" in loaded._present
+    assert loaded.model_dump()["brand_new_field"] == "x"
+
+
+def test_an_undeclared_field_the_caller_narrowed_away_stays_hidden() -> None:
+    """`fields=` narrows extras exactly as it narrows declared fields -- the
+    fall-through must not smuggle back a key the caller excluded."""
+    row = State.model_validate({"id": "1", "name": "Todo", "brand_new_field": "x"})
+    loaded = LoadedState.build(row, ids=("acme",), fields=["id", "name"])
+
+    assert loaded._present == frozenset({"id", "name"})
+    with pytest.raises(AttributeError, match="brand_new_field"):
+        _ = loaded.brand_new_field
+
+
+def test_a_name_that_is_neither_a_field_nor_an_extra_is_still_an_attribute_error() -> None:
+    """The fall-through must not turn a typo into something other than
+    `AttributeError` -- `hasattr` and duck typing both depend on it."""
+    row = State(id="1", name="Todo")
+    loaded = LoadedState.build(row, ids=("acme",), fields=None)
+
+    with pytest.raises(AttributeError, match="not_a_field_at_all"):
+        _ = loaded.not_a_field_at_all
+
+
 def test_ids_are_kept_for_navigation() -> None:
     row = State(id="1", name="Todo")
     loaded = LoadedState.build(row, ids=("acme",), fields=None)

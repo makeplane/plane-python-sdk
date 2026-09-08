@@ -400,3 +400,23 @@ def test_fetched_project_reaches_a_cycle_row_that_reaches_its_own_work_items(
 
     assert added == ["w1"]
     assert responses.calls[-1].request.url == f"{base}/cycles/c1/work-items/"
+
+
+@responses.activate
+def test_a_field_the_server_added_but_the_model_does_not_declare_survives_loading(
+    config: Configuration,
+) -> None:
+    """Forward compatibility, end to end: the v2 read models are `extra="allow"` so
+    an API-side addition is readable before the SDK declares it. `Loaded` shadows
+    the pydantic `__getattr__` that serves those extras, so a fetched row used to
+    lose them -- while `model_dump()` and `_present` both still showed the field."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/",
+        json={"id": "p1", "identifier": "ENG", "name": "Engineering", "vibe_score": 11},
+    )
+
+    project = V2Namespace(config).workspaces.projects.retrieve("acme", "ENG")
+
+    assert project.vibe_score == 11
+    assert "vibe_score" in project._present
+    assert project.model_dump()["vibe_score"] == 11

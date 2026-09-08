@@ -90,7 +90,21 @@ class Loaded:
                     f"real data, so it raises instead -- request it with `fields=`, or "
                     f"re-fetch the row if the collection deferred it."
                 )
-            raise AttributeError(name)
+            # Not a declared field, so it may still be one the *server* sent and the
+            # model does not know about. The v2 read models are `extra="allow"`
+            # precisely so a field added by the API stays readable before the SDK
+            # catches up (CLAUDE.md, "Response models"), and pydantic keeps those in
+            # `__pydantic_extra__` rather than in `__dict__` -- reachable only through
+            # `BaseModel.__getattr__`. Shadowing that without falling through to it is
+            # what made an undeclared field readable on a plain row, unreadable on a
+            # loaded one, and visible in `model_dump()` and `_present` either way.
+            try:
+                return super().__getattr__(name)
+            except AttributeError:
+                # Either the mixin is used without a `BaseModel` behind it (no
+                # `__getattr__` to reach), or the extras genuinely do not carry the
+                # name. Both are a plain missing attribute.
+                raise AttributeError(name) from None
 
 
 class Owned(Generic[TResource]):
