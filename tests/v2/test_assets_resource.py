@@ -152,6 +152,30 @@ def test_user_assets_list_has_no_workspace_in_the_url(user_assets: UserAssets) -
 
 
 @responses.activate
+def test_user_assets_list_takes_the_generated_options(user_assets: UserAssets) -> None:
+    """`UserAssets` was the last resource still on `Sequence[str]` + `**filters: Any`
+    while `UserAssetsListField`/`UserAssetsListOrderBy` existed. `user_assets_list`
+    offers no query filters in the golden (there is no `UserAssetsListFilters`), so
+    the recipe here is `WorkspaceAssets`': typed `fields`/`order_by` plus paging, and
+    no `**filters`."""
+    responses.get(f"{USER_BASE}/", json={"data": [], "pagination": {"style": "offset"}})
+
+    user_assets.list(fields=["id", "name"], order_by="-created_at", per_page=5, offset=10)
+
+    query = responses.calls[0].request.url
+    assert "fields=id%2Cname" in query
+    assert "order_by=-created_at" in query
+    assert "per_page=5" in query
+    assert "offset=10" in query
+
+
+def test_user_assets_list_rejects_an_unknown_field(user_assets: UserAssets) -> None:
+    """The point of the typed recipe: validation now happens before the request."""
+    with pytest.raises(ValueError, match="Unknown field"):
+        user_assets.list(fields=["bogus"])  # type: ignore[list-item]
+
+
+@responses.activate
 def test_user_assets_create_requires_entity_type(user_assets: UserAssets) -> None:
     responses.post(
         f"{USER_BASE}/",

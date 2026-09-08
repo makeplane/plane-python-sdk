@@ -5,7 +5,6 @@ confirmed live, user envelope modeled from schema only."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
 
 from ...models.v2.assets import (
     CreateUserAsset,
@@ -22,6 +21,10 @@ from ._generated.constants import (
     AssetsListOrderBy,
     AssetsPartialUpdateField,
     AssetsRetrieveField,
+    UserAssetsListField,
+    UserAssetsListOrderBy,
+    UserAssetsPartialUpdateField,
+    UserAssetsRetrieveField,
 )
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
@@ -114,18 +117,38 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
         "delete": "user_assets_destroy",
     }
 
-    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[UserAsset]:
-        """One page of the calling principal's assets."""
-        return self._list(params={"fields": fields, **filters})
+    def list(
+        self,
+        *,
+        fields: Sequence[UserAssetsListField] | None = None,
+        order_by: UserAssetsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+    ) -> Page[UserAsset]:
+        """One page of the calling principal's assets. Like `assets_list`, the golden
+        offers no query filters on this operation -- hence no `**filters`."""
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+            }
+        )
 
     def iterate(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
+        self,
+        *,
+        fields: Sequence[UserAssetsListField] | None = None,
+        order_by: UserAssetsListOrderBy | None = None,
     ) -> Iterator[UserAsset]:
         """Every asset belonging to the calling principal, following pages
         automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(params={"fields": fields, "order_by": order_by})
 
-    def retrieve(self, asset: str, *, fields: Sequence[str] | None = None) -> UserAsset:
+    def retrieve(
+        self, asset: str, *, fields: Sequence[UserAssetsRetrieveField] | None = None
+    ) -> UserAsset:
         return self._retrieve(pk=asset, params={"fields": fields})
 
     def create(self, data: CreateUserAsset) -> UserAssetUploadResult:
@@ -136,8 +159,14 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
         )
         return UserAssetUploadResult.model_validate(payload)
 
-    def update(self, asset: str, data: UserAssetConfirm) -> UserAsset:
-        return self._update(data, pk=asset)
+    def update(
+        self,
+        asset: str,
+        data: UserAssetConfirm,
+        *,
+        fields: Sequence[UserAssetsPartialUpdateField] | None = None,
+    ) -> UserAsset:
+        return self._update(data, pk=asset, params={"fields": fields})
 
     def delete(self, asset: str) -> None:
         return self._delete(pk=asset)
