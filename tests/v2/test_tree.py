@@ -148,7 +148,8 @@ def test_wiki_collections_is_present_rather_than_a_bare_attribute_error(
 # per attachment, not a bare `hasattr`. `hasattr` passes even when an attribute is
 # wired to the wrong class -- checking `isinstance` plus the exact collection URL
 # for a known slug is what actually catches that. Plans 3 and 4 will attach roughly
-# 58 more resources the same way -- add a row here, not a new pattern, when they do.
+# 59 more resources the same way -- add a row here, not a new pattern, when they do,
+# or `test_the_attachment_table_covers_every_attachment` below fails by name.
 # `expected_url` is `None` only for `group_sync` itself: it is a grouping node like
 # `Wiki` (see `plane/api/v2/wiki_node.py`), with no `path` of its own -- its three
 # children each get their own row with a real URL instead.
@@ -214,6 +215,31 @@ WORKSPACE_TREE_ATTACHMENTS = [
     ),
     ("releases.tags", lambda ws: ws.releases.tags, ReleaseTags, "/workspaces/acme/releases/tags/"),
 ]
+
+
+# The four attributes `Workspaces` already had before this batch: `projects` and `wiki`
+# carry their own subtrees (covered by the tests above and by `test_loaded_project.py`),
+# `features` is the singleton exemplar, `releases` is wired only for the sake of its
+# migrated `labels`/`tags` children (which do have rows).
+PRE_EXISTING_WORKSPACE_ATTRIBUTES = {"projects", "wiki", "features", "releases"}
+
+
+def test_the_attachment_table_covers_every_attachment(config: Configuration) -> None:
+    """The rows above each prove their own attachment, but nothing proved the table was
+    *complete* -- a later plan could attach a resource, forget the row and stay green,
+    which is exactly how this batch's path-id violations went unnoticed. Comparing the
+    table against the live attribute set closes that: attach without a row and this
+    fails by name."""
+    attached = set(vars(V2Namespace(config).workspaces)) - {"transport"}
+    tabled = {name for name, *_ in WORKSPACE_TREE_ATTACHMENTS if "." not in name}
+
+    assert attached - PRE_EXISTING_WORKSPACE_ATTRIBUTES == tabled, (
+        "every attribute on `client.v2.workspaces` needs a row in "
+        "WORKSPACE_TREE_ATTACHMENTS (or, for the four that predate this batch, a name in "
+        "PRE_EXISTING_WORKSPACE_ATTRIBUTES). Missing rows: "
+        f"{sorted(attached - PRE_EXISTING_WORKSPACE_ATTRIBUTES - tabled)}; rows with no "
+        f"attachment: {sorted(tabled - attached)}."
+    )
 
 
 @pytest.mark.parametrize(
