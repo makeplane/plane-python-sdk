@@ -96,7 +96,9 @@ PlaneClient
   `client.v2.workspaces.projects`: alongside the already-present `states`,
   `labels` and `work_items`, it also carries `cycles`, `milestones`, `modules`,
   `estimates`, `intakes`, `members`, `views`, `features`, `permissions`,
-  `work_item_templates`, `worklogs` and `pages`. Five families gained navigable
+  `work_item_templates`, `worklogs` and `pages` — and a fetched project reaches
+  all fifteen of them (`project.cycles.list()`, `project.permissions.me()`), not
+  just the three it used to. Five families gained navigable
   rows of their own — a fetched row reaches its child with no ids repeated:
   `cycles`, `milestones`, `modules`, `estimates` (whose child is
   `estimate_points`, not `points` — `Estimate.points` is itself an API field,
@@ -145,9 +147,18 @@ PlaneClient
     flat-shaped") the way earlier rounds picked members. A class opts out only by
     being named there, and `test_path_id_naming.py` itself enforces that the list
     may only shrink: it fails if a name in it turns out to be wired onto the tree
-    or already flat-shaped, and it fails if the list grows. A hand-picked
-    selection is what let a whole batch of violations ship green once — never
-    reintroduce one.
+    or already flat-shaped, and it fails if the list grows. "Grows" is checked as
+    *membership*, not size — `BASELINE_OPT_OUT`, a frozenset of the 35 names the
+    list held when the enumeration landed, asserted as
+    `UNMIGRATED_RESOURCES <= BASELINE_OPT_OUT`. A size ceiling (or even an equality
+    on the size) still lets a swap through: drop one name, add another, count
+    unchanged, sweep still green. Removals need no edit; when the list empties,
+    delete both. "Flat-shaped" is judged over *every* public method
+    (`flat_shaped_resource_classes()`), not over `list` alone — a bridge, a
+    singleton or a dict-shaped resource has no `list`, so the older heuristic could
+    never have caught one of those being migrated while staying opted out. A
+    hand-picked selection is what let a whole batch of violations ship green once —
+    never reintroduce one.
   - **Loaded rows.** A resource with children today (`projects`, `work_items`,
     `cycles`, `milestones`, `modules`, `estimates`, `webhooks`) returns a
     `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic model: it
@@ -164,6 +175,23 @@ PlaneClient
     arguments, and raises `TypeError` up front if the child's leading parameters
     aren't ordered the way `names` expects, rather than silently sending values into
     the wrong parameter.
+
+    A loaded row also keeps the **forward-compatibility** guarantee the read models
+    are `extra="allow"` for: `Loaded.__getattr__` shadows `BaseModel.__getattr__`,
+    where pydantic serves `__pydantic_extra__`, so it falls through to it before
+    raising. Without that fall-through a field the server sends and the model does
+    not declare was readable on a plain row and `AttributeError` on a loaded one —
+    while `model_dump()` and `_present` both still reported it.
+
+    **A loaded row must reach every child its resource attaches.** The two sides used
+    to be unrelated: `test_tree.py` compared `PROJECT_TREE_ATTACHMENTS` against
+    `vars(Projects(...))`, and nothing compared either to `LoadedProject`, which is
+    how `Projects` came to attach fifteen children while its rows exposed three.
+    `tests/v2/test_loaded_navigation.py` sweeps it now — for every class declaring a
+    `loaded_model`, the navigation properties on its `Loaded` type must be exactly
+    the child resources the class attaches, and each must wrap its own child. The one
+    allowed divergence is a name collision with a real API field, written down in
+    that file's `NAVIGATION_ALIASES` (`Estimate.points` → `estimate_points`).
 
     A navigable resource mixes in `LoadsNavigableRows[LoadedX]`, declares
     `loaded_model` / `loaded_names`, overrides `_row_id` only where a child URL uses
@@ -233,7 +261,12 @@ PlaneClient
     (`WorkItemAttachments.create`) — where a projection could silently and
     irrecoverably drop data the caller cannot get back. Those omissions must name
     the one-time-response reason in the method's own docstring, or the next reader
-    "fixes" them back. Where a
+    "fixes" them back. That rule is a sweep too now, not just prose:
+    `tests/v2/test_fields_coverage.py` is the `FIELDS` twin of the `expand` sweep,
+    and the exceptions are enumerated in its `ONE_TIME_RESPONSES` with the reason —
+    `Webhooks.regenerate` plus the three presigned-upload creates
+    (`WorkItemAttachments.create`, `WorkspaceAssets.create`, `UserAssets.create`,
+    whose `upload_data` exists only in that one reply). Where a
     resource spells filters out one by one instead of `**filters: Unpack[...]`
     (`Roles`, because the golden's `?slug=` collides with the path id `slug`), pin
     the hand-written set against the generated `TypedDict` so a regeneration cannot
