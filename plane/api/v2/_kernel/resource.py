@@ -14,6 +14,10 @@ from .errors import MissingPathId, MultipleMatchesFound, NoMatchFound
 from .pagination import Page, iterate, parse_page
 from .transport import V2Transport
 
+TModel = TypeVar("TModel", bound=BaseModel)
+"""Any pydantic model, used where a method answers with something other than the
+resource's own `model` (`_custom_action`)."""
+
 TRead = TypeVar("TRead", bound=BaseModel)
 TWrite = TypeVar("TWrite", bound=BaseModel)
 TPatch = TypeVar("TPatch", bound=BaseModel)
@@ -240,6 +244,86 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
             json=data.model_dump(mode="json", exclude_none=True),
         )
         return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _custom_request(
+        self,
+        action: str,
+        *,
+        method: str = "POST",
+        pk: Any | None = None,
+        data: BaseModel | None = None,
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> Any:
+        """The shared body of a custom action whose *response envelope* is not the
+        resource's own `model` -- so `_action`/`_void_action`/`_upsert` cannot be used
+        -- returning the raw payload for the caller to parse.
+
+        Four such actions grew near-identical hand-rolled `transport.request` blocks
+        (`artifacts.publish`/`update`, `invitations.bulk`, `members.remove`,
+        `work_items.retrieve_by_identifier`); 59 more resources are about to be
+        migrated from the same exemplars, so the block lives here once instead.
+
+        Two URL shapes, matching the two that occur: with `pk`, the verb hangs off a
+        row (`{detail_url}{action}/`, exactly `_action`'s URL); without it, the action
+        has a template of its own and goes through `url_for`, which fills its
+        `extra_paths` override or falls back to `path`. Either way `action` keys
+        `operations` for `fields`/`expand` validation, so the query string is checked
+        against the golden the same as any other call.
+
+        Prefer `_action` (or `_void_action`) whenever the response *is* a row of this
+        resource's `model`; this is only for the envelopes that are not."""
+        url = (
+            self.url_for(action, **path_params)
+            if pk is None
+            else f"{self._detail_url(pk, action, **path_params)}{action}/"
+        )
+        return self.transport.request(
+            method,
+            url,
+            params=self._query(params, action=action),
+            json=data.model_dump(mode="json", exclude_none=True) if data is not None else None,
+        )
+
+    def _custom_action(
+        self,
+        action: str,
+        *,
+        model: type[TModel],
+        method: str = "POST",
+        pk: Any | None = None,
+        data: BaseModel | None = None,
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> TModel:
+        """`_custom_request`, parsed as `model` -- the arbitrary-envelope twin of
+        `_action`. `model` is explicit precisely because it is *not* `self.model`."""
+        return model.model_validate(
+            self._custom_request(
+                action, method=method, pk=pk, data=data, params=params, **path_params
+            )
+        )
+
+    def _custom_action_list(
+        self,
+        action: str,
+        *,
+        model: type[TModel],
+        method: str = "POST",
+        pk: Any | None = None,
+        data: BaseModel | None = None,
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> list[TModel]:
+        """`_custom_request` for an action answering a bare JSON array rather than a
+        paginated envelope. A lone object is tolerated as a one-row array: the golden
+        types these as arrays, and a server that answers one object for a one-item
+        request should not raise a validation error."""
+        payload = self._custom_request(
+            action, method=method, pk=pk, data=data, params=params, **path_params
+        )
+        rows = payload if isinstance(payload, list) else [payload]
+        return [model.model_validate(row) for row in rows]
 
     def _action(
         self,

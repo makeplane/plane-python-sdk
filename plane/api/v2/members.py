@@ -138,6 +138,5 @@ class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMemb
         `list[str]`), this has no `add` counterpart -- it is a standalone
         removal keyed on email, not one side of a membership bridge -- so it
         keeps returning `None`, matching the golden's 204 with no body."""
-        url = self.url_for("remove", slug=slug)
-        self.transport.request("POST", url, json=data.model_dump(mode="json", exclude_none=True))
+        self._custom_request("remove", data=data, slug=slug)
         return None

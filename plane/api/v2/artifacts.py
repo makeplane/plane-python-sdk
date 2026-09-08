@@ -37,18 +37,21 @@ class Artifacts(V2Resource[ArtifactDetail, CreateArtifact, UpdateArtifactUpdate]
         return self._retrieve(pk=artifact, slug=slug)
 
     def publish(self, slug: str, artifact: str) -> ArtifactPublish:
-        """Publish (anchor) an artifact for public hosting. No request body."""
-        payload = self.transport.request(
-            "POST", f"{self._detail_url(artifact, 'publish', slug=slug)}publish/"
-        )
-        return ArtifactPublish.model_validate(payload)
+        """Publish (anchor) an artifact for public hosting. No request body.
+
+        `_custom_action`, not `_action`: the URL is the same (`{detail}/publish/`) but
+        the response is an `ArtifactPublish` envelope, not an `ArtifactDetail` row."""
+        return self._custom_action("publish", model=ArtifactPublish, pk=artifact, slug=slug)
 
     def update(self, slug: str, artifact: str, data: UpdateArtifactUpdate) -> ArtifactUpdated:
         """Append a new HTML version (each call creates the next version wholesale
-        -- there is no true partial update)."""
-        payload = self.transport.request(
-            "PATCH",
-            f"{self._detail_url(artifact, 'update', slug=slug)}update/",
-            json=data.model_dump(mode="json", exclude_none=True),
+        -- there is no true partial update). Another `_custom_action`: a PATCH to
+        `{detail}/update/` answering an `ArtifactUpdated` envelope."""
+        return self._custom_action(
+            "update",
+            model=ArtifactUpdated,
+            method="PATCH",
+            pk=artifact,
+            data=data,
+            slug=slug,
         )
-        return ArtifactUpdated.model_validate(payload)

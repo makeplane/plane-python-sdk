@@ -1,5 +1,6 @@
 import pytest
 import responses
+from pydantic import BaseModel
 
 from plane.api.v2._kernel.errors import MissingPathId
 from plane.api.v2._kernel.loaded import Loaded, LoadsNavigableRows
@@ -177,3 +178,89 @@ def test_void_action_posts_to_the_sub_path_and_returns_none(probe: _Probe) -> No
 
     assert probe._void_action("archive", pk="s1", slug="acme", project_id="ENG") is None
     assert responses.calls[0].request.url.endswith("/states/s1/archive/")
+
+
+# -- Custom actions with their own response envelope ------------------------------
+# Four resources grew near-identical hand-rolled `transport.request` blocks for verbs
+# whose response is not a row of the resource's own `model` (`artifacts.publish`/
+# `update`, `invitations.bulk`, `members.remove`, `work_items.retrieve_by_identifier`).
+# `_custom_request` and its two typed wrappers are that block, once.
+
+
+class _Envelope(BaseModel):
+    ok: bool
+
+
+class _CustomProbe(V2Resource[State, State, State]):
+    path = "/workspaces/{slug}/things/"
+    extra_paths = {"sweep": "/workspaces/{slug}/things/sweep/"}
+    model = State
+    operations = {"list": "states_list", "sweep": "states_list", "publish": "states_list"}
+
+
+@pytest.fixture
+def custom(config: Configuration) -> _CustomProbe:
+    return _CustomProbe(V2Transport(config))
+
+
+@responses.activate
+def test_custom_action_without_pk_goes_through_url_for(custom: _CustomProbe) -> None:
+    """No `pk` -> the action has a template of its own (`extra_paths`), like
+    `invitations.bulk` and `members.remove`."""
+    responses.post("https://api.example.com/api/v2/workspaces/acme/things/sweep/", json={"ok": 1})
+
+    result = custom._custom_action("sweep", model=_Envelope, slug="acme")
+
+    assert result.ok is True
+    assert responses.calls[0].request.url.endswith("/workspaces/acme/things/sweep/")
+
+
+@responses.activate
+def test_custom_action_with_pk_hangs_the_verb_off_the_row(custom: _CustomProbe) -> None:
+    """With `pk` -> exactly `_action`'s URL, but parsed as another model, like
+    `artifacts.publish`."""
+    responses.post(
+        "https://api.example.com/api/v2/workspaces/acme/things/t1/publish/", json={"ok": 1}
+    )
+
+    assert custom._custom_action("publish", model=_Envelope, pk="t1", slug="acme").ok is True
+    assert responses.calls[0].request.url.endswith("/things/t1/publish/")
+
+
+@responses.activate
+def test_custom_action_honours_the_method_and_sends_the_body(custom: _CustomProbe) -> None:
+    responses.patch(
+        "https://api.example.com/api/v2/workspaces/acme/things/t1/publish/", json={"ok": 1}
+    )
+
+    custom._custom_action(
+        "publish", model=_Envelope, method="PATCH", pk="t1", data=State(id="s1"), slug="acme"
+    )
+
+    assert responses.calls[0].request.method == "PATCH"
+    assert b'"id": "s1"' in responses.calls[0].request.body
+
+
+@responses.activate
+def test_custom_action_validates_fields_against_the_golden(custom: _CustomProbe) -> None:
+    """The whole point of routing through the kernel rather than `transport.request`
+    directly: the query string is still checked against the operation's own enum."""
+    with pytest.raises(ValueError, match="Unknown field"):
+        custom._custom_action("sweep", model=_Envelope, params={"fields": ["bogus"]}, slug="acme")
+
+
+@responses.activate
+def test_custom_action_list_parses_a_bare_array_and_a_lone_object(custom: _CustomProbe) -> None:
+    responses.post(
+        "https://api.example.com/api/v2/workspaces/acme/things/sweep/",
+        json=[{"ok": True}, {"ok": False}],
+    )
+
+    rows = custom._custom_action_list("sweep", model=_Envelope, slug="acme")
+
+    assert [row.ok for row in rows] == [True, False]
+
+    responses.reset()
+    responses.post("https://api.example.com/api/v2/workspaces/acme/things/sweep/", json={"ok": 1})
+
+    assert len(custom._custom_action_list("sweep", model=_Envelope, slug="acme")) == 1

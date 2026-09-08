@@ -103,11 +103,6 @@ class Invitations(V2Resource[WorkspaceInvite, CreateWorkspaceInvite, CreateWorks
         """Create up to 100 invitations in one call. Emails already invited are
         silently skipped server-side (not re-sent, not errored). POSTs to the
         `extra_paths["bulk"]` override, not `path`."""
-        payload = self.transport.request(
-            "POST",
-            self.url_for("bulk", slug=slug),
-            params=self._query({"fields": fields}, action="bulk"),
-            json=data.model_dump(mode="json", exclude_none=True),
+        return self._custom_action_list(
+            "bulk", model=WorkspaceInvite, data=data, params={"fields": fields}, slug=slug
         )
-        rows = payload if isinstance(payload, list) else [payload]
-        return [WorkspaceInvite.model_validate(row) for row in rows]

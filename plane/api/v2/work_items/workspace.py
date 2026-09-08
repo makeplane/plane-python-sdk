@@ -82,11 +82,11 @@ class WorkspaceWorkItems(V2Resource[WorkItem, CreateWorkItem, UpdateWorkItem]):
         project id needed -- the readable-identifier flagship of api_v2. Hits a
         different URL template than `list` -- `extra_paths["retrieve_by_identifier"]`
         (`.../work-items/{identifier}/`), not `path` -- reached via `url_for`."""
-        payload = self.transport.request(
-            "GET",
-            self.url_for("retrieve_by_identifier", slug=slug, identifier=identifier),
-            params=self._query(
-                {"fields": fields, "expand": expand}, action="retrieve_by_identifier"
-            ),
+        return self._custom_action(
+            "retrieve_by_identifier",
+            model=WorkItem,
+            method="GET",
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            identifier=identifier,
         )
-        return self.model.model_validate(payload)
