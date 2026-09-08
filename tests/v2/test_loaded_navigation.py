@@ -21,16 +21,41 @@ Two things the sweep checks that a name-only comparison would miss:
 * each property must hand back an `Owned`, not the bare resource -- a bare resource
   would still need every id repeated, which is the whole thing loaded rows exist to
   avoid.
+
+**And one thing selection made it structurally unable to see at all.** The two
+sweeps above run over `navigable_resource_classes()`, which *selects* the classes
+that declare a `loaded_model`. A resource with children and no `loaded_model` is
+therefore invisible to them: it has nothing to compare, so it passes by not being
+looked at. That is not hypothetical either -- `Workspaces` sat exactly there,
+attaching 24 children while `client.v2.workspaces.retrieve("acme")` answered a bare
+`Workspace`, so `workspace.projects` raised `AttributeError` on the design's
+navigable row #1 with all three assertions green. It is the same failure mode that
+let the path-id rule break across 16 classes: a rule enforced over an opportunistic
+subset holds only for the members that opted in.
+
+`test_every_resource_with_children_declares_a_loaded_model` closes it by
+*enumeration*: over every resource class in the package, having child resources and
+having a `loaded_model` must be the same thing. It is the durable half of the fix --
+without it the hole reopens for whichever family somebody adds next -- and
+`test_the_child_bearing_sweep_bites` proves it fails on a class shaped like the
+regression rather than leaving that to a reviewer's word.
 """
 
 from __future__ import annotations
+
+from typing import ClassVar
 
 import pytest
 
 from plane.api.v2._kernel.loaded import Loaded, Owned
 from plane.api.v2._kernel.resource import V2Resource
 from plane.api.v2._kernel.transport import V2Transport
-from tests.v2.tree_walk import WALK_CONFIG, child_resources, navigable_resource_classes
+from tests.v2.tree_walk import (
+    WALK_CONFIG,
+    child_resources,
+    migrated_resource_classes,
+    navigable_resource_classes,
+)
 
 NAVIGATION_ALIASES: dict[str, dict[str, str]] = {
     "LoadedEstimate": {"points": "estimate_points"},
@@ -130,3 +155,71 @@ def test_each_navigation_property_wraps_its_own_child(
         )
         assert owned._ids == row._ids
         assert owned._names == tuple(resource_class.loaded_names)
+
+
+# -- The gap selection could not see -------------------------------------------------
+
+
+def _resources_with_children_but_no_loaded_model(
+    resource_classes: list[type[V2Resource]],  # type: ignore[type-arg]
+) -> list[str]:
+    """`"Name (child, child)"` for every class that attaches child resources without
+    declaring a `loaded_model`.
+
+    Split out of the test so the sweep can be run over a class built to violate it --
+    see `test_the_child_bearing_sweep_bites`. A rule whose failure nobody has ever
+    seen is a rule nobody knows the shape of."""
+    offenders = []
+    for resource_class in resource_classes:
+        children = child_resources(resource_class(V2Transport(WALK_CONFIG)))
+        if children and getattr(resource_class, "loaded_model", None) is None:
+            offenders.append(f"{resource_class.__name__} ({', '.join(sorted(children))})")
+    return offenders
+
+
+def test_every_resource_with_children_declares_a_loaded_model() -> None:
+    """Having children and being navigable must be the same thing.
+
+    Enumerated over every class in the package, deliberately: the two sweeps above
+    *select* on `loaded_model`, so a resource that has children and does not declare
+    one is invisible to them and passes by never being looked at."""
+    offenders = _resources_with_children_but_no_loaded_model(migrated_resource_classes())
+
+    assert offenders == [], (
+        f"{len(offenders)} resource class(es) attach child resources but declare no "
+        "`loaded_model`, so a row they fetch cannot reach any of those children and "
+        "the two sweeps above cannot see the gap. Give the class a `Loaded` subclass "
+        "in `plane/api/v2/_loaded/` (with `loaded_names`, and one navigation property "
+        "per child), and route every row-returning method through `self._load(...)`. "
+        "If the attachment is not really a per-row child -- a workspace-level catalog "
+        "hung off a family, say -- move it to the scope it belongs to instead:\n  "
+        + "\n  ".join(offenders)
+    )
+
+
+def test_the_child_bearing_sweep_bites() -> None:
+    """The rule above, run against a class shaped like the regression it exists for:
+    children attached, no `loaded_model`. Proves the sweep reports rather than
+    silently passes -- which is exactly what its selecting siblings did for
+    `Workspaces`."""
+
+    class _SyntheticChild(V2Resource):  # type: ignore[type-arg]
+        path = "/workspaces/{slug}/synthetics/{synthetic_id}/leaves/"
+        model = Loaded  # type: ignore[assignment]
+        operations: ClassVar[dict[str, str]] = {}
+
+    class _SyntheticFamily(V2Resource):  # type: ignore[type-arg]
+        path = "/workspaces/{slug}/synthetics/"
+        model = Loaded  # type: ignore[assignment]
+        operations: ClassVar[dict[str, str]] = {}
+
+        def __init__(self, transport: V2Transport) -> None:
+            super().__init__(transport)
+            self.leaves = _SyntheticChild(transport)
+
+    assert _resources_with_children_but_no_loaded_model([_SyntheticFamily]) == [
+        "_SyntheticFamily (leaves)"
+    ]
+    # And it is the missing `loaded_model` that is reported, not merely the presence
+    # of a child: the childless half of the pair passes.
+    assert _resources_with_children_but_no_loaded_model([_SyntheticChild]) == []

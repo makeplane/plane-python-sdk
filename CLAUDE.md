@@ -95,14 +95,19 @@ PlaneClient
   `work_item_templates`, `worklogs`, `pages`, `automations`,
   `work_item_properties`, `work_item_types` and `workflows` — nineteen
   children, and a fetched project reaches every one of them that is itself
-  navigable (`project.cycles.list()`, `project.permissions.me()`). Eighteen of
-  the 90 classes are navigable — `projects`, `work_items`, `cycles`,
-  `milestones`, `modules`, `estimates`, `webhooks`, `collections`, `customers`,
-  `initiatives`, `releases`, `work_item_types`, `work_item_properties`,
-  `automations` and `workflows` (the middle three each have a separate
+  navigable (`project.cycles.list()`, `project.permissions.me()`). Nineteen of
+  the 90 classes are navigable — `workspaces`, `projects`, `work_items`,
+  `cycles`, `milestones`, `modules`, `estimates`, `webhooks`, `collections`,
+  `customers`, `initiatives`, `releases`, `work_item_types`,
+  `work_item_properties`, `automations` and `workflows` (three of those —
+  automations, work item types and work item properties — each have a separate
   project-scoped and workspace-scoped resource class, each independently
-  navigable, which is where 15 families become 18 classes) — a fetched row
-  reaches its child with no ids repeated. `estimates`' child is
+  navigable, which is where 16 families become 19 classes) — a fetched row
+  reaches its child with no ids repeated. `workspaces` is the root of that set
+  and the last to join it: `client.v2.workspaces.retrieve("acme")` answers a
+  `LoadedWorkspace` reaching all 24 workspace-scoped families
+  (`workspace.projects.list()`), and its children address it by `slug`, never
+  the UUID `id`, which that path segment does not accept. `estimates`' child is
   `estimate_points`, not `points` — `Estimate.points` is itself an API field,
   returned inline by `expand=["points"]`. `webhooks` is workspace-scoped, not
   part of the project band, reached via `.logs`. A fetched work item reaches
@@ -157,9 +162,9 @@ PlaneClient
   - **Loaded rows.** A resource with children (`projects`, `work_items`,
     `cycles`, `milestones`, `modules`, `estimates`, `webhooks`, `collections`,
     `customers`, `initiatives`, `releases`, `work_item_types`,
-    `work_item_properties`, `automations`, `workflows` — 18 of the 90 classes)
-    returns a `Loaded` row from `retrieve`/`list`/`iterate`, not a bare pydantic
-    model: it carries its own data and reaches its own children with none of the
+    `work_item_properties`, `automations`, `workflows`, `workspaces` — 19 of the
+    90 classes) returns a `Loaded` row from `retrieve`/`list`/`iterate`, not a bare
+    pydantic model: it carries its own data and reaches its own children with none of the
     ids repeated (`project.states.list()`, `work_item.comments.list()`,
     `cycle.work_items.add(["w1"])`).
     `Loaded.build(row, ids, fields)` (`_kernel/loaded.py`) is the mixin; reading a
@@ -190,6 +195,21 @@ PlaneClient
     allowed divergence is a name collision with a real API field, written down in
     that file's `NAVIGATION_ALIASES` (`Estimate.points` → `estimate_points`).
 
+    **And having children must itself mean declaring a `loaded_model`.** Those two
+    checks *select* the classes that declare one, so a resource with children and no
+    `loaded_model` had nothing to compare and passed by never being looked at —
+    which is how `Workspaces` came to attach 24 children and answer a bare
+    `Workspace`, `workspace.projects` raising `AttributeError` on the design's
+    navigable row #1 with every sweep green. The same shape as the path-id rule
+    breaking across 16 classes: a rule enforced over an opportunistic subset holds
+    only for the members that opted in. So the same file enumerates instead —
+    `test_every_resource_with_children_declares_a_loaded_model` runs over every
+    class in the package, and `test_the_child_bearing_sweep_bites` runs it against a
+    synthetic class built to violate it, so the failure is a thing that has been
+    seen rather than assumed. A child that is not really a per-row child — a
+    workspace-level catalog hung off a family — is moved to the scope it belongs to,
+    not exempted.
+
     A navigable resource mixes in `LoadsNavigableRows[LoadedX]`, declares
     `loaded_model` / `loaded_names`, overrides `_row_id` only where a child URL uses
     something other than `id` (projects use `identifier`), and then every method that
@@ -209,8 +229,12 @@ PlaneClient
     per `Loaded` subclass — `project.py`, `work_item.py`, `cycle.py`,
     `milestone.py`, `module.py`, `estimate.py`, `webhook.py`, `collection.py`,
     `customer.py`, `initiative.py`, `release.py`, `work_item_type.py`,
-    `work_item_property.py`, `automation.py`, `workflow.py`; copy whichever is
-    closest in shape (single bridge-only child vs. several plain-CRUD children).
+    `work_item_property.py`, `automation.py`, `workflow.py`, `workspace.py`; copy
+    whichever is closest in shape (single bridge-only child vs. several plain-CRUD
+    children). `workspace.py` is the `bind1` exemplar and the widest, at 24
+    children; the two grouping nodes (`wiki`, `group_sync`) are deliberately not
+    among them — neither holds a `V2Resource` base, so neither is a child a row can
+    bind, and they are reached from the namespace instead.
   - `_kernel/` holds the shared machinery beyond `loaded.py`:
     `V2Resource.__init__(transport)` takes no bound scope any more —
     `_collection_url`/`_detail_url` build straight from whatever path params a
