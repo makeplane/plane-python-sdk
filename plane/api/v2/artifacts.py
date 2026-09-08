@@ -24,29 +24,31 @@ class Artifacts(V2Resource[ArtifactDetail, CreateArtifact, UpdateArtifactUpdate]
         "update": "workspaces_artifacts_update_partial_update",
     }
 
-    def create(self, data: CreateArtifact) -> Artifact:
+    def create(self, slug: str, data: CreateArtifact) -> Artifact:
         payload = self.transport.request(
             "POST",
-            self._collection_url(),
+            self._collection_url("create", slug=slug),
             json=data.model_dump(mode="json", exclude_none=True),
         )
         return Artifact.model_validate(payload)
 
-    def retrieve(self, artifact_id: str) -> ArtifactDetail:
+    def retrieve(self, slug: str, artifact_id: str) -> ArtifactDetail:
         """Metadata + the current version's HTML."""
-        return self._retrieve(pk=artifact_id)
+        return self._retrieve(pk=artifact_id, slug=slug)
 
-    def publish(self, artifact_id: str) -> ArtifactPublish:
+    def publish(self, slug: str, artifact_id: str) -> ArtifactPublish:
         """Publish (anchor) an artifact for public hosting. No request body."""
-        payload = self.transport.request("POST", f"{self._detail_url(artifact_id)}publish/")
+        payload = self.transport.request(
+            "POST", f"{self._detail_url(artifact_id, 'publish', slug=slug)}publish/"
+        )
         return ArtifactPublish.model_validate(payload)
 
-    def update(self, artifact_id: str, data: UpdateArtifactUpdate) -> ArtifactUpdated:
+    def update(self, slug: str, artifact_id: str, data: UpdateArtifactUpdate) -> ArtifactUpdated:
         """Append a new HTML version (each call creates the next version wholesale
         -- there is no true partial update)."""
         payload = self.transport.request(
             "PATCH",
-            f"{self._detail_url(artifact_id)}update/",
+            f"{self._detail_url(artifact_id, 'update', slug=slug)}update/",
             json=data.model_dump(mode="json", exclude_none=True),
         )
         return ArtifactUpdated.model_validate(payload)
