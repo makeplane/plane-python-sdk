@@ -15,7 +15,7 @@ from .._generated.constants import (
     ProjectViewsPartialUpdateField,
     ProjectViewsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -40,6 +40,9 @@ class ProjectViews(V2Resource[View, CreateView, UpdateView]):
         order_by: ProjectViewsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ProjectViewsListFilters],
     ) -> Page[View]:
         """One page of views in this project. `**filters` covers `access`,
@@ -51,6 +54,9 @@ class ProjectViews(V2Resource[View, CreateView, UpdateView]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -65,11 +71,22 @@ class ProjectViews(V2Resource[View, CreateView, UpdateView]):
         fields: Sequence[ProjectViewsListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: ProjectViewsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ProjectViewsListFilters],
     ) -> Iterator[View]:
         """Every view in this project, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

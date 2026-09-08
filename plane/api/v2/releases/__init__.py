@@ -30,7 +30,7 @@ from .._generated.constants import (
     ReleasesRetrieveField,
 )
 from .._kernel.loaded import LoadsNavigableRows
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .._loaded.release import LoadedRelease
@@ -84,6 +84,9 @@ class Releases(
         order_by: ReleasesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ReleasesListFilters],
     ) -> Page[LoadedRelease]:
         """One page of releases in the workspace."""
@@ -94,6 +97,9 @@ class Releases(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -107,11 +113,22 @@ class Releases(
         fields: Sequence[ReleasesListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: ReleasesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ReleasesListFilters],
     ) -> Iterator[LoadedRelease]:
         """Every release in the workspace, following pages automatically."""
         rows = self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
         )
         return (self._load(row, slug, fields=fields) for row in rows)

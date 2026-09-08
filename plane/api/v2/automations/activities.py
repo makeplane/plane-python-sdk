@@ -22,7 +22,7 @@ from .._generated.constants import (
     WorkspaceAutomationActivitiesListOrderBy,
     WorkspaceAutomationActivitiesRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -46,6 +46,9 @@ class ProjectAutomationActivities(
         order_by: ProjectAutomationActivitiesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ProjectAutomationActivitiesListFilters],
     ) -> Page[AutomationActivity]:
         """One page of activity entries on a project automation.
@@ -57,6 +60,9 @@ class ProjectAutomationActivities(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -72,11 +78,21 @@ class ProjectAutomationActivities(
         *,
         fields: Sequence[ProjectAutomationActivitiesListField] | None = None,
         order_by: ProjectAutomationActivitiesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ProjectAutomationActivitiesListFilters],
     ) -> Iterator[AutomationActivity]:
         """Every activity entry on a project automation, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
             automation_id=automation,
@@ -119,6 +135,9 @@ class WorkspaceAutomationActivities(
         order_by: WorkspaceAutomationActivitiesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkspaceAutomationActivitiesListFilters],
     ) -> Page[AutomationActivity]:
         """One page of activity entries on a workspace automation."""
@@ -128,6 +147,9 @@ class WorkspaceAutomationActivities(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -141,11 +163,21 @@ class WorkspaceAutomationActivities(
         *,
         fields: Sequence[WorkspaceAutomationActivitiesListField] | None = None,
         order_by: WorkspaceAutomationActivitiesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkspaceAutomationActivitiesListFilters],
     ) -> Iterator[AutomationActivity]:
         """Every activity entry on a workspace automation, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             automation_id=automation,
         )

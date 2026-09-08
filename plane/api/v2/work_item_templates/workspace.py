@@ -20,7 +20,7 @@ from .._generated.constants import (
     WorkspaceWorkItemTemplatesPartialUpdateField,
     WorkspaceWorkItemTemplatesRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -45,6 +45,9 @@ class WorkspaceWorkItemTemplates(
         order_by: WorkspaceWorkItemTemplatesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkspaceWorkItemTemplatesListFilters],
     ) -> Page[WorkItemTemplate]:
         """One page of workspace-level templates. `**filters` covers
@@ -55,6 +58,9 @@ class WorkspaceWorkItemTemplates(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -66,11 +72,21 @@ class WorkspaceWorkItemTemplates(
         *,
         fields: Sequence[WorkspaceWorkItemTemplatesListField] | None = None,
         order_by: WorkspaceWorkItemTemplatesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkspaceWorkItemTemplatesListFilters],
     ) -> Iterator[WorkItemTemplate]:
         """Every workspace-level template, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
         )
 

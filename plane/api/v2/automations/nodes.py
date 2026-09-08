@@ -30,7 +30,7 @@ from .._generated.constants import (
     WorkspaceAutomationNodesPartialUpdateField,
     WorkspaceAutomationNodesRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -58,6 +58,9 @@ class ProjectAutomationNodes(
         order_by: ProjectAutomationNodesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ProjectAutomationNodesListFilters],
     ) -> Page[AutomationNode]:
         """One page of nodes in a project automation's graph.
@@ -69,6 +72,9 @@ class ProjectAutomationNodes(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -84,11 +90,21 @@ class ProjectAutomationNodes(
         *,
         fields: Sequence[ProjectAutomationNodesListField] | None = None,
         order_by: ProjectAutomationNodesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ProjectAutomationNodesListFilters],
     ) -> Iterator[AutomationNode]:
         """Every node in a project automation's graph, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
             automation_id=automation,
@@ -201,6 +217,9 @@ class WorkspaceAutomationNodes(
         order_by: WorkspaceAutomationNodesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkspaceAutomationNodesListFilters],
     ) -> Page[AutomationNode]:
         """One page of nodes in a workspace automation's graph."""
@@ -210,6 +229,9 @@ class WorkspaceAutomationNodes(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -223,11 +245,21 @@ class WorkspaceAutomationNodes(
         *,
         fields: Sequence[WorkspaceAutomationNodesListField] | None = None,
         order_by: WorkspaceAutomationNodesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkspaceAutomationNodesListFilters],
     ) -> Iterator[AutomationNode]:
         """Every node in a workspace automation's graph, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             automation_id=automation,
         )

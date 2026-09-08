@@ -26,7 +26,7 @@ from ._generated.constants import (
     UserAssetsPartialUpdateField,
     UserAssetsRetrieveField,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 __all__ = ["UserAssets", "WorkspaceAssets"]
@@ -51,6 +51,9 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
         order_by: AssetsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
     ) -> Page[WorkspaceAsset]:
         """One page of workspace assets. The golden offers no query filters on
         this operation."""
@@ -60,6 +63,9 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
             },
             slug=slug,
         )
@@ -70,9 +76,21 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
         *,
         fields: Sequence[AssetsListField] | None = None,
         order_by: AssetsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
     ) -> Iterator[WorkspaceAsset]:
         """Every workspace asset, following pages automatically."""
-        return self._iter(params={"fields": fields, "order_by": order_by}, slug=slug)
+        return self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+            },
+            slug=slug,
+        )
 
     def retrieve(
         self, slug: str, asset: str, *, fields: Sequence[AssetsRetrieveField] | None = None
@@ -122,6 +140,9 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
         order_by: UserAssetsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
     ) -> Page[UserAsset]:
         """One page of the calling principal's assets. Like `assets_list`, the golden
         offers no query filters on this operation -- hence no `**filters`."""
@@ -131,6 +152,9 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
             }
         )
 
@@ -139,10 +163,21 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
         *,
         fields: Sequence[UserAssetsListField] | None = None,
         order_by: UserAssetsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
     ) -> Iterator[UserAsset]:
         """Every asset belonging to the calling principal, following pages
         automatically."""
-        return self._iter(params={"fields": fields, "order_by": order_by})
+        return self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+            }
+        )
 
     def retrieve(
         self, asset: str, *, fields: Sequence[UserAssetsRetrieveField] | None = None

@@ -20,7 +20,7 @@ from .._generated.constants import (
     InitiativeLabelsPartialUpdateField,
     InitiativeLabelsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -48,6 +48,9 @@ class InitiativeLabels(V2Resource[InitiativeLabel, CreateInitiativeLabel, Update
         order_by: InitiativeLabelsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[InitiativeLabelsListFilters],
     ) -> Page[InitiativeLabel]:
         """One page of the workspace's initiative-label catalog."""
@@ -57,6 +60,9 @@ class InitiativeLabels(V2Resource[InitiativeLabel, CreateInitiativeLabel, Update
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -68,10 +74,23 @@ class InitiativeLabels(V2Resource[InitiativeLabel, CreateInitiativeLabel, Update
         *,
         fields: Sequence[InitiativeLabelsListField] | None = None,
         order_by: InitiativeLabelsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[InitiativeLabelsListFilters],
     ) -> Iterator[InitiativeLabel]:
         """Every initiative label in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
+        return self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def retrieve(
         self,

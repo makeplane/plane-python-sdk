@@ -22,7 +22,7 @@ from ._generated.constants import (
     MembersListOrderBy,
     MembersRetrieveField,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
@@ -46,6 +46,9 @@ class Invitations(V2Resource[WorkspaceInvite, CreateWorkspaceInvite, CreateWorks
         order_by: MembersListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[MembersListFilters],
     ) -> Page[WorkspaceInvite]:
         """One page of pending/accepted invitations. `**filters` covers the
@@ -56,6 +59,9 @@ class Invitations(V2Resource[WorkspaceInvite, CreateWorkspaceInvite, CreateWorks
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -67,10 +73,23 @@ class Invitations(V2Resource[WorkspaceInvite, CreateWorkspaceInvite, CreateWorks
         *,
         fields: Sequence[MembersListField] | None = None,
         order_by: MembersListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[MembersListFilters],
     ) -> Iterator[WorkspaceInvite]:
         """Every invitation, following pages automatically."""
-        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
+        return self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def retrieve(
         self,

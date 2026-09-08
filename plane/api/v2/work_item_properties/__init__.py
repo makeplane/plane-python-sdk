@@ -34,7 +34,7 @@ from .._generated.constants import (
     WorkspaceWorkItemPropertiesRetrieveField,
 )
 from .._kernel.loaded import LoadsNavigableRows
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .._loaded.work_item_property import LoadedWorkItemProperty, LoadedWorkspaceWorkItemProperty
@@ -82,6 +82,9 @@ class WorkItemProperties(
         order_by: WorkItemPropertiesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkItemPropertiesListFilters],
     ) -> Page[LoadedWorkItemProperty]:
         """One page of this project's property definitions."""
@@ -91,6 +94,9 @@ class WorkItemProperties(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -105,11 +111,21 @@ class WorkItemProperties(
         *,
         fields: Sequence[WorkItemPropertiesListField] | None = None,
         order_by: WorkItemPropertiesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkItemPropertiesListFilters],
     ) -> Iterator[LoadedWorkItemProperty]:
         """Every property definition in this project, following pages automatically."""
         rows = self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )
@@ -203,6 +219,9 @@ class WorkspaceWorkItemProperties(
         order_by: WorkspaceWorkItemPropertiesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkspaceWorkItemPropertiesListFilters],
     ) -> Page[LoadedWorkspaceWorkItemProperty]:
         """One page of this workspace's property definitions."""
@@ -212,6 +231,9 @@ class WorkspaceWorkItemProperties(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -224,10 +246,23 @@ class WorkspaceWorkItemProperties(
         *,
         fields: Sequence[WorkspaceWorkItemPropertiesListField] | None = None,
         order_by: WorkspaceWorkItemPropertiesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkspaceWorkItemPropertiesListFilters],
     ) -> Iterator[LoadedWorkspaceWorkItemProperty]:
         """Every property definition in this workspace, following pages automatically."""
-        rows = self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
+        rows = self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
+            slug=slug,
+        )
         return (self._load(row, slug, fields=fields) for row in rows)
 
     def retrieve(

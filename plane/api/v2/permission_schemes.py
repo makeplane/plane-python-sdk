@@ -14,7 +14,7 @@ from ._generated.constants import (
     PermissionSchemesListOrderBy,
     PermissionSchemesRetrieveField,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
@@ -37,6 +37,9 @@ class PermissionSchemes(V2Resource[PermissionScheme, PermissionScheme, Permissio
         order_by: PermissionSchemesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[PermissionSchemesListFilters],
     ) -> Page[PermissionScheme]:
         """One page of permission schemes (system + custom) in the workspace."""
@@ -46,6 +49,9 @@ class PermissionSchemes(V2Resource[PermissionScheme, PermissionScheme, Permissio
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -57,11 +63,21 @@ class PermissionSchemes(V2Resource[PermissionScheme, PermissionScheme, Permissio
         *,
         fields: Sequence[PermissionSchemesListField] | None = None,
         order_by: PermissionSchemesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[PermissionSchemesListFilters],
     ) -> Iterator[PermissionScheme]:
         """Every permission scheme, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
         )
 

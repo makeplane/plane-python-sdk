@@ -16,7 +16,7 @@ from ._generated.constants import (
     StickiesPartialUpdateField,
     StickiesRetrieveField,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
@@ -39,6 +39,9 @@ class Stickies(V2Resource[Sticky, CreateSticky, UpdateSticky]):
         order_by: StickiesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[StickiesListFilters],
     ) -> Page[Sticky]:
         """One page of stickies. `**filters` covers the golden's query filters
@@ -49,6 +52,9 @@ class Stickies(V2Resource[Sticky, CreateSticky, UpdateSticky]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -60,11 +66,21 @@ class Stickies(V2Resource[Sticky, CreateSticky, UpdateSticky]):
         *,
         fields: Sequence[StickiesListField] | None = None,
         order_by: StickiesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[StickiesListFilters],
     ) -> Iterator[Sticky]:
         """Every sticky, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
         )
 

@@ -18,7 +18,7 @@ from .._generated.constants import (
     CustomersUpsertField,
 )
 from .._kernel.loaded import LoadsNavigableRows
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .._loaded.customer import LoadedCustomer
@@ -59,6 +59,9 @@ class Customers(
         order_by: CustomersListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[CustomersListFilters],
     ) -> Page[LoadedCustomer]:
         """One page of customers in a workspace.
@@ -70,6 +73,9 @@ class Customers(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -82,10 +88,23 @@ class Customers(
         *,
         fields: Sequence[CustomersListField] | None = None,
         order_by: CustomersListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[CustomersListFilters],
     ) -> Iterator[LoadedCustomer]:
         """Every customer in a workspace, following pages automatically."""
-        rows = self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
+        rows = self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
+            slug=slug,
+        )
         return (self._load(row, slug, fields=fields) for row in rows)
 
     def retrieve(

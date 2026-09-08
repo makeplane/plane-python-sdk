@@ -29,7 +29,7 @@ from ._generated.constants import (
     ModulesUpsertField,
 )
 from ._kernel.loaded import LoadsNavigableRows
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
 from ._loaded.module import LoadedModule
@@ -100,6 +100,9 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule], LoadsNavigableRows
         order_by: ModulesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ModulesListFilters],
     ) -> Page[LoadedModule]:
         """One page of modules in this project."""
@@ -110,6 +113,9 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule], LoadsNavigableRows
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -125,11 +131,22 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule], LoadsNavigableRows
         fields: Sequence[ModulesListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: ModulesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ModulesListFilters],
     ) -> Iterator[LoadedModule]:
         """Every module, following pages automatically."""
         rows = self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

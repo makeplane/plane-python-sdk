@@ -296,6 +296,28 @@ PlaneClient
     (`Roles`, because the golden's `?slug=` collides with the path id `slug`), pin
     the hand-written set against the generated `TypedDict` so a regeneration cannot
     quietly add an unreachable filter — see `tests/v2/test_roles_resource.py`.
+    **And the same again for the envelope**, which is the one that got away:
+    `per_page`, `offset`, `paginate` and `count` are `_RESERVED_QUERY_PARAMS` in
+    `scripts/generate_v2_constants.py` — deliberately kept out of every `*Filters`
+    TypedDict because each belongs on the method as an explicit typed parameter.
+    Only the first two ever were. `paginate`/`count` were reserved and then never
+    implemented on any of the 68 list methods, and no sweep could see it: `FIELDS`
+    and `EXPAND` were the only golden tables the generator emitted, so the two
+    rules that *were* swept were the only two that could be. `AuditLogs` was
+    unusable outright (`count_styles_enabled = False` server-side means the offset
+    envelope 400s, so `paginate="cursor"` is the only way in), the `CursorPage`
+    branch of `parse_page` was unreachable from any public method, and `count=false`
+    was unsendable while `_find_one` had been sending it internally all along. The
+    generator now emits a `PAGINATION` table and
+    `tests/v2/test_pagination_coverage.py` sweeps against it: `list` exposes every
+    envelope param its operation declares, `iterate` exposes `per_page`/`paginate`
+    but not `offset`/`count` (the auto-pager owns its own walk, and a `COUNT(*)` per
+    page is the cost the cursor envelope exists to avoid), and
+    `work_item_relation_definitions_list` — the one list operation the golden gives
+    no `paginate` — is pinned as *not* having one, so the fix stays golden-driven
+    rather than blanket-applied. `?cursor=` is the exception the golden does not
+    document: `iterate` has always sent it, and a caller handed a
+    `CursorPage.next_cursor` it cannot spend has a dead end, so `list` takes it too.
   - **Bridges.** Membership between two resources (`.../cycles/{id}/work-items/`,
     `.../releases/{id}/labels/`, `.../collections/{id}/members/`, ...) is never a
     `manage_*(add=, remove=)` method. It is a sub-resource

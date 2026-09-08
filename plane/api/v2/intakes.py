@@ -17,7 +17,7 @@ from ._generated.constants import (
     IntakesPartialUpdateField,
     IntakesRetrieveField,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
@@ -41,6 +41,9 @@ class Intakes(V2Resource[IntakeWorkItem, CreateIntakeWorkItem, UpdateIntakeWorkI
         order_by: IntakesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[IntakesListFilters],
     ) -> Page[IntakeWorkItem]:
         """One page of intake work items in this project. `**filters` covers the
@@ -52,6 +55,9 @@ class Intakes(V2Resource[IntakeWorkItem, CreateIntakeWorkItem, UpdateIntakeWorkI
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -65,11 +71,21 @@ class Intakes(V2Resource[IntakeWorkItem, CreateIntakeWorkItem, UpdateIntakeWorkI
         *,
         fields: Sequence[IntakesListField] | None = None,
         order_by: IntakesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[IntakesListFilters],
     ) -> Iterator[IntakeWorkItem]:
         """Every intake work item in this project, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

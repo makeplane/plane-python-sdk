@@ -23,6 +23,15 @@ _RESERVED_QUERY_PARAMS = frozenset(
     {"fields", "expand", "order_by", "offset", "per_page", "paginate", "count"}
 )
 
+_PAGINATION_PARAMS = ("per_page", "offset", "paginate", "count")
+"""The reserved params that shape the *envelope* rather than the rows.
+
+They are reserved (kept out of every `*Filters` TypedDict) because each belongs on
+the method as an explicit, typed parameter -- but "reserved" is not "implemented",
+and `paginate`/`count` were reserved and then never added to a single one of the 68
+list methods. Nothing noticed, because the `FIELDS`/`EXPAND` sweeps have no table to
+sweep them against. `PAGINATION` is that table."""
+
 _JSON_TO_PYTHON = {"string": "str", "integer": "int", "boolean": "bool", "number": "float"}
 
 
@@ -114,6 +123,7 @@ def main(openapi_dir: str, output_dir: str | None = None) -> None:
     fields: dict[str, list[str]] = {}
     order_by: dict[str, list[str]] = {}
     expand: dict[str, list[str]] = {}
+    pagination: dict[str, list[str]] = {}
     operation_parameters: dict[str, list[dict[str, Any]]] = {}
     for operations in paths.values():
         for method, operation in operations.items():
@@ -124,6 +134,14 @@ def main(openapi_dir: str, output_dir: str | None = None) -> None:
                 continue
             operation_ids.add(operation_id)
             operation_parameters[operation_id] = operation.get("parameters", [])
+            declared = {
+                parameter["name"]
+                for parameter in operation.get("parameters", [])
+                if parameter.get("in") == "query"
+            }
+            envelope = [name for name in _PAGINATION_PARAMS if name in declared]
+            if envelope:
+                pagination[operation_id] = envelope
             for parameter in operation.get("parameters", []):
                 enum = parameter.get("schema", {}).get("enum")
                 if not enum:
@@ -184,6 +202,9 @@ def main(openapi_dir: str, output_dir: str | None = None) -> None:
     lines.append("}\n\nEXPAND: dict[str, frozenset[str]] = {\n")
     for operation_id, values in sorted(expand.items()):
         lines.append(f"    {operation_id!r}: frozenset({values!r}),\n")
+    lines.append("}\n\nPAGINATION: dict[str, frozenset[str]] = {\n")
+    for operation_id, values in sorted(pagination.items()):
+        lines.append(f"    {operation_id!r}: frozenset({sorted(values)!r}),\n")
     lines.append("}\n\n")
     lines.append(f"ERROR_CODES: frozenset[str] = frozenset({codes!r})\n\n")
     lines.append(_literal_aliases(fields, order_by))

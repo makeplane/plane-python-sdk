@@ -30,7 +30,7 @@ from ._generated.constants import (
     MilestonesUpsertField,
 )
 from ._kernel.loaded import LoadsNavigableRows
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
 from ._loaded.milestone import LoadedMilestone
@@ -106,6 +106,9 @@ class Milestones(
         order_by: MilestonesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[MilestonesListFilters],
     ) -> Page[LoadedMilestone]:
         """One page of milestones in this project."""
@@ -115,6 +118,9 @@ class Milestones(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -129,11 +135,21 @@ class Milestones(
         *,
         fields: Sequence[MilestonesListField] | None = None,
         order_by: MilestonesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[MilestonesListFilters],
     ) -> Iterator[LoadedMilestone]:
         """Every milestone, following pages automatically."""
         rows = self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

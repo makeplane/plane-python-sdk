@@ -19,7 +19,7 @@ from .._generated.constants import (
     ReleaseLabelsPartialUpdateField,
     ReleaseLabelsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -47,6 +47,9 @@ class ReleaseLabels(V2Resource[ReleaseLabel, CreateReleaseLabel, UpdateReleaseLa
         order_by: ReleaseLabelsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ReleaseLabelsListFilters],
     ) -> Page[ReleaseLabel]:
         """One page of the workspace's release-label catalog."""
@@ -56,6 +59,9 @@ class ReleaseLabels(V2Resource[ReleaseLabel, CreateReleaseLabel, UpdateReleaseLa
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -67,10 +73,23 @@ class ReleaseLabels(V2Resource[ReleaseLabel, CreateReleaseLabel, UpdateReleaseLa
         *,
         fields: Sequence[ReleaseLabelsListField] | None = None,
         order_by: ReleaseLabelsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ReleaseLabelsListFilters],
     ) -> Iterator[ReleaseLabel]:
         """Every release label in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
+        return self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def retrieve(
         self,

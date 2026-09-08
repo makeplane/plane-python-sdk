@@ -18,7 +18,7 @@ from .._generated.constants import (
     WorkflowTransitionsPartialUpdateField,
     WorkflowTransitionsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -45,6 +45,9 @@ class WorkflowTransitions(
         order_by: WorkflowTransitionsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
     ) -> Page[WorkflowTransition]:
         """One page of transitions attached to a workflow. The golden declares no
         query filters for this operation beyond `fields`/`order_by`."""
@@ -54,6 +57,9 @@ class WorkflowTransitions(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
             },
             slug=slug,
             project_id=project,
@@ -68,10 +74,19 @@ class WorkflowTransitions(
         *,
         fields: Sequence[WorkflowTransitionsListField] | None = None,
         order_by: WorkflowTransitionsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
     ) -> Iterator[WorkflowTransition]:
         """Every transition attached to a workflow, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+            },
             slug=slug,
             project_id=project,
             workflow_id=workflow,

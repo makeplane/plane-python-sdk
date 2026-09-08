@@ -17,7 +17,7 @@ from .._generated.constants import (
     ReleaseTagsPartialUpdateField,
     ReleaseTagsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -40,6 +40,9 @@ class ReleaseTags(V2Resource[ReleaseTag, CreateReleaseTag, UpdateReleaseTag]):
         order_by: ReleaseTagsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ReleaseTagsListFilters],
     ) -> Page[ReleaseTag]:
         """One page of the workspace's release-tag catalog."""
@@ -49,6 +52,9 @@ class ReleaseTags(V2Resource[ReleaseTag, CreateReleaseTag, UpdateReleaseTag]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -60,10 +66,23 @@ class ReleaseTags(V2Resource[ReleaseTag, CreateReleaseTag, UpdateReleaseTag]):
         *,
         fields: Sequence[ReleaseTagsListField] | None = None,
         order_by: ReleaseTagsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ReleaseTagsListFilters],
     ) -> Iterator[ReleaseTag]:
         """Every release tag in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
+        return self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def retrieve(
         self, slug: str, tag: str, *, fields: Sequence[ReleaseTagsRetrieveField] | None = None

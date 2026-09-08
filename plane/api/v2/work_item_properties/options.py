@@ -17,7 +17,7 @@ from .._generated.constants import (
     WorkItemPropertyOptionsListFilters,
     WorkItemPropertyOptionsListOrderBy,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -43,11 +43,22 @@ class WorkItemPropertyOptions(
         order_by: WorkItemPropertyOptionsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkItemPropertyOptionsListFilters],
     ) -> Page[WorkItemPropertyOption]:
         """One page of a property's options."""
         return self._list(
-            params={"order_by": order_by, "per_page": per_page, "offset": offset, **filters},
+            params={
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
+                **filters,
+            },
             slug=slug,
             project_id=project,
             property_id=property,
@@ -60,11 +71,20 @@ class WorkItemPropertyOptions(
         property: str,
         *,
         order_by: WorkItemPropertyOptionsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkItemPropertyOptionsListFilters],
     ) -> Iterator[WorkItemPropertyOption]:
         """Every option on a property, following pages automatically."""
         return self._iter(
-            params={"order_by": order_by, **filters},
+            params={
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
             property_id=property,

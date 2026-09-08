@@ -17,7 +17,7 @@ from .._generated.constants import (
     GroupSyncProjectMappingsRetrieveField,
     GroupSyncProjectMappingsUpdateField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -40,6 +40,9 @@ class GroupSyncProjectMappings(V2Resource[GroupMapping, CreateGroupMapping, Upda
         order_by: GroupSyncProjectMappingsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[GroupSyncProjectMappingsListFilters],
     ) -> Page[GroupMapping]:
         """One page of project mappings in the workspace."""
@@ -49,6 +52,9 @@ class GroupSyncProjectMappings(V2Resource[GroupMapping, CreateGroupMapping, Upda
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -60,10 +66,23 @@ class GroupSyncProjectMappings(V2Resource[GroupMapping, CreateGroupMapping, Upda
         *,
         fields: Sequence[GroupSyncProjectMappingsListField] | None = None,
         order_by: GroupSyncProjectMappingsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[GroupSyncProjectMappingsListFilters],
     ) -> Iterator[GroupMapping]:
         """Every project mapping in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
+        return self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def retrieve(
         self,

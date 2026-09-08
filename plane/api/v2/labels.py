@@ -18,7 +18,7 @@ from ._generated.constants import (
     LabelsRetrieveField,
     LabelsUpsertField,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
@@ -46,6 +46,9 @@ class Labels(V2Resource[Label, CreateLabel, UpdateLabel]):
         order_by: LabelsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[LabelsListFilters],
     ) -> Page[Label]:
         """One page of labels in this project."""
@@ -55,6 +58,9 @@ class Labels(V2Resource[Label, CreateLabel, UpdateLabel]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -68,11 +74,21 @@ class Labels(V2Resource[Label, CreateLabel, UpdateLabel]):
         *,
         fields: Sequence[LabelsListField] | None = None,
         order_by: LabelsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[LabelsListFilters],
     ) -> Iterator[Label]:
         """Every label, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

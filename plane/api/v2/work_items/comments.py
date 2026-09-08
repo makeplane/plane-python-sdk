@@ -19,7 +19,7 @@ from .._generated.constants import (
     CommentsRetrieveField,
     WorkItemCommentsUpsertField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -49,6 +49,9 @@ class WorkItemComments(V2Resource[WorkItemComment, CreateWorkItemComment, Update
         order_by: CommentsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[CommentsListFilters],
     ) -> Page[WorkItemComment]:
         """One page of comments on a work item."""
@@ -59,6 +62,9 @@ class WorkItemComments(V2Resource[WorkItemComment, CreateWorkItemComment, Update
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -75,11 +81,22 @@ class WorkItemComments(V2Resource[WorkItemComment, CreateWorkItemComment, Update
         fields: Sequence[CommentsListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: CommentsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[CommentsListFilters],
     ) -> Iterator[WorkItemComment]:
         """Every comment on a work item, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
             work_item_id=work_item,

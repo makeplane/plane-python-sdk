@@ -32,7 +32,7 @@ from ._generated.constants import (
     CyclesUpsertField,
 )
 from ._kernel.loaded import LoadsNavigableRows
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
 from ._loaded.cycle import LoadedCycle
@@ -101,6 +101,9 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle], LoadsNavigableRows[Loa
         order_by: CyclesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[CyclesListFilters],
     ) -> Page[LoadedCycle]:
         """One page of cycles in this project."""
@@ -111,6 +114,9 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle], LoadsNavigableRows[Loa
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -126,11 +132,22 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle], LoadsNavigableRows[Loa
         fields: Sequence[CyclesListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: CyclesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[CyclesListFilters],
     ) -> Iterator[LoadedCycle]:
         """Every cycle, following pages automatically."""
         rows = self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

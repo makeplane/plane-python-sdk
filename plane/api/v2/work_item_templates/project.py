@@ -22,7 +22,7 @@ from .._generated.constants import (
     ProjectWorkItemTemplatesRetrieveField,
     WorkItemsUseField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -52,6 +52,9 @@ class ProjectWorkItemTemplates(
         order_by: ProjectWorkItemTemplatesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ProjectWorkItemTemplatesListFilters],
     ) -> Page[WorkItemTemplate]:
         """One page of templates in this project. `**filters` covers
@@ -62,6 +65,9 @@ class ProjectWorkItemTemplates(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -75,11 +81,21 @@ class ProjectWorkItemTemplates(
         *,
         fields: Sequence[ProjectWorkItemTemplatesListField] | None = None,
         order_by: ProjectWorkItemTemplatesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ProjectWorkItemTemplatesListFilters],
     ) -> Iterator[WorkItemTemplate]:
         """Every template in this project, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

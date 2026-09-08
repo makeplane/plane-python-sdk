@@ -25,7 +25,7 @@ from ._generated.constants import (
     WorkspaceMembersListFilters,
     WorkspaceMembersListOrderBy,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 __all__ = ["ProjectMembers", "WorkspaceMembers"]
@@ -52,6 +52,9 @@ class ProjectMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMember
         order_by: ProjectMembersListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ProjectMembersListFilters],
     ) -> Page[Member]:
         """One page of this project's roster."""
@@ -62,6 +65,9 @@ class ProjectMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMember
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -76,11 +82,22 @@ class ProjectMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMember
         fields: Sequence[ProjectMembersListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: ProjectMembersListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ProjectMembersListFilters],
     ) -> Iterator[Member]:
         """Every row on this project's roster, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )
@@ -159,6 +176,9 @@ class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMemb
         order_by: WorkspaceMembersListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkspaceMembersListFilters],
     ) -> Page[Member]:
         """One page of the workspace roster."""
@@ -169,6 +189,9 @@ class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMemb
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -181,11 +204,22 @@ class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMemb
         fields: Sequence[WorkspaceMembersListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: WorkspaceMembersListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkspaceMembersListFilters],
     ) -> Iterator[Member]:
         """Every row on the workspace roster, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
         )
 

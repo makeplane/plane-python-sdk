@@ -26,7 +26,7 @@ from .._generated.constants import (
     WorkspaceAutomationEdgesPartialUpdateField,
     WorkspaceAutomationEdgesRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -53,6 +53,9 @@ class ProjectAutomationEdges(
         order_by: ProjectAutomationEdgesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ProjectAutomationEdgesListFilters],
     ) -> Page[AutomationEdge]:
         """One page of edges in a project automation's graph.
@@ -64,6 +67,9 @@ class ProjectAutomationEdges(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -79,11 +85,21 @@ class ProjectAutomationEdges(
         *,
         fields: Sequence[ProjectAutomationEdgesListField] | None = None,
         order_by: ProjectAutomationEdgesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ProjectAutomationEdgesListFilters],
     ) -> Iterator[AutomationEdge]:
         """Every edge in a project automation's graph, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
             automation_id=automation,
@@ -168,6 +184,9 @@ class WorkspaceAutomationEdges(
         order_by: WorkspaceAutomationEdgesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkspaceAutomationEdgesListFilters],
     ) -> Page[AutomationEdge]:
         """One page of edges in a workspace automation's graph."""
@@ -177,6 +196,9 @@ class WorkspaceAutomationEdges(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -190,11 +212,21 @@ class WorkspaceAutomationEdges(
         *,
         fields: Sequence[WorkspaceAutomationEdgesListField] | None = None,
         order_by: WorkspaceAutomationEdgesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkspaceAutomationEdgesListFilters],
     ) -> Iterator[AutomationEdge]:
         """Every edge in a workspace automation's graph, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             automation_id=automation,
         )

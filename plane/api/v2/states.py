@@ -18,7 +18,7 @@ from ._generated.constants import (
     StatesRetrieveField,
     StatesUpsertField,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
@@ -46,6 +46,9 @@ class States(V2Resource[State, CreateState, UpdateState]):
         order_by: StatesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[StatesListFilters],
     ) -> Page[State]:
         """One page of states in this project."""
@@ -55,6 +58,9 @@ class States(V2Resource[State, CreateState, UpdateState]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -68,11 +74,21 @@ class States(V2Resource[State, CreateState, UpdateState]):
         *,
         fields: Sequence[StatesListField] | None = None,
         order_by: StatesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[StatesListFilters],
     ) -> Iterator[State]:
         """Every state, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

@@ -16,7 +16,7 @@ from .._generated.constants import (
     WorkspaceViewsPartialUpdateField,
     WorkspaceViewsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -40,6 +40,9 @@ class WorkspaceViews(V2Resource[View, CreateView, UpdateView]):
         order_by: WorkspaceViewsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkspaceViewsListFilters],
     ) -> Page[View]:
         """One page of workspace-level views. `**filters` covers `access`,
@@ -51,6 +54,9 @@ class WorkspaceViews(V2Resource[View, CreateView, UpdateView]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -63,11 +69,22 @@ class WorkspaceViews(V2Resource[View, CreateView, UpdateView]):
         fields: Sequence[WorkspaceViewsListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: WorkspaceViewsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkspaceViewsListFilters],
     ) -> Iterator[View]:
         """Every workspace-level view, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
         )
 

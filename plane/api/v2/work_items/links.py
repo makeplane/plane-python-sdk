@@ -15,7 +15,7 @@ from .._generated.constants import (
     LinksPartialUpdateField,
     LinksRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -40,6 +40,9 @@ class WorkItemLinks(V2Resource[WorkItemLink, CreateWorkItemLink, UpdateWorkItemL
         order_by: LinksListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[LinksListFilters],
     ) -> Page[WorkItemLink]:
         """One page of links on a work item."""
@@ -49,6 +52,9 @@ class WorkItemLinks(V2Resource[WorkItemLink, CreateWorkItemLink, UpdateWorkItemL
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -64,11 +70,21 @@ class WorkItemLinks(V2Resource[WorkItemLink, CreateWorkItemLink, UpdateWorkItemL
         *,
         fields: Sequence[LinksListField] | None = None,
         order_by: LinksListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[LinksListFilters],
     ) -> Iterator[WorkItemLink]:
         """Every link on a work item, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
             work_item_id=work_item,

@@ -16,7 +16,7 @@ from .._generated.constants import (
     ReleaseCommentsPartialUpdateField,
     ReleaseCommentsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -40,6 +40,9 @@ class ReleaseComments(V2Resource[ReleaseComment, CreateReleaseComment, UpdateRel
         order_by: ReleaseCommentsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ReleaseCommentsListFilters],
     ) -> Page[ReleaseComment]:
         """One page of comments on a release."""
@@ -49,6 +52,9 @@ class ReleaseComments(V2Resource[ReleaseComment, CreateReleaseComment, UpdateRel
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -62,11 +68,21 @@ class ReleaseComments(V2Resource[ReleaseComment, CreateReleaseComment, UpdateRel
         *,
         fields: Sequence[ReleaseCommentsListField] | None = None,
         order_by: ReleaseCommentsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ReleaseCommentsListFilters],
     ) -> Iterator[ReleaseComment]:
         """Every comment on a release, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             release_id=release,
         )

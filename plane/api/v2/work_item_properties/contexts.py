@@ -21,7 +21,7 @@ from .._generated.constants import (
     WorkItemPropertyContextsPartialUpdateField,
     WorkItemPropertyContextsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -49,6 +49,9 @@ class WorkItemPropertyContexts(
         order_by: WorkItemPropertyContextsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkItemPropertyContextsListFilters],
     ) -> Page[WorkItemPropertyContext]:
         """One page of a workspace property's contexts."""
@@ -58,6 +61,9 @@ class WorkItemPropertyContexts(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -71,11 +77,21 @@ class WorkItemPropertyContexts(
         *,
         fields: Sequence[WorkItemPropertyContextsListField] | None = None,
         order_by: WorkItemPropertyContextsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkItemPropertyContextsListFilters],
     ) -> Iterator[WorkItemPropertyContext]:
         """Every context on a workspace property, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             property_id=property,
         )

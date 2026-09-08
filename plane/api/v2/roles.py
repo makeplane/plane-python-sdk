@@ -9,7 +9,7 @@ from typing import Any
 from ...models.v2.roles import Role
 from ._generated.constants import RolesListField, RolesListOrderBy, RolesRetrieveField
 from ._kernel.errors import MultipleMatchesFound, NoMatchFound
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
@@ -29,6 +29,9 @@ class Roles(V2Resource[Role, Role, Role]):
         order_by: RolesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         namespace: str | None = None,
         is_system: bool | None = None,
         search: str | None = None,
@@ -45,6 +48,9 @@ class Roles(V2Resource[Role, Role, Role]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 "namespace": namespace,
                 "is_system": is_system,
                 "search": search,
@@ -59,6 +65,9 @@ class Roles(V2Resource[Role, Role, Role]):
         *,
         fields: Sequence[RolesListField] | None = None,
         order_by: RolesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         namespace: str | None = None,
         is_system: bool | None = None,
         search: str | None = None,
@@ -70,6 +79,9 @@ class Roles(V2Resource[Role, Role, Role]):
             params={
                 "fields": fields,
                 "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
                 "namespace": namespace,
                 "is_system": is_system,
                 "search": search,

@@ -16,7 +16,7 @@ from .._generated.constants import (
     ReleaseLinksPartialUpdateField,
     ReleaseLinksRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -40,6 +40,9 @@ class ReleaseLinks(V2Resource[ReleaseLink, CreateReleaseLink, UpdateReleaseLink]
         order_by: ReleaseLinksListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ReleaseLinksListFilters],
     ) -> Page[ReleaseLink]:
         """One page of links on a release."""
@@ -49,6 +52,9 @@ class ReleaseLinks(V2Resource[ReleaseLink, CreateReleaseLink, UpdateReleaseLink]
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -62,11 +68,21 @@ class ReleaseLinks(V2Resource[ReleaseLink, CreateReleaseLink, UpdateReleaseLink]
         *,
         fields: Sequence[ReleaseLinksListField] | None = None,
         order_by: ReleaseLinksListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ReleaseLinksListFilters],
     ) -> Iterator[ReleaseLink]:
         """Every link on a release, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             release_id=release,
         )

@@ -23,7 +23,7 @@ from .._generated.constants import (
     WorkspaceWorkItemTypePropertiesListOrderBy,
     WorkspaceWorkItemTypePropertiesRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -49,6 +49,9 @@ class WorkItemTypeProperties(
         order_by: WorkItemTypePropertiesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
     ) -> Page[WorkItemProperty]:
         """One page of custom properties linked to a work item type. The golden
         declares no query filters for this operation beyond `fields`/`order_by`."""
@@ -58,6 +61,9 @@ class WorkItemTypeProperties(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
             },
             slug=slug,
             project_id=project,
@@ -72,11 +78,20 @@ class WorkItemTypeProperties(
         *,
         fields: Sequence[WorkItemTypePropertiesListField] | None = None,
         order_by: WorkItemTypePropertiesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
     ) -> Iterator[WorkItemProperty]:
         """Every custom property linked to a work item type, following pages
         automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+            },
             slug=slug,
             project_id=project,
             type_id=type,
@@ -136,6 +151,9 @@ class WorkspaceWorkItemTypeProperties(
         order_by: WorkspaceWorkItemTypePropertiesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
     ) -> Page[WorkItemProperty]:
         """One page of custom properties linked to a workspace-level work item type."""
         return self._list(
@@ -144,6 +162,9 @@ class WorkspaceWorkItemTypeProperties(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
             },
             slug=slug,
             type_id=type,
@@ -156,10 +177,23 @@ class WorkspaceWorkItemTypeProperties(
         *,
         fields: Sequence[WorkspaceWorkItemTypePropertiesListField] | None = None,
         order_by: WorkspaceWorkItemTypePropertiesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
     ) -> Iterator[WorkItemProperty]:
         """Every custom property linked to a workspace-level work item type,
         following pages automatically."""
-        return self._iter(params={"fields": fields, "order_by": order_by}, slug=slug, type_id=type)
+        return self._iter(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+            },
+            slug=slug,
+            type_id=type,
+        )
 
     def retrieve(
         self,

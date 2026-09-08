@@ -17,7 +17,7 @@ from .._generated.constants import (
     CustomerRequestsPartialUpdateField,
     CustomerRequestsRetrieveField,
 )
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 
 
@@ -41,6 +41,9 @@ class CustomerRequests(V2Resource[CustomerRequest, CreateCustomerRequest, Update
         order_by: CustomerRequestsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[CustomerRequestsListFilters],
     ) -> Page[CustomerRequest]:
         """One page of requests raised by a customer."""
@@ -50,6 +53,9 @@ class CustomerRequests(V2Resource[CustomerRequest, CreateCustomerRequest, Update
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -63,11 +69,21 @@ class CustomerRequests(V2Resource[CustomerRequest, CreateCustomerRequest, Update
         *,
         fields: Sequence[CustomerRequestsListField] | None = None,
         order_by: CustomerRequestsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[CustomerRequestsListFilters],
     ) -> Iterator[CustomerRequest]:
         """Every request raised by a customer, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             customer_id=customer,
         )

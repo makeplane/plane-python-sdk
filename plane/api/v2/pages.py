@@ -25,7 +25,7 @@ from ._generated.constants import (
     WorkspacePagesRetrieveField,
 )
 from ._kernel.errors import MultipleMatchesFound, NoMatchFound
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 __all__ = ["ProjectPages", "WikiPages"]
@@ -52,6 +52,9 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         order_by: ProjectPagesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[ProjectPagesListFilters],
     ) -> Page[PageModel]:
         """One page of pages in this project."""
@@ -62,6 +65,9 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -76,11 +82,22 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         fields: Sequence[ProjectPagesListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: ProjectPagesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[ProjectPagesListFilters],
     ) -> Iterator[PageModel]:
         """Every page in this project, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )
@@ -170,6 +187,9 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         order_by: WorkspacePagesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[WorkspacePagesListFilters],
     ) -> Page[PageModel]:
         """One page of workspace wiki pages."""
@@ -180,6 +200,9 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -192,11 +215,22 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         fields: Sequence[WorkspacePagesListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: WorkspacePagesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[WorkspacePagesListFilters],
     ) -> Iterator[PageModel]:
         """Every workspace wiki page, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
         )
 

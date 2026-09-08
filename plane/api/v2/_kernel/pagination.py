@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
-from typing import Any, TypeVar
+from typing import Any, Literal, TypeVar
 
 from pydantic import BaseModel
 
@@ -13,6 +13,20 @@ from ....models.v2.common import CursorPage, OffsetPage
 T = TypeVar("T", bound=BaseModel)
 
 Page = OffsetPage[T] | CursorPage[T]
+
+PaginateStyle = Literal["cursor"]
+"""Value of the `?paginate=` query param.
+
+The API answers two envelopes and says which it sent in `pagination.style`, but
+*choosing* the COUNT-free keyset one is the caller's, via `?paginate=cursor`. The
+golden declares it on 67 of the 68 list operations, and one resource
+(`AuditLogs`, `AuditLogViewSet.count_styles_enabled = False`) refuses the offset
+envelope outright, so without this parameter that resource cannot be listed at all
+and no other can be traversed deeply without paying for a `COUNT(*)` per page.
+
+`?cursor=` is the page token that comes back as `CursorPage.next_cursor`. The golden
+does not document it -- `iterate` below has always sent it -- but a caller holding a
+`next_cursor` it cannot spend has been handed a dead end, so `list` accepts it too."""
 
 
 def parse_page(payload: Any, model: type[T]) -> Page[T]:

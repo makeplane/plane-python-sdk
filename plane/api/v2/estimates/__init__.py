@@ -26,7 +26,7 @@ from .._generated.constants import (
     EstimatesUpsertField,
 )
 from .._kernel.loaded import LoadsNavigableRows
-from .._kernel.pagination import Page
+from .._kernel.pagination import Page, PaginateStyle
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .._loaded.estimate import LoadedEstimate
@@ -68,6 +68,9 @@ class Estimates(
         order_by: EstimatesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
         **filters: Unpack[EstimatesListFilters],
     ) -> Page[LoadedEstimate]:
         """One page of estimates in this project. Pass `expand=["points"]` to
@@ -79,6 +82,9 @@ class Estimates(
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
                 **filters,
             },
             slug=slug,
@@ -94,11 +100,22 @@ class Estimates(
         fields: Sequence[EstimatesListField] | None = None,
         expand: Sequence[str] | None = None,
         order_by: EstimatesListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
         **filters: Unpack[EstimatesListFilters],
     ) -> Iterator[LoadedEstimate]:
         """Every estimate in this project, following pages automatically."""
         rows = self._iter(
-            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+                **filters,
+            },
             slug=slug,
             project_id=project,
         )

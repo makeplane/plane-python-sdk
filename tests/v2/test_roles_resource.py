@@ -4,7 +4,7 @@ import pytest
 import responses
 from responses import matchers
 
-from plane.api.v2._generated.constants import RolesListFilters
+from plane.api.v2._generated.constants import PAGINATION, RolesListFilters
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.roles import Roles
 from plane.config import Configuration
@@ -205,8 +205,16 @@ def test_find_by_slug_with_namespace(roles: Roles) -> None:
 # exactly the bug this batch fixed when `?slug=` itself turned out to be missing.
 # So the explicit set is pinned against the generated TypedDict.
 
-QUERY_OPTIONS = {"fields", "order_by", "per_page", "offset"}
-"""Not filters: the paging/shaping options every list method takes."""
+QUERY_OPTIONS = {"fields", "expand", "order_by", "cursor"} | set(
+    PAGINATION.get("roles_list", frozenset())
+)
+"""Not filters: the response-shaping and envelope options every list method takes.
+
+The envelope half is read out of the generated `PAGINATION` table rather than typed
+out, because typing it out is what broke this test when `paginate`/`count` were added
+-- the same drift the pin below exists to catch, one level up. `cursor` is listed
+literally: it is the page token `CursorPage.next_cursor` hands back, which the golden
+does not document (see `_kernel/pagination.PaginateStyle`)."""
 
 ALIASED_FILTERS = {"role_slug": "slug"}
 """`role_slug` carries the golden's `?slug=` past the collision with the path id."""

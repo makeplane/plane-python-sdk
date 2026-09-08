@@ -366,9 +366,9 @@ work item reached through a fetched project still resolves its `.comments.list()
 a real model, not a collapsed `Any`. `tests/v2/test_typing.py` runs mypy over probe
 scripts to prove it, rather than trusting it by inspection.
 
-### The four rules the tests enforce
+### The five rules the tests enforce
 
-Four properties of the surface are each enforced by a sweep in `tests/v2/`, over
+Five properties of the surface are each enforced by a sweep in `tests/v2/`, over
 every one of the 90 resource classes (`tests/v2/tree_walk.py`'s
 `all_resource_classes()`) rather than a hand-picked subset — so a newly added
 resource is covered the moment it exists, with nothing to remember to add it to:
@@ -399,6 +399,21 @@ resource is covered the moment it exists, with nothing to remember to add it to:
   are named, with their reason, in the test's own `ONE_TIME_RESPONSES` set, and
   the reason is repeated in the method's docstring so the next reader doesn't
   "fix" the omission back.
+- **Pagination exposure** (`tests/v2/test_pagination_coverage.py`). The same
+  shape again, for the parameters that pick the *envelope* rather than shape the
+  rows: `per_page`, `offset`, `paginate` and `count`. `list` exposes every one its
+  operation declares; `iterate` exposes `per_page` and `paginate` (page size and
+  envelope choice are the caller's) but not `offset` or `count`, which belong to
+  the auto-pager's own walk. This sweep is the newest, and it was added because
+  its absence was expensive: `paginate` and `count` were *reserved* by the
+  constants generator — kept out of every `*Filters` TypedDict on the grounds that
+  each belonged on the method as an explicit parameter — and then never added to a
+  single one of the 68 list methods. Nothing could see it, because `FIELDS` and
+  `EXPAND` were the only golden tables the generator emitted. The cost:
+  `client.v2.workspaces.audit_logs` could not be listed at all (the server refuses
+  the offset envelope there), the `CursorPage` branch of `parse_page` was
+  unreachable from any public method, and `count=false` was unsendable while the
+  kernel's own `_find_one` had been sending it all along.
 - **Loaded-row navigation completeness** (`tests/v2/test_loaded_navigation.py`).
   For every resource that declares a `loaded_model`, its `Loaded` row type's
   navigation properties must be exactly the child resources the resource class

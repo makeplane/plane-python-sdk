@@ -12,7 +12,7 @@ from ._generated.constants import (
     WebhookLogsListOrderBy,
     WebhookLogsRetrieveField,
 )
-from ._kernel.pagination import Page
+from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
@@ -35,6 +35,9 @@ class WebhookLogs(V2Resource[WebhookLog, WebhookLog, WebhookLog]):
         order_by: WebhookLogsListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
+        count: bool | None = None,
     ) -> Page[WebhookLog]:
         """One page of delivery logs for a webhook. The golden offers no query
         filters on this operation."""
@@ -44,6 +47,9 @@ class WebhookLogs(V2Resource[WebhookLog, WebhookLog, WebhookLog]):
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
+                "paginate": paginate,
+                "cursor": cursor,
+                "count": count,
             },
             slug=slug,
             webhook_id=webhook,
@@ -56,10 +62,21 @@ class WebhookLogs(V2Resource[WebhookLog, WebhookLog, WebhookLog]):
         *,
         fields: Sequence[WebhookLogsListField] | None = None,
         order_by: WebhookLogsListOrderBy | None = None,
+        per_page: int | None = None,
+        paginate: PaginateStyle | None = None,
+        cursor: str | None = None,
     ) -> Iterator[WebhookLog]:
         """Every delivery log for a webhook, following pages automatically."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by}, slug=slug, webhook_id=webhook
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "paginate": paginate,
+                "cursor": cursor,
+            },
+            slug=slug,
+            webhook_id=webhook,
         )
 
     def retrieve(

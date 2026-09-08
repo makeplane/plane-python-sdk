@@ -46,11 +46,12 @@ class WorkItemRelationDefinitions(
         fields: Sequence[WorkItemRelationDefinitionsListField] | None = None,
         per_page: int | None = None,
         offset: int | None = None,
+        count: bool | None = None,
     ) -> Page[WorkItemRelationDefinition]:
         """One page of relation definitions. The golden offers no query filters
         or `order_by` on this operation."""
         return self._list(
-            params={"fields": fields, "per_page": per_page, "offset": offset},
+            params={"fields": fields, "per_page": per_page, "offset": offset, "count": count},
             slug=slug,
         )
 
@@ -59,9 +60,10 @@ class WorkItemRelationDefinitions(
         slug: str,
         *,
         fields: Sequence[WorkItemRelationDefinitionsListField] | None = None,
+        per_page: int | None = None,
     ) -> Iterator[WorkItemRelationDefinition]:
         """Every relation definition, following pages automatically."""
-        return self._iter(params={"fields": fields}, slug=slug)
+        return self._iter(params={"fields": fields, "per_page": per_page}, slug=slug)
 
     def retrieve(
         self,
