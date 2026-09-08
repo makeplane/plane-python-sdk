@@ -756,3 +756,31 @@ def test_unarchive_returns_a_navigable_row(work_items: WorkItems) -> None:
     row.comments.list()
 
     assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
+
+
+# -- A fetched work item reaches all seven children, not just comments -----------
+
+
+@responses.activate
+def test_fetched_work_item_reaches_every_child(config: Configuration) -> None:
+    base = "https://api.example.com/api/v2/workspaces/acme/projects/ENG"
+    responses.get(f"{base}/work-items/ENG-12/", json={"id": "w1", "sequence_id": 12})
+    responses.get(
+        f"{base}/work-items/w1/links/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    item = V2Namespace(config).workspaces.projects.work_items.retrieve("acme", "ENG", "ENG-12")
+    item.links.list()
+
+    assert responses.calls[1].request.url.endswith("/work-items/w1/links/")
+    for child in (
+        "comments",
+        "attachments",
+        "links",
+        "worklogs",
+        "activities",
+        "relations",
+        "dependencies",
+    ):
+        assert hasattr(item, child), f"LoadedWorkItem is missing {child}"

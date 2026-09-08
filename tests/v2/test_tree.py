@@ -77,10 +77,11 @@ def test_workspaces_retrieve(config: Configuration) -> None:
 
 
 # -- Wired but not yet migrated ---------------------------------------------------
-# `Workspaces` wires `Releases` for the sake of `releases.labels`, and `WorkItems`
-# wires seven children of which one is migrated. Everything else on those branches
-# used to fail with a bare `KeyError: 'slug'` from inside the kernel; each now says
-# what it is and that migration is pending.
+# `Workspaces` wires `Releases` for the sake of `releases.labels`/`releases.tags`;
+# everything else on that branch used to fail with a bare `KeyError: 'slug'` from
+# inside the kernel -- each now says what it is and that migration is pending.
+# (`WorkItems`' own seven children are all migrated now -- see
+# `tests/v2/test_work_items_resource.py`.)
 
 
 @pytest.mark.parametrize(
@@ -92,18 +93,6 @@ def test_workspaces_retrieve(config: Configuration) -> None:
         (lambda v2: v2.workspaces.releases.links.list(), "ReleaseLinks"),
         (lambda v2: v2.workspaces.releases.changelog.retrieve("r1"), "ReleaseChangelogResource"),
         (lambda v2: v2.workspaces.releases.work_items.add("r1", ["w1"]), "ReleaseWorkItems"),
-        (lambda v2: v2.workspaces.projects.work_items.activities.list("wi1"), "WorkItemActivities"),
-        (
-            lambda v2: v2.workspaces.projects.work_items.attachments.list("wi1"),
-            "WorkItemAttachments",
-        ),
-        (lambda v2: v2.workspaces.projects.work_items.links.list("wi1"), "WorkItemLinks"),
-        (lambda v2: v2.workspaces.projects.work_items.worklogs.list("wi1"), "WorkItemWorklogs"),
-        (lambda v2: v2.workspaces.projects.work_items.relations.list("wi1"), "WorkItemRelations"),
-        (
-            lambda v2: v2.workspaces.projects.work_items.dependencies.list("wi1"),
-            "WorkItemDependencies",
-        ),
         (lambda v2: v2.workspaces.wiki.collections.list(), "Collections"),
     ],
 )

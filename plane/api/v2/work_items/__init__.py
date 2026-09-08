@@ -3,8 +3,9 @@ Project-scoped, with `archive`/`unarchive` plus nested `.comments`/`.attachments
 `.links`/`.worklogs`/`.activities`/`.relations`/`.dependencies`.
 
 A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as
-a `LoadedWorkItem`: it carries the row's data and can reach `.comments` without
-the caller repeating `slug`/`project`/`work_item`."""
+a `LoadedWorkItem`: it carries the row's data and can reach every child -- `.comments`,
+`.attachments`, `.links`, `.worklogs`, `.activities`, `.relations`, `.dependencies` --
+without the caller repeating `slug`/`project`/`work_item`."""
 
 from __future__ import annotations
 
@@ -28,7 +29,6 @@ from .._generated.constants import (
 )
 from .._kernel.loaded import LoadsNavigableRows
 from .._kernel.pagination import Page
-from .._kernel.pending import PendingMigration
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
 from .._loaded.work_item import LoadedWorkItem
@@ -78,19 +78,12 @@ class WorkItems(
     def __init__(self, transport: V2Transport) -> None:
         super().__init__(transport)
         self.comments = WorkItemComments(transport)
-        # The other six children still take only `work_item_id`, so reaching them
-        # through the flat tree would build `/workspaces/{slug}/...` with no slug.
-        # Placeholders keep `import plane` working and name the gap when used.
-        self.attachments = PendingMigration(
-            "WorkItemAttachments", reached_as="work_items.attachments"
-        )
-        self.links = PendingMigration("WorkItemLinks", reached_as="work_items.links")
-        self.worklogs = PendingMigration("WorkItemWorklogs", reached_as="work_items.worklogs")
-        self.activities = PendingMigration("WorkItemActivities", reached_as="work_items.activities")
-        self.relations = PendingMigration("WorkItemRelations", reached_as="work_items.relations")
-        self.dependencies = PendingMigration(
-            "WorkItemDependencies", reached_as="work_items.dependencies"
-        )
+        self.attachments = WorkItemAttachments(transport)
+        self.links = WorkItemLinks(transport)
+        self.worklogs = WorkItemWorklogs(transport)
+        self.activities = WorkItemActivities(transport)
+        self.relations = WorkItemRelations(transport)
+        self.dependencies = WorkItemDependencies(transport)
 
     # -- CRUD ---------------------------------------------------------------
 
