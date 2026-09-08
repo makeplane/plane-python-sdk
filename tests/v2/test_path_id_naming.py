@@ -259,12 +259,30 @@ def test_the_check_ignores_id_suffixed_parameters_that_are_not_path_ids() -> Non
     assert path_id_offenders(BodyFieldCycles) == ["BodyFieldCycles.retrieve(cycle_id)"]
 
 
+CATALOG_SIBLINGS = {("Releases", "ReleaseLabels"), ("Releases", "ReleaseTags")}
+"""(parent, child) pairs where the child's `list` is legitimately shorter than its
+parent's `loaded_names` -- exempted rather than made to agree with it.
+
+`ReleaseLabels` and `ReleaseTags` live at `ws.releases.labels`/`.tags` for the sake
+of their per-release *bridges* (`add`/`remove`, which do take `(slug, release)`, the
+`_OwnedReleaseLabels`/`_OwnedReleaseTags` views in `_loaded/release.py`), but each is
+also a workspace-level catalog reached as `Releases`' sibling, not its nested child:
+`ReleaseLabels.list`/`ReleaseTags.list` list the whole workspace catalog and so take
+only `(slug,)`. The rule this test enforces is about a *nested* child's own path ids
+matching what `Owned` will prepend -- it does not apply to a catalog resource that
+merely happens to be attached next to a navigable parent for convenience."""
+
+
 def test_a_childs_leading_parameters_match_what_its_parent_binds() -> None:
     """The rule's whole point: `Owned` compares these names literally, so a navigable
     parent's `loaded_names` and each child's leading parameters have to agree.
 
     Parent/child pairs are read off the live tree -- a resource that gains a child is
-    checked the moment it is wired, with no row to remember to add here."""
+    checked the moment it is wired, with no row to remember to add here. Catalog
+    siblings reached at a navigable parent's attribute name but scoped one path id
+    shorter (see `CATALOG_SIBLINGS`) are exempted, not silently skipped: dropping the
+    name from that set without the class actually changing shape fails this test the
+    same way an unnoticed regression would."""
     reachable = reachable_resources()
     children_of: dict[str, list[type]] = {}
     for child_class, dotted in reachable.items():
@@ -276,6 +294,8 @@ def test_a_childs_leading_parameters_match_what_its_parent_binds() -> None:
         if not bound:
             continue
         for child_class in children_of.get(dotted, []):
+            if (parent_class.__name__, child_class.__name__) in CATALOG_SIBLINGS:
+                continue
             lister = vars(child_class).get("list")
             if not inspect.isfunction(lister):
                 continue

@@ -23,12 +23,12 @@ class ReleaseWorkItems(
         "bridge": "releases_work_items",
     }
 
-    def add(self, release_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+    def add(self, slug: str, release: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
         """Attach 1..100 work items to this release; returns the ids actually
         added (already-attached ones are omitted)."""
-        return self._bridge(key="add", ids=work_item_ids, release_id=release_id)
+        return self._bridge(key="add", ids=work_item_ids, slug=slug, release_id=release)
 
-    def remove(self, release_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+    def remove(self, slug: str, release: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
         """Detach 1..100 work items from this release; returns the ids
         actually removed."""
-        return self._bridge(key="remove", ids=work_item_ids, release_id=release_id)
+        return self._bridge(key="remove", ids=work_item_ids, slug=slug, release_id=release)

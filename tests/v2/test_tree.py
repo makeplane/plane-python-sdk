@@ -90,9 +90,12 @@ def test_workspaces_retrieve(config: Configuration) -> None:
 
 
 # -- Wired but not yet migrated ---------------------------------------------------
-# `Workspaces` wires `Releases` for the sake of `releases.labels`/`releases.tags`;
-# everything else on that branch used to fail with a bare `KeyError: 'slug'` from
-# inside the kernel -- each now says what it is and that migration is pending.
+# `Workspaces` wires `Releases`, and `Releases` is now fully migrated -- its own
+# CRUD plus all six children (`labels`, `tags`, `comments`, `links`, `changelog`,
+# `work_items`) accept the leading path ids their URLs need. `wiki.collections` is
+# the one branch still a placeholder: `Collections` was migrated to the flat shape
+# by an earlier plan, but wiring it onto `Wiki` is separate follow-on work -- see
+# `plane/api/v2/wiki_node.py`.
 # (`WorkItems`' own seven children are all migrated now -- see
 # `tests/v2/test_work_items_resource.py`.)
 
@@ -100,12 +103,6 @@ def test_workspaces_retrieve(config: Configuration) -> None:
 @pytest.mark.parametrize(
     ("reach", "expected"),
     [
-        (lambda v2: v2.workspaces.releases.list(), "Releases.list()"),
-        (lambda v2: v2.workspaces.releases.retrieve("r1"), "Releases.retrieve()"),
-        (lambda v2: v2.workspaces.releases.comments.list(), "ReleaseComments"),
-        (lambda v2: v2.workspaces.releases.links.list(), "ReleaseLinks"),
-        (lambda v2: v2.workspaces.releases.changelog.retrieve("r1"), "ReleaseChangelogResource"),
-        (lambda v2: v2.workspaces.releases.work_items.add("r1", ["w1"]), "ReleaseWorkItems"),
         (lambda v2: v2.workspaces.wiki.collections.list(), "Collections"),
     ],
 )
@@ -134,6 +131,44 @@ def test_the_migrated_sibling_on_an_unmigrated_branch_still_works(config: Config
     assert responses.calls[0].request.url.startswith(
         "https://api.example.com/api/v2/workspaces/acme/releases/labels/"
     )
+
+
+@responses.activate
+def test_releases_own_crud_and_all_six_children_are_reachable(config: Configuration) -> None:
+    """`Releases` and its full family (`labels`, `tags`, `comments`, `links`,
+    `changelog`, `work_items`) are migrated now -- none of them raise
+    `NotImplementedError` any more."""
+    base = "https://api.example.com/api/v2/workspaces/acme/releases"
+    responses.get(f"{base}/", json={"data": [], "pagination": {"style": "offset"}})
+    responses.get(f"{base}/r1/", json={"id": "r1"})
+    responses.get(f"{base}/r1/comments/", json={"data": [], "pagination": {"style": "offset"}})
+    responses.get(f"{base}/r1/links/", json={"data": [], "pagination": {"style": "offset"}})
+    responses.get(f"{base}/r1/changelog/", json={"id": "chg-1"})
+    responses.post(f"{base}/r1/work-items/", json={"added": ["w1"], "removed": []})
+
+    v2 = V2Namespace(config)
+    v2.workspaces.releases.list("acme")
+    v2.workspaces.releases.retrieve("acme", "r1")
+    v2.workspaces.releases.comments.list("acme", "r1")
+    v2.workspaces.releases.links.list("acme", "r1")
+    v2.workspaces.releases.changelog.retrieve("acme", "r1")
+    v2.workspaces.releases.work_items.add("acme", "r1", ["w1"])
+
+    assert len(responses.calls) == 6
+
+
+@responses.activate
+def test_a_fetched_release_reaches_its_children_with_no_ids_repeated(
+    config: Configuration,
+) -> None:
+    base = "https://api.example.com/api/v2/workspaces/acme/releases"
+    responses.get(f"{base}/r1/", json={"id": "r1", "name": "v1.0"})
+    responses.get(f"{base}/r1/comments/", json={"data": [], "pagination": {"style": "offset"}})
+
+    release = V2Namespace(config).workspaces.releases.retrieve("acme", "r1")
+    release.comments.list()
+
+    assert responses.calls[1].request.url == f"{base}/r1/comments/"
 
 
 def test_wiki_collections_is_present_rather_than_a_bare_attribute_error(

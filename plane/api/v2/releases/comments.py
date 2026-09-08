@@ -1,11 +1,21 @@
-"""Release comments (api_v2) -- nested under a release."""
+"""Release comments (api_v2) -- nested under a release. Plain CRUD five only: no
+upsert, no bulk-* operationIds exist for this shard (unlike work-item comments)."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.releases import CreateReleaseComment, ReleaseComment, UpdateReleaseComment
+from .._generated.constants import (
+    ReleaseCommentsCreateField,
+    ReleaseCommentsListField,
+    ReleaseCommentsListFilters,
+    ReleaseCommentsListOrderBy,
+    ReleaseCommentsPartialUpdateField,
+    ReleaseCommentsRetrieveField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -23,43 +33,76 @@ class ReleaseComments(V2Resource[ReleaseComment, CreateReleaseComment, UpdateRel
 
     def list(
         self,
-        release_id: str,
+        slug: str,
+        release: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[ReleaseCommentsListField] | None = None,
+        order_by: ReleaseCommentsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[ReleaseCommentsListFilters],
     ) -> Page[ReleaseComment]:
         """One page of comments on a release."""
-        return self._list(release_id=release_id, params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            release_id=release,
+        )
 
     def iterate(
         self,
-        release_id: str,
+        slug: str,
+        release: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[ReleaseCommentsListField] | None = None,
+        order_by: ReleaseCommentsListOrderBy | None = None,
+        **filters: Unpack[ReleaseCommentsListFilters],
     ) -> Iterator[ReleaseComment]:
         """Every comment on a release, following pages automatically."""
-        return self._iter(release_id=release_id, params={"fields": fields, **filters})
+        return self._iter(
+            params={"fields": fields, "order_by": order_by, **filters},
+            slug=slug,
+            release_id=release,
+        )
 
     def retrieve(
         self,
-        release_id: str,
-        comment_id: str,
+        slug: str,
+        release: str,
+        comment: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ReleaseCommentsRetrieveField] | None = None,
     ) -> ReleaseComment:
-        return self._retrieve(pk=comment_id, release_id=release_id, params={"fields": fields})
+        return self._retrieve(pk=comment, params={"fields": fields}, slug=slug, release_id=release)
 
-    def create(self, release_id: str, data: CreateReleaseComment) -> ReleaseComment:
-        return self._create(data, release_id=release_id)
+    def create(
+        self,
+        slug: str,
+        release: str,
+        data: CreateReleaseComment,
+        *,
+        fields: Sequence[ReleaseCommentsCreateField] | None = None,
+    ) -> ReleaseComment:
+        return self._create(data, params={"fields": fields}, slug=slug, release_id=release)
 
     def update(
         self,
-        release_id: str,
-        comment_id: str,
+        slug: str,
+        release: str,
+        comment: str,
         data: UpdateReleaseComment,
+        *,
+        fields: Sequence[ReleaseCommentsPartialUpdateField] | None = None,
     ) -> ReleaseComment:
-        return self._update(data, pk=comment_id, release_id=release_id)
+        return self._update(
+            data, pk=comment, params={"fields": fields}, slug=slug, release_id=release
+        )
 
-    def delete(self, release_id: str, comment_id: str) -> None:
-        return self._delete(pk=comment_id, release_id=release_id)
+    def delete(self, slug: str, release: str, comment: str) -> None:
+        return self._delete(pk=comment, slug=slug, release_id=release)

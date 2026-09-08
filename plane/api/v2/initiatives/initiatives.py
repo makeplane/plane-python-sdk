@@ -1,16 +1,31 @@
 """Initiatives (api_v2) -- workspace-scoped, unlike states/labels/work items.
 Label/project/work-item membership are the `.labels`/`.projects`/`.work_items`
-bridges (`add`/`remove`), not methods on `Initiatives` itself."""
+bridges (`add`/`remove`), not methods on `Initiatives` itself.
+
+A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as a
+`LoadedInitiative`: it carries the row's data and can reach `.projects.add(...)` and
+friends without the caller repeating `slug`/`initiative`."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.initiatives import CreateInitiative, Initiative, UpdateInitiative
+from .._generated.constants import (
+    InitiativesCreateField,
+    InitiativesListField,
+    InitiativesListFilters,
+    InitiativesListOrderBy,
+    InitiativesPartialUpdateField,
+    InitiativesRetrieveField,
+)
+from .._kernel.loaded import LoadsNavigableRows
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
+from .._loaded.initiative import LoadedInitiative
 from .labels import InitiativeLabels
 from .projects import InitiativeProjects
 from .work_items import InitiativeWorkItems
@@ -18,9 +33,13 @@ from .work_items import InitiativeWorkItems
 __all__ = ["InitiativeLabels", "InitiativeProjects", "InitiativeWorkItems", "Initiatives"]
 
 
-class Initiatives(V2Resource[Initiative, CreateInitiative, UpdateInitiative]):
+class Initiatives(
+    V2Resource[Initiative, CreateInitiative, UpdateInitiative], LoadsNavigableRows[LoadedInitiative]
+):
     path = "/workspaces/{slug}/initiatives/"
     model = Initiative
+    loaded_model = LoadedInitiative
+    loaded_names = ("slug", "initiative")
     operations = {
         "list": "initiatives_list",
         "retrieve": "initiatives_retrieve",
@@ -29,52 +48,93 @@ class Initiatives(V2Resource[Initiative, CreateInitiative, UpdateInitiative]):
         "delete": "initiatives_destroy",
     }
 
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        super().__init__(transport, **scope)
-        self.labels = InitiativeLabels(transport, **self._scope)
-        self.projects = InitiativeProjects(transport, **self._scope)
-        self.work_items = InitiativeWorkItems(transport, **self._scope)
+    def __init__(self, transport: V2Transport) -> None:
+        super().__init__(transport)
+        self.labels = InitiativeLabels(transport)
+        self.projects = InitiativeProjects(transport)
+        self.work_items = InitiativeWorkItems(transport)
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[InitiativesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
-    ) -> Page[Initiative]:
-        """One page of initiatives in a workspace.
-
-        `**filters` covers `lead_id`, `state`/`state__in`, `search`."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        order_by: InitiativesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[InitiativesListFilters],
+    ) -> Page[LoadedInitiative]:
+        """One page of initiatives in the workspace."""
+        page = self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
+        return self._load_page(page, slug, fields=fields)
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[InitiativesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
-    ) -> Iterator[Initiative]:
-        """Every initiative in a workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        order_by: InitiativesListOrderBy | None = None,
+        **filters: Unpack[InitiativesListFilters],
+    ) -> Iterator[LoadedInitiative]:
+        """Every initiative in the workspace, following pages automatically."""
+        rows = self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+        )
+        return (self._load(row, slug, fields=fields) for row in rows)
 
     def retrieve(
         self,
-        pk: str,
+        slug: str,
+        initiative: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[InitiativesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Initiative:
-        return self._retrieve(pk=pk, params={"fields": fields, "expand": expand})
+    ) -> LoadedInitiative:
+        row = self._retrieve(pk=initiative, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug, fields=fields)
 
-    def find_by_name(self, name: str) -> Initiative:
+    def find_by_name(self, slug: str, name: str) -> LoadedInitiative:
         """The one initiative with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        row = self._find_one(filters={"name": name}, slug=slug)
+        return self._load(row, slug)
 
-    def create(self, data: CreateInitiative) -> Initiative:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateInitiative,
+        *,
+        fields: Sequence[InitiativesCreateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> LoadedInitiative:
+        row = self._create(data, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug, fields=fields)
 
-    def update(self, pk: str, data: UpdateInitiative) -> Initiative:
-        return self._update(data, pk=pk)
+    def update(
+        self,
+        slug: str,
+        initiative: str,
+        data: UpdateInitiative,
+        *,
+        fields: Sequence[InitiativesPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> LoadedInitiative:
+        row = self._update(
+            data, pk=initiative, params={"fields": fields, "expand": expand}, slug=slug
+        )
+        return self._load(row, slug, fields=fields)
 
-    def delete(self, pk: str) -> None:
-        return self._delete(pk=pk)
+    def delete(self, slug: str, initiative: str) -> None:
+        return self._delete(pk=initiative, slug=slug)

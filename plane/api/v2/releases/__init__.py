@@ -3,22 +3,30 @@ a `.work_items` membership bridge, a `.changelog` singleton, catalog siblings
 `.labels` (itself a bridge for the per-release association)/`.tags`, and
 nested `.comments`/`.links` (see `tags.py` for a golden/server mismatch).
 
-**Only `.labels` and `.tags` are migrated to the flat shape.** `Releases` is wired
-onto `Workspaces` for their sake, so `ws.releases.labels` and `ws.releases.tags`
-work; the class's own CRUD and its other children still omit the leading `slug`,
-and each says so when used -- see `_kernel/pending.py`. The unmigrated bodies are
-kept as the starting point for that work."""
+A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as a
+`LoadedRelease`: it carries the row's data and can reach `.comments.list(...)` and
+friends without the caller repeating `slug`/`release`."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.releases import CreateRelease, Release, UpdateRelease
+from .._generated.constants import (
+    ReleasesCreateField,
+    ReleasesListField,
+    ReleasesListFilters,
+    ReleasesListOrderBy,
+    ReleasesPartialUpdateField,
+    ReleasesRetrieveField,
+)
+from .._kernel.loaded import LoadsNavigableRows
 from .._kernel.pagination import Page
-from .._kernel.pending import PendingMigration, pending_flat_migration
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
+from .._loaded.release import LoadedRelease
 from .changelog import ReleaseChangelogResource
 from .comments import ReleaseComments
 from .labels import ReleaseLabels
@@ -37,9 +45,13 @@ __all__ = [
 ]
 
 
-class Releases(V2Resource[Release, CreateRelease, UpdateRelease]):
+class Releases(
+    V2Resource[Release, CreateRelease, UpdateRelease], LoadsNavigableRows[LoadedRelease]
+):
     path = "/workspaces/{slug}/releases/"
     model = Release
+    loaded_model = LoadedRelease
+    loaded_names = ("slug", "release")
     operations = {
         "list": "releases_list",
         "retrieve": "releases_retrieve",
@@ -51,65 +63,91 @@ class Releases(V2Resource[Release, CreateRelease, UpdateRelease]):
     def __init__(self, transport: V2Transport) -> None:
         super().__init__(transport)
         self.labels = ReleaseLabels(transport)
-        # Wired as placeholders, not as the real classes: each still takes only its
-        # own id and would build `/workspaces/{slug}/...` with no slug to fill it.
-        self.comments = PendingMigration("ReleaseComments", reached_as="releases.comments")
-        self.links = PendingMigration("ReleaseLinks", reached_as="releases.links")
         self.tags = ReleaseTags(transport)
-        self.changelog = PendingMigration(
-            "ReleaseChangelogResource", reached_as="releases.changelog"
-        )
-        self.work_items = PendingMigration("ReleaseWorkItems", reached_as="releases.work_items")
+        self.comments = ReleaseComments(transport)
+        self.links = ReleaseLinks(transport)
+        self.changelog = ReleaseChangelogResource(transport)
+        self.work_items = ReleaseWorkItems(transport)
 
-    # -- Workspace-scoped CRUD (pending flat migration: no leading `slug` yet) ----
-
-    @pending_flat_migration
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ReleasesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
-    ) -> Page[Release]:
-        """One page of releases in the workspace.
+        order_by: ReleasesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[ReleasesListFilters],
+    ) -> Page[LoadedRelease]:
+        """One page of releases in the workspace."""
+        page = self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
+        return self._load_page(page, slug, fields=fields)
 
-        `**filters` covers `status`, `lead_id`, `tag_id`, `is_latest`."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
-
-    @pending_flat_migration
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ReleasesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
-    ) -> Iterator[Release]:
+        order_by: ReleasesListOrderBy | None = None,
+        **filters: Unpack[ReleasesListFilters],
+    ) -> Iterator[LoadedRelease]:
         """Every release in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        rows = self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+        )
+        return (self._load(row, slug, fields=fields) for row in rows)
 
-    @pending_flat_migration
     def retrieve(
         self,
-        release_id: str,
+        slug: str,
+        release: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ReleasesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Release:
-        return self._retrieve(pk=release_id, params={"fields": fields, "expand": expand})
+    ) -> LoadedRelease:
+        row = self._retrieve(pk=release, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug, fields=fields)
 
-    @pending_flat_migration
-    def find_by_name(self, name: str) -> Release:
+    def find_by_name(self, slug: str, name: str) -> LoadedRelease:
         """The one release with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        row = self._find_one(filters={"name": name}, slug=slug)
+        return self._load(row, slug)
 
-    @pending_flat_migration
-    def create(self, data: CreateRelease) -> Release:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateRelease,
+        *,
+        fields: Sequence[ReleasesCreateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> LoadedRelease:
+        row = self._create(data, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug, fields=fields)
 
-    @pending_flat_migration
-    def update(self, release_id: str, data: UpdateRelease) -> Release:
-        return self._update(data, pk=release_id)
+    def update(
+        self,
+        slug: str,
+        release: str,
+        data: UpdateRelease,
+        *,
+        fields: Sequence[ReleasesPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> LoadedRelease:
+        row = self._update(data, pk=release, params={"fields": fields, "expand": expand}, slug=slug)
+        return self._load(row, slug, fields=fields)
 
-    @pending_flat_migration
-    def delete(self, release_id: str) -> None:
-        return self._delete(pk=release_id)
+    def delete(self, slug: str, release: str) -> None:
+        return self._delete(pk=release, slug=slug)

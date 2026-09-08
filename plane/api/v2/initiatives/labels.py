@@ -1,15 +1,25 @@
-"""Initiative labels (api_v2) -- a workspace-level taxonomy, *not* nested under
-an initiative id despite living at `initiatives.labels`. `create` defines a
-label in the workspace catalog; `add`/`remove` (the bridge) put an existing
-one on -- or take it off -- one initiative."""
+"""Initiative label catalog (api_v2). Workspace-level, distinct from the
+per-initiative association (`InitiativeLabels.add`/`.remove`) -- the catalog CRUD
+hits `path` (`.../initiatives/labels/`) while `add`/`remove` bridge to the
+`extra_paths` override (`.../initiatives/{initiative_id}/labels/`) via `url_for`.
+Same shape as `releases/labels.py` -- copied from it."""
 
 from __future__ import annotations
 
 import builtins
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.initiatives import CreateInitiativeLabel, InitiativeLabel, UpdateInitiativeLabel
+from .._generated.constants import (
+    InitiativeLabelsCreateField,
+    InitiativeLabelsListField,
+    InitiativeLabelsListFilters,
+    InitiativeLabelsListOrderBy,
+    InitiativeLabelsPartialUpdateField,
+    InitiativeLabelsRetrieveField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -32,44 +42,83 @@ class InitiativeLabels(V2Resource[InitiativeLabel, CreateInitiativeLabel, Update
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[InitiativeLabelsListField] | None = None,
+        order_by: InitiativeLabelsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[InitiativeLabelsListFilters],
     ) -> Page[InitiativeLabel]:
-        """One page of initiative labels in a workspace."""
-        return self._list(params={"fields": fields, **filters})
+        """One page of the workspace's initiative-label catalog."""
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[InitiativeLabelsListField] | None = None,
+        order_by: InitiativeLabelsListOrderBy | None = None,
+        **filters: Unpack[InitiativeLabelsListFilters],
     ) -> Iterator[InitiativeLabel]:
-        """Every initiative label in a workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        """Every initiative label in the workspace, following pages automatically."""
+        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
 
-    def retrieve(self, pk: str, *, fields: Sequence[str] | None = None) -> InitiativeLabel:
-        return self._retrieve(pk=pk, params={"fields": fields})
+    def retrieve(
+        self,
+        slug: str,
+        label: str,
+        *,
+        fields: Sequence[InitiativeLabelsRetrieveField] | None = None,
+    ) -> InitiativeLabel:
+        return self._retrieve(pk=label, params={"fields": fields}, slug=slug)
 
-    def find_by_name(self, name: str) -> InitiativeLabel:
+    def find_by_name(self, slug: str, name: str) -> InitiativeLabel:
         """The one initiative label with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        return self._find_one(filters={"name": name}, slug=slug)
 
-    def create(self, data: CreateInitiativeLabel) -> InitiativeLabel:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateInitiativeLabel,
+        *,
+        fields: Sequence[InitiativeLabelsCreateField] | None = None,
+    ) -> InitiativeLabel:
+        """Define a new label in the workspace catalog. To put an existing
+        label on an initiative, use `.add` instead."""
+        return self._create(data, params={"fields": fields}, slug=slug)
 
-    def update(self, pk: str, data: UpdateInitiativeLabel) -> InitiativeLabel:
-        return self._update(data, pk=pk)
+    def update(
+        self,
+        slug: str,
+        label: str,
+        data: UpdateInitiativeLabel,
+        *,
+        fields: Sequence[InitiativeLabelsPartialUpdateField] | None = None,
+    ) -> InitiativeLabel:
+        return self._update(data, pk=label, params={"fields": fields}, slug=slug)
 
-    def delete(self, pk: str) -> None:
-        return self._delete(pk=pk)
+    def delete(self, slug: str, label: str) -> None:
+        return self._delete(pk=label, slug=slug)
 
-    def add(self, initiative_id: str, label_ids: Sequence[str]) -> builtins.list[str]:
-        """Put 1..100 existing labels on this initiative; returns the ids
-        actually added (already-present ones are omitted)."""
-        return self._bridge(key="add", ids=label_ids, initiative_id=initiative_id)
+    # -- Per-initiative membership bridge (alternate path via `extra_paths`) ---
 
-    def remove(self, initiative_id: str, label_ids: Sequence[str]) -> builtins.list[str]:
+    def add(self, slug: str, initiative: str, label_ids: Sequence[str]) -> builtins.list[str]:
+        """Put 1..100 existing catalog labels on this initiative; returns the
+        ids actually added (already-present ones are omitted). POSTs to the
+        `extra_paths["add"]` override, not `path`."""
+        return self._bridge(key="add", ids=label_ids, slug=slug, initiative_id=initiative)
+
+    def remove(self, slug: str, initiative: str, label_ids: Sequence[str]) -> builtins.list[str]:
         """Take 1..100 labels off this initiative; returns the ids actually
-        removed."""
-        return self._bridge(key="remove", ids=label_ids, initiative_id=initiative_id)
+        removed. POSTs to the `extra_paths["remove"]` override, not `path`."""
+        return self._bridge(key="remove", ids=label_ids, slug=slug, initiative_id=initiative)

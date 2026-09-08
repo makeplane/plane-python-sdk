@@ -28,12 +28,12 @@ class InitiativeProjects(
         "bridge": "initiatives_projects",
     }
 
-    def add(self, initiative_id: str, project_ids: Sequence[str]) -> builtins.list[str]:
+    def add(self, slug: str, initiative: str, project_ids: Sequence[str]) -> builtins.list[str]:
         """Attach 1..100 projects to this initiative; returns the ids actually
         added (already-attached ones are omitted)."""
-        return self._bridge(key="add", ids=project_ids, initiative_id=initiative_id)
+        return self._bridge(key="add", ids=project_ids, slug=slug, initiative_id=initiative)
 
-    def remove(self, initiative_id: str, project_ids: Sequence[str]) -> builtins.list[str]:
+    def remove(self, slug: str, initiative: str, project_ids: Sequence[str]) -> builtins.list[str]:
         """Detach 1..100 projects from this initiative; returns the ids
         actually removed."""
-        return self._bridge(key="remove", ids=project_ids, initiative_id=initiative_id)
+        return self._bridge(key="remove", ids=project_ids, slug=slug, initiative_id=initiative)

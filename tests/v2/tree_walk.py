@@ -53,11 +53,6 @@ WALK_CONFIG = Configuration(base_path="https://api.example.com", api_key="secret
 
 UNMIGRATED_RESOURCES = frozenset(
     {
-        # initiatives
-        "InitiativeLabels",
-        "InitiativeProjects",
-        "InitiativeWorkItems",
-        "Initiatives",
         # automations (project and workspace flavours)
         "ProjectAutomationActivities",
         "ProjectAutomationEdges",
@@ -67,11 +62,6 @@ UNMIGRATED_RESOURCES = frozenset(
         "WorkspaceAutomationEdges",
         "WorkspaceAutomationNodes",
         "WorkspaceAutomations",
-        # the four release children that stayed behind when labels/tags migrated
-        "ReleaseChangelogResource",
-        "ReleaseComments",
-        "ReleaseLinks",
-        "ReleaseWorkItems",
         # work item types and properties (both flavours)
         "WorkItemProperties",
         "WorkItemPropertyContexts",

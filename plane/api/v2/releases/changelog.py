@@ -1,5 +1,10 @@
 """Release changelog (api_v2) -- one singleton per release, nested under a release id.
-Named `ReleaseChangelogResource` to avoid clashing with the `ReleaseChangelog` model."""
+Named `ReleaseChangelogResource` to avoid clashing with the `ReleaseChangelog` model.
+
+No pk of its own: a GET auto-creates it empty (there is no create/delete), so it goes
+through the kernel's `_retrieve_singleton`/`_update_singleton` pair, not `_retrieve`/
+`_update`, which both require a `pk` to append. The golden declares no `?fields=` or
+`?expand=` for either operation, so neither is exposed here."""
 
 from __future__ import annotations
 
@@ -21,16 +26,10 @@ class ReleaseChangelogResource(
         "update": "releases_changelog_partial_update",
     }
 
-    def retrieve(self, release_id: str) -> ReleaseChangelog:
+    def retrieve(self, slug: str, release: str) -> ReleaseChangelog:
         """The release's changelog. One per release, created implicitly with
         it -- there is no create/delete."""
-        payload = self.transport.request("GET", self._collection_url(release_id=release_id))
-        return self.model.model_validate(payload)
+        return self._retrieve_singleton(slug=slug, release_id=release)
 
-    def update(self, release_id: str, data: UpdateReleaseChangelog) -> ReleaseChangelog:
-        payload = self.transport.request(
-            "PATCH",
-            self._collection_url(release_id=release_id),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return self.model.model_validate(payload)
+    def update(self, slug: str, release: str, data: UpdateReleaseChangelog) -> ReleaseChangelog:
+        return self._update_singleton(data, slug=slug, release_id=release)
