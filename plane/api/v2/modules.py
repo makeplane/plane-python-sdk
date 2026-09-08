@@ -1,6 +1,10 @@
 """Project modules (api_v2). Module membership (`member_ids`) is read-only:
 the golden's `ModuleWriteRequest` has no writable member field; work item
-membership is the `.work_items` bridge (`add`/`remove`)."""
+membership is the `.work_items` bridge (`add`/`remove`).
+
+A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as a
+`LoadedModule`: it carries the row's data and can reach `.work_items.add(...)`
+without the caller repeating `slug`/`project`/`module`."""
 
 from __future__ import annotations
 
@@ -24,9 +28,11 @@ from ._generated.constants import (
     ModulesRetrieveField,
     ModulesUpsertField,
 )
+from ._kernel.loaded import LoadsNavigableRows
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
+from ._loaded.module import LoadedModule
 
 
 class ModuleWorkItems(
@@ -63,9 +69,11 @@ class ModuleWorkItems(
         )
 
 
-class Modules(V2Resource[Module, CreateModule, UpdateModule]):
+class Modules(V2Resource[Module, CreateModule, UpdateModule], LoadsNavigableRows[LoadedModule]):
     path = "/workspaces/{slug}/projects/{project_id}/modules/"
     model = Module
+    loaded_model = LoadedModule
+    loaded_names = ("slug", "project", "module")
     operations = {
         "list": "modules_list",
         "retrieve": "modules_retrieve",
@@ -93,9 +101,9 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
         per_page: int | None = None,
         offset: int | None = None,
         **filters: Unpack[ModulesListFilters],
-    ) -> Page[Module]:
+    ) -> Page[LoadedModule]:
         """One page of modules in this project."""
-        return self._list(
+        page = self._list(
             params={
                 "fields": fields,
                 "expand": expand,
@@ -107,6 +115,7 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
             slug=slug,
             project_id=project,
         )
+        return self._load_page(page, slug, project, fields=fields)
 
     def iterate(
         self,
@@ -117,13 +126,14 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
         expand: Sequence[str] | None = None,
         order_by: ModulesListOrderBy | None = None,
         **filters: Unpack[ModulesListFilters],
-    ) -> Iterator[Module]:
+    ) -> Iterator[LoadedModule]:
         """Every module, following pages automatically."""
-        return self._iter(
+        rows = self._iter(
             params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
             slug=slug,
             project_id=project,
         )
+        return (self._load(row, slug, project, fields=fields) for row in rows)
 
     def retrieve(
         self,
@@ -133,14 +143,16 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
         *,
         fields: Sequence[ModulesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Module:
-        return self._retrieve(
+    ) -> LoadedModule:
+        row = self._retrieve(
             pk=module, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
-    def find_by_name(self, slug: str, project: str, name: str) -> Module:
+    def find_by_name(self, slug: str, project: str, name: str) -> LoadedModule:
         """The one module with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name}, slug=slug, project_id=project)
+        row = self._find_one(filters={"name": name}, slug=slug, project_id=project)
+        return self._load(row, slug, project)
 
     def create(
         self,
@@ -150,10 +162,11 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
         *,
         fields: Sequence[ModulesCreateField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Module:
-        return self._create(
+    ) -> LoadedModule:
+        row = self._create(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
     def update(
         self,
@@ -164,14 +177,15 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
         *,
         fields: Sequence[ModulesPartialUpdateField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Module:
-        return self._update(
+    ) -> LoadedModule:
+        row = self._update(
             data,
             pk=module,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
         )
+        return self._load(row, slug, project, fields=fields)
 
     def delete(self, slug: str, project: str, module: str) -> None:
         return self._delete(pk=module, slug=slug, project_id=project)
@@ -184,11 +198,12 @@ class Modules(V2Resource[Module, CreateModule, UpdateModule]):
         *,
         fields: Sequence[ModulesUpsertField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Module:
+    ) -> LoadedModule:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(
+        row = self._upsert(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
     def bulk_create(
         self,

@@ -1,7 +1,11 @@
 """Project cycles (api_v2). `transfer` doesn't fit the CRUD request/response shape
 `V2Resource` generates, so it goes through the kernel's custom-action helper
 (`_custom_action`) instead of `_action`, which assumes the response is the resource's
-own `model`; cycle membership is the `.work_items` bridge (`add`/`remove`)."""
+own `model`; cycle membership is the `.work_items` bridge (`add`/`remove`).
+
+A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as a
+`LoadedCycle`: it carries the row's data and can reach `.work_items.add(...)` without
+the caller repeating `slug`/`project`/`cycle`."""
 
 from __future__ import annotations
 
@@ -27,9 +31,11 @@ from ._generated.constants import (
     CyclesRetrieveField,
     CyclesUpsertField,
 )
+from ._kernel.loaded import LoadsNavigableRows
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
+from ._loaded.cycle import LoadedCycle
 
 
 class CycleWorkItems(
@@ -63,9 +69,11 @@ class CycleWorkItems(
         )
 
 
-class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
+class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle], LoadsNavigableRows[LoadedCycle]):
     path = "/workspaces/{slug}/projects/{project_id}/cycles/"
     model = Cycle
+    loaded_model = LoadedCycle
+    loaded_names = ("slug", "project", "cycle")
     operations = {
         "list": "cycles_list",
         "retrieve": "cycles_retrieve",
@@ -94,9 +102,9 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
         per_page: int | None = None,
         offset: int | None = None,
         **filters: Unpack[CyclesListFilters],
-    ) -> Page[Cycle]:
+    ) -> Page[LoadedCycle]:
         """One page of cycles in this project."""
-        return self._list(
+        page = self._list(
             params={
                 "fields": fields,
                 "expand": expand,
@@ -108,6 +116,7 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
             slug=slug,
             project_id=project,
         )
+        return self._load_page(page, slug, project, fields=fields)
 
     def iterate(
         self,
@@ -118,13 +127,14 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
         expand: Sequence[str] | None = None,
         order_by: CyclesListOrderBy | None = None,
         **filters: Unpack[CyclesListFilters],
-    ) -> Iterator[Cycle]:
+    ) -> Iterator[LoadedCycle]:
         """Every cycle, following pages automatically."""
-        return self._iter(
+        rows = self._iter(
             params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
             slug=slug,
             project_id=project,
         )
+        return (self._load(row, slug, project, fields=fields) for row in rows)
 
     def retrieve(
         self,
@@ -134,14 +144,16 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
         *,
         fields: Sequence[CyclesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Cycle:
-        return self._retrieve(
+    ) -> LoadedCycle:
+        row = self._retrieve(
             pk=cycle, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
-    def find_by_name(self, slug: str, project: str, name: str) -> Cycle:
+    def find_by_name(self, slug: str, project: str, name: str) -> LoadedCycle:
         """The one cycle with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name}, slug=slug, project_id=project)
+        row = self._find_one(filters={"name": name}, slug=slug, project_id=project)
+        return self._load(row, slug, project)
 
     def create(
         self,
@@ -151,10 +163,11 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
         *,
         fields: Sequence[CyclesCreateField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Cycle:
-        return self._create(
+    ) -> LoadedCycle:
+        row = self._create(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
     def update(
         self,
@@ -165,14 +178,15 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
         *,
         fields: Sequence[CyclesPartialUpdateField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Cycle:
-        return self._update(
+    ) -> LoadedCycle:
+        row = self._update(
             data,
             pk=cycle,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
         )
+        return self._load(row, slug, project, fields=fields)
 
     def delete(self, slug: str, project: str, cycle: str) -> None:
         return self._delete(pk=cycle, slug=slug, project_id=project)
@@ -185,11 +199,12 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
         *,
         fields: Sequence[CyclesUpsertField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Cycle:
+    ) -> LoadedCycle:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(
+        row = self._upsert(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
     def bulk_create(
         self,

@@ -1,5 +1,11 @@
 """Estimates (api_v2) -- project-scoped, with nested estimate points.
-Mirrors `states`/`labels` (CRUD + upsert + bulk), plus `expand=["points"]`."""
+Mirrors `states`/`labels` (CRUD + upsert + bulk), plus `expand=["points"]`.
+
+A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as a
+`LoadedEstimate`: it carries the row's data and can reach `.estimate_points.list()`
+etc. without the caller repeating `slug`/`project`/`estimate` -- named
+`estimate_points`, not `points`, because `points` is itself a real field (inline
+data returned when the caller passes `expand=["points"]`)."""
 
 from __future__ import annotations
 
@@ -19,17 +25,23 @@ from .._generated.constants import (
     EstimatesRetrieveField,
     EstimatesUpsertField,
 )
+from .._kernel.loaded import LoadsNavigableRows
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
+from .._loaded.estimate import LoadedEstimate
 from .points import EstimatePoints
 
 __all__ = ["EstimatePoints", "Estimates"]
 
 
-class Estimates(V2Resource[Estimate, CreateEstimate, UpdateEstimate]):
+class Estimates(
+    V2Resource[Estimate, CreateEstimate, UpdateEstimate], LoadsNavigableRows[LoadedEstimate]
+):
     path = "/workspaces/{slug}/projects/{project_id}/estimates/"
     model = Estimate
+    loaded_model = LoadedEstimate
+    loaded_names = ("slug", "project", "estimate")
     operations = {
         "list": "estimates_list",
         "retrieve": "estimates_retrieve",
@@ -57,10 +69,10 @@ class Estimates(V2Resource[Estimate, CreateEstimate, UpdateEstimate]):
         per_page: int | None = None,
         offset: int | None = None,
         **filters: Unpack[EstimatesListFilters],
-    ) -> Page[Estimate]:
+    ) -> Page[LoadedEstimate]:
         """One page of estimates in this project. Pass `expand=["points"]` to
         inline each estimate's points."""
-        return self._list(
+        page = self._list(
             params={
                 "fields": fields,
                 "expand": expand,
@@ -72,6 +84,7 @@ class Estimates(V2Resource[Estimate, CreateEstimate, UpdateEstimate]):
             slug=slug,
             project_id=project,
         )
+        return self._load_page(page, slug, project, fields=fields)
 
     def iterate(
         self,
@@ -82,13 +95,14 @@ class Estimates(V2Resource[Estimate, CreateEstimate, UpdateEstimate]):
         expand: Sequence[str] | None = None,
         order_by: EstimatesListOrderBy | None = None,
         **filters: Unpack[EstimatesListFilters],
-    ) -> Iterator[Estimate]:
+    ) -> Iterator[LoadedEstimate]:
         """Every estimate in this project, following pages automatically."""
-        return self._iter(
+        rows = self._iter(
             params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
             slug=slug,
             project_id=project,
         )
+        return (self._load(row, slug, project, fields=fields) for row in rows)
 
     def retrieve(
         self,
@@ -98,17 +112,19 @@ class Estimates(V2Resource[Estimate, CreateEstimate, UpdateEstimate]):
         *,
         fields: Sequence[EstimatesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Estimate:
-        return self._retrieve(
+    ) -> LoadedEstimate:
+        row = self._retrieve(
             pk=estimate,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
         )
+        return self._load(row, slug, project, fields=fields)
 
-    def find_by_name(self, slug: str, project: str, name: str) -> Estimate:
+    def find_by_name(self, slug: str, project: str, name: str) -> LoadedEstimate:
         """The one estimate with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name}, slug=slug, project_id=project)
+        row = self._find_one(filters={"name": name}, slug=slug, project_id=project)
+        return self._load(row, slug, project)
 
     def create(
         self,
@@ -118,10 +134,11 @@ class Estimates(V2Resource[Estimate, CreateEstimate, UpdateEstimate]):
         *,
         fields: Sequence[EstimatesCreateField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Estimate:
-        return self._create(
+    ) -> LoadedEstimate:
+        row = self._create(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
     def update(
         self,
@@ -132,14 +149,15 @@ class Estimates(V2Resource[Estimate, CreateEstimate, UpdateEstimate]):
         *,
         fields: Sequence[EstimatesPartialUpdateField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Estimate:
-        return self._update(
+    ) -> LoadedEstimate:
+        row = self._update(
             data,
             pk=estimate,
             params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
         )
+        return self._load(row, slug, project, fields=fields)
 
     def delete(self, slug: str, project: str, estimate: str) -> None:
         return self._delete(pk=estimate, slug=slug, project_id=project)
@@ -152,11 +170,12 @@ class Estimates(V2Resource[Estimate, CreateEstimate, UpdateEstimate]):
         *,
         fields: Sequence[EstimatesUpsertField] | None = None,
         expand: Sequence[str] | None = None,
-    ) -> Estimate:
+    ) -> LoadedEstimate:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(
+        row = self._upsert(
             data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
     def bulk_create(
         self,

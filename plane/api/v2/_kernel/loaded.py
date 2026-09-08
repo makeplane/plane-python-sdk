@@ -53,7 +53,12 @@ class Loaded:
             # A caller that asked for fewer fields than the server sent still sees only
             # what it asked for; `id` is always available.
             returned &= requested | {"id"}
-        data = {key: value for key, value in row.model_dump().items() if key in returned}
+        # Read values straight off `row` rather than `row.model_dump()`: a dump
+        # recursively flattens nested models (e.g. `Estimate.points:
+        # list[EstimatePoint]`) into plain dicts, and `model_construct` below does
+        # not re-validate, so a dumped nested value would stay a dict forever
+        # instead of the model instance the caller expects.
+        data = {key: getattr(row, key) for key in returned}
         obj = cls.model_construct(**data)  # type: ignore[attr-defined]
         # `model_construct` back-fills declared defaults, so a field the server never
         # sent would read as `None` and look like real data. Drop those, so reading one

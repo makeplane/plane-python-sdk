@@ -8,6 +8,7 @@ import pytest
 import responses
 from responses import matchers
 
+from plane.api.v2._kernel.errors import FieldNotRequested
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.estimates import EstimatePoints, Estimates
 from plane.config import Configuration
@@ -72,7 +73,10 @@ def test_find_by_name(estimates: Estimates) -> None:
 
 
 @responses.activate
-def test_sparse_response_leaves_absent_fields_none(estimates: Estimates) -> None:
+def test_sparse_response_raises_for_a_field_not_requested(estimates: Estimates) -> None:
+    """`estimates.list` now returns navigable (`Loaded`) rows: a field neither
+    requested nor returned raises `FieldNotRequested` instead of reading as a
+    silent `None` -- see `tests/v2/test_loaded_families.py`."""
     responses.get(
         f"{BASE}/",
         json={"data": [{"id": "1"}], "pagination": {"style": "offset"}},
@@ -81,8 +85,10 @@ def test_sparse_response_leaves_absent_fields_none(estimates: Estimates) -> None
     page = estimates.list("acme", "ENG", fields=["id"])
 
     assert page.data[0].id == "1"
-    assert page.data[0].name is None
-    assert page.data[0].last_used is None
+    with pytest.raises(FieldNotRequested, match="name"):
+        _ = page.data[0].name
+    with pytest.raises(FieldNotRequested, match="last_used"):
+        _ = page.data[0].last_used
 
 
 @responses.activate

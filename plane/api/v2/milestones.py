@@ -1,7 +1,11 @@
 """Project milestones (api_v2). Golden calls the identifying field `title`, but
 the list filter is still `?name=` (aliased server-side); `find_by_name` keeps
 the same `name` parameter every other resource uses. Milestone membership is
-the `.work_items` bridge (`add`/`remove`)."""
+the `.work_items` bridge (`add`/`remove`).
+
+A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as a
+`LoadedMilestone`: it carries the row's data and can reach `.work_items.add(...)`
+without the caller repeating `slug`/`project`/`milestone`."""
 
 from __future__ import annotations
 
@@ -25,9 +29,11 @@ from ._generated.constants import (
     MilestonesRetrieveField,
     MilestonesUpsertField,
 )
+from ._kernel.loaded import LoadsNavigableRows
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
+from ._loaded.milestone import LoadedMilestone
 
 
 class MilestoneWorkItems(
@@ -67,9 +73,14 @@ class MilestoneWorkItems(
         )
 
 
-class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
+class Milestones(
+    V2Resource[Milestone, CreateMilestone, UpdateMilestone],
+    LoadsNavigableRows[LoadedMilestone],
+):
     path = "/workspaces/{slug}/projects/{project_id}/milestones/"
     model = Milestone
+    loaded_model = LoadedMilestone
+    loaded_names = ("slug", "project", "milestone")
     operations = {
         "list": "milestones_list",
         "retrieve": "milestones_retrieve",
@@ -96,9 +107,9 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         per_page: int | None = None,
         offset: int | None = None,
         **filters: Unpack[MilestonesListFilters],
-    ) -> Page[Milestone]:
+    ) -> Page[LoadedMilestone]:
         """One page of milestones in this project."""
-        return self._list(
+        page = self._list(
             params={
                 "fields": fields,
                 "order_by": order_by,
@@ -109,6 +120,7 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
             slug=slug,
             project_id=project,
         )
+        return self._load_page(page, slug, project, fields=fields)
 
     def iterate(
         self,
@@ -118,13 +130,14 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         fields: Sequence[MilestonesListField] | None = None,
         order_by: MilestonesListOrderBy | None = None,
         **filters: Unpack[MilestonesListFilters],
-    ) -> Iterator[Milestone]:
+    ) -> Iterator[LoadedMilestone]:
         """Every milestone, following pages automatically."""
-        return self._iter(
+        rows = self._iter(
             params={"fields": fields, "order_by": order_by, **filters},
             slug=slug,
             project_id=project,
         )
+        return (self._load(row, slug, project, fields=fields) for row in rows)
 
     def retrieve(
         self,
@@ -133,15 +146,15 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         milestone: str,
         *,
         fields: Sequence[MilestonesRetrieveField] | None = None,
-    ) -> Milestone:
-        return self._retrieve(
-            pk=milestone, params={"fields": fields}, slug=slug, project_id=project
-        )
+    ) -> LoadedMilestone:
+        row = self._retrieve(pk=milestone, params={"fields": fields}, slug=slug, project_id=project)
+        return self._load(row, slug, project, fields=fields)
 
-    def find_by_name(self, slug: str, project: str, name: str) -> Milestone:
+    def find_by_name(self, slug: str, project: str, name: str) -> LoadedMilestone:
         """The one milestone whose title matches this name; raises if none or
         several match."""
-        return self._find_one(filters={"name": name}, slug=slug, project_id=project)
+        row = self._find_one(filters={"name": name}, slug=slug, project_id=project)
+        return self._load(row, slug, project)
 
     def create(
         self,
@@ -150,8 +163,9 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         data: CreateMilestone,
         *,
         fields: Sequence[MilestonesCreateField] | None = None,
-    ) -> Milestone:
-        return self._create(data, params={"fields": fields}, slug=slug, project_id=project)
+    ) -> LoadedMilestone:
+        row = self._create(data, params={"fields": fields}, slug=slug, project_id=project)
+        return self._load(row, slug, project, fields=fields)
 
     def update(
         self,
@@ -161,10 +175,11 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         data: UpdateMilestone,
         *,
         fields: Sequence[MilestonesPartialUpdateField] | None = None,
-    ) -> Milestone:
-        return self._update(
+    ) -> LoadedMilestone:
+        row = self._update(
             data, pk=milestone, params={"fields": fields}, slug=slug, project_id=project
         )
+        return self._load(row, slug, project, fields=fields)
 
     def delete(self, slug: str, project: str, milestone: str) -> None:
         return self._delete(pk=milestone, slug=slug, project_id=project)
@@ -176,9 +191,10 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         data: CreateMilestone,
         *,
         fields: Sequence[MilestonesUpsertField] | None = None,
-    ) -> Milestone:
+    ) -> LoadedMilestone:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(data, params={"fields": fields}, slug=slug, project_id=project)
+        row = self._upsert(data, params={"fields": fields}, slug=slug, project_id=project)
+        return self._load(row, slug, project, fields=fields)
 
     def bulk_create(
         self,

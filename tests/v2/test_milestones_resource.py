@@ -6,6 +6,7 @@ import json
 import pytest
 import responses
 
+from plane.api.v2._kernel.errors import FieldNotRequested
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.milestones import Milestones
 from plane.config import Configuration
@@ -38,7 +39,10 @@ def test_list_milestones(milestones: Milestones) -> None:
 
 
 @responses.activate
-def test_sparse_response_leaves_absent_fields_none(milestones: Milestones) -> None:
+def test_sparse_response_raises_for_a_field_not_requested(milestones: Milestones) -> None:
+    """`milestones.list` returns navigable (`Loaded`) rows: a field neither
+    requested nor returned raises `FieldNotRequested` instead of reading as a
+    silent `None` -- see `tests/v2/test_loaded_families.py`."""
     responses.get(
         f"{BASE}/",
         json={"data": [{"id": "1"}], "pagination": {"style": "offset"}},
@@ -47,7 +51,8 @@ def test_sparse_response_leaves_absent_fields_none(milestones: Milestones) -> No
     page = milestones.list("acme", "ENG", fields=["id"])
 
     assert page.data[0].id == "1"
-    assert page.data[0].title is None
+    with pytest.raises(FieldNotRequested, match="title"):
+        _ = page.data[0].title
 
 
 @responses.activate
