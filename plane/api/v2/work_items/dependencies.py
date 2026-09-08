@@ -20,11 +20,13 @@ class WorkItemDependencies(
     }
 
     def list(self, slug: str, project: str, work_item: str) -> WorkItemDependencyList:
-        """Every related work item id, grouped by dependency direction."""
-        payload = self.transport.request(
-            "GET", self._collection_url(slug=slug, project_id=project, work_item_id=work_item)
+        """Every related work item id, grouped by dependency direction.
+
+        Goes through the kernel's `_retrieve_singleton` for the same reason
+        `WorkItemRelations.list` does: identical URL, plus `_query` validation."""
+        return self._retrieve_singleton(
+            action="list", slug=slug, project_id=project, work_item_id=work_item
         )
-        return self.model.model_validate(payload)
 
     def create(
         self, slug: str, project: str, work_item: str, data: WorkItemDependencyCreate

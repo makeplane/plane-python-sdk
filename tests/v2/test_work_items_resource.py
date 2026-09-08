@@ -566,10 +566,13 @@ def test_links_full_crud(links: WorkItemLinks) -> None:
 
 
 @responses.activate
-def test_relations_list_and_create_hit_the_collection_url_directly(
+def test_relations_list_and_create_hit_the_collection_url(
     relations: WorkItemRelations,
 ) -> None:
-    """`list`/`create` return a dict-shaped envelope, not a paginated `Page`."""
+    """`list`/`create` return a dict-shaped envelope, not a paginated `Page` -- so
+    `list` goes through the kernel's `_retrieve_singleton(action="list")`, which
+    builds this same URL and validates the query string, rather than calling
+    `transport.request` itself."""
     responses.get(f"{BASE}/w1/relations/", json={"blocking": ["w2"]})
     responses.post(f"{BASE}/w1/relations/", json={"blocking": ["w2", "w3"]}, status=201)
     responses.delete(f"{BASE}/w1/relations/w2/", status=204)
@@ -594,7 +597,7 @@ def test_relations_list_and_create_hit_the_collection_url_directly(
 
 
 @responses.activate
-def test_dependencies_list_and_create_hit_the_collection_url_directly(
+def test_dependencies_list_and_create_hit_the_collection_url(
     dependencies: WorkItemDependencies,
 ) -> None:
     responses.get(

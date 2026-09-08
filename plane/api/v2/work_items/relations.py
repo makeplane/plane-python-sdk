@@ -20,11 +20,15 @@ class WorkItemRelations(
     }
 
     def list(self, slug: str, project: str, work_item: str) -> WorkItemRelationList:
-        """Every related work item id, grouped by relation-definition direction."""
-        payload = self.transport.request(
-            "GET", self._collection_url(slug=slug, project_id=project, work_item_id=work_item)
+        """Every related work item id, grouped by relation-definition direction.
+
+        The response is one dict-shaped object rather than a paginated collection, so
+        this is `_retrieve_singleton` under a `list` action -- the same URL a
+        hand-rolled `transport.request` built, plus `_query`'s validation of anything
+        the golden declares on `work_item_relations_list`."""
+        return self._retrieve_singleton(
+            action="list", slug=slug, project_id=project, work_item_id=work_item
         )
-        return self.model.model_validate(payload)
 
     def create(
         self, slug: str, project: str, work_item: str, data: WorkItemRelationCreate
