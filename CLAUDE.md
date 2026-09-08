@@ -32,6 +32,15 @@ ruff check --fix plane tests
 mypy plane
 ```
 
+**Scoping a migration plan's gates to its own diff:** when a task gate needs "the files
+this plan touched" (e.g. a `black --check`/`mypy` pass limited to one v2 migration plan's
+work), anchor the `git diff` to the plan's own base commit — the parent of its first
+commit — not to `HEAD~N`. A fixed commit count silently under-counts as soon as a plan
+gains more commits than the window (verified during the v2 workspace-resources plan:
+a `HEAD~5` window missed 4 already-migrated files that landed earlier in the same plan).
+Anchoring to the base commit is stable regardless of how many commits the plan ends up
+taking.
+
 ### Required Environment Variables for Tests
 
 Tests make real HTTP requests (no mocking). Set these before running:
@@ -71,19 +80,19 @@ PlaneClient
 - `plane/config.py` — `Configuration` and `RetryConfig` dataclasses.
 - `plane/api/v2/` — the v2 surface (`client.v2`), **migration in progress**: of the
   roughly 78 resource classes still on the retired pre-flat shape when this round
-  began, 20 workspace-level ones are now migrated and wired onto the tree, leaving
-  roughly 58 not wired below (`Collections`, most of `work_items/` beyond
-  `.comments`, etc. — see each file's own docstring for whether it's wired). The
-  20 newly wired resources are all reached under `client.v2.workspaces.`, each
-  taking the workspace slug as its leading argument: `artifacts`, `assets`,
-  `audit_logs`, `customer_properties`, `invitations`, `members`,
-  `permission_schemes`, `permissions`, `roles`, `stickies`, `teamspaces`, `views`,
-  `work_item_relation_definitions`, `work_item_templates`, and `work_items` (a
-  distinct, workspace-wide, list-only resource, not the project-scoped
-  `workspaces.projects.work_items` whose own children are still mostly
-  `PendingMigration`), plus the grouping node `group_sync` (`.config`,
-  `.project_mappings`, `.workspace_mappings`, none of which consume a project id
-  despite `project_mappings`' name) and `releases.tags`.
+  began, 19 are now migrated and wired onto the tree, leaving roughly 59 not wired
+  below (`Collections`, most of `work_items/` beyond `.comments`, etc. — see each
+  file's own docstring for whether it's wired). Count resources, not grouping
+  nodes: `group_sync` itself has no `V2Resource` base, `path` or `operations` (it
+  only groups children, exactly like `wiki`), so the 19 are 15 direct workspace
+  resources — `artifacts`, `assets`, `audit_logs`, `customer_properties`,
+  `invitations`, `members`, `permission_schemes`, `permissions`, `roles`,
+  `stickies`, `teamspaces`, `views`, `work_item_relation_definitions`,
+  `work_item_templates`, and `work_items` (a distinct, workspace-wide, list-only
+  resource, not the project-scoped `workspaces.projects.work_items` whose own
+  children are still mostly `PendingMigration`) — plus `group_sync`'s 3 children
+  (`.config`, `.project_mappings`, `.workspace_mappings`, none of which consume a
+  project id despite `project_mappings`' name) plus `releases.tags`.
   `client.v2.workspaces.roles.list("acme", role_slug="admin")` is worth flagging:
   the workspace slug is the positional argument, while the role's own slug filter
   is spelled `role_slug` because it would otherwise collide with it. The
@@ -148,9 +157,9 @@ PlaneClient
     `Page[State]`, unknown keywords are rejected and misspelled methods are errors.
     `tests/v2/test_typing.py` runs mypy to prove it. `_loaded/project.py` and
     `_loaded/work_item.py` are today's two `Loaded` subclasses; copy either.
-  - **Wired but not migrated.** Roughly 58 resource classes still use the retired
-    pre-flat shape (down from ~78 before the 20 workspace-level resources listed
-    above were migrated). Where one is reachable on the tree anyway (`ws.releases`
+  - **Wired but not migrated.** Roughly 59 resource classes still use the retired
+    pre-flat shape (down from ~78 before the 19 resources listed above were
+    migrated). Where one is reachable on the tree anyway (`ws.releases`
     exists for `releases.labels` and `releases.tags`; `work_items` wires seven
     children of which only `.comments` is migrated), it is a `PendingMigration`
     placeholder or a

@@ -201,10 +201,12 @@ work_items = client.work_items.list(
 `client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
 
 **This is a migration in progress.** Of the roughly 78 v2 resource classes that were
-still on the older, pre-migration shape when this round of work began, 20
-workspace-level resources have now been migrated and wired onto the flat tree,
-leaving roughly 58 still unreachable through `client.v2` (a later release wires
-them in). What follows documents only what is reachable today.
+still on the older, pre-migration shape when this round of work began, 19
+workspace-level resources have now been migrated and wired onto the flat tree —
+15 direct resources plus the 3 children of the `group_sync` grouping node (itself
+not a resource, same as `wiki`) plus `releases.tags` — leaving roughly 59 still
+unreachable through `client.v2` (a later release wires them in). What follows
+documents only what is reachable today.
 
 Previously wired: `states`, `labels`, `projects`, `work_items` (with `comments`),
 `workspaces`, `wiki.pages`, `features` and `releases.labels`. Notably,
