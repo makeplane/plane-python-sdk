@@ -19,7 +19,7 @@ def workspace_features(config: Configuration) -> WorkspaceFeatures:
 
 @pytest.fixture
 def project_features(config: Configuration) -> ProjectFeatures:
-    return ProjectFeatures(V2Transport(config), slug="acme", project_id="ENG")
+    return ProjectFeatures(V2Transport(config))
 
 
 @responses.activate
@@ -48,7 +48,7 @@ def test_project_features_retrieve_has_no_id(project_features: ProjectFeatures) 
     """`ProjectFeature` carries no `id` field at all in the golden."""
     responses.get(PROJECT_URL, json={"is_epic_enabled": True})
 
-    feature = project_features.retrieve()
+    feature = project_features.retrieve("acme", "ENG")
 
     assert responses.calls[0].request.url == PROJECT_URL
     assert feature.is_epic_enabled is True
@@ -59,6 +59,6 @@ def test_project_features_retrieve_has_no_id(project_features: ProjectFeatures) 
 def test_project_features_update(project_features: ProjectFeatures) -> None:
     responses.patch(PROJECT_URL, json={"is_epic_enabled": False})
 
-    feature = project_features.update(UpdateProjectFeature(is_epic_enabled=False))
+    feature = project_features.update("acme", "ENG", UpdateProjectFeature(is_epic_enabled=False))
 
     assert feature.is_epic_enabled is False

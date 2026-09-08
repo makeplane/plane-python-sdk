@@ -1,9 +1,8 @@
 """Offline coverage for `ProjectViews`/`WorkspaceViews`; shared shape, different path templates,
 plus `?expand=owned_by`.
 
-`WorkspaceViews` is migrated flat (leading `slug`), per Task 3. `ProjectViews` is a
-project-level twin (depth 2) that is out of scope here -- left on the pre-flat shape;
-its tests below still error on construction until a later task migrates it."""
+Both are migrated flat: `WorkspaceViews` (leading `slug`), per Task 3, and
+`ProjectViews` (leading `slug, project`), per Task 1."""
 
 from __future__ import annotations
 
@@ -20,7 +19,7 @@ BASE = "https://api.example.com/api/v2"
 
 @pytest.fixture
 def project_views(config: Configuration) -> ProjectViews:
-    return ProjectViews(V2Transport(config), slug="acme", project_id="ENG")
+    return ProjectViews(V2Transport(config))
 
 
 @pytest.fixture
@@ -45,16 +44,16 @@ def test_project_views_crud(project_views: ProjectViews) -> None:
     )
     responses.delete(f"{BASE}/workspaces/acme/projects/ENG/views/2/", status=204)
 
-    page = project_views.list()
+    page = project_views.list("acme", "ENG")
     assert page.data[0].name == "My view"
 
-    created = project_views.create(CreateView(name="Sprint board"))
+    created = project_views.create("acme", "ENG", CreateView(name="Sprint board"))
     assert created.id == "2"
 
-    updated = project_views.update(created.id, UpdateView(name="Sprint board v2"))
+    updated = project_views.update("acme", "ENG", created.id, UpdateView(name="Sprint board v2"))
     assert updated.name == "Sprint board v2"
 
-    assert project_views.delete(created.id) is None
+    assert project_views.delete("acme", "ENG", created.id) is None
 
 
 @responses.activate
@@ -82,14 +81,14 @@ def test_views_expand_owned_by(project_views: ProjectViews) -> None:
         json={"data": [], "pagination": {"style": "offset"}},
     )
 
-    project_views.list(expand=["owned_by"])
+    project_views.list("acme", "ENG", expand=["owned_by"])
 
     assert "expand=owned_by" in responses.calls[0].request.url
 
 
 def test_views_unknown_expand_is_rejected_before_the_request(project_views: ProjectViews) -> None:
     with pytest.raises(ValueError, match="nope"):
-        project_views.list(expand=["nope"])
+        project_views.list("acme", "ENG", expand=["nope"])
 
 
 @responses.activate

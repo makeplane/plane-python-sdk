@@ -17,7 +17,7 @@ WORKSPACE_BASE = "https://api.example.com/api/v2/workspaces/acme/members"
 
 @pytest.fixture
 def project_members(config: Configuration) -> ProjectMembers:
-    return ProjectMembers(V2Transport(config), slug="acme", project_id="ENG")
+    return ProjectMembers(V2Transport(config))
 
 
 @pytest.fixture
@@ -39,42 +39,47 @@ def test_project_members_list(project_members: ProjectMembers) -> None:
         },
     )
 
-    page = project_members.list()
+    page = project_members.list("acme", "ENG")
 
     assert page.total_count == 1
     assert page.data[0].role == "contributor"
+    assert responses.calls[0].request.url.startswith(f"{PROJECT_BASE}/")
 
 
 @responses.activate
 def test_project_members_list_passes_expand(project_members: ProjectMembers) -> None:
     responses.get(f"{PROJECT_BASE}/", json={"data": [], "pagination": {"style": "offset"}})
 
-    project_members.list(expand=["member"])
+    project_members.list("acme", "ENG", expand=["member"])
 
     assert "expand=member" in responses.calls[0].request.url
 
 
 def test_project_members_list_rejects_unknown_expand(project_members: ProjectMembers) -> None:
     with pytest.raises(ValueError, match="bogus"):
-        project_members.list(expand=["bogus"])
+        project_members.list("acme", "ENG", expand=["bogus"])
 
 
 @responses.activate
 def test_project_members_retrieve(project_members: ProjectMembers) -> None:
     responses.get(f"{PROJECT_BASE}/m1/", json={"id": "m1", "member_id": "u1"})
 
-    row = project_members.retrieve("m1")
+    row = project_members.retrieve("acme", "ENG", "m1")
 
     assert row.id == "m1"
+    assert responses.calls[0].request.url == f"{PROJECT_BASE}/m1/"
 
 
 @responses.activate
 def test_project_members_create(project_members: ProjectMembers) -> None:
     responses.post(f"{PROJECT_BASE}/", json={"id": "m1", "member_id": "u1"}, status=201)
 
-    created = project_members.create(CreateProjectMember(member_id="u1", role="contributor"))
+    created = project_members.create(
+        "acme", "ENG", CreateProjectMember(member_id="u1", role="contributor")
+    )
 
     assert created.id == "m1"
+    assert responses.calls[0].request.url == f"{PROJECT_BASE}/"
     body = json.loads(responses.calls[0].request.body)
     assert body == {"member_id": "u1", "role": "contributor"}
 
@@ -83,16 +88,18 @@ def test_project_members_create(project_members: ProjectMembers) -> None:
 def test_project_members_update_changes_role(project_members: ProjectMembers) -> None:
     responses.patch(f"{PROJECT_BASE}/m1/", json={"id": "m1", "role": "admin"})
 
-    updated = project_members.update("m1", UpdateProjectMember(role="admin"))
+    updated = project_members.update("acme", "ENG", "m1", UpdateProjectMember(role="admin"))
 
     assert updated.role == "admin"
+    assert responses.calls[0].request.url == f"{PROJECT_BASE}/m1/"
 
 
 @responses.activate
 def test_project_members_delete_returns_none(project_members: ProjectMembers) -> None:
     responses.delete(f"{PROJECT_BASE}/m1/", status=204)
 
-    assert project_members.delete("m1") is None
+    assert project_members.delete("acme", "ENG", "m1") is None
+    assert responses.calls[0].request.url == f"{PROJECT_BASE}/m1/"
 
 
 # -- WorkspaceMembers (list-only + remove) ----------------------------------------

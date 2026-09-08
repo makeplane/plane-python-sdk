@@ -1,10 +1,8 @@
 """Offline coverage for `WorkspacePermissions`/`ProjectPermissions` -- two distinct GET-only
 singleton classes, no `id`.
 
-`WorkspacePermissions` is migrated flat (leading `slug`), per Task 2. `ProjectPermissions`
-is a project-level twin (depth 2) that is out of scope here -- same situation as
-`ProjectFeatures` in `test_features_resource.py` -- and is left on the pre-flat shape;
-its tests below still error on construction until a later task migrates it."""
+Both are migrated flat: `WorkspacePermissions` (leading `slug`), per Task 2, and
+`ProjectPermissions` (leading `slug, project`), per Task 1."""
 
 import pytest
 import responses
@@ -24,7 +22,7 @@ def workspace_permissions(config: Configuration) -> WorkspacePermissions:
 
 @pytest.fixture
 def project_permissions(config: Configuration) -> ProjectPermissions:
-    return ProjectPermissions(V2Transport(config), slug="acme", project_id="ENG")
+    return ProjectPermissions(V2Transport(config))
 
 
 @responses.activate
@@ -44,7 +42,7 @@ def test_me_hits_the_workspace_scoped_url(workspace_permissions: WorkspacePermis
 def test_project_me_hits_the_project_scoped_url(project_permissions: ProjectPermissions) -> None:
     responses.get(PROJECT_URL, json={"relation": "admin", "permission_grants": ["project.edit"]})
 
-    result = project_permissions.me()
+    result = project_permissions.me("acme", "ENG")
 
     assert responses.calls[0].request.url == PROJECT_URL
     assert result.relation == "admin"
@@ -61,6 +59,6 @@ def test_me_and_project_me_hit_different_urls(
     responses.get(PROJECT_URL, json={"relation": "admin", "permission_grants": []})
 
     workspace_result = workspace_permissions.me("acme")
-    project_result = project_permissions.me()
+    project_result = project_permissions.me("acme", "ENG")
 
     assert workspace_result.relation != project_result.relation

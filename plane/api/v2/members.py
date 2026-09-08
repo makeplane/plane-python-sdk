@@ -5,7 +5,6 @@ on `email` (v1 parity), not a detail DELETE keyed on a row id."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
 
 from typing_extensions import Unpack
 
@@ -16,6 +15,12 @@ from ...models.v2.members import (
     WorkspaceMemberRemove,
 )
 from ._generated.constants import (
+    ProjectMembersCreateField,
+    ProjectMembersListField,
+    ProjectMembersListFilters,
+    ProjectMembersListOrderBy,
+    ProjectMembersPartialUpdateField,
+    ProjectMembersRetrieveField,
     WorkspaceMembersListField,
     WorkspaceMembersListFilters,
     WorkspaceMembersListOrderBy,
@@ -39,44 +44,99 @@ class ProjectMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMember
 
     def list(
         self,
+        slug: str,
+        project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectMembersListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: ProjectMembersListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[ProjectMembersListFilters],
     ) -> Page[Member]:
         """One page of this project's roster."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+        )
 
     def iterate(
         self,
+        slug: str,
+        project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectMembersListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: ProjectMembersListOrderBy | None = None,
+        **filters: Unpack[ProjectMembersListFilters],
     ) -> Iterator[Member]:
         """Every row on this project's roster, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+        )
 
     def retrieve(
         self,
-        member_row_id: str,
+        slug: str,
+        project: str,
+        member: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ProjectMembersRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> Member:
         """Fetch by the membership row's own id (not the member's user id)."""
-        return self._retrieve(pk=member_row_id, params={"fields": fields, "expand": expand})
+        return self._retrieve(
+            pk=member,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+        )
 
-    def create(self, data: CreateProjectMember) -> Member:
+    def create(
+        self,
+        slug: str,
+        project: str,
+        data: CreateProjectMember,
+        *,
+        fields: Sequence[ProjectMembersCreateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Member:
         """Add a member to the project."""
-        return self._create(data)
+        return self._create(
+            data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+        )
 
-    def update(self, member_row_id: str, data: UpdateProjectMember) -> Member:
+    def update(
+        self,
+        slug: str,
+        project: str,
+        member: str,
+        data: UpdateProjectMember,
+        *,
+        fields: Sequence[ProjectMembersPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Member:
         """Change a member's role."""
-        return self._update(data, pk=member_row_id)
+        return self._update(
+            data,
+            pk=member,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+        )
 
-    def delete(self, member_row_id: str) -> None:
-        return self._delete(pk=member_row_id)
+    def delete(self, slug: str, project: str, member: str) -> None:
+        return self._delete(pk=member, slug=slug, project_id=project)
 
 
 class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMember]):

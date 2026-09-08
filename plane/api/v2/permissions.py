@@ -6,7 +6,8 @@ workspace or a project. Read-only, two GET endpoints. Split into two classes
 primary key of its own -- the row IS the collection, so it goes through the kernel's
 `_retrieve_singleton` rather than `_retrieve` (which would append a pk segment and
 request a wrong URL). Re-authored flat (leading `slug`), per Task 2; `ProjectPermissions`
-still uses the pre-flat shape and is not yet attached anywhere on the tree."""
+is flat too (leading `slug, project`, same `_retrieve_singleton`), but is not yet
+attached anywhere on the tree."""
 
 from __future__ import annotations
 
@@ -37,7 +38,6 @@ class ProjectPermissions(
         "me": "workspaces_projects_permissions_me_retrieve",
     }
 
-    def me(self) -> EffectivePermissions:
+    def me(self, slug: str, project: str) -> EffectivePermissions:
         """The caller's effective permissions scoped to this project."""
-        payload = self.transport.request("GET", self._collection_url())
-        return self.model.model_validate(payload)
+        return self._retrieve_singleton(action="me", slug=slug, project_id=project)

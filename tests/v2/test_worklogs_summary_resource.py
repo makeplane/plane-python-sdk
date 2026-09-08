@@ -15,7 +15,7 @@ BASE = "https://api.example.com/api/v2"
 
 @pytest.fixture
 def worklogs(config: Configuration) -> ProjectWorklogs:
-    return ProjectWorklogs(V2Transport(config), slug="acme", project_id="ENG")
+    return ProjectWorklogs(V2Transport(config))
 
 
 @responses.activate
@@ -28,10 +28,13 @@ def test_worklogs_summary_parses_bare_array(worklogs: ProjectWorklogs) -> None:
         ],
     )
 
-    rows = worklogs.summary()
+    rows = worklogs.summary("acme", "ENG")
 
     assert [row.duration for row in rows] == [120, 45]
     assert rows[0].work_item_id == "wi-1"
+    assert (
+        responses.calls[0].request.url == f"{BASE}/workspaces/acme/projects/ENG/worklogs/summary/"
+    )
 
 
 @responses.activate
@@ -41,4 +44,4 @@ def test_worklogs_summary_empty_project_returns_empty_list(worklogs: ProjectWork
         json=[],
     )
 
-    assert worklogs.summary() == []
+    assert worklogs.summary("acme", "ENG") == []

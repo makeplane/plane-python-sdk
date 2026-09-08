@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.work_item_templates import (
     CreateWorkItemTemplate,
@@ -12,6 +13,15 @@ from ....models.v2.work_item_templates import (
     WorkItemTemplateUse,
 )
 from ....models.v2.work_items import WorkItem
+from .._generated.constants import (
+    ProjectWorkItemTemplatesCreateField,
+    ProjectWorkItemTemplatesListField,
+    ProjectWorkItemTemplatesListFilters,
+    ProjectWorkItemTemplatesListOrderBy,
+    ProjectWorkItemTemplatesPartialUpdateField,
+    ProjectWorkItemTemplatesRetrieveField,
+    WorkItemsUseField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -34,49 +44,103 @@ class ProjectWorkItemTemplates(
     }
 
     def list(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
+        self,
+        slug: str,
+        project: str,
+        *,
+        fields: Sequence[ProjectWorkItemTemplatesListField] | None = None,
+        order_by: ProjectWorkItemTemplatesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[ProjectWorkItemTemplatesListFilters],
     ) -> Page[WorkItemTemplate]:
         """One page of templates in this project. `**filters` covers
         `is_published`, `short_id`."""
-        return self._list(params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+        )
 
     def iterate(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
+        self,
+        slug: str,
+        project: str,
+        *,
+        fields: Sequence[ProjectWorkItemTemplatesListField] | None = None,
+        order_by: ProjectWorkItemTemplatesListOrderBy | None = None,
+        **filters: Unpack[ProjectWorkItemTemplatesListFilters],
     ) -> Iterator[WorkItemTemplate]:
         """Every template in this project, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(
+            params={"fields": fields, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+        )
 
     def retrieve(
-        self, template_id: str, *, fields: Sequence[str] | None = None
+        self,
+        slug: str,
+        project: str,
+        template: str,
+        *,
+        fields: Sequence[ProjectWorkItemTemplatesRetrieveField] | None = None,
     ) -> WorkItemTemplate:
-        return self._retrieve(pk=template_id, params={"fields": fields})
+        return self._retrieve(pk=template, params={"fields": fields}, slug=slug, project_id=project)
 
-    def create(self, data: CreateWorkItemTemplate) -> WorkItemTemplate:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        project: str,
+        data: CreateWorkItemTemplate,
+        *,
+        fields: Sequence[ProjectWorkItemTemplatesCreateField] | None = None,
+    ) -> WorkItemTemplate:
+        return self._create(data, params={"fields": fields}, slug=slug, project_id=project)
 
-    def update(self, template_id: str, data: UpdateWorkItemTemplate) -> WorkItemTemplate:
-        return self._update(data, pk=template_id)
+    def update(
+        self,
+        slug: str,
+        project: str,
+        template: str,
+        data: UpdateWorkItemTemplate,
+        *,
+        fields: Sequence[ProjectWorkItemTemplatesPartialUpdateField] | None = None,
+    ) -> WorkItemTemplate:
+        return self._update(
+            data, pk=template, params={"fields": fields}, slug=slug, project_id=project
+        )
 
-    def delete(self, template_id: str) -> None:
-        return self._delete(pk=template_id)
+    def delete(self, slug: str, project: str, template: str) -> None:
+        return self._delete(pk=template, slug=slug, project_id=project)
 
     # -- Custom action --------------------------------------------------------
     # Not an `_action` call: `use` returns a `WorkItem`, not this resource's own `model`.
 
     def use(
         self,
-        template_id: str,
+        slug: str,
+        project: str,
+        template: str,
         data: WorkItemTemplateUse | None = None,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkItemsUseField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> WorkItem:
         """Instantiate a work item from this template. `data` optionally overrides
         `name`/`project_id`; omit for the template's own values."""
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(template_id)}use/",
-            params=self._query({"fields": fields, "expand": expand}, action="use"),
-            json=data.model_dump(mode="json", exclude_none=True) if data is not None else None,
+        return self._custom_action(
+            "use",
+            model=WorkItem,
+            pk=template,
+            data=data,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
         )
-        return WorkItem.model_validate(payload)

@@ -18,9 +18,15 @@ class ProjectWorklogs(V2Resource[WorklogSummaryEntry, WorklogSummaryEntry, Workl
         "summary": "project_worklogs_summary",
     }
 
-    def summary(self) -> builtins.list[WorklogSummaryEntry]:
+    def summary(self, slug: str, project: str) -> builtins.list[WorklogSummaryEntry]:
         """Per-work-item duration totals for this project.
 
-        Returns a plain array, not an enveloped payload, so parsed by hand here."""
-        payload = self.transport.request("GET", self._collection_url())
-        return [self.model.model_validate(row) for row in payload]
+        Returns a plain array, not an enveloped payload, so parsed via the
+        kernel's `_custom_action_list` rather than a hand-built URL."""
+        return self._custom_action_list(
+            "summary",
+            model=WorklogSummaryEntry,
+            method="GET",
+            slug=slug,
+            project_id=project,
+        )

@@ -1,10 +1,8 @@
 """Offline coverage for project/workspace work item templates plus the project-only `use` action,
 which returns a `WorkItem`.
 
-`WorkspaceWorkItemTemplates` is migrated flat (leading `slug`), per Task 3.
-`ProjectWorkItemTemplates` is a project-level twin (depth 2) that is out of scope
-here -- left on the pre-flat shape; its tests below still error on construction
-until a later task migrates it."""
+Both are migrated flat: `WorkspaceWorkItemTemplates` (leading `slug`), per Task 3, and
+`ProjectWorkItemTemplates` (leading `slug, project`), per Task 1."""
 
 from __future__ import annotations
 
@@ -29,7 +27,7 @@ BASE = "https://api.example.com/api/v2"
 
 @pytest.fixture
 def project_templates(config: Configuration) -> ProjectWorkItemTemplates:
-    return ProjectWorkItemTemplates(V2Transport(config), slug="acme", project_id="ENG")
+    return ProjectWorkItemTemplates(V2Transport(config))
 
 
 @pytest.fixture
@@ -57,20 +55,39 @@ def test_project_templates_crud(project_templates: ProjectWorkItemTemplates) -> 
     )
     responses.delete(f"{BASE}/workspaces/acme/projects/ENG/work-item-templates/2/", status=204)
 
-    page = project_templates.list()
+    page = project_templates.list("acme", "ENG")
     assert page.data[0].name == "Bug report"
+    assert responses.calls[0].request.url.startswith(
+        f"{BASE}/workspaces/acme/projects/ENG/work-item-templates/"
+    )
 
     created = project_templates.create(
+        "acme",
+        "ENG",
         CreateWorkItemTemplate(
             name="Feature request", template_data=WorkItemTemplateData(name="Feature request")
         ),
     )
     assert created.id == "2"
+    assert (
+        responses.calls[1].request.url
+        == f"{BASE}/workspaces/acme/projects/ENG/work-item-templates/"
+    )
 
-    updated = project_templates.update(created.id, UpdateWorkItemTemplate(name="Feature"))
+    updated = project_templates.update(
+        "acme", "ENG", created.id, UpdateWorkItemTemplate(name="Feature")
+    )
     assert updated.name == "Feature"
+    assert (
+        responses.calls[2].request.url
+        == f"{BASE}/workspaces/acme/projects/ENG/work-item-templates/2/"
+    )
 
-    assert project_templates.delete(created.id) is None
+    assert project_templates.delete("acme", "ENG", created.id) is None
+    assert (
+        responses.calls[3].request.url
+        == f"{BASE}/workspaces/acme/projects/ENG/work-item-templates/2/"
+    )
 
 
 @responses.activate
@@ -85,11 +102,15 @@ def test_project_template_use_parses_a_work_item_not_a_template(
         status=201,
     )
 
-    work_item = project_templates.use("1")
+    work_item = project_templates.use("acme", "ENG", "1")
 
     assert work_item.id == "wi-1"
     assert work_item.sequence_id == 42
     assert responses.calls[0].request.body is None
+    assert (
+        responses.calls[0].request.url
+        == f"{BASE}/workspaces/acme/projects/ENG/work-item-templates/1/use/"
+    )
 
 
 @responses.activate
@@ -102,7 +123,7 @@ def test_project_template_use_sends_overrides(
         status=201,
     )
 
-    project_templates.use("1", WorkItemTemplateUse(name="Custom name"))
+    project_templates.use("acme", "ENG", "1", WorkItemTemplateUse(name="Custom name"))
 
     body = json.loads(responses.calls[0].request.body)
     assert body == {"name": "Custom name"}

@@ -4,7 +4,8 @@ row IS the collection, so these go through the kernel's
 (which both require a `pk` to append).
 
 `WorkspaceFeatures` is re-authored flat (leading `slug`, per Task 11); `ProjectFeatures`
-still uses the pre-flat shape and is not yet attached anywhere on the tree."""
+is flat too (leading `slug, project`, same `_retrieve_singleton`/`_update_singleton`
+pair), but is not yet attached anywhere on the tree."""
 
 from __future__ import annotations
 
@@ -45,8 +46,8 @@ class ProjectFeatures(V2Resource[ProjectFeature, UpdateProjectFeature, UpdatePro
         "update": "project_features_update",
     }
 
-    def retrieve(self) -> ProjectFeature:
-        return self._retrieve_singleton(action="retrieve")
+    def retrieve(self, slug: str, project: str) -> ProjectFeature:
+        return self._retrieve_singleton(action="retrieve", slug=slug, project_id=project)
 
-    def update(self, data: UpdateProjectFeature) -> ProjectFeature:
-        return self._update_singleton(data, action="update")
+    def update(self, slug: str, project: str, data: UpdateProjectFeature) -> ProjectFeature:
+        return self._update_singleton(data, action="update", slug=slug, project_id=project)
