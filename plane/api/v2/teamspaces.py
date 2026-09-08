@@ -95,8 +95,9 @@ class Teamspaces(V2Resource[Teamspace, CreateTeamspace, UpdateTeamspace]):
         data: CreateTeamspace,
         *,
         fields: Sequence[TeamspacesCreateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> Teamspace:
-        return self._create(data, params={"fields": fields}, slug=slug)
+        return self._create(data, params={"fields": fields, "expand": expand}, slug=slug)
 
     def update(
         self,
@@ -105,8 +106,11 @@ class Teamspaces(V2Resource[Teamspace, CreateTeamspace, UpdateTeamspace]):
         data: UpdateTeamspace,
         *,
         fields: Sequence[TeamspacesPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> Teamspace:
-        return self._update(data, pk=teamspace, params={"fields": fields}, slug=slug)
+        return self._update(
+            data, pk=teamspace, params={"fields": fields, "expand": expand}, slug=slug
+        )
 
     def delete(self, slug: str, teamspace: str) -> None:
         return self._delete(pk=teamspace, slug=slug)

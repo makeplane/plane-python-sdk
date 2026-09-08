@@ -150,3 +150,22 @@ def test_workspace_views_list_per_page_and_offset(workspace_views: WorkspaceView
     request_url = responses.calls[0].request.url
     assert "per_page=20" in request_url
     assert "offset=40" in request_url
+
+
+@responses.activate
+def test_workspace_views_create_and_update_pass_expand(workspace_views: WorkspaceViews) -> None:
+    """`workspace_views_create`/`_partial_update` both expand `owned_by` in the
+    golden; the parameter was missing, so the capability was unreachable."""
+    responses.post(f"{BASE}/workspaces/acme/views/", json={"id": "v1", "name": "Mine"})
+    responses.patch(f"{BASE}/workspaces/acme/views/v1/", json={"id": "v1", "name": "Mine"})
+
+    workspace_views.create("acme", CreateView(name="Mine"), expand=["owned_by"])
+    workspace_views.update("acme", "v1", UpdateView(name="Mine"), expand=["owned_by"])
+
+    assert "expand=owned_by" in responses.calls[0].request.url
+    assert "expand=owned_by" in responses.calls[1].request.url
+
+
+def test_workspace_views_create_rejects_unknown_expand(workspace_views: WorkspaceViews) -> None:
+    with pytest.raises(ValueError, match="Unknown expand"):
+        workspace_views.create("acme", CreateView(name="Mine"), expand=["bogus"])

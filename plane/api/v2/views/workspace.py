@@ -87,8 +87,9 @@ class WorkspaceViews(V2Resource[View, CreateView, UpdateView]):
         data: CreateView,
         *,
         fields: Sequence[WorkspaceViewsCreateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> View:
-        return self._create(data, params={"fields": fields}, slug=slug)
+        return self._create(data, params={"fields": fields, "expand": expand}, slug=slug)
 
     def update(
         self,
@@ -97,8 +98,9 @@ class WorkspaceViews(V2Resource[View, CreateView, UpdateView]):
         data: UpdateView,
         *,
         fields: Sequence[WorkspaceViewsPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> View:
-        return self._update(data, pk=view, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=view, params={"fields": fields, "expand": expand}, slug=slug)
 
     def delete(self, slug: str, view: str) -> None:
         return self._delete(pk=view, slug=slug)

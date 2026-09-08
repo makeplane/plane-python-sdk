@@ -119,8 +119,11 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         data: CreatePage,
         *,
         fields: Sequence[ProjectPagesCreateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> PageModel:
-        return self._create(data, params={"fields": fields}, slug=slug, project_id=project)
+        return self._create(
+            data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+        )
 
     def update(
         self,
@@ -130,8 +133,15 @@ class ProjectPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         data: UpdatePage,
         *,
         fields: Sequence[ProjectPagesPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> PageModel:
-        return self._update(data, pk=page, params={"fields": fields}, slug=slug, project_id=project)
+        return self._update(
+            data,
+            pk=page,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+        )
 
     def delete(self, slug: str, project: str, page: str) -> None:
         return self._delete(pk=page, slug=slug, project_id=project)
@@ -220,11 +230,12 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         data: CreatePage,
         *,
         fields: Sequence[WorkspacePagesCreateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> PageModel:
         """Create a workspace wiki page. Omitting `data.collection_id` auto-assigns
         the default (public) collection (confirmed live) -- a private page needs an
         explicit private `collection_id`."""
-        return self._create(data, params={"fields": fields}, slug=slug)
+        return self._create(data, params={"fields": fields, "expand": expand}, slug=slug)
 
     def update(
         self,
@@ -233,8 +244,9 @@ class WikiPages(V2Resource[PageModel, CreatePage, UpdatePage]):
         data: UpdatePage,
         *,
         fields: Sequence[WorkspacePagesPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> PageModel:
-        return self._update(data, pk=page, params={"fields": fields}, slug=slug)
+        return self._update(data, pk=page, params={"fields": fields, "expand": expand}, slug=slug)
 
     def delete(self, slug: str, page: str) -> None:
         return self._delete(pk=page, slug=slug)

@@ -111,10 +111,11 @@ class WorkItemComments(V2Resource[WorkItemComment, CreateWorkItemComment, Update
         data: CreateWorkItemComment,
         *,
         fields: Sequence[CommentsCreateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> WorkItemComment:
         return self._create(
             data,
-            params={"fields": fields},
+            params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
             work_item_id=work_item,
@@ -129,11 +130,12 @@ class WorkItemComments(V2Resource[WorkItemComment, CreateWorkItemComment, Update
         data: UpdateWorkItemComment,
         *,
         fields: Sequence[CommentsPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> WorkItemComment:
         return self._update(
             data,
             pk=comment,
-            params={"fields": fields},
+            params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
             work_item_id=work_item,
@@ -150,11 +152,12 @@ class WorkItemComments(V2Resource[WorkItemComment, CreateWorkItemComment, Update
         data: CreateWorkItemComment,
         *,
         fields: Sequence[WorkItemCommentsUpsertField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> WorkItemComment:
         """Reconciles on (external_source, external_id) when both are set."""
         return self._upsert(
             data,
-            params={"fields": fields},
+            params={"fields": fields, "expand": expand},
             slug=slug,
             project_id=project,
             work_item_id=work_item,

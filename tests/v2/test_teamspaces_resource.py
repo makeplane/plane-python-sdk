@@ -28,6 +28,25 @@ def test_create_posts_to_the_workspace_collection(teamspaces: Teamspaces) -> Non
 
 
 @responses.activate
+def test_create_and_update_pass_expand(teamspaces: Teamspaces) -> None:
+    """`teamspaces_create`/`teamspaces_partial_update` both expand `lead` in the
+    golden; the parameter was missing, so the capability was unreachable."""
+    responses.post(f"{BASE}/", json={"id": "t1", "name": "Platform"})
+    responses.patch(f"{BASE}/t1/", json={"id": "t1", "name": "Platform"})
+
+    teamspaces.create("acme", CreateTeamspace(name="Platform"), expand=["lead"])
+    teamspaces.update("acme", "t1", UpdateTeamspace(name="Platform"), expand=["lead"])
+
+    assert "expand=lead" in responses.calls[0].request.url
+    assert "expand=lead" in responses.calls[1].request.url
+
+
+def test_create_rejects_unknown_expand_before_the_request(teamspaces: Teamspaces) -> None:
+    with pytest.raises(ValueError, match="Unknown expand"):
+        teamspaces.create("acme", CreateTeamspace(name="Platform"), expand=["bogus"])
+
+
+@responses.activate
 def test_list_teamspaces(teamspaces: Teamspaces) -> None:
     responses.get(
         f"{BASE}/",
