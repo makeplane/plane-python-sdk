@@ -200,7 +200,11 @@ def test_the_check_ignores_id_suffixed_parameters_that_are_not_path_ids() -> Non
     assert path_id_offenders(BodyFieldCycles) == ["BodyFieldCycles.retrieve(cycle_id)"]
 
 
-CATALOG_SIBLINGS = {("Releases", "ReleaseLabels"), ("Releases", "ReleaseTags")}
+CATALOG_SIBLINGS = {
+    ("Releases", "ReleaseLabels"),
+    ("Releases", "ReleaseTags"),
+    ("Initiatives", "InitiativeLabels"),
+}
 """(parent, child) pairs where the child's `list` is legitimately shorter than its
 parent's `loaded_names` -- exempted rather than made to agree with it.
 
@@ -211,7 +215,15 @@ also a workspace-level catalog reached as `Releases`' sibling, not its nested ch
 `ReleaseLabels.list`/`ReleaseTags.list` list the whole workspace catalog and so take
 only `(slug,)`. The rule this test enforces is about a *nested* child's own path ids
 matching what `Owned` will prepend -- it does not apply to a catalog resource that
-merely happens to be attached next to a navigable parent for convenience."""
+merely happens to be attached next to a navigable parent for convenience.
+
+`InitiativeLabels` is the third of exactly that shape and joined the set the moment
+`Initiatives` was wired onto the tree (`plane/api/v2/initiatives/labels.py` says so
+in its own docstring: "same shape as `releases/labels.py` -- copied from it"). Its
+catalog CRUD hits `/workspaces/{slug}/initiatives/labels/` and takes `(slug,)`,
+while its `add`/`remove` bridge to the per-initiative `extra_paths` override and do
+take `(slug, initiative)`. Any *other* divergence is a bug, not a catalog: a nested
+child whose `list` disagrees with its parent's `loaded_names` breaks `Owned`."""
 
 
 def test_a_childs_leading_parameters_match_what_its_parent_binds() -> None:

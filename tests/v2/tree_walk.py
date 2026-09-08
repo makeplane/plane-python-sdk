@@ -19,7 +19,10 @@ by construction:
   sees those eighteen -- but it stays a guard, not the source of the set.)
 * `reachable_resources()` needs the class to be wired. A resource migrated by one
   task and wired by a later one is unchecked in between -- exactly the state
-  `ProjectPages` sat in for a whole plan.
+  `ProjectPages` sat in for a whole plan. (Every class is wired now, so the two sets
+  finally coincide -- `test_every_resource_class_is_reachable_from_the_namespace` in
+  `tests/v2/test_tree.py` asserts it -- but they coincide as a *result*, not by
+  construction, which is the point.)
 
 Enumerating instead makes inclusion the default and exclusion the thing somebody has
 to write down: a newly migrated class is swept the moment it exists, wired or not,
@@ -64,19 +67,18 @@ opted-out class turns out to be wired onto the tree or flat-shaped.
 """
 
 
-def is_pending(function: Any) -> bool:
-    """True for a method still carrying its pre-flat body behind
-    `@pending_flat_migration` -- it is documented as unmigrated, so the rules that
-    apply to migrated code do not apply to it yet."""
-    return getattr(function, "__pending_flat_migration__", False) is True
-
-
 def public_methods(resource_class: type) -> dict[str, Any]:
-    """The class's own public, non-pending methods (not inherited kernel helpers)."""
+    """The class's own public methods (not inherited kernel helpers).
+
+    There is no longer an exemption here. Methods used to be skipped when they
+    carried `@pending_flat_migration`, the marker for a body still on the pre-flat
+    shape; every method in the package is migrated now, so the decorator and the
+    module defining it (`plane/api/v2/_kernel/pending.py`) are deleted rather than
+    left idle -- and with them the one way a method could sit outside these rules."""
     return {
         name: function
         for name, function in vars(resource_class).items()
-        if not name.startswith("_") and inspect.isfunction(function) and not is_pending(function)
+        if not name.startswith("_") and inspect.isfunction(function)
     }
 
 
@@ -90,9 +92,9 @@ def reachable_resources(namespace: V2Namespace | None = None) -> dict[type, str]
     mapped to the dotted path it was first reached by (`v2.workspaces.roles`).
 
     Grouping nodes (`Wiki`, `GroupSync`) hold no `V2Resource` base of their own but
-    do hold children, so they are descended into rather than skipped.
-    `PendingMigration` placeholders hold nothing public, so they fall out on their
-    own.
+    do hold children, so they are descended into rather than skipped. Nothing else
+    sits on the tree: the placeholders that used to stand in for an unwired branch
+    are gone along with the mechanism behind them.
 
     No longer the source of the swept set -- see the module docstring -- but still
     what pairs a parent with its children for the `Owned` check, and what proves an

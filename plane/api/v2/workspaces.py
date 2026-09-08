@@ -1,5 +1,10 @@
 """Workspaces (api_v2) -- the root of the flat tree:
-`client.v2.workspaces.projects.states.list(slug, project)`."""
+`client.v2.workspaces.projects.states.list(slug, project)`.
+
+Every workspace-scoped family hangs off this class, and
+`tests/v2/test_tree.py`'s `WORKSPACE_TREE_ATTACHMENTS` table carries a row per
+attachment -- attach one without a row and its completeness assertion fails by
+name."""
 
 from __future__ import annotations
 
@@ -14,9 +19,12 @@ from ._kernel.transport import V2Transport
 from .artifacts import Artifacts
 from .assets import WorkspaceAssets
 from .audit_logs import AuditLogs
+from .automations import WorkspaceAutomations
 from .customer_properties import CustomerProperties
+from .customers import Customers
 from .features import WorkspaceFeatures
 from .group_sync import GroupSync
+from .initiatives import Initiatives
 from .invitations import Invitations
 from .members import WorkspaceMembers
 from .permission_schemes import PermissionSchemes
@@ -29,8 +37,10 @@ from .teamspaces import Teamspaces
 from .views import WorkspaceViews
 from .webhooks import Webhooks
 from .wiki_node import Wiki
+from .work_item_properties import WorkspaceWorkItemProperties
 from .work_item_relation_definitions import WorkItemRelationDefinitions
 from .work_item_templates import WorkspaceWorkItemTemplates
+from .work_item_types import WorkspaceWorkItemTypes
 from .work_items import WorkspaceWorkItems
 
 
@@ -48,8 +58,11 @@ class Workspaces(V2Resource[Workspace, Never, Never]):
         self.artifacts = Artifacts(transport)
         self.assets = WorkspaceAssets(transport)
         self.audit_logs = AuditLogs(transport)
+        self.automations = WorkspaceAutomations(transport)
         self.customer_properties = CustomerProperties(transport)
+        self.customers = Customers(transport)
         self.group_sync = GroupSync(transport)
+        self.initiatives = Initiatives(transport)
         self.invitations = Invitations(transport)
         self.members = WorkspaceMembers(transport)
         self.permission_schemes = PermissionSchemes(transport)
@@ -59,8 +72,10 @@ class Workspaces(V2Resource[Workspace, Never, Never]):
         self.teamspaces = Teamspaces(transport)
         self.views = WorkspaceViews(transport)
         self.webhooks = Webhooks(transport)
+        self.work_item_properties = WorkspaceWorkItemProperties(transport)
         self.work_item_relation_definitions = WorkItemRelationDefinitions(transport)
         self.work_item_templates = WorkspaceWorkItemTemplates(transport)
+        self.work_item_types = WorkspaceWorkItemTypes(transport)
         self.work_items = WorkspaceWorkItems(transport)
 
     def retrieve(

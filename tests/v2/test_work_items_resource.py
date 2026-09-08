@@ -1,9 +1,9 @@
 """Offline coverage for `WorkItems` (the flat depth-2 pattern), `WorkItemComments`
 (the depth-3 exemplar: `slug, project, work_item` leading parameters), and the other
 six work-item children on the same depth-3 shape. The children are constructed
-directly (not through `work_items.attachments` etc.) because they are still
-`PendingMigration` placeholders on the tree -- flat-shape migration and tree wiring
-are separate steps."""
+directly rather than through `work_items.attachments` -- a resource's methods work
+identically either way now that `V2Resource.__init__` binds no scope, and the tree
+wiring itself is proved by `tests/v2/test_tree.py`."""
 
 import json
 

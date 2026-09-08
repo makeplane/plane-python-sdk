@@ -1,3 +1,5 @@
+import importlib.util
+
 import pytest
 import responses
 
@@ -5,7 +7,24 @@ from plane.api.v2 import V2Namespace
 from plane.api.v2.artifacts import Artifacts
 from plane.api.v2.assets import WorkspaceAssets
 from plane.api.v2.audit_logs import AuditLogs
+from plane.api.v2.automations import (
+    ProjectAutomationActivities,
+    ProjectAutomationEdges,
+    ProjectAutomationNodes,
+    ProjectAutomations,
+    WorkspaceAutomationActivities,
+    WorkspaceAutomationEdges,
+    WorkspaceAutomationNodes,
+    WorkspaceAutomations,
+)
+from plane.api.v2.collections import CollectionMembers, CollectionPages, Collections
 from plane.api.v2.customer_properties import CustomerProperties
+from plane.api.v2.customers import (
+    CustomerPropertyValues,
+    CustomerRequests,
+    Customers,
+    CustomerWorkItems,
+)
 from plane.api.v2.cycles import Cycles, CycleWorkItems
 from plane.api.v2.estimates import Estimates
 from plane.api.v2.estimates.points import EstimatePoints
@@ -15,6 +34,12 @@ from plane.api.v2.group_sync import (
     GroupSyncConfigResource,
     GroupSyncProjectMappings,
     GroupSyncWorkspaceMappings,
+)
+from plane.api.v2.initiatives import (
+    InitiativeLabels,
+    InitiativeProjects,
+    Initiatives,
+    InitiativeWorkItems,
 )
 from plane.api.v2.intakes import Intakes
 from plane.api.v2.invitations import Invitations
@@ -34,12 +59,27 @@ from plane.api.v2.views import WorkspaceViews
 from plane.api.v2.views.project import ProjectViews
 from plane.api.v2.webhook_logs import WebhookLogs
 from plane.api.v2.webhooks import Webhooks
+from plane.api.v2.work_item_properties import (
+    WorkItemProperties,
+    WorkItemPropertyContexts,
+    WorkItemPropertyOptions,
+    WorkspaceWorkItemProperties,
+    WorkspaceWorkItemPropertyOptions,
+)
 from plane.api.v2.work_item_relation_definitions import WorkItemRelationDefinitions
 from plane.api.v2.work_item_templates import WorkspaceWorkItemTemplates
 from plane.api.v2.work_item_templates.project import ProjectWorkItemTemplates
+from plane.api.v2.work_item_types import (
+    WorkItemTypeProperties,
+    WorkItemTypes,
+    WorkspaceWorkItemTypeProperties,
+    WorkspaceWorkItemTypes,
+)
 from plane.api.v2.work_items import WorkspaceWorkItems
+from plane.api.v2.workflows import Workflows, WorkflowStates, WorkflowTransitions
 from plane.api.v2.worklogs import ProjectWorklogs
 from plane.config import Configuration
+from tests.v2.tree_walk import all_resource_classes, reachable_resources
 
 
 def test_tree_reaches_states_by_attribute(config: Configuration) -> None:
@@ -89,38 +129,18 @@ def test_workspaces_retrieve(config: Configuration) -> None:
     assert workspace.slug == "acme"
 
 
-# -- Wired but not yet migrated ---------------------------------------------------
-# `Workspaces` wires `Releases`, and `Releases` is now fully migrated -- its own
-# CRUD plus all six children (`labels`, `tags`, `comments`, `links`, `changelog`,
-# `work_items`) accept the leading path ids their URLs need. `wiki.collections` is
-# the one branch still a placeholder: `Collections` was migrated to the flat shape
-# by an earlier plan, but wiring it onto `Wiki` is separate follow-on work -- see
-# `plane/api/v2/wiki_node.py`.
-# (`WorkItems`' own seven children are all migrated now -- see
-# `tests/v2/test_work_items_resource.py`.)
-
-
-@pytest.mark.parametrize(
-    ("reach", "expected"),
-    [
-        (lambda v2: v2.workspaces.wiki.collections.list(), "Collections"),
-    ],
-)
-def test_unmigrated_branches_name_themselves_instead_of_raising_keyerror(
-    config: Configuration, reach, expected: str
-) -> None:
-    with pytest.raises(NotImplementedError) as raised:
-        reach(V2Namespace(config))
-
-    message = str(raised.value)
-    assert expected in message
-    assert "not migrated to the flat v2 shape yet" in message
+# -- Nothing is pending any more --------------------------------------------------
+# Every `V2Resource` subclass in the package is migrated *and* wired now, so the
+# placeholder mechanism that used to stand in for an unwired branch
+# (`PendingMigration`, `plane/api/v2/_kernel/pending.py`) is gone rather than idle --
+# proved by `test_no_placeholders_remain` and
+# `test_the_pending_migration_mechanism_is_deleted` below.
 
 
 @responses.activate
-def test_the_migrated_sibling_on_an_unmigrated_branch_still_works(config: Configuration) -> None:
-    """`releases.labels` is why `Releases` is wired at all -- placeholders next to it
-    must not take it down."""
+def test_a_catalog_sibling_next_to_a_family_still_works(config: Configuration) -> None:
+    """`releases.labels` is the workspace-level catalog reached as `Releases`'
+    sibling -- attaching more children next to it must not take it down."""
     responses.get(
         "https://api.example.com/api/v2/workspaces/acme/releases/labels/",
         json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
@@ -171,11 +191,66 @@ def test_a_fetched_release_reaches_its_children_with_no_ids_repeated(
     assert responses.calls[1].request.url == f"{base}/r1/comments/"
 
 
-def test_wiki_collections_is_present_rather_than_a_bare_attribute_error(
-    config: Configuration,
-) -> None:
-    """Leaving the attribute off gave `AttributeError`, which reads like a typo."""
-    assert hasattr(V2Namespace(config).workspaces.wiki, "collections")
+@responses.activate
+def test_wiki_collections_is_the_real_resource_now(config: Configuration) -> None:
+    """`wiki.collections` was a `PendingMigration` placeholder for two plans -- present
+    so it did not read like a typo, but raising on use. It is the real `Collections`."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/collections/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    V2Namespace(config).workspaces.wiki.collections.list("acme")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/collections/"
+    )
+
+
+def test_no_placeholders_remain(config: Configuration) -> None:
+    """Walk the whole live tree and refuse any placeholder standing in for a resource.
+
+    Written against the *name* rather than the class because the class no longer
+    exists: this task deleted `plane/api/v2/_kernel/pending.py` once its last user
+    (`wiki.collections`) became real. Anything reintroducing the mechanism -- under
+    that name or wired at a fresh branch -- fails here."""
+    seen: set[int] = set()
+
+    def walk(node: object, path: str) -> None:
+        for name in dir(node):
+            if name.startswith("_"):
+                continue
+            value = getattr(node, name, None)
+            assert type(value).__name__ != "PendingMigration", f"{path}.{name} is a placeholder"
+        for name, child in vars(node).items():
+            if name.startswith("_") or name == "transport" or id(child) in seen:
+                continue
+            seen.add(id(child))
+            if type(child).__module__.startswith("plane.api.v2"):
+                walk(child, f"{path}.{name}")
+
+    walk(V2Namespace(config), "v2")
+
+
+def test_the_pending_migration_mechanism_is_deleted() -> None:
+    """A mechanism for tracking unfinished work must not outlive the work. The walk
+    above only proves no *instance* is wired; this proves the module is gone, so a
+    later plan cannot quietly reach for it instead of finishing a migration."""
+    assert importlib.util.find_spec("plane.api.v2._kernel.pending") is None
+
+
+def test_every_resource_class_is_reachable_from_the_namespace(config: Configuration) -> None:
+    """The point of this task, stated once: every `V2Resource` subclass in the package
+    is reachable by plain attribute access from `client.v2`. Direct import used to be
+    the only way into the families migrated by this plan."""
+    unreachable = sorted(
+        cls.__name__ for cls in all_resource_classes() if cls not in reachable_resources()
+    )
+
+    assert unreachable == [], (
+        "these resource classes exist but nothing on the tree reaches them, so only a "
+        f"direct import can use them: {unreachable}"
+    )
 
 
 # -- Task 5: wiring the migrated resources onto the tree ---------------------------
@@ -258,6 +333,82 @@ WORKSPACE_TREE_ATTACHMENTS = [
         WebhookLogs,
         None,  # its collection URL carries the webhook id -- see the test below
     ),
+    # -- Task 6: the last five workspace families, plus wiki collections -----------
+    # `expected_url` is `None` wherever the child's own URL carries an id of its own
+    # (a customer, an initiative, an automation, a property, a type, a collection);
+    # `test_the_newly_attached_workspace_children_reach_their_urls` fills those in.
+    ("customers", lambda ws: ws.customers, Customers, "/workspaces/acme/customers/"),
+    ("customers.requests", lambda ws: ws.customers.requests, CustomerRequests, None),
+    (
+        "customers.property_values",
+        lambda ws: ws.customers.property_values,
+        CustomerPropertyValues,
+        None,
+    ),
+    ("customers.work_items", lambda ws: ws.customers.work_items, CustomerWorkItems, None),
+    ("initiatives", lambda ws: ws.initiatives, Initiatives, "/workspaces/acme/initiatives/"),
+    (
+        "initiatives.labels",
+        lambda ws: ws.initiatives.labels,
+        InitiativeLabels,
+        "/workspaces/acme/initiatives/labels/",  # a workspace-wide catalog, like release labels
+    ),
+    ("initiatives.projects", lambda ws: ws.initiatives.projects, InitiativeProjects, None),
+    ("initiatives.work_items", lambda ws: ws.initiatives.work_items, InitiativeWorkItems, None),
+    (
+        "automations",
+        lambda ws: ws.automations,
+        WorkspaceAutomations,
+        "/workspaces/acme/automations/",
+    ),
+    ("automations.edges", lambda ws: ws.automations.edges, WorkspaceAutomationEdges, None),
+    ("automations.nodes", lambda ws: ws.automations.nodes, WorkspaceAutomationNodes, None),
+    (
+        "automations.activities",
+        lambda ws: ws.automations.activities,
+        WorkspaceAutomationActivities,
+        None,
+    ),
+    (
+        "work_item_properties",
+        lambda ws: ws.work_item_properties,
+        WorkspaceWorkItemProperties,
+        "/workspaces/acme/work-item-properties/",
+    ),
+    (
+        "work_item_properties.contexts",
+        lambda ws: ws.work_item_properties.contexts,
+        WorkItemPropertyContexts,
+        None,
+    ),
+    (
+        "work_item_properties.options",
+        lambda ws: ws.work_item_properties.options,
+        WorkspaceWorkItemPropertyOptions,
+        None,
+    ),
+    (
+        "work_item_types",
+        lambda ws: ws.work_item_types,
+        WorkspaceWorkItemTypes,
+        "/workspaces/acme/work-item-types/",
+    ),
+    (
+        "work_item_types.properties",
+        lambda ws: ws.work_item_types.properties,
+        WorkspaceWorkItemTypeProperties,
+        None,
+    ),
+    # `wiki` is a grouping node with no path id of its own, so its subtree is tabled
+    # here rather than in a third table -- the same way `group_sync`'s children are.
+    (
+        "wiki.collections",
+        lambda ws: ws.wiki.collections,
+        Collections,
+        "/workspaces/acme/collections/",
+    ),
+    ("wiki.collections.members", lambda ws: ws.wiki.collections.members, CollectionMembers, None),
+    ("wiki.collections.pages", lambda ws: ws.wiki.collections.pages, CollectionPages, None),
 ]
 
 
@@ -347,8 +498,8 @@ def test_group_sync_project_mappings_child_reaches_its_url(config: Configuration
 
 @responses.activate
 def test_release_tags_is_wired_onto_releases_not_workspaces(config: Configuration) -> None:
-    """`ReleaseTags` attaches to `Releases`, not `Workspaces` -- the other four
-    release placeholders (comments, links, changelog, work_items) stay pending."""
+    """`ReleaseTags` attaches to `Releases`, not `Workspaces` -- its siblings
+    (comments, links, changelog, work_items) hang off `Releases` too."""
     responses.get(
         "https://api.example.com/api/v2/workspaces/acme/releases/tags/",
         json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
@@ -418,6 +569,48 @@ PROJECT_TREE_ATTACHMENTS = [
     ),
     ("modules.work_items", lambda p: p.modules.work_items, ModuleWorkItems, None),
     ("estimates.points", lambda p: p.estimates.points, EstimatePoints, None),
+    # -- Task 6: the last four project-band families ------------------------------
+    (
+        "automations",
+        lambda p: p.automations,
+        ProjectAutomations,
+        "/workspaces/acme/projects/ENG/automations/",
+    ),
+    ("automations.edges", lambda p: p.automations.edges, ProjectAutomationEdges, None),
+    ("automations.nodes", lambda p: p.automations.nodes, ProjectAutomationNodes, None),
+    (
+        "automations.activities",
+        lambda p: p.automations.activities,
+        ProjectAutomationActivities,
+        None,
+    ),
+    (
+        "work_item_types",
+        lambda p: p.work_item_types,
+        WorkItemTypes,
+        "/workspaces/acme/projects/ENG/work-item-types/",
+    ),
+    (
+        "work_item_types.properties",
+        lambda p: p.work_item_types.properties,
+        WorkItemTypeProperties,
+        None,
+    ),
+    (
+        "work_item_properties",
+        lambda p: p.work_item_properties,
+        WorkItemProperties,
+        "/workspaces/acme/projects/ENG/work-item-properties/",
+    ),
+    (
+        "work_item_properties.options",
+        lambda p: p.work_item_properties.options,
+        WorkItemPropertyOptions,
+        None,
+    ),
+    ("workflows", lambda p: p.workflows, Workflows, "/workspaces/acme/projects/ENG/workflows/"),
+    ("workflows.states", lambda p: p.workflows.states, WorkflowStates, None),
+    ("workflows.transitions", lambda p: p.workflows.transitions, WorkflowTransitions, None),
 ]
 
 
@@ -456,6 +649,97 @@ def test_project_tree_attachment_is_the_right_class_at_the_right_url(
     assert isinstance(resource, expected_class), f"{name} is not a {expected_class.__name__}"
     if expected_url is not None:
         assert resource._collection_url(slug="acme", project_id="ENG") == expected_url, name
+
+
+def test_the_newly_attached_workspace_children_reach_their_urls(config: Configuration) -> None:
+    """The workspace rows above whose `expected_url` is `None`: their templates carry
+    an id of their own, so the URL is proved here with that id supplied. Without this
+    a wrongly-templated child would pass on the `isinstance` half of its row alone."""
+    ws = V2Namespace(config).workspaces
+
+    assert (
+        ws.customers.requests._collection_url(slug="acme", customer_id="c1")
+        == "/workspaces/acme/customers/c1/requests/"
+    )
+    assert (
+        ws.customers.property_values._collection_url(slug="acme", customer_id="c1")
+        == "/workspaces/acme/customers/c1/property-values/"
+    )
+    assert (
+        ws.customers.work_items._collection_url(slug="acme", customer_id="c1")
+        == "/workspaces/acme/customers/c1/work-items/"
+    )
+    assert (
+        ws.initiatives.projects._collection_url(slug="acme", initiative_id="i1")
+        == "/workspaces/acme/initiatives/i1/projects/"
+    )
+    assert (
+        ws.initiatives.work_items._collection_url(slug="acme", initiative_id="i1")
+        == "/workspaces/acme/initiatives/i1/work-items/"
+    )
+    assert (
+        ws.automations.edges._collection_url(slug="acme", automation_id="a1")
+        == "/workspaces/acme/automations/a1/edges/"
+    )
+    assert (
+        ws.automations.nodes._collection_url(slug="acme", automation_id="a1")
+        == "/workspaces/acme/automations/a1/nodes/"
+    )
+    assert (
+        ws.automations.activities._collection_url(slug="acme", automation_id="a1")
+        == "/workspaces/acme/automations/a1/activities/"
+    )
+    assert (
+        ws.work_item_properties.contexts._collection_url(slug="acme", property_id="p1")
+        == "/workspaces/acme/work-item-properties/p1/contexts/"
+    )
+    assert (
+        ws.work_item_properties.options._collection_url(slug="acme", property_id="p1")
+        == "/workspaces/acme/work-item-properties/p1/options/"
+    )
+    assert (
+        ws.work_item_types.properties._collection_url(slug="acme", type_id="t1")
+        == "/workspaces/acme/work-item-types/t1/properties/"
+    )
+    assert (
+        ws.wiki.collections.members._collection_url(slug="acme", collection_id="col1")
+        == "/workspaces/acme/collections/col1/members/"
+    )
+
+
+def test_the_newly_attached_project_children_reach_their_urls(config: Configuration) -> None:
+    """The project-band twin of the check above."""
+    projects = V2Namespace(config).workspaces.projects
+    ids = {"slug": "acme", "project_id": "ENG"}
+
+    assert (
+        projects.automations.edges._collection_url(**ids, automation_id="a1")
+        == "/workspaces/acme/projects/ENG/automations/a1/edges/"
+    )
+    assert (
+        projects.automations.nodes._collection_url(**ids, automation_id="a1")
+        == "/workspaces/acme/projects/ENG/automations/a1/nodes/"
+    )
+    assert (
+        projects.automations.activities._collection_url(**ids, automation_id="a1")
+        == "/workspaces/acme/projects/ENG/automations/a1/activities/"
+    )
+    assert (
+        projects.work_item_types.properties._collection_url(**ids, type_id="t1")
+        == "/workspaces/acme/projects/ENG/work-item-types/t1/properties/"
+    )
+    assert (
+        projects.work_item_properties.options._collection_url(**ids, property_id="p1")
+        == "/workspaces/acme/projects/ENG/work-item-properties/p1/options/"
+    )
+    assert (
+        projects.workflows.states._collection_url(**ids, workflow_id="wf1")
+        == "/workspaces/acme/projects/ENG/workflows/wf1/states/"
+    )
+    assert (
+        projects.workflows.transitions._collection_url(**ids, workflow_id="wf1")
+        == "/workspaces/acme/projects/ENG/workflows/wf1/state-transitions/"
+    )
 
 
 def test_cycle_work_items_bridge_url(config: Configuration) -> None:

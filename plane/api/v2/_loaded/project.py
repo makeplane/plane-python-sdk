@@ -8,6 +8,7 @@ from ....models.v2.projects import Project
 from .._kernel.loaded import Loaded, Owned, bind2
 
 if TYPE_CHECKING:
+    from ..automations import ProjectAutomations
     from ..cycles import Cycles
     from ..estimates import Estimates
     from ..features import ProjectFeatures
@@ -21,8 +22,11 @@ if TYPE_CHECKING:
     from ..projects import Projects
     from ..states import States
     from ..views.project import ProjectViews
+    from ..work_item_properties import WorkItemProperties
     from ..work_item_templates.project import ProjectWorkItemTemplates
+    from ..work_item_types import WorkItemTypes
     from ..work_items import WorkItems
+    from ..workflows import Workflows
     from ..worklogs import ProjectWorklogs
 
     # Typed views on `Owned`: the child resource's own methods with `slug` and
@@ -179,11 +183,53 @@ if TYPE_CHECKING:
         update = staticmethod(bind2(ProjectPages.update))
         delete = staticmethod(bind2(ProjectPages.delete))
 
+    class _OwnedProjectAutomations(Owned["ProjectAutomations"]):
+        list = staticmethod(bind2(ProjectAutomations.list))
+        iterate = staticmethod(bind2(ProjectAutomations.iterate))
+        retrieve = staticmethod(bind2(ProjectAutomations.retrieve))
+        find_by_name = staticmethod(bind2(ProjectAutomations.find_by_name))
+        create = staticmethod(bind2(ProjectAutomations.create))
+        update = staticmethod(bind2(ProjectAutomations.update))
+        delete = staticmethod(bind2(ProjectAutomations.delete))
+        set_status = staticmethod(bind2(ProjectAutomations.set_status))
+
+    class _OwnedWorkItemTypes(Owned["WorkItemTypes"]):
+        list = staticmethod(bind2(WorkItemTypes.list))
+        iterate = staticmethod(bind2(WorkItemTypes.iterate))
+        retrieve = staticmethod(bind2(WorkItemTypes.retrieve))
+        find_by_name = staticmethod(bind2(WorkItemTypes.find_by_name))
+        create = staticmethod(bind2(WorkItemTypes.create))
+        update = staticmethod(bind2(WorkItemTypes.update))
+        delete = staticmethod(bind2(WorkItemTypes.delete))
+        enable = staticmethod(bind2(WorkItemTypes.enable))
+        import_types = staticmethod(bind2(WorkItemTypes.import_types))
+        mark_default = staticmethod(bind2(WorkItemTypes.mark_default))
+        schema = staticmethod(bind2(WorkItemTypes.schema))
+
+    class _OwnedWorkItemProperties(Owned["WorkItemProperties"]):
+        list = staticmethod(bind2(WorkItemProperties.list))
+        iterate = staticmethod(bind2(WorkItemProperties.iterate))
+        retrieve = staticmethod(bind2(WorkItemProperties.retrieve))
+        find_by_name = staticmethod(bind2(WorkItemProperties.find_by_name))
+        find_by_display_name = staticmethod(bind2(WorkItemProperties.find_by_display_name))
+        create = staticmethod(bind2(WorkItemProperties.create))
+        update = staticmethod(bind2(WorkItemProperties.update))
+        delete = staticmethod(bind2(WorkItemProperties.delete))
+
+    class _OwnedWorkflows(Owned["Workflows"]):
+        list = staticmethod(bind2(Workflows.list))
+        iterate = staticmethod(bind2(Workflows.iterate))
+        retrieve = staticmethod(bind2(Workflows.retrieve))
+        find_by_name = staticmethod(bind2(Workflows.find_by_name))
+        create = staticmethod(bind2(Workflows.create))
+        update = staticmethod(bind2(Workflows.update))
+        delete = staticmethod(bind2(Workflows.delete))
+
 
 class LoadedProject(Loaded, Project):
     """A project row that is also the place its children live.
 
-    Every one of the fifteen resources `Projects.__init__` attaches is reachable
+    Every one of the nineteen resources `Projects.__init__` attaches is reachable
     here, so `project.cycles.list()` works exactly the way `project.states.list()`
     does. `tests/v2/test_loaded_navigation.py` compares the two sets and fails if a
     later plan attaches a child without giving its rows a way to reach it."""
@@ -269,3 +315,28 @@ class LoadedProject(Loaded, Project):
     @property
     def pages(self) -> _OwnedProjectPages:
         return cast("_OwnedProjectPages", Owned(self._resources.pages, self._ids, self._id_names))
+
+    @property
+    def automations(self) -> _OwnedProjectAutomations:
+        return cast(
+            "_OwnedProjectAutomations",
+            Owned(self._resources.automations, self._ids, self._id_names),
+        )
+
+    @property
+    def work_item_types(self) -> _OwnedWorkItemTypes:
+        return cast(
+            "_OwnedWorkItemTypes",
+            Owned(self._resources.work_item_types, self._ids, self._id_names),
+        )
+
+    @property
+    def work_item_properties(self) -> _OwnedWorkItemProperties:
+        return cast(
+            "_OwnedWorkItemProperties",
+            Owned(self._resources.work_item_properties, self._ids, self._id_names),
+        )
+
+    @property
+    def workflows(self) -> _OwnedWorkflows:
+        return cast("_OwnedWorkflows", Owned(self._resources.workflows, self._ids, self._id_names))

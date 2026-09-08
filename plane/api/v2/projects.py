@@ -8,10 +8,12 @@ without the caller repeating `slug`/`project`.
 
 The whole project band hangs off this class: `states`, `labels`, `work_items`,
 `cycles`, `milestones`, `modules`, `estimates`, `intakes`, `members`, `views`,
-`features`, `permissions`, `work_item_templates`, `worklogs` and `pages`. Every one
-is migrated to the flat shape -- `tests/v2/test_tree.py`'s
-`PROJECT_TREE_ATTACHMENTS` table proves each is the right class at the right URL,
-and fails if a later plan attaches one without a row."""
+`features`, `permissions`, `work_item_templates`, `worklogs`, `pages`, `automations`,
+`work_item_types`, `work_item_properties` and `workflows`. Every one is migrated to
+the flat shape -- `tests/v2/test_tree.py`'s `PROJECT_TREE_ATTACHMENTS` table proves
+each is the right class at the right URL, and fails if a later plan attaches one
+without a row; `tests/v2/test_loaded_navigation.py` proves a fetched row reaches all
+nineteen of them."""
 
 from __future__ import annotations
 
@@ -38,6 +40,7 @@ from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
 from ._loaded.project import LoadedProject
+from .automations import ProjectAutomations
 from .cycles import Cycles
 from .estimates import Estimates
 from .features import ProjectFeatures
@@ -50,8 +53,11 @@ from .pages import ProjectPages
 from .permissions import ProjectPermissions
 from .states import States
 from .views.project import ProjectViews
+from .work_item_properties import WorkItemProperties
 from .work_item_templates.project import ProjectWorkItemTemplates
+from .work_item_types import WorkItemTypes
 from .work_items import WorkItems
+from .workflows import Workflows
 from .worklogs import ProjectWorklogs
 
 
@@ -97,6 +103,10 @@ class Projects(
         self.work_item_templates = ProjectWorkItemTemplates(transport)
         self.worklogs = ProjectWorklogs(transport)
         self.pages = ProjectPages(transport)
+        self.automations = ProjectAutomations(transport)
+        self.work_item_types = WorkItemTypes(transport)
+        self.work_item_properties = WorkItemProperties(transport)
+        self.workflows = Workflows(transport)
 
     def list(
         self,
