@@ -133,8 +133,7 @@ def test_the_opt_out_list_is_empty() -> None:
     now reached empty -- workflows were the last family -- so every `V2Resource`
     subclass in the package is swept by every rule in this module."""
     assert UNMIGRATED_RESOURCES == frozenset(), (
-        f"{len(UNMIGRATED_RESOURCES)} classes remain unmigrated: "
-        f"{sorted(UNMIGRATED_RESOURCES)}"
+        f"{len(UNMIGRATED_RESOURCES)} classes remain unmigrated: " f"{sorted(UNMIGRATED_RESOURCES)}"
     )
 
 
