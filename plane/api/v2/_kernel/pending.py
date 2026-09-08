@@ -55,7 +55,11 @@ def pending_flat_migration(method: F) -> F:
     but calling the method raises instead of building a URL from path ids it never
     took. Use this where a class is reachable on the tree for some *other* reason --
     `Releases` is wired because `releases.labels` is migrated -- so unwiring the whole
-    class is not an option."""
+    class is not an option.
+
+    The wrapper carries `__pending_flat_migration__ = True` so the rule sweeps in
+    `tests/v2/` (path-id naming, `expand` coverage) can tell "still pre-flat, rules
+    do not apply yet" from "migrated and wrong" without a hand-maintained list."""
 
     @functools.wraps(method)
     def unmigrated(self: Any, *args: Any, **kwargs: Any) -> Any:
@@ -65,4 +69,5 @@ def pending_flat_migration(method: F) -> F:
             f"(`{type(self).path}`). {_TRACKING}"
         )
 
+    unmigrated.__pending_flat_migration__ = True  # type: ignore[attr-defined]
     return unmigrated  # type: ignore[return-value]
