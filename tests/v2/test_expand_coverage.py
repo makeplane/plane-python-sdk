@@ -9,10 +9,15 @@ migrations shipped without it -- `Teamspaces.create/update` and
 `ProjectPages.create/update`, `WikiPages.create/update` and
 `WorkItemComments.create/update/upsert` from the foundation.
 
-So this sweeps rather than lists: it walks the derived set of migrated resources
-(`tests/v2/tree_walk.py`) and fails naming any method that omits a parameter its
-own operation offers. Later plans inherit the check instead of repeating the
-omission 59 more times.
+So this sweeps rather than lists: it walks the enumerated set of migrated
+resources (`tests/v2/tree_walk.py` -- every `V2Resource` subclass in the package
+bar an explicit, shrinking opt-out) and fails naming any method that omits a
+parameter its own operation offers. Later plans inherit the check instead of
+repeating the omission 59 more times.
+
+The enumeration matters here as much as it does for the naming rule: while the
+subject set was discovered rather than enumerated, a resource with no `list` --
+every bridge, every singleton -- could never be swept for `expand` either.
 
 Not in scope here: the `Literal` typing of `expand` (today it is `Sequence[str]`
 on most methods). That is generator work -- the kernel already validates the
@@ -58,9 +63,9 @@ EXPANDABLE = _expandable_methods()
 def test_the_sweep_actually_finds_methods_to_check() -> None:
     """A floor, not a pin: if the derivation or the `operations` lookup breaks, the
     sweep below would pass by checking nothing."""
-    assert len(EXPANDABLE) >= 20, (
+    assert len(EXPANDABLE) >= 50, (
         f"Only {len(EXPANDABLE)} expandable methods were found across the migrated "
-        "resources -- the derivation in tests/v2/tree_walk.py or the `operations` "
+        "resources -- the enumeration in tests/v2/tree_walk.py or the `operations` "
         "lookup is broken, and the sweep below is passing vacuously."
     )
 

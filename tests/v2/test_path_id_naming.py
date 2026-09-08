@@ -18,15 +18,26 @@ permanently unswept. So the subject set is now *every* `V2Resource` subclass in 
 package minus an explicit, shrinking opt-out (`tests/v2/tree_walk.py`), and the
 guards below keep that opt-out honest.
 
+**The check is scoped to path ids, not to every `_id` parameter.** It used to flag
+any parameter ending in `_id`, which is broader than the rule: `Cycles.transfer`'s
+destination is a *request body* field (the golden sends `new_cycle_id`) that the URL
+template never names, and the sweep forced it renamed anyway. `Owned` compares
+leading *path* parameters, so a body argument is outside the rule's scope --
+`path_id_offenders` therefore only considers parameters that correspond to a
+placeholder in the resource's own URL templates, or to the resource's own primary
+key (the singular of its collection segment).
+
 See the "path ids" rule in CLAUDE.md.
 """
 
 from __future__ import annotations
 
 import inspect
+from typing import ClassVar
 
 import pytest
 
+from plane.api.v2._kernel.resource import V2Resource
 from tests.v2.tree_walk import (
     UNMIGRATED_RESOURCES,
     all_resource_classes,
@@ -34,6 +45,7 @@ from tests.v2.tree_walk import (
     migrated_resource_classes,
     public_methods,
     reachable_resources,
+    template_keys,
 )
 
 MIGRATED = migrated_resource_classes()
@@ -41,6 +53,58 @@ MIGRATED = migrated_resource_classes()
 OPT_OUT_CEILING = 35
 """The size of `UNMIGRATED_RESOURCES` when the enumeration landed. A ratchet: the
 list is the plan-4 backlog and may only shrink, so growing it fails here."""
+
+
+def _singular(segment: str) -> str:
+    """`cycles` -> `cycle`, `properties` -> `property`, `me` -> `me`. Crude on
+    purpose: it only has to cover the collection segments api_v2 actually uses."""
+    if segment.endswith("ies"):
+        return f"{segment[:-3]}y"
+    if segment.endswith(("sses", "shes", "ches")):
+        return segment[:-2]
+    return segment[:-1] if segment.endswith("s") else segment
+
+
+def path_id_names(resource_class: type[V2Resource]) -> set[str]:  # type: ignore[type-arg]
+    """The parameter names that would carry a path id for this resource.
+
+    Two sources, both read off the URL templates the class declares (`path` plus any
+    `extra_paths` override):
+
+    * every `{...}` placeholder -- the ancestors' ids, e.g. `{slug}`, `{project_id}`;
+    * the resource's own primary key, which never appears as a placeholder in its own
+      template (the kernel appends it to the collection URL), derived instead from the
+      trailing literal segment: `.../cycles/` -> `cycle`. Both the whole segment and
+      its last hyphenated word count, so `.../work-item-types/` admits
+      `work_item_type` and `type`.
+
+    Each name is admitted with and without an `_id` suffix, since the point is to
+    recognise the suffixed spelling in order to reject it."""
+    names: set[str] = set()
+    for template in [resource_class.path, *resource_class.extra_paths.values()]:
+        for key in template_keys(template):
+            names.add(key)
+            names.add(key.removesuffix("_id"))
+        literals = [part for part in template.strip("/").split("/") if part and "{" not in part]
+        if literals:
+            words = literals[-1].split("-")
+            for candidate in (_singular("_".join(words)), _singular(words[-1])):
+                names.add(candidate)
+                names.add(f"{candidate}_id")
+    return names
+
+
+def path_id_offenders(resource_class: type[V2Resource]) -> list[str]:  # type: ignore[type-arg]
+    """Every parameter on the class that carries a path id under an `_id`-suffixed
+    name. Parameters that merely end in `_id` without naming a path id -- request
+    body fields such as `new_cycle_id` -- are not the rule's business."""
+    known = path_id_names(resource_class)
+    return [
+        f"{resource_class.__name__}.{name}({parameter})"
+        for name, function in public_methods(resource_class).items()
+        for parameter in inspect.signature(function).parameters
+        if parameter.endswith("_id") and (parameter in known or parameter[: -len("_id")] in known)
+    ]
 
 
 def test_the_enumerated_set_is_not_empty_or_tiny() -> None:
@@ -103,16 +167,32 @@ def test_no_opted_out_class_is_actually_migrated() -> None:
 
 @pytest.mark.parametrize("resource", MIGRATED, ids=lambda cls: cls.__name__)
 def test_no_public_method_names_a_path_id_with_an_id_suffix(resource: type) -> None:
-    offenders = [
-        f"{resource.__name__}.{name}({parameter})"
-        for name, function in public_methods(resource).items()
-        for parameter in inspect.signature(function).parameters
-        if parameter.endswith("_id")
-    ]
-
-    assert offenders == [], (
-        "path ids are named after the resource they identify, with no `_id` suffix: " f"{offenders}"
+    assert path_id_offenders(resource) == [], (
+        "path ids are named after the resource they identify, with no `_id` suffix: "
+        f"{path_id_offenders(resource)}"
     )
+
+
+def test_the_check_ignores_id_suffixed_parameters_that_are_not_path_ids() -> None:
+    """The other half of the repair, proved on a resource built for it.
+
+    `destination_cycle_id` is a request *body* field: the URL template never names it
+    and `Owned` never compares it, so flagging it forced renames the rule does not
+    ask for (this is what turned `Cycles.transfer`'s `new_cycle_id` into
+    `new_cycle`). `cycle_id` on the same class *is* the resource's own primary key
+    and must still be caught."""
+
+    class BodyFieldCycles(V2Resource):  # type: ignore[type-arg]
+        path = "/workspaces/{slug}/projects/{project_id}/cycles/"
+        operations: ClassVar[dict[str, str]] = {}
+
+        def transfer(self, slug: str, project: str, cycle: str, destination_cycle_id: str) -> None:
+            """Body field, not a path id -- outside the rule."""
+
+        def retrieve(self, slug: str, project: str, cycle_id: str) -> None:
+            """The resource's own pk, suffixed -- the violation the rule exists for."""
+
+    assert path_id_offenders(BodyFieldCycles) == ["BodyFieldCycles.retrieve(cycle_id)"]
 
 
 def test_a_childs_leading_parameters_match_what_its_parent_binds() -> None:
