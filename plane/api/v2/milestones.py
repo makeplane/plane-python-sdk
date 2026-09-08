@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import builtins
 from collections.abc import Iterator, Mapping, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ...models.v2.common import BulkWriteResponse
 from ...models.v2.milestone_work_items import (
@@ -15,6 +16,15 @@ from ...models.v2.milestone_work_items import (
     MilestoneWorkItemManageResponse,
 )
 from ...models.v2.milestones import CreateMilestone, Milestone, UpdateMilestone
+from ._generated.constants import (
+    MilestonesCreateField,
+    MilestonesListField,
+    MilestonesListFilters,
+    MilestonesListOrderBy,
+    MilestonesPartialUpdateField,
+    MilestonesRetrieveField,
+    MilestonesUpsertField,
+)
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
@@ -38,15 +48,23 @@ class MilestoneWorkItems(
         "bridge": "milestones_work_items",
     }
 
-    def add(self, milestone_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+    def add(
+        self, slug: str, project: str, milestone: str, work_item_ids: Sequence[str]
+    ) -> builtins.list[str]:
         """Link 1..100 work items to this milestone; returns the ids actually
         added (already-linked ones are omitted)."""
-        return self._bridge(key="add", ids=work_item_ids, milestone_id=milestone_id)
+        return self._bridge(
+            key="add", ids=work_item_ids, slug=slug, project_id=project, milestone_id=milestone
+        )
 
-    def remove(self, milestone_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+    def remove(
+        self, slug: str, project: str, milestone: str, work_item_ids: Sequence[str]
+    ) -> builtins.list[str]:
         """Unlink 1..100 work items from this milestone; returns the ids
         actually removed."""
-        return self._bridge(key="remove", ids=work_item_ids, milestone_id=milestone_id)
+        return self._bridge(
+            key="remove", ids=work_item_ids, slug=slug, project_id=project, milestone_id=milestone
+        )
 
 
 class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
@@ -64,53 +82,131 @@ class Milestones(V2Resource[Milestone, CreateMilestone, UpdateMilestone]):
         "bulk_delete": "milestones_bulk_delete",
     }
 
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        super().__init__(transport, **scope)
-        self.work_items = MilestoneWorkItems(transport, **self._scope)
+    def __init__(self, transport: V2Transport) -> None:
+        super().__init__(transport)
+        self.work_items = MilestoneWorkItems(transport)
 
-    def list(self, *, fields: Sequence[str] | None = None, **filters: Any) -> Page[Milestone]:
+    def list(
+        self,
+        slug: str,
+        project: str,
+        *,
+        fields: Sequence[MilestonesListField] | None = None,
+        order_by: MilestonesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[MilestonesListFilters],
+    ) -> Page[Milestone]:
         """One page of milestones in this project."""
-        return self._list(params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+        )
 
     def iterate(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
+        self,
+        slug: str,
+        project: str,
+        *,
+        fields: Sequence[MilestonesListField] | None = None,
+        order_by: MilestonesListOrderBy | None = None,
+        **filters: Unpack[MilestonesListFilters],
     ) -> Iterator[Milestone]:
         """Every milestone, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(
+            params={"fields": fields, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+        )
 
-    def retrieve(self, milestone_id: str, *, fields: Sequence[str] | None = None) -> Milestone:
-        return self._retrieve(pk=milestone_id, params={"fields": fields})
+    def retrieve(
+        self,
+        slug: str,
+        project: str,
+        milestone: str,
+        *,
+        fields: Sequence[MilestonesRetrieveField] | None = None,
+    ) -> Milestone:
+        return self._retrieve(
+            pk=milestone, params={"fields": fields}, slug=slug, project_id=project
+        )
 
-    def find_by_name(self, name: str) -> Milestone:
+    def find_by_name(self, slug: str, project: str, name: str) -> Milestone:
         """The one milestone whose title matches this name; raises if none or
         several match."""
-        return self._find_one(filters={"name": name})
+        return self._find_one(filters={"name": name}, slug=slug, project_id=project)
 
-    def create(self, data: CreateMilestone) -> Milestone:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        project: str,
+        data: CreateMilestone,
+        *,
+        fields: Sequence[MilestonesCreateField] | None = None,
+    ) -> Milestone:
+        return self._create(data, params={"fields": fields}, slug=slug, project_id=project)
 
-    def update(self, milestone_id: str, data: UpdateMilestone) -> Milestone:
-        return self._update(data, pk=milestone_id)
+    def update(
+        self,
+        slug: str,
+        project: str,
+        milestone: str,
+        data: UpdateMilestone,
+        *,
+        fields: Sequence[MilestonesPartialUpdateField] | None = None,
+    ) -> Milestone:
+        return self._update(
+            data, pk=milestone, params={"fields": fields}, slug=slug, project_id=project
+        )
 
-    def delete(self, milestone_id: str) -> None:
-        return self._delete(pk=milestone_id)
+    def delete(self, slug: str, project: str, milestone: str) -> None:
+        return self._delete(pk=milestone, slug=slug, project_id=project)
 
-    def upsert(self, data: CreateMilestone) -> Milestone:
+    def upsert(
+        self,
+        slug: str,
+        project: str,
+        data: CreateMilestone,
+        *,
+        fields: Sequence[MilestonesUpsertField] | None = None,
+    ) -> Milestone:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(data)
+        return self._upsert(data, params={"fields": fields}, slug=slug, project_id=project)
 
     def bulk_create(
-        self, items: builtins.list[CreateMilestone], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        items: builtins.list[CreateMilestone],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
-        return self._bulk_create(items, all_or_none=all_or_none)
+        return self._bulk_create(items, all_or_none=all_or_none, slug=slug, project_id=project)
 
     def bulk_update(
-        self, items: builtins.list[Mapping[str, Any]], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        items: builtins.list[Mapping[str, object]],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
         """Each item is `{"id": <uuid>, ...fields to change}`."""
-        return self._bulk_update(items, all_or_none=all_or_none)
+        return self._bulk_update(items, all_or_none=all_or_none, slug=slug, project_id=project)
 
     def bulk_delete(
-        self, ids: builtins.list[str], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        ids: builtins.list[str],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
-        return self._bulk_delete(ids, all_or_none=all_or_none)
+        return self._bulk_delete(ids, all_or_none=all_or_none, slug=slug, project_id=project)

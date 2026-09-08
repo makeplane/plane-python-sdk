@@ -1,12 +1,14 @@
 """Project cycles (api_v2). `transfer` doesn't fit the CRUD request/response shape
-`V2Resource` generates, so it builds its request directly but stays a plain method on
-`Cycles`; cycle membership is the `.work_items` bridge (`add`/`remove`)."""
+`V2Resource` generates, so it goes through the kernel's custom-action helper
+(`_custom_action`) instead of `_action`, which assumes the response is the resource's
+own `model`; cycle membership is the `.work_items` bridge (`add`/`remove`)."""
 
 from __future__ import annotations
 
 import builtins
 from collections.abc import Iterator, Mapping, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ...models.v2.common import BulkWriteResponse
 from ...models.v2.cycle_actions import (
@@ -16,6 +18,15 @@ from ...models.v2.cycle_actions import (
     CycleWorkItemManageResult,
 )
 from ...models.v2.cycles import CreateCycle, Cycle, UpdateCycle
+from ._generated.constants import (
+    CyclesCreateField,
+    CyclesListField,
+    CyclesListFilters,
+    CyclesListOrderBy,
+    CyclesPartialUpdateField,
+    CyclesRetrieveField,
+    CyclesUpsertField,
+)
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
@@ -34,14 +45,22 @@ class CycleWorkItems(
         "bridge": "cycles_work_items_manage",
     }
 
-    def add(self, cycle_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+    def add(
+        self, slug: str, project: str, cycle: str, work_item_ids: Sequence[str]
+    ) -> builtins.list[str]:
         """Move 1..100 work items into this cycle; returns the ids actually added
         (already-present ones are omitted)."""
-        return self._bridge(key="add", ids=work_item_ids, cycle_id=cycle_id)
+        return self._bridge(
+            key="add", ids=work_item_ids, slug=slug, project_id=project, cycle_id=cycle
+        )
 
-    def remove(self, cycle_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+    def remove(
+        self, slug: str, project: str, cycle: str, work_item_ids: Sequence[str]
+    ) -> builtins.list[str]:
         """Take 1..100 work items out of this cycle; returns the ids actually removed."""
-        return self._bridge(key="remove", ids=work_item_ids, cycle_id=cycle_id)
+        return self._bridge(
+            key="remove", ids=work_item_ids, slug=slug, project_id=project, cycle_id=cycle
+        )
 
 
 class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
@@ -60,82 +79,161 @@ class Cycles(V2Resource[Cycle, CreateCycle, UpdateCycle]):
         "transfer": "cycles_transfer",
     }
 
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        super().__init__(transport, **scope)
-        self.work_items = CycleWorkItems(transport, **self._scope)
+    def __init__(self, transport: V2Transport) -> None:
+        super().__init__(transport)
+        self.work_items = CycleWorkItems(transport)
 
     def list(
         self,
+        slug: str,
+        project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[CyclesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: CyclesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[CyclesListFilters],
     ) -> Page[Cycle]:
         """One page of cycles in this project."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+        )
 
     def iterate(
         self,
+        slug: str,
+        project: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[CyclesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: CyclesListOrderBy | None = None,
+        **filters: Unpack[CyclesListFilters],
     ) -> Iterator[Cycle]:
         """Every cycle, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+        )
 
     def retrieve(
         self,
-        cycle_id: str,
+        slug: str,
+        project: str,
+        cycle: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[CyclesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> Cycle:
-        return self._retrieve(pk=cycle_id, params={"fields": fields, "expand": expand})
+        return self._retrieve(
+            pk=cycle, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+        )
 
-    def find_by_name(self, name: str) -> Cycle:
+    def find_by_name(self, slug: str, project: str, name: str) -> Cycle:
         """The one cycle with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        return self._find_one(filters={"name": name}, slug=slug, project_id=project)
 
-    def create(self, data: CreateCycle) -> Cycle:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        project: str,
+        data: CreateCycle,
+        *,
+        fields: Sequence[CyclesCreateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Cycle:
+        return self._create(
+            data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+        )
 
-    def update(self, cycle_id: str, data: UpdateCycle) -> Cycle:
-        return self._update(data, pk=cycle_id)
+    def update(
+        self,
+        slug: str,
+        project: str,
+        cycle: str,
+        data: UpdateCycle,
+        *,
+        fields: Sequence[CyclesPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Cycle:
+        return self._update(
+            data,
+            pk=cycle,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+        )
 
-    def delete(self, cycle_id: str) -> None:
-        return self._delete(pk=cycle_id)
+    def delete(self, slug: str, project: str, cycle: str) -> None:
+        return self._delete(pk=cycle, slug=slug, project_id=project)
 
-    def upsert(self, data: CreateCycle) -> Cycle:
+    def upsert(
+        self,
+        slug: str,
+        project: str,
+        data: CreateCycle,
+        *,
+        fields: Sequence[CyclesUpsertField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Cycle:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(data)
+        return self._upsert(
+            data, params={"fields": fields, "expand": expand}, slug=slug, project_id=project
+        )
 
     def bulk_create(
-        self, items: builtins.list[CreateCycle], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        items: builtins.list[CreateCycle],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
-        return self._bulk_create(items, all_or_none=all_or_none)
+        return self._bulk_create(items, all_or_none=all_or_none, slug=slug, project_id=project)
 
     def bulk_update(
-        self, items: builtins.list[Mapping[str, Any]], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        items: builtins.list[Mapping[str, object]],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
         """Each item is `{"id": <uuid>, ...fields to change}`."""
-        return self._bulk_update(items, all_or_none=all_or_none)
+        return self._bulk_update(items, all_or_none=all_or_none, slug=slug, project_id=project)
 
     def bulk_delete(
-        self, ids: builtins.list[str], *, all_or_none: bool = False
+        self,
+        slug: str,
+        project: str,
+        ids: builtins.list[str],
+        *,
+        all_or_none: bool = False,
     ) -> BulkWriteResponse:
-        return self._bulk_delete(ids, all_or_none=all_or_none)
+        return self._bulk_delete(ids, all_or_none=all_or_none, slug=slug, project_id=project)
 
     # -- Custom actions ------------------------------------------------------
 
-    def transfer(self, cycle_id: str, new_cycle_id: str) -> CycleTransferResult:
-        """Move `cycle_id`'s incomplete work items into `new_cycle_id`. The source
-        cycle must already be completed (server-enforced); the destination must
-        exist in the same project."""
-        data = CycleTransfer(new_cycle_id=new_cycle_id)
-        payload = self.transport.request(
-            "POST",
-            f"{self._detail_url(cycle_id)}transfer/",
-            json=data.model_dump(mode="json", exclude_none=True),
+    def transfer(self, slug: str, project: str, cycle: str, new_cycle: str) -> CycleTransferResult:
+        """Move `cycle`'s incomplete work items into `new_cycle`. The source cycle
+        must already be completed (server-enforced); the destination must exist in
+        the same project."""
+        data = CycleTransfer(new_cycle_id=new_cycle)
+        return self._custom_action(
+            "transfer",
+            model=CycleTransferResult,
+            pk=cycle,
+            data=data,
+            slug=slug,
+            project_id=project,
         )
-        return CycleTransferResult.model_validate(payload)
