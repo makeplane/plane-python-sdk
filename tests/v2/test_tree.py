@@ -68,7 +68,6 @@ def test_workspaces_retrieve(config: Configuration) -> None:
         (lambda v2: v2.workspaces.releases.retrieve("r1"), "Releases.retrieve()"),
         (lambda v2: v2.workspaces.releases.comments.list(), "ReleaseComments"),
         (lambda v2: v2.workspaces.releases.links.list(), "ReleaseLinks"),
-        (lambda v2: v2.workspaces.releases.tags.list(), "ReleaseTags"),
         (lambda v2: v2.workspaces.releases.changelog.retrieve("r1"), "ReleaseChangelogResource"),
         (lambda v2: v2.workspaces.releases.work_items.add("r1", ["w1"]), "ReleaseWorkItems"),
         (lambda v2: v2.workspaces.projects.work_items.activities.list("wi1"), "WorkItemActivities"),
@@ -118,3 +117,95 @@ def test_wiki_collections_is_present_rather_than_a_bare_attribute_error(
 ) -> None:
     """Leaving the attribute off gave `AttributeError`, which reads like a typo."""
     assert hasattr(V2Namespace(config).workspaces.wiki, "collections")
+
+
+# -- Task 5: wiring the migrated resources onto the tree ---------------------------
+
+
+def test_workspace_exposes_every_migrated_resource(config: Configuration) -> None:
+    ws = V2Namespace(config).workspaces
+    for name in (
+        "artifacts",
+        "assets",
+        "audit_logs",
+        "customer_properties",
+        "group_sync",
+        "invitations",
+        "members",
+        "permission_schemes",
+        "permissions",
+        "roles",
+        "stickies",
+        "teamspaces",
+        "views",
+        "work_item_relation_definitions",
+        "work_item_templates",
+        "work_items",
+    ):
+        assert hasattr(ws, name), f"workspaces.{name} is not wired"
+
+
+def test_group_sync_children_are_reachable(config: Configuration) -> None:
+    group_sync = V2Namespace(config).workspaces.group_sync
+    for name in ("config", "project_mappings", "workspace_mappings"):
+        assert hasattr(group_sync, name)
+
+
+@responses.activate
+def test_a_wired_resource_reaches_its_url(config: Configuration) -> None:
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/teamspaces/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    V2Namespace(config).workspaces.teamspaces.list("acme")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/teamspaces/"
+    )
+
+
+@responses.activate
+def test_permissions_singleton_is_wired_and_reaches_its_url(config: Configuration) -> None:
+    """`.permissions` has no primary key of its own; verify the wired instance is
+    the real `WorkspacePermissions`, not just any truthy attribute."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/permissions/me/",
+        json={"permissions": []},
+    )
+
+    V2Namespace(config).workspaces.permissions.me("acme")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/permissions/me/"
+    )
+
+
+@responses.activate
+def test_group_sync_project_mappings_child_reaches_its_url(config: Configuration) -> None:
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/group-sync/project-mappings/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    V2Namespace(config).workspaces.group_sync.project_mappings.list("acme")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/group-sync/project-mappings/"
+    )
+
+
+@responses.activate
+def test_release_tags_is_wired_onto_releases_not_workspaces(config: Configuration) -> None:
+    """`ReleaseTags` attaches to `Releases`, not `Workspaces` -- the other four
+    release placeholders (comments, links, changelog, work_items) stay pending."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/releases/tags/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    V2Namespace(config).workspaces.releases.tags.list("acme")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/releases/tags/"
+    )

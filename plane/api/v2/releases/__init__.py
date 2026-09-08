@@ -3,11 +3,11 @@ a `.work_items` membership bridge, a `.changelog` singleton, catalog siblings
 `.labels` (itself a bridge for the per-release association)/`.tags`, and
 nested `.comments`/`.links` (see `tags.py` for a golden/server mismatch).
 
-**Only `.labels` is migrated to the flat shape.** `Releases` is wired onto
-`Workspaces` for its sake, so `ws.releases.labels` works; the class's own CRUD and
-its other children still omit the leading `slug`, and each says so when used --
-see `_kernel/pending.py`. The unmigrated bodies are kept as the starting point for
-that work."""
+**Only `.labels` and `.tags` are migrated to the flat shape.** `Releases` is wired
+onto `Workspaces` for their sake, so `ws.releases.labels` and `ws.releases.tags`
+work; the class's own CRUD and its other children still omit the leading `slug`,
+and each says so when used -- see `_kernel/pending.py`. The unmigrated bodies are
+kept as the starting point for that work."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ class Releases(V2Resource[Release, CreateRelease, UpdateRelease]):
         # own id and would build `/workspaces/{slug}/...` with no slug to fill it.
         self.comments = PendingMigration("ReleaseComments", reached_as="releases.comments")
         self.links = PendingMigration("ReleaseLinks", reached_as="releases.links")
-        self.tags = PendingMigration("ReleaseTags", reached_as="releases.tags")
+        self.tags = ReleaseTags(transport)
         self.changelog = PendingMigration(
             "ReleaseChangelogResource", reached_as="releases.changelog"
         )

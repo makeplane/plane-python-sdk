@@ -1,7 +1,7 @@
-"""Offline coverage for `ReleaseTags` (standalone -- `Releases` still wires it as a
-`PendingMigration` placeholder, so it is reached directly, not via `Releases.tags`).
-Asserts every method's exact request URL, including the golden/server mismatch on
-`tag_id` that `find_by_version` exists to work around."""
+"""Offline coverage for `ReleaseTags`, constructed standalone here (also reachable
+as `Releases.tags` -- see `tests/v2/test_tree.py` for that wiring). Asserts every
+method's exact request URL, including the golden/server mismatch on `tag_id` that
+`find_by_version` exists to work around."""
 
 import pytest
 import responses
