@@ -10,11 +10,13 @@ two *opportunistic* discoveries -- classes wired onto the live tree, plus classe
 whose `list` already consumed every path id its URL template names -- and both miss
 by construction:
 
-* `flat_resource_classes()` needs a `list` method to judge. Eighteen of the ninety
+* the shape check used to need a `list` method to judge. Eighteen of the ninety
   `V2Resource` subclasses have none: every membership bridge (`CycleWorkItems`,
   `InitiativeProjects`, ...), every singleton (`ProjectFeatures`,
   `WorkspacePermissions`, ...) and the workspace root itself. They were permanently
   outside both sweeps however they were written.
+  (`flat_shaped_resource_classes()` now judges every public method instead, so it
+  sees those eighteen -- but it stays a guard, not the source of the set.)
 * `reachable_resources()` needs the class to be wired. A resource migrated by one
   task and wired by a later one is unchecked in between -- exactly the state
   `ProjectPages` sat in for a whole plan.
@@ -25,8 +27,8 @@ to write down: a newly migrated class is swept the moment it exists, wired or no
 toward empty -- `tests/v2/test_path_id_naming.py` ratchets its size and refuses to
 let a name in it stay opted out once the class is wired or flat-shaped.
 
-`flat_resource_classes()` and `reachable_resources()` survive as *guards* on that
-list rather than as the source of the set.
+`flat_shaped_resource_classes()` and `reachable_resources()` survive as *guards* on
+that list rather than as the source of the set.
 """
 
 from __future__ import annotations
@@ -191,31 +193,63 @@ def all_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
     return sorted(set(_iter_resource_classes(v2_package)), key=lambda cls: cls.__name__)
 
 
-def _leading_path_ids(function: Any) -> int:
-    """How many positional-or-keyword parameters a method takes before its `*`."""
-    return sum(
-        1
+def _leading_path_ids(function: Any) -> list[str]:
+    """The names of the positional-or-keyword parameters a method takes before its
+    `*`, in order -- the ones the flat shape fills with path ids."""
+    return [
+        parameter.name
         for parameter in inspect.signature(function).parameters.values()
         if parameter.kind is parameter.POSITIONAL_OR_KEYWORD and parameter.name != "self"
-    )
+    ]
 
 
-def flat_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
-    """Classes whose `list` already consumes exactly the path ids its URL template
-    names -- the mechanical signature of the flat shape, for classes that have a
-    `list` at all.
+def expected_leading_path_ids(template: str) -> tuple[str, ...]:
+    """The parameter names a flat-shaped method on `template` must open with: every
+    `{...}` placeholder, in path order, with the golden's `_id` suffix dropped
+    (`.../projects/{project_id}/cycles/` -> `("slug", "project")`)."""
+    names: list[str] = []
+    for key in template_keys(template):
+        name = key.removesuffix("_id")
+        if name not in names:
+            names.append(name)
+    return tuple(names)
+
+
+def method_is_flat_shaped(resource_class: type[V2Resource], name: str, function: Any) -> bool:  # type: ignore[type-arg]
+    """True when `name` opens with exactly the path ids the URL template it uses
+    names, under the flat spelling. The template is the method's own `extra_paths`
+    override where it has one, else the class `path` -- the same choice `url_for`
+    makes at call time."""
+    template = resource_class.extra_paths.get(name, resource_class.path)
+    expected = expected_leading_path_ids(template)
+    leading = _leading_path_ids(function)
+    return tuple(leading[: len(expected)]) == expected
+
+
+def flat_shaped_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
+    """Classes whose every public method already opens with the path ids its own URL
+    template names -- the mechanical signature of the flat shape.
 
     Kept as a *guard*: a class named in `UNMIGRATED_RESOURCES` that shows up here has
-    been migrated and the opt-out is now stale. It is no longer used to build the
-    swept set, because 18 of the 90 classes have no `list` to judge."""
-    flat = []
-    for resource_class in all_resource_classes():
-        function = vars(resource_class).get("list")
-        if not inspect.isfunction(function) or is_pending(function):
-            continue
-        if _leading_path_ids(function) == len(set(template_keys(resource_class.path))):
-            flat.append(resource_class)
-    return flat
+    been migrated and the opt-out is now stale. It is not used to build the swept set
+    (see the module docstring).
+
+    Judged over *every* public method rather than over `list` alone, which is what
+    the earlier version did. `list` is not a thing a membership bridge
+    (`CycleWorkItems`), a singleton (`ProjectFeatures`, `WorkspacePermissions`) or a
+    dict-shaped resource necessarily has, so 18 of the 90 classes could be migrated
+    and stay opted out with nothing noticing -- `CustomerWorkItems`,
+    `InitiativeProjects`, `ReleaseChangelogResource` and `CollectionPages` are the
+    ones on today's opt-out list that the old heuristic could never have caught."""
+    return [
+        resource_class
+        for resource_class in all_resource_classes()
+        if (methods := public_methods(resource_class))
+        and all(
+            method_is_flat_shaped(resource_class, name, function)
+            for name, function in methods.items()
+        )
+    ]
 
 
 def navigable_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]

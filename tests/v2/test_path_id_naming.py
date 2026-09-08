@@ -41,7 +41,7 @@ from plane.api.v2._kernel.resource import V2Resource
 from tests.v2.tree_walk import (
     UNMIGRATED_RESOURCES,
     all_resource_classes,
-    flat_resource_classes,
+    flat_shaped_resource_classes,
     migrated_resource_classes,
     public_methods,
     reachable_resources,
@@ -209,10 +209,16 @@ def test_the_opt_out_list_names_only_real_classes() -> None:
 
 def test_no_opted_out_class_is_actually_migrated() -> None:
     """The guard that makes the list shrink on its own. A class that has been wired
-    onto the live tree, or whose `list` already consumes every path id its template
-    names, has been migrated -- leaving it opted out would hide it from every rule
-    the way the old derivation did."""
-    migrated_signals = {cls.__name__ for cls in flat_resource_classes()} | {
+    onto the live tree, or whose public methods already open with every path id its
+    template names, has been migrated -- leaving it opted out would hide it from
+    every rule the way the old derivation did.
+
+    The shape half used to look at `list` alone, so an opted-out bridge or singleton
+    (`CustomerWorkItems`, `InitiativeProjects`, `ReleaseChangelogResource`,
+    `CollectionPages`) could be migrated and stay opted out unnoticed -- there was no
+    `list` to judge and, until somebody wired it, no reachability either. It now
+    judges every public method, the same shape rule the naming sweep is about."""
+    migrated_signals = {cls.__name__ for cls in flat_shaped_resource_classes()} | {
         cls.__name__ for cls in reachable_resources()
     }
     stale = sorted(UNMIGRATED_RESOURCES & migrated_signals)
