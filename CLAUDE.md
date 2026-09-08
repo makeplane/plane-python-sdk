@@ -218,6 +218,18 @@ PlaneClient
     row of a navigable type returns the loaded form**; mixing plain and loaded returns
     on one class silently drops navigation.
 
+    **One class is exempt, structurally: `WorkspaceWorkItems`** (the workspace-wide
+    listing, `plane/api/v2/work_items/workspace.py`). Its rows are plain `WorkItem`s.
+    A `LoadedWorkItem`'s children need `("slug", "project", "work_item")`, and this
+    route's URL band has no project segment to bind one from — `Owned` would refuse
+    the call rather than prepend two ids into three parameters. Reading the id off
+    the row's `project_id` *field* instead is the wrong fix: `?fields=` and
+    collection deferral can omit it, so navigation would depend on the caller's
+    projection. It is the only such class, it says so in its own docstring, and
+    navigation for those rows goes through the project-scoped band
+    (`workspace.projects.retrieve("ENG").work_items…`), which has the full URL. A
+    second class landing here is a design question, not a precedent to copy.
+
     **Navigation must be typed, not `Any`.** `Owned.__getattr__` and
     `Loaded.__getattr__` are hidden behind `if not TYPE_CHECKING`, so each `Loaded`
     subclass declares an `if TYPE_CHECKING` view class per child built from the
