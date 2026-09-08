@@ -14,7 +14,7 @@ PROJECT_URL = "https://api.example.com/api/v2/workspaces/acme/projects/ENG/featu
 
 @pytest.fixture
 def workspace_features(config: Configuration) -> WorkspaceFeatures:
-    return WorkspaceFeatures(V2Transport(config), slug="acme")
+    return WorkspaceFeatures(V2Transport(config))
 
 
 @pytest.fixture
@@ -23,12 +23,12 @@ def project_features(config: Configuration) -> ProjectFeatures:
 
 
 @responses.activate
-def test_workspace_features_retrieve_hits_the_bare_collection_url(
+def test_workspace_features_get_hits_the_bare_collection_url(
     workspace_features: WorkspaceFeatures,
 ) -> None:
     responses.get(WORKSPACE_URL, json={"id": "1", "is_wiki_enabled": True})
 
-    feature = workspace_features.retrieve()
+    feature = workspace_features.get("acme")
 
     assert responses.calls[0].request.url == WORKSPACE_URL
     assert feature.is_wiki_enabled is True
@@ -38,7 +38,7 @@ def test_workspace_features_retrieve_hits_the_bare_collection_url(
 def test_workspace_features_update(workspace_features: WorkspaceFeatures) -> None:
     responses.patch(WORKSPACE_URL, json={"id": "1", "is_wiki_enabled": False})
 
-    feature = workspace_features.update(UpdateWorkspaceFeature(is_wiki_enabled=False))
+    feature = workspace_features.update("acme", UpdateWorkspaceFeature(is_wiki_enabled=False))
 
     assert feature.is_wiki_enabled is False
 

@@ -17,7 +17,7 @@ BASE = "https://api.example.com/api/v2"
 
 @pytest.fixture
 def projects(config: Configuration) -> Projects:
-    return Projects(V2Transport(config), slug="acme")
+    return Projects(V2Transport(config))
 
 
 @responses.activate
@@ -30,7 +30,7 @@ def test_projects_retrieve_accepts_bare_identifier(projects: Projects) -> None:
         json={"id": "real-uuid", "identifier": "ENG", "name": "Engineering"},
     )
 
-    project = projects.retrieve("ENG")
+    project = projects.retrieve("acme", "ENG")
 
     assert project.identifier == "ENG"
     assert responses.calls[0].request.url == f"{BASE}/workspaces/acme/projects/ENG/"
@@ -51,7 +51,7 @@ def test_find_by_name(projects: Projects) -> None:
         ],
     )
 
-    assert projects.find_by_name("Engineering").id == "1"
+    assert projects.find_by_name("acme", "Engineering").id == "1"
 
 
 @responses.activate
@@ -67,13 +67,13 @@ def test_projects_create_then_update_then_delete(projects: Projects) -> None:
     )
     responses.delete(f"{BASE}/workspaces/acme/projects/ENG/", status=204)
 
-    created = projects.create(CreateProject(identifier="ENG", name="Engineering"))
+    created = projects.create("acme", CreateProject(identifier="ENG", name="Engineering"))
     assert created.id == "1"
 
-    updated = projects.update("ENG", UpdateProject(name="Eng Team"))
+    updated = projects.update("acme", "ENG", UpdateProject(name="Eng Team"))
     assert updated.name == "Eng Team"
 
-    assert projects.delete("ENG") is None
+    assert projects.delete("acme", "ENG") is None
 
 
 @responses.activate
@@ -84,7 +84,7 @@ def test_projects_upsert(projects: Projects) -> None:
         status=201,
     )
 
-    result = projects.upsert(CreateProject(identifier="ENG", name="Engineering"))
+    result = projects.upsert("acme", CreateProject(identifier="ENG", name="Engineering"))
 
     assert result.id == "1"
 
@@ -108,10 +108,10 @@ def test_projects_bulk_create_and_bulk_update(projects: Projects) -> None:
         },
     )
 
-    created = projects.bulk_create([CreateProject(identifier="ENG", name="Engineering")])
+    created = projects.bulk_create("acme", [CreateProject(identifier="ENG", name="Engineering")])
     assert created.succeeded == 1
 
-    updated = projects.bulk_update([{"id": "1", "name": "Eng Team"}])
+    updated = projects.bulk_update("acme", [{"id": "1", "name": "Eng Team"}])
     assert updated.succeeded == 1
 
 
@@ -127,8 +127,8 @@ def test_projects_archive_and_unarchive_return_none(projects: Projects) -> None:
     responses.post(f"{BASE}/workspaces/acme/projects/ENG/archive/", status=204)
     responses.post(f"{BASE}/workspaces/acme/projects/ENG/unarchive/", status=204)
 
-    assert projects.archive("ENG") is None
-    assert projects.unarchive("ENG") is None
+    assert projects.archive("acme", "ENG") is None
+    assert projects.unarchive("acme", "ENG") is None
 
 
 @responses.activate
@@ -141,7 +141,7 @@ def test_projects_summary_parses_the_summary_shape_not_project(projects: Project
         json={"id": "1", "identifier": "ENG", "name": "Engineering", "counts": {"members": 3}},
     )
 
-    summary = projects.summary("ENG")
+    summary = projects.summary("acme", "ENG")
 
     assert summary.counts == {"members": 3}
 
@@ -153,7 +153,7 @@ def test_projects_summary_joins_counts_filter(projects: Projects) -> None:
         json={"id": "1", "identifier": "ENG", "name": "Engineering", "counts": {"members": 3}},
     )
 
-    projects.summary("ENG", counts=["members", "states"])
+    projects.summary("acme", "ENG", counts=["members", "states"])
 
     assert "counts=members%2Cstates" in responses.calls[0].request.url
 
@@ -181,7 +181,7 @@ def test_role_distribution_hits_the_sibling_workspace_path(projects: Projects) -
         },
     )
 
-    report = projects.role_distribution()
+    report = projects.role_distribution("acme")
 
     assert report.total_memberships == 3
     assert report.roles[0].name == "Admin"
@@ -214,7 +214,7 @@ def test_role_distribution_handles_nulled_role(projects: Projects) -> None:
         },
     )
 
-    report = projects.role_distribution()
+    report = projects.role_distribution("acme")
 
     assert report.roles[0].role_id is None
     assert report.roles[0].membership_count == 1

@@ -12,7 +12,7 @@ from plane.models.v2.labels import CreateLabel, UpdateLabel
 
 @pytest.fixture
 def labels(config: Configuration) -> Labels:
-    return Labels(V2Transport(config), slug="acme", project_id="ENG")
+    return Labels(V2Transport(config))
 
 
 @responses.activate
@@ -26,7 +26,7 @@ def test_list_labels(labels: Labels) -> None:
         },
     )
 
-    page = labels.list()
+    page = labels.list("acme", "ENG")
 
     assert page.total_count == 1
     assert page.data[0].color == "#f00"
@@ -39,7 +39,7 @@ def test_sparse_response_leaves_absent_fields_none(labels: Labels) -> None:
         json={"data": [{"id": "1"}], "pagination": {"style": "offset"}},
     )
 
-    page = labels.list(fields=["id"])
+    page = labels.list("acme", "ENG", fields=["id"])
 
     assert page.data[0].id == "1"
     assert page.data[0].name is None
@@ -57,8 +57,8 @@ def test_create_then_patch(labels: Labels) -> None:
         json={"id": "1", "name": "bugfix"},
     )
 
-    created = labels.create(CreateLabel(name="bug", color="#f00"))
-    updated = labels.update(created.id, UpdateLabel(name="bugfix"))
+    created = labels.create("acme", "ENG", CreateLabel(name="bug", color="#f00"))
+    updated = labels.update("acme", "ENG", created.id, UpdateLabel(name="bugfix"))
 
     assert updated.name == "bugfix"
 
@@ -69,7 +69,7 @@ def test_delete_returns_none(labels: Labels) -> None:
         "https://api.example.com/api/v2/workspaces/acme/projects/ENG/labels/1/", status=204
     )
 
-    assert labels.delete("1") is None
+    assert labels.delete("acme", "ENG", "1") is None
 
 
 @responses.activate
@@ -79,7 +79,7 @@ def test_upsert(labels: Labels) -> None:
         json={"id": "1", "name": "bug"},
     )
 
-    assert labels.upsert(CreateLabel(name="bug")).id == "1"
+    assert labels.upsert("acme", "ENG", CreateLabel(name="bug")).id == "1"
 
 
 @responses.activate
@@ -89,7 +89,7 @@ def test_find_by_name(labels: Labels) -> None:
         json={"data": [{"id": "1", "name": "bug"}], "pagination": {"style": "offset"}},
     )
 
-    assert labels.find_by_name("bug").id == "1"
+    assert labels.find_by_name("acme", "ENG", "bug").id == "1"
 
 
 @responses.activate
@@ -103,6 +103,6 @@ def test_bulk_create_posts_items_envelope(labels: Labels) -> None:
         },
     )
 
-    result = labels.bulk_create([CreateLabel(name="bug")])
+    result = labels.bulk_create("acme", "ENG", [CreateLabel(name="bug")])
 
     assert result.succeeded == 1

@@ -307,14 +307,17 @@ class BridgeRows(V2Resource[Row, WriteRow, PatchRow]):
     """Catalog-style resource whose bridge URL differs from its own `path`."""
 
     path = "/workspaces/{slug}/releases/labels/"
-    bridge_path = "/workspaces/{slug}/releases/{release_id}/labels/"
+    extra_paths = {
+        "add": "/workspaces/{slug}/releases/{release_id}/labels/",
+        "remove": "/workspaces/{slug}/releases/{release_id}/labels/",
+    }
     model = Row
     operations = {"bridge": "releases_labels"}
 
 
 @pytest.fixture
 def bridge_rows(config: Configuration) -> BridgeRows:
-    return BridgeRows(V2Transport(config), slug="acme")
+    return BridgeRows(V2Transport(config))
 
 
 @responses.activate
@@ -324,7 +327,7 @@ def test_bridge_add_posts_only_the_add_key_and_returns_added(bridge_rows: Bridge
         json={"added": ["l1"], "removed": []},
     )
 
-    added = bridge_rows._bridge(key="add", ids=["l1", "l2"], release_id="r1")
+    added = bridge_rows._bridge(key="add", ids=["l1", "l2"], slug="acme", release_id="r1")
 
     assert added == ["l1"]
     assert json.loads(responses.calls[0].request.body) == {"add": ["l1", "l2"]}
@@ -339,7 +342,7 @@ def test_bridge_remove_posts_only_the_remove_key_and_returns_removed(
         json={"added": [], "removed": ["l1"]},
     )
 
-    removed = bridge_rows._bridge(key="remove", ids=["l1"], release_id="r1")
+    removed = bridge_rows._bridge(key="remove", ids=["l1"], slug="acme", release_id="r1")
 
     assert removed == ["l1"]
     assert json.loads(responses.calls[0].request.body) == {"remove": ["l1"]}
@@ -349,7 +352,7 @@ def test_bridge_remove_posts_only_the_remove_key_and_returns_removed(
 def test_bridge_returns_empty_list_when_the_result_key_is_absent(bridge_rows: BridgeRows) -> None:
     responses.post("https://api.example.com/api/v2/workspaces/acme/releases/r1/labels/", json={})
 
-    assert bridge_rows._bridge(key="add", ids=["l1"], release_id="r1") == []
+    assert bridge_rows._bridge(key="add", ids=["l1"], slug="acme", release_id="r1") == []
 
 
 @responses.activate
@@ -362,6 +365,7 @@ def test_bridge_serializes_pydantic_entries_without_nones(bridge_rows: BridgeRow
     bridge_rows._bridge(
         key="add",
         ids=[MemberRow(member_id="u1", access=1), MemberRow(member_id="u2")],
+        slug="acme",
         release_id="r1",
     )
 
