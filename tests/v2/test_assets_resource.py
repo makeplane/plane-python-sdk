@@ -22,7 +22,7 @@ USER_BASE = "https://api.example.com/api/v2/users/me/assets"
 
 @pytest.fixture
 def workspace_assets(config: Configuration) -> WorkspaceAssets:
-    return WorkspaceAssets(V2Transport(config), slug="acme")
+    return WorkspaceAssets(V2Transport(config))
 
 
 @pytest.fixture
@@ -44,19 +44,32 @@ def test_workspace_assets_list(workspace_assets: WorkspaceAssets) -> None:
         },
     )
 
-    page = workspace_assets.list()
+    page = workspace_assets.list("acme")
 
     assert page.total_count == 1
     assert page.data[0].name == "log.txt"
+    assert responses.calls[0].request.url == f"{WORKSPACE_BASE}/"
+
+
+@responses.activate
+def test_workspace_assets_list_per_page_and_offset(workspace_assets: WorkspaceAssets) -> None:
+    responses.get(f"{WORKSPACE_BASE}/", json={"data": [], "pagination": {"style": "offset"}})
+
+    workspace_assets.list("acme", per_page=5, offset=10)
+
+    query = responses.calls[0].request.url
+    assert "per_page=5" in query
+    assert "offset=10" in query
 
 
 @responses.activate
 def test_workspace_assets_retrieve(workspace_assets: WorkspaceAssets) -> None:
     responses.get(f"{WORKSPACE_BASE}/a1/", json={"id": "a1", "name": "log.txt"})
 
-    row = workspace_assets.retrieve("a1")
+    row = workspace_assets.retrieve("acme", "a1")
 
     assert row.id == "a1"
+    assert responses.calls[0].request.url == f"{WORKSPACE_BASE}/a1/"
 
 
 @responses.activate
@@ -73,12 +86,13 @@ def test_workspace_assets_create_parses_the_upload_envelope(
         },
     )
 
-    result = workspace_assets.create(CreateWorkspaceAsset(name="log.txt", size=42))
+    result = workspace_assets.create("acme", CreateWorkspaceAsset(name="log.txt", size=42))
 
     assert result.asset_id == "a1"
     assert result.upload_data["url"] == "https://s3.example.com"
     assert result.asset.id == "a1"
     assert result.asset.is_uploaded is False
+    assert responses.calls[0].request.url == f"{WORKSPACE_BASE}/"
 
 
 @responses.activate
@@ -95,7 +109,7 @@ def test_workspace_assets_create_sends_only_the_write_fields(
         },
     )
 
-    workspace_assets.create(CreateWorkspaceAsset(name="log.txt", size=42))
+    workspace_assets.create("acme", CreateWorkspaceAsset(name="log.txt", size=42))
 
     body = json.loads(responses.calls[0].request.body)
     assert body == {"name": "log.txt", "size": 42}
@@ -105,9 +119,10 @@ def test_workspace_assets_create_sends_only_the_write_fields(
 def test_workspace_assets_update_confirms_upload(workspace_assets: WorkspaceAssets) -> None:
     responses.patch(f"{WORKSPACE_BASE}/a1/", json={"id": "a1", "is_uploaded": True})
 
-    updated = workspace_assets.update("a1", WorkspaceAssetConfirm(is_uploaded=True))
+    updated = workspace_assets.update("acme", "a1", WorkspaceAssetConfirm(is_uploaded=True))
 
     assert updated.is_uploaded is True
+    assert responses.calls[0].request.url == f"{WORKSPACE_BASE}/a1/"
     body = json.loads(responses.calls[0].request.body)
     assert body == {"is_uploaded": True}
 
@@ -116,7 +131,8 @@ def test_workspace_assets_update_confirms_upload(workspace_assets: WorkspaceAsse
 def test_workspace_assets_delete_returns_none(workspace_assets: WorkspaceAssets) -> None:
     responses.delete(f"{WORKSPACE_BASE}/a1/", status=204)
 
-    assert workspace_assets.delete("a1") is None
+    assert workspace_assets.delete("acme", "a1") is None
+    assert responses.calls[0].request.url == f"{WORKSPACE_BASE}/a1/"
 
 
 # -- UserAssets (not workspace-scoped) --------------------------------------------

@@ -1,5 +1,6 @@
 """Offline coverage for `GroupSync`: the pk-less `config` singleton plus
-`project_mappings`/`workspace_mappings`."""
+`project_mappings`/`workspace_mappings` -- both workspace-level despite
+"project" in the former's name, taking `slug` only, no `{project_id}`."""
 
 from __future__ import annotations
 
@@ -23,13 +24,7 @@ BASE = "https://api.example.com/api/v2"
 
 @pytest.fixture
 def group_sync(config: Configuration) -> GroupSync:
-    return GroupSync(V2Transport(config), slug="acme")
-
-
-def test_group_sync_forwards_its_scope_to_every_sub_resource(group_sync: GroupSync) -> None:
-    assert group_sync.config._scope == {"slug": "acme"}
-    assert group_sync.project_mappings._scope == {"slug": "acme"}
-    assert group_sync.workspace_mappings._scope == {"slug": "acme"}
+    return GroupSync(V2Transport(config))
 
 
 @responses.activate
@@ -39,10 +34,11 @@ def test_group_sync_config_get(group_sync: GroupSync) -> None:
         json={"id": "1", "is_enabled": True, "group_attribute_key": "groups"},
     )
 
-    config = group_sync.config.get()
+    config = group_sync.config.get("acme")
 
     assert config.is_enabled is True
     assert config.group_attribute_key == "groups"
+    assert responses.calls[0].request.url == f"{BASE}/workspaces/acme/group-sync/config/"
 
 
 @responses.activate
@@ -54,7 +50,7 @@ def test_group_sync_config_update_hits_config_url_not_a_detail_url(group_sync: G
         json={"id": "1", "is_enabled": False},
     )
 
-    updated = group_sync.config.update(UpdateGroupSyncConfig(is_enabled=False))
+    updated = group_sync.config.update("acme", UpdateGroupSyncConfig(is_enabled=False))
 
     assert updated.is_enabled is False
     assert responses.calls[0].request.url == f"{BASE}/workspaces/acme/group-sync/config/"
@@ -80,18 +76,32 @@ def test_group_sync_project_mappings_crud(group_sync: GroupSync) -> None:
     )
     responses.delete(f"{BASE}/workspaces/acme/group-sync/project-mappings/2/", status=204)
 
-    page = group_sync.project_mappings.list()
+    page = group_sync.project_mappings.list("acme")
     assert page.data[0].idp_group_name == "eng-team"
+    assert responses.calls[0].request.url == (
+        f"{BASE}/workspaces/acme/group-sync/project-mappings/"
+    )
 
     created = group_sync.project_mappings.create(
-        CreateGroupMapping(idp_group_name="qa-team", role_slug="member")
+        "acme", CreateGroupMapping(idp_group_name="qa-team", role_slug="member")
     )
     assert created.id == "2"
+    assert responses.calls[1].request.url == (
+        f"{BASE}/workspaces/acme/group-sync/project-mappings/"
+    )
 
-    updated = group_sync.project_mappings.update(created.id, UpdateGroupMapping(role_slug="admin"))
+    updated = group_sync.project_mappings.update(
+        "acme", created.id, UpdateGroupMapping(role_slug="admin")
+    )
     assert updated.role_slug == "admin"
+    assert responses.calls[2].request.url == (
+        f"{BASE}/workspaces/acme/group-sync/project-mappings/2/"
+    )
 
-    assert group_sync.project_mappings.delete(created.id) is None
+    assert group_sync.project_mappings.delete("acme", created.id) is None
+    assert responses.calls[3].request.url == (
+        f"{BASE}/workspaces/acme/group-sync/project-mappings/2/"
+    )
 
 
 @responses.activate
@@ -103,12 +113,27 @@ def test_group_sync_project_mapping_all_projects_write(group_sync: GroupSync) ->
     )
 
     group_sync.project_mappings.create(
+        "acme",
         CreateGroupMapping(idp_group_name="everyone", role_slug="member", all_projects=True),
     )
 
     body = json.loads(responses.calls[0].request.body)
     assert body["all_projects"] is True
     assert "project_id" not in body
+
+
+@responses.activate
+def test_group_sync_project_mappings_list_per_page_and_offset(group_sync: GroupSync) -> None:
+    responses.get(
+        f"{BASE}/workspaces/acme/group-sync/project-mappings/",
+        json={"data": [], "pagination": {"style": "offset"}},
+    )
+
+    group_sync.project_mappings.list("acme", per_page=10, offset=5)
+
+    query = responses.calls[0].request.url
+    assert "per_page=10" in query
+    assert "offset=5" in query
 
 
 @responses.activate
@@ -127,15 +152,21 @@ def test_group_sync_workspace_mappings_crud(group_sync: GroupSync) -> None:
     )
     responses.delete(f"{BASE}/workspaces/acme/group-sync/workspace-mappings/2/", status=204)
 
-    page = group_sync.workspace_mappings.list()
+    page = group_sync.workspace_mappings.list("acme")
     assert page.data[0].idp_group_name == "eng-team"
+    assert responses.calls[0].request.url == (
+        f"{BASE}/workspaces/acme/group-sync/workspace-mappings/"
+    )
 
     created = group_sync.workspace_mappings.create(
-        CreateWorkspaceGroupMapping(idp_group_name="qa-team", role_slug="member")
+        "acme", CreateWorkspaceGroupMapping(idp_group_name="qa-team", role_slug="member")
     )
     assert created.id == "2"
 
-    assert group_sync.workspace_mappings.delete(created.id) is None
+    assert group_sync.workspace_mappings.delete("acme", created.id) is None
+    assert responses.calls[2].request.url == (
+        f"{BASE}/workspaces/acme/group-sync/workspace-mappings/2/"
+    )
 
 
 def test_workspace_mappings_have_no_project_id_field() -> None:

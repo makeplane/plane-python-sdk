@@ -1,4 +1,7 @@
-"""IdP group-sync configuration (api_v2). Workspace-wide singleton."""
+"""IdP group-sync configuration (api_v2). Workspace-wide singleton -- one row per
+workspace, no `id` of its own in the URL, so this goes through the kernel's
+`_retrieve_singleton`/`_update_singleton` pair (matching `WorkspaceFeatures`)
+rather than `_retrieve`/`_update`, which would append a spurious pk segment."""
 
 from __future__ import annotations
 
@@ -15,18 +18,12 @@ class GroupSyncConfigResource(
     path = "/workspaces/{slug}/group-sync/config/"
     model = GroupSyncConfig
     operations = {
-        "retrieve": "group_sync_config_retrieve",
+        "get": "group_sync_config_retrieve",
         "update": "group_sync_config_update",
     }
 
-    def get(self) -> GroupSyncConfig:
-        payload = self.transport.request("GET", self._collection_url())
-        return self.model.model_validate(payload)
+    def get(self, slug: str) -> GroupSyncConfig:
+        return self._retrieve_singleton(action="get", slug=slug)
 
-    def update(self, data: UpdateGroupSyncConfig) -> GroupSyncConfig:
-        payload = self.transport.request(
-            "PATCH",
-            self._collection_url(),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return self.model.model_validate(payload)
+    def update(self, slug: str, data: UpdateGroupSyncConfig) -> GroupSyncConfig:
+        return self._update_singleton(data, action="update", slug=slug)

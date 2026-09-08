@@ -17,6 +17,12 @@ from ...models.v2.assets import (
     WorkspaceAssetConfirm,
     WorkspaceAssetUploadResult,
 )
+from ._generated.constants import (
+    AssetsListField,
+    AssetsListOrderBy,
+    AssetsPartialUpdateField,
+    AssetsRetrieveField,
+)
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 
@@ -35,37 +41,63 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
     }
 
     def list(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
+        self,
+        slug: str,
+        *,
+        fields: Sequence[AssetsListField] | None = None,
+        order_by: AssetsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
     ) -> Page[WorkspaceAsset]:
-        """One page of workspace assets."""
-        return self._list(params={"fields": fields, **filters})
+        """One page of workspace assets. The golden offers no query filters on
+        this operation."""
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+            },
+            slug=slug,
+        )
 
     def iterate(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
+        self,
+        slug: str,
+        *,
+        fields: Sequence[AssetsListField] | None = None,
+        order_by: AssetsListOrderBy | None = None,
     ) -> Iterator[WorkspaceAsset]:
         """Every workspace asset, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(params={"fields": fields, "order_by": order_by}, slug=slug)
 
     def retrieve(
-        self, asset_id: str, *, fields: Sequence[str] | None = None
+        self, slug: str, asset_id: str, *, fields: Sequence[AssetsRetrieveField] | None = None
     ) -> WorkspaceAsset:
-        return self._retrieve(pk=asset_id, params={"fields": fields})
+        return self._retrieve(pk=asset_id, params={"fields": fields}, slug=slug)
 
-    def create(self, data: CreateWorkspaceAsset) -> WorkspaceAssetUploadResult:
+    def create(self, slug: str, data: CreateWorkspaceAsset) -> WorkspaceAssetUploadResult:
         """Registers the asset's metadata and returns presigned upload instructions;
         no `fields` param (a sparse response could drop `upload_data`)."""
         payload = self.transport.request(
             "POST",
-            self._collection_url(),
+            self._collection_url("create", slug=slug),
             json=data.model_dump(mode="json", exclude_none=True),
         )
         return WorkspaceAssetUploadResult.model_validate(payload)
 
-    def update(self, asset_id: str, data: WorkspaceAssetConfirm) -> WorkspaceAsset:
-        return self._update(data, pk=asset_id)
+    def update(
+        self,
+        slug: str,
+        asset_id: str,
+        data: WorkspaceAssetConfirm,
+        *,
+        fields: Sequence[AssetsPartialUpdateField] | None = None,
+    ) -> WorkspaceAsset:
+        return self._update(data, pk=asset_id, params={"fields": fields}, slug=slug)
 
-    def delete(self, asset_id: str) -> None:
-        return self._delete(pk=asset_id)
+    def delete(self, slug: str, asset_id: str) -> None:
+        return self._delete(pk=asset_id, slug=slug)
 
 
 class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):

@@ -4,8 +4,6 @@ CRUD (no upsert or bulk)."""
 
 from __future__ import annotations
 
-from typing import Any
-
 from .._kernel.transport import V2Transport
 from .config import GroupSyncConfigResource
 from .project_mappings import GroupSyncProjectMappings
@@ -20,7 +18,11 @@ __all__ = [
 
 
 class GroupSync:
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        self.config = GroupSyncConfigResource(transport, **scope)
-        self.project_mappings = GroupSyncProjectMappings(transport, **scope)
-        self.workspace_mappings = GroupSyncWorkspaceMappings(transport, **scope)
+    """Groups `.config`/`.project_mappings`/`.workspace_mappings` under one
+    namespace; every method on each still takes its own leading `slug`, same
+    as reaching them directly -- this wires no scope of its own."""
+
+    def __init__(self, transport: V2Transport) -> None:
+        self.config = GroupSyncConfigResource(transport)
+        self.project_mappings = GroupSyncProjectMappings(transport)
+        self.workspace_mappings = GroupSyncWorkspaceMappings(transport)

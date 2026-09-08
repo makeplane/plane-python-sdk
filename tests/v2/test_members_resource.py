@@ -22,7 +22,7 @@ def project_members(config: Configuration) -> ProjectMembers:
 
 @pytest.fixture
 def workspace_members(config: Configuration) -> WorkspaceMembers:
-    return WorkspaceMembers(V2Transport(config), slug="acme")
+    return WorkspaceMembers(V2Transport(config))
 
 
 # -- ProjectMembers ----------------------------------------------------------------
@@ -108,9 +108,21 @@ def test_workspace_members_list(workspace_members: WorkspaceMembers) -> None:
         },
     )
 
-    page = workspace_members.list()
+    page = workspace_members.list("acme")
 
     assert page.data[0].role == "member"
+    assert responses.calls[0].request.url == f"{WORKSPACE_BASE}/"
+
+
+@responses.activate
+def test_workspace_members_list_per_page_and_offset(workspace_members: WorkspaceMembers) -> None:
+    responses.get(f"{WORKSPACE_BASE}/", json={"data": [], "pagination": {"style": "offset"}})
+
+    workspace_members.list("acme", per_page=15, offset=30)
+
+    query = responses.calls[0].request.url
+    assert "per_page=15" in query
+    assert "offset=30" in query
 
 
 @responses.activate
@@ -130,7 +142,7 @@ def test_remove_posts_to_remove_sub_path_keyed_by_email(
     responses.post(f"{WORKSPACE_BASE}/remove/", status=204)
 
     result = workspace_members.remove(
-        WorkspaceMemberRemove(email="gone@example.com", remove_seat=True)
+        "acme", WorkspaceMemberRemove(email="gone@example.com", remove_seat=True)
     )
 
     assert result is None

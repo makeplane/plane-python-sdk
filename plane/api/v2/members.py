@@ -7,11 +7,18 @@ from __future__ import annotations
 from collections.abc import Iterator, Sequence
 from typing import Any
 
+from typing_extensions import Unpack
+
 from ...models.v2.members import (
     CreateProjectMember,
     Member,
     UpdateProjectMember,
     WorkspaceMemberRemove,
+)
+from ._generated.constants import (
+    WorkspaceMembersListField,
+    WorkspaceMembersListFilters,
+    WorkspaceMembersListOrderBy,
 )
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
@@ -76,6 +83,7 @@ class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMemb
     """The workspace roster. List-only plus `remove` -- see the module docstring."""
 
     path = "/workspaces/{slug}/members/"
+    extra_paths = {"remove": "/workspaces/{slug}/members/remove/"}
     model = Member
     operations = {
         "list": "workspace_members_list",
@@ -84,28 +92,52 @@ class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMemb
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkspaceMembersListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorkspaceMembersListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[WorkspaceMembersListFilters],
     ) -> Page[Member]:
         """One page of the workspace roster."""
-        return self._list(params={"fields": fields, "expand": expand, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorkspaceMembersListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorkspaceMembersListOrderBy | None = None,
+        **filters: Unpack[WorkspaceMembersListFilters],
     ) -> Iterator[Member]:
         """Every row on the workspace roster, following pages automatically."""
-        return self._iter(params={"fields": fields, "expand": expand, **filters})
+        return self._iter(
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+        )
 
-    def remove(self, data: WorkspaceMemberRemove) -> None:
+    def remove(self, slug: str, data: WorkspaceMemberRemove) -> None:
         """Remove a member from the workspace by email (v1 parity) --
         soft-deactivates and cascades out of every project. Not addressed by a
-        row id; the response is 204 with no body."""
-        url = f"{self._collection_url()}remove/"
+        row id; POSTs to the `extra_paths["remove"]` override, not `path`.
+
+        Unlike `V2Resource._bridge`'s `add`/`remove` pairs (which always return
+        `list[str]`), this has no `add` counterpart -- it is a standalone
+        removal keyed on email, not one side of a membership bridge -- so it
+        keeps returning `None`, matching the golden's 204 with no body."""
+        url = self.url_for("remove", slug=slug)
         self.transport.request("POST", url, json=data.model_dump(mode="json", exclude_none=True))
         return None

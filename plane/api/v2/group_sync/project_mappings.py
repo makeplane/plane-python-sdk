@@ -1,12 +1,22 @@
 """Group sync project mappings (api_v2): IdP group -> project (or every
-project) + role."""
+project) + role. Workspace-level despite the name -- the path carries no
+`{project_id}`, only the workspace `slug`."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.group_sync import CreateGroupMapping, GroupMapping, UpdateGroupMapping
+from .._generated.constants import (
+    GroupSyncProjectMappingsCreateField,
+    GroupSyncProjectMappingsListField,
+    GroupSyncProjectMappingsListFilters,
+    GroupSyncProjectMappingsListOrderBy,
+    GroupSyncProjectMappingsRetrieveField,
+    GroupSyncProjectMappingsUpdateField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -24,35 +34,64 @@ class GroupSyncProjectMappings(V2Resource[GroupMapping, CreateGroupMapping, Upda
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[GroupSyncProjectMappingsListField] | None = None,
+        order_by: GroupSyncProjectMappingsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[GroupSyncProjectMappingsListFilters],
     ) -> Page[GroupMapping]:
         """One page of project mappings in the workspace."""
-        return self._list(params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[GroupSyncProjectMappingsListField] | None = None,
+        order_by: GroupSyncProjectMappingsListOrderBy | None = None,
+        **filters: Unpack[GroupSyncProjectMappingsListFilters],
     ) -> Iterator[GroupMapping]:
         """Every project mapping in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
 
     def retrieve(
         self,
+        slug: str,
         mapping_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[GroupSyncProjectMappingsRetrieveField] | None = None,
     ) -> GroupMapping:
-        return self._retrieve(pk=mapping_id, params={"fields": fields})
+        return self._retrieve(pk=mapping_id, params={"fields": fields}, slug=slug)
 
-    def create(self, data: CreateGroupMapping) -> GroupMapping:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateGroupMapping,
+        *,
+        fields: Sequence[GroupSyncProjectMappingsCreateField] | None = None,
+    ) -> GroupMapping:
+        return self._create(data, params={"fields": fields}, slug=slug)
 
-    def update(self, mapping_id: str, data: UpdateGroupMapping) -> GroupMapping:
-        return self._update(data, pk=mapping_id)
+    def update(
+        self,
+        slug: str,
+        mapping_id: str,
+        data: UpdateGroupMapping,
+        *,
+        fields: Sequence[GroupSyncProjectMappingsUpdateField] | None = None,
+    ) -> GroupMapping:
+        return self._update(data, pk=mapping_id, params={"fields": fields}, slug=slug)
 
-    def delete(self, mapping_id: str) -> None:
-        return self._delete(pk=mapping_id)
+    def delete(self, slug: str, mapping_id: str) -> None:
+        return self._delete(pk=mapping_id, slug=slug)

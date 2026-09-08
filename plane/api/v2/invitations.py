@@ -6,12 +6,21 @@ from __future__ import annotations
 
 import builtins
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ...models.v2.invitations import (
     BulkCreateWorkspaceInvites,
     CreateWorkspaceInvite,
     WorkspaceInvite,
+)
+from ._generated.constants import (
+    MembersBulkField,
+    MembersCreateField,
+    MembersListField,
+    MembersListFilters,
+    MembersListOrderBy,
+    MembersRetrieveField,
 )
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
@@ -19,6 +28,7 @@ from ._kernel.resource import V2Resource
 
 class Invitations(V2Resource[WorkspaceInvite, CreateWorkspaceInvite, CreateWorkspaceInvite]):
     path = "/workspaces/{slug}/invitations/"
+    extra_paths = {"bulk": "/workspaces/{slug}/invitations/bulk/"}
     model = WorkspaceInvite
     operations = {
         "list": "members_list",
@@ -30,48 +40,72 @@ class Invitations(V2Resource[WorkspaceInvite, CreateWorkspaceInvite, CreateWorks
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[MembersListField] | None = None,
+        order_by: MembersListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[MembersListFilters],
     ) -> Page[WorkspaceInvite]:
         """One page of pending/accepted invitations. `**filters` covers the
         golden's query filters directly, e.g. `accepted=False`, `email="a@b.com"`."""
-        return self._list(params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[MembersListField] | None = None,
+        order_by: MembersListOrderBy | None = None,
+        **filters: Unpack[MembersListFilters],
     ) -> Iterator[WorkspaceInvite]:
         """Every invitation, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
 
     def retrieve(
         self,
+        slug: str,
         invitation_id: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[MembersRetrieveField] | None = None,
     ) -> WorkspaceInvite:
-        return self._retrieve(pk=invitation_id, params={"fields": fields})
+        return self._retrieve(pk=invitation_id, params={"fields": fields}, slug=slug)
 
-    def create(self, data: CreateWorkspaceInvite) -> WorkspaceInvite:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateWorkspaceInvite,
+        *,
+        fields: Sequence[MembersCreateField] | None = None,
+    ) -> WorkspaceInvite:
+        return self._create(data, params={"fields": fields}, slug=slug)
 
-    def delete(self, invitation_id: str) -> None:
-        return self._delete(pk=invitation_id)
+    def delete(self, slug: str, invitation_id: str) -> None:
+        return self._delete(pk=invitation_id, slug=slug)
 
     def bulk(
         self,
+        slug: str,
         data: BulkCreateWorkspaceInvites,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[MembersBulkField] | None = None,
     ) -> builtins.list[WorkspaceInvite]:
         """Create up to 100 invitations in one call. Emails already invited are
-        silently skipped server-side (not re-sent, not errored)."""
+        silently skipped server-side (not re-sent, not errored). POSTs to the
+        `extra_paths["bulk"]` override, not `path`."""
         payload = self.transport.request(
             "POST",
-            f"{self._collection_url()}bulk/",
+            self.url_for("bulk", slug=slug),
             params=self._query({"fields": fields}, action="bulk"),
             json=data.model_dump(mode="json", exclude_none=True),
         )
