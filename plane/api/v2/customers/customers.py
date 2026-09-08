@@ -4,12 +4,24 @@ Customer/work-item membership is the `.work_items` bridge (`add`/`remove`)."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.customers import CreateCustomer, Customer, UpdateCustomer
+from .._generated.constants import (
+    CustomersCreateField,
+    CustomersListField,
+    CustomersListFilters,
+    CustomersListOrderBy,
+    CustomersPartialUpdateField,
+    CustomersRetrieveField,
+    CustomersUpsertField,
+)
+from .._kernel.loaded import LoadsNavigableRows
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 from .._kernel.transport import V2Transport
+from .._loaded.customer import LoadedCustomer
 from .property_values import CustomerPropertyValues
 from .requests import CustomerRequests
 from .work_items import CustomerWorkItems
@@ -17,9 +29,13 @@ from .work_items import CustomerWorkItems
 __all__ = ["Customers", "CustomerPropertyValues", "CustomerRequests", "CustomerWorkItems"]
 
 
-class Customers(V2Resource[Customer, CreateCustomer, UpdateCustomer]):
+class Customers(
+    V2Resource[Customer, CreateCustomer, UpdateCustomer], LoadsNavigableRows[LoadedCustomer]
+):
     path = "/workspaces/{slug}/customers/"
     model = Customer
+    loaded_model = LoadedCustomer
+    loaded_names = ("slug", "customer")
     operations = {
         "list": "customers_list",
         "retrieve": "customers_retrieve",
@@ -29,48 +45,95 @@ class Customers(V2Resource[Customer, CreateCustomer, UpdateCustomer]):
         "delete": "customers_destroy",
     }
 
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        super().__init__(transport, **scope)
-        self.requests = CustomerRequests(transport, **self._scope)
-        self.property_values = CustomerPropertyValues(transport, **self._scope)
-        self.work_items = CustomerWorkItems(transport, **self._scope)
+    def __init__(self, transport: V2Transport) -> None:
+        super().__init__(transport)
+        self.requests = CustomerRequests(transport)
+        self.property_values = CustomerPropertyValues(transport)
+        self.work_items = CustomerWorkItems(transport)
 
     def list(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
-    ) -> Page[Customer]:
+        fields: Sequence[CustomersListField] | None = None,
+        order_by: CustomersListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[CustomersListFilters],
+    ) -> Page[LoadedCustomer]:
         """One page of customers in a workspace.
 
         `**filters` covers `name`, `domain`, `stage`, `contract_status`, `search`."""
-        return self._list(params={"fields": fields, **filters})
+        page = self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
+        return self._load_page(page, slug, fields=fields)
 
     def iterate(
         self,
+        slug: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
-    ) -> Iterator[Customer]:
+        fields: Sequence[CustomersListField] | None = None,
+        order_by: CustomersListOrderBy | None = None,
+        **filters: Unpack[CustomersListFilters],
+    ) -> Iterator[LoadedCustomer]:
         """Every customer in a workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        rows = self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
+        return (self._load(row, slug, fields=fields) for row in rows)
 
-    def retrieve(self, customer_id: str, *, fields: Sequence[str] | None = None) -> Customer:
-        return self._retrieve(pk=customer_id, params={"fields": fields})
+    def retrieve(
+        self,
+        slug: str,
+        customer: str,
+        *,
+        fields: Sequence[CustomersRetrieveField] | None = None,
+    ) -> LoadedCustomer:
+        row = self._retrieve(pk=customer, params={"fields": fields}, slug=slug)
+        return self._load(row, slug, fields=fields)
 
-    def find_by_name(self, name: str) -> Customer:
+    def find_by_name(self, slug: str, name: str) -> LoadedCustomer:
         """The one customer with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        row = self._find_one(filters={"name": name}, slug=slug)
+        return self._load(row, slug)
 
-    def create(self, data: CreateCustomer) -> Customer:
-        return self._create(data)
+    def create(
+        self,
+        slug: str,
+        data: CreateCustomer,
+        *,
+        fields: Sequence[CustomersCreateField] | None = None,
+    ) -> LoadedCustomer:
+        row = self._create(data, params={"fields": fields}, slug=slug)
+        return self._load(row, slug, fields=fields)
 
-    def update(self, customer_id: str, data: UpdateCustomer) -> Customer:
-        return self._update(data, pk=customer_id)
+    def update(
+        self,
+        slug: str,
+        customer: str,
+        data: UpdateCustomer,
+        *,
+        fields: Sequence[CustomersPartialUpdateField] | None = None,
+    ) -> LoadedCustomer:
+        row = self._update(data, pk=customer, params={"fields": fields}, slug=slug)
+        return self._load(row, slug, fields=fields)
 
-    def delete(self, customer_id: str) -> None:
-        return self._delete(pk=customer_id)
+    def delete(self, slug: str, customer: str) -> None:
+        return self._delete(pk=customer, slug=slug)
 
-    def upsert(self, data: CreateCustomer) -> Customer:
+    def upsert(
+        self,
+        slug: str,
+        data: CreateCustomer,
+        *,
+        fields: Sequence[CustomersUpsertField] | None = None,
+    ) -> LoadedCustomer:
         """Reconciles on (external_source, external_id) when both are set."""
-        return self._upsert(data)
+        row = self._upsert(data, params={"fields": fields}, slug=slug)
+        return self._load(row, slug, fields=fields)

@@ -53,15 +53,6 @@ WALK_CONFIG = Configuration(base_path="https://api.example.com", api_key="secret
 
 UNMIGRATED_RESOURCES = frozenset(
     {
-        # wiki collections
-        "CollectionMembers",
-        "CollectionPages",
-        "Collections",
-        # customers
-        "CustomerPropertyValues",
-        "CustomerRequests",
-        "CustomerWorkItems",
-        "Customers",
         # initiatives
         "InitiativeLabels",
         "InitiativeProjects",

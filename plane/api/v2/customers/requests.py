@@ -5,9 +5,18 @@ not echoed back on `CustomerRequest`."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.customers import CreateCustomerRequest, CustomerRequest, UpdateCustomerRequest
+from .._generated.constants import (
+    CustomerRequestsCreateField,
+    CustomerRequestsListField,
+    CustomerRequestsListFilters,
+    CustomerRequestsListOrderBy,
+    CustomerRequestsPartialUpdateField,
+    CustomerRequestsRetrieveField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -25,38 +34,82 @@ class CustomerRequests(V2Resource[CustomerRequest, CreateCustomerRequest, Update
 
     def list(
         self,
-        customer_id: str,
+        slug: str,
+        customer: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[CustomerRequestsListField] | None = None,
+        order_by: CustomerRequestsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[CustomerRequestsListFilters],
     ) -> Page[CustomerRequest]:
         """One page of requests raised by a customer."""
-        return self._list(customer_id=customer_id, params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            customer_id=customer,
+        )
 
     def iterate(
         self,
-        customer_id: str,
+        slug: str,
+        customer: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[CustomerRequestsListField] | None = None,
+        order_by: CustomerRequestsListOrderBy | None = None,
+        **filters: Unpack[CustomerRequestsListFilters],
     ) -> Iterator[CustomerRequest]:
         """Every request raised by a customer, following pages automatically."""
-        return self._iter(customer_id=customer_id, params={"fields": fields, **filters})
+        return self._iter(
+            params={"fields": fields, "order_by": order_by, **filters},
+            slug=slug,
+            customer_id=customer,
+        )
 
     def retrieve(
         self,
-        customer_id: str,
-        pk: str,
+        slug: str,
+        customer: str,
+        request: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[CustomerRequestsRetrieveField] | None = None,
     ) -> CustomerRequest:
-        return self._retrieve(pk=pk, customer_id=customer_id, params={"fields": fields})
+        return self._retrieve(
+            pk=request, params={"fields": fields}, slug=slug, customer_id=customer
+        )
 
-    def create(self, customer_id: str, data: CreateCustomerRequest) -> CustomerRequest:
-        return self._create(data, customer_id=customer_id)
+    def create(
+        self,
+        slug: str,
+        customer: str,
+        data: CreateCustomerRequest,
+        *,
+        fields: Sequence[CustomerRequestsCreateField] | None = None,
+    ) -> CustomerRequest:
+        return self._create(data, params={"fields": fields}, slug=slug, customer_id=customer)
 
-    def update(self, customer_id: str, pk: str, data: UpdateCustomerRequest) -> CustomerRequest:
-        return self._update(data, pk=pk, customer_id=customer_id)
+    def update(
+        self,
+        slug: str,
+        customer: str,
+        request: str,
+        data: UpdateCustomerRequest,
+        *,
+        fields: Sequence[CustomerRequestsPartialUpdateField] | None = None,
+    ) -> CustomerRequest:
+        return self._update(
+            data,
+            pk=request,
+            params={"fields": fields},
+            slug=slug,
+            customer_id=customer,
+        )
 
-    def delete(self, customer_id: str, pk: str) -> None:
-        return self._delete(pk=pk, customer_id=customer_id)
+    def delete(self, slug: str, customer: str, request: str) -> None:
+        return self._delete(pk=request, slug=slug, customer_id=customer)

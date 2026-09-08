@@ -25,12 +25,12 @@ class CustomerWorkItems(
         "bridge": "customers_work_items",
     }
 
-    def add(self, customer_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+    def add(self, slug: str, customer: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
         """Link 1..100 work items to this customer; returns the ids actually
         added (already-linked ones are omitted)."""
-        return self._bridge(key="add", ids=work_item_ids, customer_id=customer_id)
+        return self._bridge(key="add", ids=work_item_ids, slug=slug, customer_id=customer)
 
-    def remove(self, customer_id: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
+    def remove(self, slug: str, customer: str, work_item_ids: Sequence[str]) -> builtins.list[str]:
         """Unlink 1..100 work items from this customer; returns the ids
         actually removed."""
-        return self._bridge(key="remove", ids=work_item_ids, customer_id=customer_id)
+        return self._bridge(key="remove", ids=work_item_ids, slug=slug, customer_id=customer)

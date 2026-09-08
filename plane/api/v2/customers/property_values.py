@@ -18,18 +18,19 @@ class CustomerPropertyValues(
         "create": "customer_property_values_create",
     }
 
-    def list(self, customer_id: str) -> CustomerPropertyValueMap:
+    def list(self, slug: str, customer: str) -> CustomerPropertyValueMap:
         """Every property value set on a customer, keyed by property id.
-        Properties with no value set are absent from the mapping."""
-        payload = self.transport.request("GET", self._collection_url(customer_id=customer_id))
-        return self.model.model_validate(payload)
+        Properties with no value set are absent from the mapping. GETs the
+        collection URL directly -- `_retrieve_singleton` under a `list` action,
+        the same URL a hand-rolled `transport.request` built, plus `_query`'s
+        validation of anything the golden declares on
+        `customer_property_values_list` (see `WorkItemRelations.list`)."""
+        return self._retrieve_singleton(action="list", slug=slug, customer_id=customer)
 
-    def create(self, customer_id: str, data: CreateCustomerPropertyValues) -> None:
+    def create(self, slug: str, customer: str, data: CreateCustomerPropertyValues) -> None:
         """Bulk-set several of a customer's property values at once (upsert;
-        properties absent from `data.values` are untouched)."""
-        self.transport.request(
-            "POST",
-            self._collection_url(customer_id=customer_id),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
+        properties absent from `data.values` are untouched). POSTs the
+        collection URL directly through `_custom_request`, whose response
+        envelope here is discarded rather than parsed as `self.model`."""
+        self._custom_request("create", data=data, slug=slug, customer_id=customer)
         return None

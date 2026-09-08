@@ -12,6 +12,7 @@ from ....models.v2.collections import (
     CollectionMemberAdd,
     CollectionMembersManage,
 )
+from .._generated.constants import CollectionsMembersListField
 from .._kernel.resource import V2Resource
 
 __all__ = ["CollectionMembers"]
@@ -29,26 +30,31 @@ class CollectionMembers(
 
     def list(
         self,
-        collection_id: str,
+        slug: str,
+        collection: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[CollectionsMembersListField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> builtins.list[CollectionMember]:
         """Every member row on a collection. Unpaginated -- see the module
         docstring for why this parses a plain array rather than an envelope."""
-        payload = self.transport.request(
-            "GET",
-            self._collection_url(collection_id=collection_id),
-            params=self._query({"fields": fields, "expand": expand}, action="list"),
+        return self._custom_action_list(
+            "list",
+            model=self.model,
+            method="GET",
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            collection_id=collection,
         )
-        return [CollectionMember.model_validate(row) for row in payload]
 
-    def add(self, collection_id: str, members: Sequence[CollectionMemberAdd]) -> builtins.list[str]:
+    def add(
+        self, slug: str, collection: str, members: Sequence[CollectionMemberAdd]
+    ) -> builtins.list[str]:
         """Grant (or update) access for 1..100 workspace members on this
         collection; returns the member ids actually added or updated."""
-        return self._bridge(key="add", ids=members, collection_id=collection_id)
+        return self._bridge(key="add", ids=members, slug=slug, collection_id=collection)
 
-    def remove(self, collection_id: str, user_ids: Sequence[str]) -> builtins.list[str]:
+    def remove(self, slug: str, collection: str, user_ids: Sequence[str]) -> builtins.list[str]:
         """Revoke access for 1..100 members from this collection; returns the
         member ids actually removed (idempotent no-ops omitted)."""
-        return self._bridge(key="remove", ids=user_ids, collection_id=collection_id)
+        return self._bridge(key="remove", ids=user_ids, slug=slug, collection_id=collection)
