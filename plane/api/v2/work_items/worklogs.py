@@ -3,9 +3,18 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.work_items import CreateWorkItemWorklog, UpdateWorkItemWorklog, WorkItemWorklog
+from .._generated.constants import (
+    WorklogsCreateField,
+    WorklogsListField,
+    WorklogsListFilters,
+    WorklogsListOrderBy,
+    WorklogsPartialUpdateField,
+    WorklogsRetrieveField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -23,53 +32,106 @@ class WorkItemWorklogs(V2Resource[WorkItemWorklog, CreateWorkItemWorklog, Update
 
     def list(
         self,
-        work_item_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorklogsListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorklogsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[WorklogsListFilters],
     ) -> Page[WorkItemWorklog]:
         """One page of worklogs on a work item."""
         return self._list(
-            work_item_id=work_item_id,
-            params={"fields": fields, "expand": expand, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
         )
 
     def iterate(
         self,
-        work_item_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorklogsListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: WorklogsListOrderBy | None = None,
+        **filters: Unpack[WorklogsListFilters],
     ) -> Iterator[WorkItemWorklog]:
         """Every worklog on a work item, following pages automatically."""
         return self._iter(
-            work_item_id=work_item_id,
-            params={"fields": fields, "expand": expand, **filters},
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
         )
 
     def retrieve(
         self,
-        work_item_id: str,
-        worklog_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
+        worklog: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WorklogsRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> WorkItemWorklog:
         return self._retrieve(
-            pk=worklog_id,
-            work_item_id=work_item_id,
+            pk=worklog,
             params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
         )
 
-    def create(self, work_item_id: str, data: CreateWorkItemWorklog) -> WorkItemWorklog:
-        return self._create(data, work_item_id=work_item_id)
+    def create(
+        self,
+        slug: str,
+        project: str,
+        work_item: str,
+        data: CreateWorkItemWorklog,
+        *,
+        fields: Sequence[WorklogsCreateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> WorkItemWorklog:
+        return self._create(
+            data,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
+        )
 
     def update(
-        self, work_item_id: str, worklog_id: str, data: UpdateWorkItemWorklog
+        self,
+        slug: str,
+        project: str,
+        work_item: str,
+        worklog: str,
+        data: UpdateWorkItemWorklog,
+        *,
+        fields: Sequence[WorklogsPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> WorkItemWorklog:
-        return self._update(data, pk=worklog_id, work_item_id=work_item_id)
+        return self._update(
+            data,
+            pk=worklog,
+            params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
+        )
 
-    def delete(self, work_item_id: str, worklog_id: str) -> None:
-        return self._delete(pk=worklog_id, work_item_id=work_item_id)
+    def delete(self, slug: str, project: str, work_item: str, worklog: str) -> None:
+        return self._delete(pk=worklog, slug=slug, project_id=project, work_item_id=work_item)

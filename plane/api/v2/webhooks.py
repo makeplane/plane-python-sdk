@@ -1,13 +1,22 @@
 """Webhooks (api_v2) -- workspace outbound webhook subscriptions. `create`/
 `regenerate` return `WebhookCreateResult` (carries `secret_key` once; see that
-model's docstring for the golden mismatch). Delivery history is `webhooks.logs`."""
+model's docstring for the golden mismatch) -- neither exposes a `fields` param,
+since a sparse response could drop it. Delivery history is `webhooks.logs`."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ...models.v2.webhooks import CreateWebhook, UpdateWebhook, Webhook, WebhookCreateResult
+from ._generated.constants import (
+    WebhooksListField,
+    WebhooksListFilters,
+    WebhooksListOrderBy,
+    WebhooksPartialUpdateField,
+    WebhooksRetrieveField,
+)
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
@@ -28,50 +37,72 @@ class Webhooks(V2Resource[Webhook, CreateWebhook, UpdateWebhook]):
         "delete": "webhooks_destroy",
     }
 
-    def __init__(self, transport: V2Transport, **scope: Any) -> None:
-        super().__init__(transport, **scope)
-        self.logs = WebhookLogs(transport, **self._scope)
+    def __init__(self, transport: V2Transport) -> None:
+        super().__init__(transport)
+        self.logs = WebhookLogs(transport)
 
     def list(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
+        self,
+        slug: str,
+        *,
+        fields: Sequence[WebhooksListField] | None = None,
+        order_by: WebhooksListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[WebhooksListFilters],
     ) -> Page[Webhook]:
         """One page of the workspace's webhooks."""
-        return self._list(params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+        )
 
     def iterate(
-        self, *, fields: Sequence[str] | None = None, **filters: Any
+        self,
+        slug: str,
+        *,
+        fields: Sequence[WebhooksListField] | None = None,
+        order_by: WebhooksListOrderBy | None = None,
+        **filters: Unpack[WebhooksListFilters],
     ) -> Iterator[Webhook]:
         """Every webhook in the workspace, following pages automatically."""
-        return self._iter(params={"fields": fields, **filters})
+        return self._iter(params={"fields": fields, "order_by": order_by, **filters}, slug=slug)
 
     def retrieve(
-        self, webhook_id: str, *, fields: Sequence[str] | None = None
+        self, slug: str, webhook: str, *, fields: Sequence[WebhooksRetrieveField] | None = None
     ) -> Webhook:
-        return self._retrieve(pk=webhook_id, params={"fields": fields})
+        return self._retrieve(pk=webhook, params={"fields": fields}, slug=slug)
 
-    def find_by_name(self, name: str) -> Webhook:
+    def find_by_name(self, slug: str, name: str) -> Webhook:
         """The one webhook with this name; raises if none or several match."""
-        return self._find_one(filters={"name": name})
+        return self._find_one(filters={"name": name}, slug=slug)
 
-    def create(self, data: CreateWebhook) -> WebhookCreateResult:
+    def create(self, slug: str, data: CreateWebhook) -> WebhookCreateResult:
         """Create a webhook. The response carries `secret_key` once -- store
         it; it cannot be retrieved again (only regenerated, which mints a new
         one). See the module docstring for why no `fields` param is exposed."""
-        payload = self.transport.request(
-            "POST",
-            self._collection_url(),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return WebhookCreateResult.model_validate(payload)
+        return self._custom_action("create", model=WebhookCreateResult, data=data, slug=slug)
 
-    def update(self, webhook_id: str, data: UpdateWebhook) -> Webhook:
-        return self._update(data, pk=webhook_id)
+    def update(
+        self,
+        slug: str,
+        webhook: str,
+        data: UpdateWebhook,
+        *,
+        fields: Sequence[WebhooksPartialUpdateField] | None = None,
+    ) -> Webhook:
+        return self._update(data, pk=webhook, params={"fields": fields}, slug=slug)
 
-    def delete(self, webhook_id: str) -> None:
-        return self._delete(pk=webhook_id)
+    def delete(self, slug: str, webhook: str) -> None:
+        return self._delete(pk=webhook, slug=slug)
 
-    def regenerate(self, webhook_id: str) -> WebhookCreateResult:
+    def regenerate(self, slug: str, webhook: str) -> WebhookCreateResult:
         """Mint a new secret for this webhook, returning it once (see
         `create`)."""
-        payload = self.transport.request("POST", f"{self._detail_url(webhook_id)}regenerate/")
-        return WebhookCreateResult.model_validate(payload)
+        return self._custom_action("regenerate", model=WebhookCreateResult, pk=webhook, slug=slug)

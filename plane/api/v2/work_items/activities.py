@@ -4,9 +4,16 @@ an activity row directly; they are generated as a side effect of other writes.""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.work_items import WorkItemActivity
+from .._generated.constants import (
+    ActivitiesListField,
+    ActivitiesListFilters,
+    ActivitiesListOrderBy,
+    ActivitiesRetrieveField,
+)
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
 
@@ -24,42 +31,65 @@ class WorkItemActivities(V2Resource[WorkItemActivity, WorkItemActivity, WorkItem
 
     def list(
         self,
-        work_item_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ActivitiesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: ActivitiesListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[ActivitiesListFilters],
     ) -> Page[WorkItemActivity]:
         """One page of activity entries on a work item."""
         return self._list(
-            work_item_id=work_item_id,
-            params={"fields": fields, "expand": expand, **filters},
+            params={
+                "fields": fields,
+                "expand": expand,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
         )
 
     def iterate(
         self,
-        work_item_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ActivitiesListField] | None = None,
         expand: Sequence[str] | None = None,
-        **filters: Any,
+        order_by: ActivitiesListOrderBy | None = None,
+        **filters: Unpack[ActivitiesListFilters],
     ) -> Iterator[WorkItemActivity]:
         """Every activity entry on a work item, following pages automatically."""
         return self._iter(
-            work_item_id=work_item_id,
-            params={"fields": fields, "expand": expand, **filters},
+            params={"fields": fields, "expand": expand, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
         )
 
     def retrieve(
         self,
-        work_item_id: str,
-        activity_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
+        activity: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[ActivitiesRetrieveField] | None = None,
         expand: Sequence[str] | None = None,
     ) -> WorkItemActivity:
         return self._retrieve(
-            pk=activity_id,
-            work_item_id=work_item_id,
+            pk=activity,
             params={"fields": fields, "expand": expand},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
         )

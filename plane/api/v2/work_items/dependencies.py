@@ -19,18 +19,20 @@ class WorkItemDependencies(
         "delete": "work_item_dependencies_destroy",
     }
 
-    def list(self, work_item_id: str) -> WorkItemDependencyList:
+    def list(self, slug: str, project: str, work_item: str) -> WorkItemDependencyList:
         """Every related work item id, grouped by dependency direction."""
         payload = self.transport.request(
-            "GET", self._collection_url(work_item_id=work_item_id)
+            "GET", self._collection_url(slug=slug, project_id=project, work_item_id=work_item)
         )
         return self.model.model_validate(payload)
 
     def create(
-        self, work_item_id: str, data: WorkItemDependencyCreate
+        self, slug: str, project: str, work_item: str, data: WorkItemDependencyCreate
     ) -> WorkItemDependencyList:
-        return self._create(data, work_item_id=work_item_id)
+        return self._create(data, slug=slug, project_id=project, work_item_id=work_item)
 
-    def delete(self, work_item_id: str, related_work_item_id: str) -> None:
+    def delete(self, slug: str, project: str, work_item: str, related_work_item: str) -> None:
         """Delete by the *related* work item's id -- see `WorkItemRelations.delete`."""
-        return self._delete(pk=related_work_item_id, work_item_id=work_item_id)
+        return self._delete(
+            pk=related_work_item, slug=slug, project_id=project, work_item_id=work_item
+        )

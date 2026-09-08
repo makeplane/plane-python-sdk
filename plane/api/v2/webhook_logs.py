@@ -1,12 +1,17 @@
 """Webhook delivery logs (api_v2). Read-only, nested under a webhook -- the
-parent webhook must live in the same workspace (404 otherwise)."""
+parent webhook must live in the same workspace (404 otherwise). The parent
+webhook id lives in the *collection* path itself, not after a pk."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
 
 from ...models.v2.webhook_logs import WebhookLog
+from ._generated.constants import (
+    WebhookLogsListField,
+    WebhookLogsListOrderBy,
+    WebhookLogsRetrieveField,
+)
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 
@@ -23,29 +28,46 @@ class WebhookLogs(V2Resource[WebhookLog, WebhookLog, WebhookLog]):
 
     def list(
         self,
-        webhook_id: str,
+        slug: str,
+        webhook: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[WebhookLogsListField] | None = None,
+        order_by: WebhookLogsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
     ) -> Page[WebhookLog]:
-        """One page of delivery logs for a webhook."""
-        return self._list(webhook_id=webhook_id, params={"fields": fields, **filters})
+        """One page of delivery logs for a webhook. The golden offers no query
+        filters on this operation."""
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+            },
+            slug=slug,
+            webhook_id=webhook,
+        )
 
     def iterate(
         self,
-        webhook_id: str,
+        slug: str,
+        webhook: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[WebhookLogsListField] | None = None,
+        order_by: WebhookLogsListOrderBy | None = None,
     ) -> Iterator[WebhookLog]:
         """Every delivery log for a webhook, following pages automatically."""
-        return self._iter(webhook_id=webhook_id, params={"fields": fields, **filters})
+        return self._iter(
+            params={"fields": fields, "order_by": order_by}, slug=slug, webhook_id=webhook
+        )
 
     def retrieve(
         self,
-        webhook_id: str,
-        log_id: str,
+        slug: str,
+        webhook: str,
+        log: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[WebhookLogsRetrieveField] | None = None,
     ) -> WebhookLog:
-        return self._retrieve(pk=log_id, webhook_id=webhook_id, params={"fields": fields})
+        return self._retrieve(pk=log, params={"fields": fields}, slug=slug, webhook_id=webhook)

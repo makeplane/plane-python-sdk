@@ -1,5 +1,9 @@
-"""Offline coverage for `WorkItems` (the flat depth-2 pattern) and `WorkItemComments`
-(the depth-3 exemplar: `slug, project, work_item` leading parameters)."""
+"""Offline coverage for `WorkItems` (the flat depth-2 pattern), `WorkItemComments`
+(the depth-3 exemplar: `slug, project, work_item` leading parameters), and the other
+six work-item children on the same depth-3 shape. The children are constructed
+directly (not through `work_items.attachments` etc.) because they are still
+`PendingMigration` placeholders on the tree -- flat-shape migration and tree wiring
+are separate steps."""
 
 import json
 
@@ -10,12 +14,26 @@ from plane.api.v2 import V2Namespace
 from plane.api.v2._kernel.errors import FieldNotRequested
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.work_items import WorkItems
+from plane.api.v2.work_items.activities import WorkItemActivities
+from plane.api.v2.work_items.attachments import WorkItemAttachments
+from plane.api.v2.work_items.dependencies import WorkItemDependencies
+from plane.api.v2.work_items.links import WorkItemLinks
+from plane.api.v2.work_items.relations import WorkItemRelations
+from plane.api.v2.work_items.worklogs import WorkItemWorklogs
 from plane.config import Configuration
 from plane.models.v2.work_items import (
     CreateWorkItem,
+    CreateWorkItemAttachment,
     CreateWorkItemComment,
+    CreateWorkItemLink,
+    CreateWorkItemWorklog,
     UpdateWorkItem,
     UpdateWorkItemComment,
+    UpdateWorkItemLink,
+    UpdateWorkItemWorklog,
+    WorkItemAttachmentConfirm,
+    WorkItemDependencyCreate,
+    WorkItemRelationCreate,
 )
 
 BASE = "https://api.example.com/api/v2/workspaces/acme/projects/ENG/work-items"
@@ -413,18 +431,243 @@ def test_update_returns_a_navigable_row(work_items: WorkItems) -> None:
     assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
 
 
-# -- Signpost: coverage dropped pending migration, not silently lost --------------
+# -- The other six work-item children, on the same depth-3 shape ------------------
 
 
-@pytest.mark.parametrize(
-    "resource", ["attachments", "links", "worklogs", "activities", "relations", "dependencies"]
-)
-def test_sub_resource_coverage_pending_flat_pattern_migration(resource: str) -> None:
-    """Not a real test: `WorkItem<Resource>` still uses the retired single-id
-    (`work_item_id`-only) shape, so its offline coverage was removed here when
-    `WorkItems` moved to the flat pattern in task 10. Restore real tests for it
-    once it is migrated too."""
-    pytest.skip(f"WorkItem{resource.title()} coverage removed pending flat-pattern migration")
+@pytest.fixture
+def activities(config: Configuration) -> WorkItemActivities:
+    return WorkItemActivities(V2Transport(config))
+
+
+@pytest.fixture
+def attachments(config: Configuration) -> WorkItemAttachments:
+    return WorkItemAttachments(V2Transport(config))
+
+
+@pytest.fixture
+def links(config: Configuration) -> WorkItemLinks:
+    return WorkItemLinks(V2Transport(config))
+
+
+@pytest.fixture
+def relations(config: Configuration) -> WorkItemRelations:
+    return WorkItemRelations(V2Transport(config))
+
+
+@pytest.fixture
+def dependencies(config: Configuration) -> WorkItemDependencies:
+    return WorkItemDependencies(V2Transport(config))
+
+
+@pytest.fixture
+def worklogs(config: Configuration) -> WorkItemWorklogs:
+    return WorkItemWorklogs(V2Transport(config))
+
+
+@responses.activate
+def test_activities_list_and_retrieve_take_three_ids(activities: WorkItemActivities) -> None:
+    responses.get(
+        f"{BASE}/w1/activities/",
+        json={"data": [{"id": "a1"}], "pagination": {"style": "offset"}, "total_count": 1},
+    )
+    responses.get(f"{BASE}/w1/activities/a1/", json={"id": "a1", "field": "state"})
+
+    page = activities.list("acme", "ENG", "w1")
+    assert page.data[0].id == "a1"
+    assert responses.calls[0].request.url == f"{BASE}/w1/activities/"
+
+    row = activities.retrieve("acme", "ENG", "w1", "a1")
+    assert row.field == "state"
+    assert responses.calls[1].request.url == f"{BASE}/w1/activities/a1/"
+
+
+@responses.activate
+def test_attachments_crud_takes_three_leading_ids(attachments: WorkItemAttachments) -> None:
+    responses.get(
+        f"{BASE}/w1/attachments/",
+        json={"data": [{"id": "att1"}], "pagination": {"style": "offset"}, "total_count": 1},
+    )
+    responses.get(f"{BASE}/w1/attachments/att1/", json={"id": "att1", "name": "spec.pdf"})
+    responses.post(
+        f"{BASE}/w1/attachments/",
+        json={
+            "asset_id": "asset-1",
+            "asset_url": "https://uploads.example.com/asset-1",
+            "upload_data": {},
+            "attachment": {"id": "att1", "name": "spec.pdf"},
+        },
+        status=201,
+    )
+    responses.patch(f"{BASE}/w1/attachments/att1/", json={"id": "att1", "is_uploaded": True})
+    responses.delete(f"{BASE}/w1/attachments/att1/", status=204)
+
+    page = attachments.list("acme", "ENG", "w1")
+    assert page.data[0].id == "att1"
+    assert responses.calls[0].request.url == f"{BASE}/w1/attachments/"
+
+    fetched = attachments.retrieve("acme", "ENG", "w1", "att1")
+    assert fetched.name == "spec.pdf"
+    assert responses.calls[1].request.url == f"{BASE}/w1/attachments/att1/"
+
+    created = attachments.create(
+        "acme", "ENG", "w1", CreateWorkItemAttachment(name="spec.pdf", size=100)
+    )
+    assert created.asset_id == "asset-1"
+    assert responses.calls[2].request.url == f"{BASE}/w1/attachments/"
+
+    updated = attachments.update(
+        "acme", "ENG", "w1", "att1", WorkItemAttachmentConfirm(is_uploaded=True)
+    )
+    assert updated.is_uploaded is True
+    assert responses.calls[3].request.url == f"{BASE}/w1/attachments/att1/"
+
+    assert attachments.delete("acme", "ENG", "w1", "att1") is None
+    assert responses.calls[4].request.url == f"{BASE}/w1/attachments/att1/"
+
+
+@responses.activate
+def test_work_item_links_take_three_ids(links: WorkItemLinks) -> None:
+    responses.get(
+        f"{BASE}/w1/links/",
+        json={"data": [{"id": "l1"}], "pagination": {"style": "offset"}, "total_count": 1},
+    )
+
+    page = links.list("acme", "ENG", "w1")
+
+    assert page.data[0].id == "l1"
+    assert responses.calls[0].request.url.endswith("/work-items/w1/links/")
+
+
+@responses.activate
+def test_links_full_crud(links: WorkItemLinks) -> None:
+    responses.get(f"{BASE}/w1/links/l1/", json={"id": "l1", "url": "https://a.example.com"})
+    responses.post(
+        f"{BASE}/w1/links/", json={"id": "l1", "url": "https://a.example.com"}, status=201
+    )
+    responses.patch(f"{BASE}/w1/links/l1/", json={"id": "l1", "url": "https://b.example.com"})
+    responses.delete(f"{BASE}/w1/links/l1/", status=204)
+
+    created = links.create("acme", "ENG", "w1", CreateWorkItemLink(url="https://a.example.com"))
+    assert created.id == "l1"
+    assert responses.calls[0].request.url == f"{BASE}/w1/links/"
+
+    fetched = links.retrieve("acme", "ENG", "w1", "l1")
+    assert fetched.url == "https://a.example.com"
+    assert responses.calls[1].request.url == f"{BASE}/w1/links/l1/"
+
+    updated = links.update(
+        "acme", "ENG", "w1", "l1", UpdateWorkItemLink(url="https://b.example.com")
+    )
+    assert updated.url == "https://b.example.com"
+    assert responses.calls[2].request.url == f"{BASE}/w1/links/l1/"
+
+    assert links.delete("acme", "ENG", "w1", "l1") is None
+    assert responses.calls[3].request.url == f"{BASE}/w1/links/l1/"
+
+
+@responses.activate
+def test_relations_list_and_create_hit_the_collection_url_directly(
+    relations: WorkItemRelations,
+) -> None:
+    """`list`/`create` return a dict-shaped envelope, not a paginated `Page`."""
+    responses.get(f"{BASE}/w1/relations/", json={"blocking": ["w2"]})
+    responses.post(f"{BASE}/w1/relations/", json={"blocking": ["w2", "w3"]}, status=201)
+    responses.delete(f"{BASE}/w1/relations/w2/", status=204)
+
+    listed = relations.list("acme", "ENG", "w1")
+    assert listed.model_extra == {"blocking": ["w2"]}
+    assert responses.calls[0].request.url == f"{BASE}/w1/relations/"
+
+    created = relations.create(
+        "acme",
+        "ENG",
+        "w1",
+        WorkItemRelationCreate(
+            direction="blocking", relation_definition_id="rd1", work_item_ids=["w3"]
+        ),
+    )
+    assert created.model_extra == {"blocking": ["w2", "w3"]}
+    assert responses.calls[1].request.url == f"{BASE}/w1/relations/"
+
+    assert relations.delete("acme", "ENG", "w1", "w2") is None
+    assert responses.calls[2].request.url == f"{BASE}/w1/relations/w2/"
+
+
+@responses.activate
+def test_dependencies_list_and_create_hit_the_collection_url_directly(
+    dependencies: WorkItemDependencies,
+) -> None:
+    responses.get(
+        f"{BASE}/w1/dependencies/",
+        json={
+            "blocked_by": [],
+            "blocking": ["w2"],
+            "start_after": [],
+            "start_before": [],
+            "finish_after": [],
+            "finish_before": [],
+        },
+    )
+    responses.post(
+        f"{BASE}/w1/dependencies/",
+        json={
+            "blocked_by": [],
+            "blocking": ["w2", "w3"],
+            "start_after": [],
+            "start_before": [],
+            "finish_after": [],
+            "finish_before": [],
+        },
+        status=201,
+    )
+    responses.delete(f"{BASE}/w1/dependencies/w2/", status=204)
+
+    listed = dependencies.list("acme", "ENG", "w1")
+    assert listed.blocking == ["w2"]
+    assert responses.calls[0].request.url == f"{BASE}/w1/dependencies/"
+
+    created = dependencies.create(
+        "acme",
+        "ENG",
+        "w1",
+        WorkItemDependencyCreate(relation_type="blocking", work_item_ids=["w3"]),
+    )
+    assert created.blocking == ["w2", "w3"]
+    assert responses.calls[1].request.url == f"{BASE}/w1/dependencies/"
+
+    assert dependencies.delete("acme", "ENG", "w1", "w2") is None
+    assert responses.calls[2].request.url == f"{BASE}/w1/dependencies/w2/"
+
+
+@responses.activate
+def test_worklogs_full_crud_with_expand(worklogs: WorkItemWorklogs) -> None:
+    responses.get(
+        f"{BASE}/w1/worklogs/",
+        json={"data": [{"id": "wl1"}], "pagination": {"style": "offset"}, "total_count": 1},
+    )
+    responses.post(f"{BASE}/w1/worklogs/", json={"id": "wl1", "duration": 60}, status=201)
+    responses.get(f"{BASE}/w1/worklogs/wl1/", json={"id": "wl1", "duration": 60})
+    responses.patch(f"{BASE}/w1/worklogs/wl1/", json={"id": "wl1", "duration": 90})
+    responses.delete(f"{BASE}/w1/worklogs/wl1/", status=204)
+
+    page = worklogs.list("acme", "ENG", "w1", expand=["logged_by"])
+    assert page.data[0].id == "wl1"
+    assert "expand=logged_by" in responses.calls[0].request.url
+
+    created = worklogs.create("acme", "ENG", "w1", CreateWorkItemWorklog(duration=60))
+    assert created.duration == 60
+    assert responses.calls[1].request.url == f"{BASE}/w1/worklogs/"
+
+    fetched = worklogs.retrieve("acme", "ENG", "w1", "wl1")
+    assert fetched.duration == 60
+    assert responses.calls[2].request.url == f"{BASE}/w1/worklogs/wl1/"
+
+    updated = worklogs.update("acme", "ENG", "w1", "wl1", UpdateWorkItemWorklog(duration=90))
+    assert updated.duration == 90
+    assert responses.calls[3].request.url == f"{BASE}/w1/worklogs/wl1/"
+
+    assert worklogs.delete("acme", "ENG", "w1", "wl1") is None
+    assert responses.calls[4].request.url == f"{BASE}/w1/worklogs/wl1/"
 
 
 # -- Presence follows the *response*, not the request ----------------------------

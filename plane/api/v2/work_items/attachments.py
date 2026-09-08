@@ -5,13 +5,21 @@ This resource only covers the metadata lifecycle, not the upload itself."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Any
+
+from typing_extensions import Unpack
 
 from ....models.v2.work_items import (
     CreateWorkItemAttachment,
     WorkItemAttachment,
     WorkItemAttachmentConfirm,
     WorkItemAttachmentUploadResult,
+)
+from .._generated.constants import (
+    AttachmentsListField,
+    AttachmentsListFilters,
+    AttachmentsListOrderBy,
+    AttachmentsPartialUpdateField,
+    AttachmentsRetrieveField,
 )
 from .._kernel.pagination import Page
 from .._kernel.resource import V2Resource
@@ -32,52 +40,99 @@ class WorkItemAttachments(
 
     def list(
         self,
-        work_item_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[AttachmentsListField] | None = None,
+        order_by: AttachmentsListOrderBy | None = None,
+        per_page: int | None = None,
+        offset: int | None = None,
+        **filters: Unpack[AttachmentsListFilters],
     ) -> Page[WorkItemAttachment]:
         """One page of attachments on a work item."""
-        return self._list(work_item_id=work_item_id, params={"fields": fields, **filters})
+        return self._list(
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "per_page": per_page,
+                "offset": offset,
+                **filters,
+            },
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
+        )
 
     def iterate(
         self,
-        work_item_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
         *,
-        fields: Sequence[str] | None = None,
-        **filters: Any,
+        fields: Sequence[AttachmentsListField] | None = None,
+        order_by: AttachmentsListOrderBy | None = None,
+        **filters: Unpack[AttachmentsListFilters],
     ) -> Iterator[WorkItemAttachment]:
         """Every attachment on a work item, following pages automatically."""
-        return self._iter(work_item_id=work_item_id, params={"fields": fields, **filters})
+        return self._iter(
+            params={"fields": fields, "order_by": order_by, **filters},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
+        )
 
     def retrieve(
         self,
-        work_item_id: str,
-        attachment_id: str,
+        slug: str,
+        project: str,
+        work_item: str,
+        attachment: str,
         *,
-        fields: Sequence[str] | None = None,
+        fields: Sequence[AttachmentsRetrieveField] | None = None,
     ) -> WorkItemAttachment:
         return self._retrieve(
-            pk=attachment_id, work_item_id=work_item_id, params={"fields": fields}
+            pk=attachment,
+            params={"fields": fields},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
         )
 
     def create(
-        self, work_item_id: str, data: CreateWorkItemAttachment
+        self, slug: str, project: str, work_item: str, data: CreateWorkItemAttachment
     ) -> WorkItemAttachmentUploadResult:
         """Registers the metadata and returns presigned upload instructions.
-        Golden documents a bare `WorkItemAttachment`; live server returns this richer envelope."""
-        payload = self.transport.request(
-            "POST",
-            self._collection_url(work_item_id=work_item_id),
-            params=self._query(None, action="create"),
-            json=data.model_dump(mode="json", exclude_none=True),
+        Golden documents a bare `WorkItemAttachment`; live server returns this richer
+        envelope -- no `fields` param, since a sparse response could drop data the
+        caller needs to complete the upload."""
+        return self._custom_action(
+            "create",
+            model=WorkItemAttachmentUploadResult,
+            data=data,
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
         )
-        return WorkItemAttachmentUploadResult.model_validate(payload)
 
     def update(
-        self, work_item_id: str, attachment_id: str, data: WorkItemAttachmentConfirm
+        self,
+        slug: str,
+        project: str,
+        work_item: str,
+        attachment: str,
+        data: WorkItemAttachmentConfirm,
+        *,
+        fields: Sequence[AttachmentsPartialUpdateField] | None = None,
     ) -> WorkItemAttachment:
-        return self._update(data, pk=attachment_id, work_item_id=work_item_id)
+        return self._update(
+            data,
+            pk=attachment,
+            params={"fields": fields},
+            slug=slug,
+            project_id=project,
+            work_item_id=work_item,
+        )
 
-    def delete(self, work_item_id: str, attachment_id: str) -> None:
-        return self._delete(pk=attachment_id, work_item_id=work_item_id)
+    def delete(self, slug: str, project: str, work_item: str, attachment: str) -> None:
+        return self._delete(pk=attachment, slug=slug, project_id=project, work_item_id=work_item)

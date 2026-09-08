@@ -24,12 +24,12 @@ BASE = "https://api.example.com/api/v2/workspaces/acme/projects/ENG/estimates"
 
 @pytest.fixture
 def estimates(config: Configuration) -> Estimates:
-    return Estimates(V2Transport(config), slug="acme", project_id="ENG")
+    return Estimates(V2Transport(config))
 
 
 @pytest.fixture
 def points(config: Configuration) -> EstimatePoints:
-    return EstimatePoints(V2Transport(config), slug="acme", project_id="ENG")
+    return EstimatePoints(V2Transport(config))
 
 
 # -- Estimates CRUD + upsert --------------------------------------------------------
@@ -46,10 +46,11 @@ def test_list_estimates(estimates: Estimates) -> None:
         },
     )
 
-    page = estimates.list()
+    page = estimates.list("acme", "ENG")
 
     assert page.total_count == 1
     assert page.data[0].type == "categories"
+    assert responses.calls[0].request.url == f"{BASE}/"
 
 
 @responses.activate
@@ -67,7 +68,7 @@ def test_find_by_name(estimates: Estimates) -> None:
         ],
     )
 
-    assert estimates.find_by_name("T-shirt sizes").id == "1"
+    assert estimates.find_by_name("acme", "ENG", "T-shirt sizes").id == "1"
 
 
 @responses.activate
@@ -77,7 +78,7 @@ def test_sparse_response_leaves_absent_fields_none(estimates: Estimates) -> None
         json={"data": [{"id": "1"}], "pagination": {"style": "offset"}},
     )
 
-    page = estimates.list(fields=["id"])
+    page = estimates.list("acme", "ENG", fields=["id"])
 
     assert page.data[0].id == "1"
     assert page.data[0].name is None
@@ -96,7 +97,7 @@ def test_expand_points_is_encoded_and_parsed(estimates: Estimates) -> None:
         },
     )
 
-    estimate = estimates.retrieve("1", expand=["points"])
+    estimate = estimates.retrieve("acme", "ENG", "1", expand=["points"])
 
     assert "expand=points" in responses.calls[0].request.url
     assert estimate.points is not None
@@ -109,11 +110,15 @@ def test_create_then_patch_then_delete(estimates: Estimates) -> None:
     responses.patch(f"{BASE}/1/", json={"id": "1", "name": "T-Shirt Sizes"})
     responses.delete(f"{BASE}/1/", status=204)
 
-    created = estimates.create(CreateEstimate(name="Sizes"))
-    updated = estimates.update(created.id, UpdateEstimate(name="T-Shirt Sizes"))
-    assert updated.name == "T-Shirt Sizes"
+    created = estimates.create("acme", "ENG", CreateEstimate(name="Sizes"))
+    assert responses.calls[0].request.url == f"{BASE}/"
 
-    assert estimates.delete(created.id) is None
+    updated = estimates.update("acme", "ENG", created.id, UpdateEstimate(name="T-Shirt Sizes"))
+    assert updated.name == "T-Shirt Sizes"
+    assert responses.calls[1].request.url == f"{BASE}/1/"
+
+    assert estimates.delete("acme", "ENG", created.id) is None
+    assert responses.calls[2].request.url == f"{BASE}/1/"
 
 
 @responses.activate
@@ -121,20 +126,23 @@ def test_upsert_reconciles_on_external_id(estimates: Estimates) -> None:
     responses.post(f"{BASE}/upsert/", json={"id": "1", "name": "Imported"})
 
     result = estimates.upsert(
+        "acme",
+        "ENG",
         CreateEstimate(name="Imported", external_source="jira", external_id="EST-1"),
     )
 
     assert result.id == "1"
+    assert responses.calls[0].request.url == f"{BASE}/upsert/"
 
 
 def test_unknown_field_is_rejected_before_the_request(estimates: Estimates) -> None:
     with pytest.raises(ValueError, match="nope"):
-        estimates.list(fields=["nope"])
+        estimates.list("acme", "ENG", fields=["nope"])
 
 
 def test_unknown_expand_is_rejected_before_the_request(estimates: Estimates) -> None:
     with pytest.raises(ValueError, match="bogus"):
-        estimates.list(expand=["bogus"])
+        estimates.list("acme", "ENG", expand=["bogus"])
 
 
 @responses.activate
@@ -164,13 +172,13 @@ def test_bulk_create_update_delete(estimates: Estimates) -> None:
         },
     )
 
-    created = estimates.bulk_create([CreateEstimate(name="Sizes")])
+    created = estimates.bulk_create("acme", "ENG", [CreateEstimate(name="Sizes")])
     assert isinstance(created.results[0], BulkRowSuccess)
 
-    updated = estimates.bulk_update([{"id": "1", "name": "Sizes v2"}])
+    updated = estimates.bulk_update("acme", "ENG", [{"id": "1", "name": "Sizes v2"}])
     assert updated.succeeded == 1
 
-    deleted = estimates.bulk_delete(["1"])
+    deleted = estimates.bulk_delete("acme", "ENG", ["1"])
     assert deleted.succeeded == 1
     body = json.loads(responses.calls[2].request.body)
     assert body == {"ids": ["1"], "all_or_none": False}
@@ -189,7 +197,7 @@ def test_points_list_is_nested_under_the_estimate(points: EstimatePoints) -> Non
         },
     )
 
-    page = points.list("1")
+    page = points.list("acme", "ENG", "1")
 
     assert page.data[0].value == "XS"
     assert responses.calls[0].request.url.startswith(f"{BASE}/1/points/")
@@ -206,7 +214,7 @@ def test_points_find_by_key(points: EstimatePoints) -> None:
         match=[matchers.query_param_matcher({"key": "3", "per_page": "2", "count": "False"})],
     )
 
-    assert points.find_by_key("1", 3).id == "p1"
+    assert points.find_by_key("acme", "ENG", "1", 3).id == "p1"
 
 
 @responses.activate
@@ -216,16 +224,20 @@ def test_points_create_retrieve_update_delete(points: EstimatePoints) -> None:
     responses.patch(f"{BASE}/1/points/p1/", json={"id": "p1", "value": "Small", "key": 0})
     responses.delete(f"{BASE}/1/points/p1/", status=204)
 
-    created = points.create("1", CreateEstimatePoint(value="XS", key=0))
+    created = points.create("acme", "ENG", "1", CreateEstimatePoint(value="XS", key=0))
     assert created.id == "p1"
+    assert responses.calls[0].request.url == f"{BASE}/1/points/"
 
-    fetched = points.retrieve("1", created.id)
+    fetched = points.retrieve("acme", "ENG", "1", created.id)
     assert fetched.value == "XS"
+    assert responses.calls[1].request.url == f"{BASE}/1/points/p1/"
 
-    updated = points.update("1", created.id, UpdateEstimatePoint(value="Small"))
+    updated = points.update("acme", "ENG", "1", created.id, UpdateEstimatePoint(value="Small"))
     assert updated.value == "Small"
+    assert responses.calls[2].request.url == f"{BASE}/1/points/p1/"
 
-    assert points.delete("1", created.id) is None
+    assert points.delete("acme", "ENG", "1", created.id) is None
+    assert responses.calls[3].request.url == f"{BASE}/1/points/p1/"
 
 
 @responses.activate
@@ -233,7 +245,7 @@ def test_points_upsert(points: EstimatePoints) -> None:
     responses.post(f"{BASE}/1/points/upsert/", json={"id": "p1", "value": "XS", "key": 0})
 
     result = points.upsert(
-        "1", CreateEstimatePoint(value="XS", external_source="x", external_id="1")
+        "acme", "ENG", "1", CreateEstimatePoint(value="XS", external_source="x", external_id="1")
     )
 
     assert result.id == "p1"
@@ -266,16 +278,16 @@ def test_points_bulk_create_update_delete(points: EstimatePoints) -> None:
         },
     )
 
-    created = points.bulk_create("1", [CreateEstimatePoint(value="XS")])
+    created = points.bulk_create("acme", "ENG", "1", [CreateEstimatePoint(value="XS")])
     assert created.succeeded == 1
 
-    updated = points.bulk_update("1", [{"id": "p1", "value": "Small"}])
+    updated = points.bulk_update("acme", "ENG", "1", [{"id": "p1", "value": "Small"}])
     assert updated.succeeded == 1
 
-    deleted = points.bulk_delete("1", ["p1"])
+    deleted = points.bulk_delete("acme", "ENG", "1", ["p1"])
     assert deleted.succeeded == 1
 
 
 def test_points_batch_cap_is_enforced_client_side(points: EstimatePoints) -> None:
     with pytest.raises(ValueError, match="At most 50"):
-        points.bulk_delete("1", [str(n) for n in range(51)])
+        points.bulk_delete("acme", "ENG", "1", [str(n) for n in range(51)])
