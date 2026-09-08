@@ -84,6 +84,30 @@ def test_create_returns_the_secret_once(webhooks: Webhooks) -> None:
 
 
 @responses.activate
+def test_create_fields_reach_the_query_string(webhooks: Webhooks) -> None:
+    responses.post(
+        f"{BASE}/",
+        json={"id": "w1", "url": "https://example.com/hook", "secret_key": "shh-secret"},
+        status=201,
+    )
+
+    webhooks.create(
+        "acme", CreateWebhook(url="https://example.com/hook"), fields=["id", "name"]
+    )
+
+    assert "fields=id%2Cname" in responses.calls[0].request.url
+
+
+def test_create_rejects_unknown_field_before_the_request(webhooks: Webhooks) -> None:
+    with pytest.raises(ValueError, match="Unknown field"):
+        webhooks.create(
+            "acme",
+            CreateWebhook(url="https://example.com/hook"),
+            fields=["bogus"],  # type: ignore[list-item]
+        )
+
+
+@responses.activate
 def test_update_uses_patch(webhooks: Webhooks) -> None:
     responses.patch(f"{BASE}/w1/", json={"id": "w1", "is_active": False})
 

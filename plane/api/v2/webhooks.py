@@ -1,7 +1,10 @@
 """Webhooks (api_v2) -- workspace outbound webhook subscriptions. `create`/
 `regenerate` return `WebhookCreateResult` (carries `secret_key` once; see that
-model's docstring for the golden mismatch) -- neither exposes a `fields` param,
-since a sparse response could drop it. Delivery history is `webhooks.logs`.
+model's docstring for the golden mismatch). `regenerate` omits `fields`: its
+secret is shown exactly once and a projection could silently drop it beyond
+recovery -- see its own docstring for why. `create` is an ordinary row a caller
+can simply re-fetch, so it exposes `fields` like any other write. Delivery
+history is `webhooks.logs`.
 
 A fetched row (`retrieve`, and every row in a `list` page) comes back as a
 `LoadedWebhook`: it carries the row's data and can reach `.logs.list()` etc.
@@ -16,6 +19,7 @@ from typing_extensions import Unpack
 
 from ...models.v2.webhooks import CreateWebhook, UpdateWebhook, Webhook, WebhookCreateResult
 from ._generated.constants import (
+    WebhooksCreateField,
     WebhooksListField,
     WebhooksListFilters,
     WebhooksListOrderBy,
@@ -98,14 +102,24 @@ class Webhooks(
         row = self._find_one(filters={"name": name}, slug=slug)
         return self._load(row, slug)
 
-    def create(self, slug: str, data: CreateWebhook) -> WebhookCreateResult:
+    def create(
+        self,
+        slug: str,
+        data: CreateWebhook,
+        *,
+        fields: Sequence[WebhooksCreateField] | None = None,
+    ) -> WebhookCreateResult:
         """Create a webhook. The response carries `secret_key` once -- store
         it; it cannot be retrieved again (only regenerated, which mints a new
-        one). See the module docstring for why no `fields` param is exposed.
+        one). Unlike `regenerate`, a projection here is safe: `create` returns
+        an ordinary row and a caller who narrows it with `fields` can always
+        `retrieve` the full webhook afterwards.
 
         Answers with `WebhookCreateResult`, not a `Webhook` row -- not
         navigable; `retrieve` the webhook afterwards to reach `.logs`."""
-        return self._custom_action("create", model=WebhookCreateResult, data=data, slug=slug)
+        return self._custom_action(
+            "create", model=WebhookCreateResult, data=data, params={"fields": fields}, slug=slug
+        )
 
     def update(
         self,
@@ -123,5 +137,7 @@ class Webhooks(
 
     def regenerate(self, slug: str, webhook: str) -> WebhookCreateResult:
         """Mint a new secret for this webhook, returning it once (see
-        `create`)."""
+        `create`). No `fields` param: the response's `secret_key` is a
+        one-time value that cannot be re-fetched, so a projection could
+        silently and irrecoverably discard it."""
         return self._custom_action("regenerate", model=WebhookCreateResult, pk=webhook, slug=slug)

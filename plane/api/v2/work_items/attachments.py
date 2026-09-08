@@ -104,8 +104,9 @@ class WorkItemAttachments(
     ) -> WorkItemAttachmentUploadResult:
         """Registers the metadata and returns presigned upload instructions.
         Golden documents a bare `WorkItemAttachment`; live server returns this richer
-        envelope -- no `fields` param, since a sparse response could drop data the
-        caller needs to complete the upload."""
+        envelope -- no `fields` param: `upload_data`'s presigned fields exist only in
+        this reply, are not re-fetchable, and a projection could silently drop them
+        beyond recovery, stranding the caller mid-upload."""
         return self._custom_action(
             "create",
             model=WorkItemAttachmentUploadResult,

@@ -199,7 +199,15 @@ PlaneClient
     filter keyword). Every option the golden offers an operation must be reachable
     on the method: `tests/v2/test_expand_coverage.py` sweeps the migrated resources
     against the golden's `EXPAND` table and fails on any method that omits an
-    `expand` the API accepts (`delete` excepted — 204, no body to shape). Where a
+    `expand` the API accepts (`delete` excepted — 204, no body to shape). The same
+    goes for `fields`: it is exposed wherever the golden declares `?fields=` for an
+    operation, **except** an operation whose response body is one-time and
+    unrecoverable — a secret shown once (`Webhooks.regenerate`), or an envelope
+    richer than the golden documents whose extra data only exists in that one reply
+    (`WorkItemAttachments.create`) — where a projection could silently and
+    irrecoverably drop data the caller cannot get back. Those omissions must name
+    the one-time-response reason in the method's own docstring, or the next reader
+    "fixes" them back. Where a
     resource spells filters out one by one instead of `**filters: Unpack[...]`
     (`Roles`, because the golden's `?slug=` collides with the path id `slug`), pin
     the hand-written set against the generated `TypedDict` so a regeneration cannot

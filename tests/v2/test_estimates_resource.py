@@ -206,7 +206,7 @@ def test_points_list_is_nested_under_the_estimate(points: EstimatePoints) -> Non
     page = points.list("acme", "ENG", "1")
 
     assert page.data[0].value == "XS"
-    assert responses.calls[0].request.url.startswith(f"{BASE}/1/points/")
+    assert responses.calls[0].request.url == f"{BASE}/1/points/"
 
 
 @responses.activate

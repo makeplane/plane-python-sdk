@@ -535,7 +535,7 @@ def test_work_item_links_take_three_ids(links: WorkItemLinks) -> None:
     page = links.list("acme", "ENG", "w1")
 
     assert page.data[0].id == "l1"
-    assert responses.calls[0].request.url.endswith("/work-items/w1/links/")
+    assert responses.calls[0].request.url == f"{BASE}/w1/links/"
 
 
 @responses.activate
