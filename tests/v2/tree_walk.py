@@ -53,15 +53,6 @@ WALK_CONFIG = Configuration(base_path="https://api.example.com", api_key="secret
 
 UNMIGRATED_RESOURCES = frozenset(
     {
-        # automations (project and workspace flavours)
-        "ProjectAutomationActivities",
-        "ProjectAutomationEdges",
-        "ProjectAutomationNodes",
-        "ProjectAutomations",
-        "WorkspaceAutomationActivities",
-        "WorkspaceAutomationEdges",
-        "WorkspaceAutomationNodes",
-        "WorkspaceAutomations",
         # work item types and properties (both flavours)
         "WorkItemProperties",
         "WorkItemPropertyContexts",
