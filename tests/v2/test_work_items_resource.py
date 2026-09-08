@@ -301,7 +301,7 @@ def test_fetched_work_item_reaches_comments_with_no_ids_repeated(
     work_item = V2Namespace(config).workspaces.projects.work_items.retrieve("acme", "ENG", "ENG-12")
     work_item.comments.list()
 
-    assert responses.calls[1].request.url.endswith("/work-items/w1/comments/")
+    assert responses.calls[1].request.url == f"{BASE}/w1/comments/"
 
 
 # -- `fields=` must reach `Loaded.build`, not just `Loaded` unit tests -----------
@@ -367,7 +367,7 @@ def test_iterate_yields_navigable_rows(work_items: WorkItems) -> None:
     row = next(iter(work_items.iterate("acme", "ENG")))
     row.comments.list()
 
-    assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
+    assert responses.calls[-1].request.url == f"{BASE}/wi-1/comments/"
 
 
 @responses.activate
@@ -428,7 +428,7 @@ def test_update_returns_a_navigable_row(work_items: WorkItems) -> None:
     row.comments.list()
 
     assert row.name == "Renamed"
-    assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
+    assert responses.calls[-1].request.url == f"{BASE}/wi-1/comments/"
 
 
 # -- The other six work-item children, on the same depth-3 shape ------------------
@@ -744,7 +744,7 @@ def test_archive_returns_a_navigable_row(work_items: WorkItems) -> None:
     row = work_items.archive("acme", "ENG", "wi-1")
     row.comments.list()
 
-    assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
+    assert responses.calls[-1].request.url == f"{BASE}/wi-1/comments/"
 
 
 @responses.activate
@@ -758,7 +758,7 @@ def test_unarchive_returns_a_navigable_row(work_items: WorkItems) -> None:
     row = work_items.unarchive("acme", "ENG", "wi-1")
     row.comments.list()
 
-    assert responses.calls[-1].request.url.endswith("/work-items/wi-1/comments/")
+    assert responses.calls[-1].request.url == f"{BASE}/wi-1/comments/"
 
 
 # -- A fetched work item reaches all seven children, not just comments -----------
@@ -776,7 +776,7 @@ def test_fetched_work_item_reaches_every_child(config: Configuration) -> None:
     item = V2Namespace(config).workspaces.projects.work_items.retrieve("acme", "ENG", "ENG-12")
     item.links.list()
 
-    assert responses.calls[1].request.url.endswith("/work-items/w1/links/")
+    assert responses.calls[1].request.url == f"{BASE}/w1/links/"
     for child in (
         "comments",
         "attachments",
