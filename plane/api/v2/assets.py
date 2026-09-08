@@ -153,7 +153,10 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
 
     def create(self, data: CreateUserAsset) -> UserAssetUploadResult:
         """Registers the asset's metadata and returns presigned upload
-        instructions (see the module docstring for the contract caveat)."""
+        instructions (see the module docstring for the contract caveat);
+        no `fields` param: `upload_data`'s presigned fields exist only in this
+        one reply and cannot be re-fetched, so a projection could silently and
+        irrecoverably drop them."""
         payload = self.transport.request(
             "POST", self._collection_url(), json=data.model_dump(mode="json", exclude_none=True)
         )
