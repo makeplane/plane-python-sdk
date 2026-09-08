@@ -4,7 +4,14 @@
 
 A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as
 a `LoadedProject`: it carries the row's data and can reach `.states`/`.labels`
-without the caller repeating `slug`/`project`."""
+without the caller repeating `slug`/`project`.
+
+The whole project band hangs off this class: `states`, `labels`, `work_items`,
+`cycles`, `milestones`, `modules`, `estimates`, `intakes`, `members`, `views`,
+`features`, `permissions`, `work_item_templates`, `worklogs` and `pages`. Every one
+is migrated to the flat shape -- `tests/v2/test_tree.py`'s
+`PROJECT_TREE_ATTACHMENTS` table proves each is the right class at the right URL,
+and fails if a later plan attaches one without a row."""
 
 from __future__ import annotations
 
@@ -31,9 +38,21 @@ from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
 from ._loaded.project import LoadedProject
+from .cycles import Cycles
+from .estimates import Estimates
+from .features import ProjectFeatures
+from .intakes import Intakes
 from .labels import Labels
+from .members import ProjectMembers
+from .milestones import Milestones
+from .modules import Modules
+from .pages import ProjectPages
+from .permissions import ProjectPermissions
 from .states import States
+from .views.project import ProjectViews
+from .work_item_templates.project import ProjectWorkItemTemplates
 from .work_items import WorkItems
+from .worklogs import ProjectWorklogs
 
 
 class Projects(
@@ -66,6 +85,18 @@ class Projects(
         self.states = States(transport)
         self.labels = Labels(transport)
         self.work_items = WorkItems(transport)
+        self.cycles = Cycles(transport)
+        self.milestones = Milestones(transport)
+        self.modules = Modules(transport)
+        self.estimates = Estimates(transport)
+        self.intakes = Intakes(transport)
+        self.members = ProjectMembers(transport)
+        self.views = ProjectViews(transport)
+        self.features = ProjectFeatures(transport)
+        self.permissions = ProjectPermissions(transport)
+        self.work_item_templates = ProjectWorkItemTemplates(transport)
+        self.worklogs = ProjectWorklogs(transport)
+        self.pages = ProjectPages(transport)
 
     def list(
         self,

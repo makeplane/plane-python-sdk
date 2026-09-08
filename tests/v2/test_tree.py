@@ -6,26 +6,39 @@ from plane.api.v2.artifacts import Artifacts
 from plane.api.v2.assets import WorkspaceAssets
 from plane.api.v2.audit_logs import AuditLogs
 from plane.api.v2.customer_properties import CustomerProperties
+from plane.api.v2.cycles import Cycles, CycleWorkItems
+from plane.api.v2.estimates import Estimates
+from plane.api.v2.estimates.points import EstimatePoints
+from plane.api.v2.features import ProjectFeatures
 from plane.api.v2.group_sync import (
     GroupSync,
     GroupSyncConfigResource,
     GroupSyncProjectMappings,
     GroupSyncWorkspaceMappings,
 )
+from plane.api.v2.intakes import Intakes
 from plane.api.v2.invitations import Invitations
 from plane.api.v2.labels import Labels
-from plane.api.v2.members import WorkspaceMembers
+from plane.api.v2.members import ProjectMembers, WorkspaceMembers
+from plane.api.v2.milestones import Milestones, MilestoneWorkItems
+from plane.api.v2.modules import Modules, ModuleWorkItems
+from plane.api.v2.pages import ProjectPages
 from plane.api.v2.permission_schemes import PermissionSchemes
-from plane.api.v2.permissions import WorkspacePermissions
+from plane.api.v2.permissions import ProjectPermissions, WorkspacePermissions
 from plane.api.v2.releases.tags import ReleaseTags
 from plane.api.v2.roles import Roles
 from plane.api.v2.states import States
 from plane.api.v2.stickies import Stickies
 from plane.api.v2.teamspaces import Teamspaces
 from plane.api.v2.views import WorkspaceViews
+from plane.api.v2.views.project import ProjectViews
+from plane.api.v2.webhook_logs import WebhookLogs
+from plane.api.v2.webhooks import Webhooks
 from plane.api.v2.work_item_relation_definitions import WorkItemRelationDefinitions
 from plane.api.v2.work_item_templates import WorkspaceWorkItemTemplates
+from plane.api.v2.work_item_templates.project import ProjectWorkItemTemplates
 from plane.api.v2.work_items import WorkspaceWorkItems
+from plane.api.v2.worklogs import ProjectWorklogs
 from plane.config import Configuration
 
 
@@ -203,6 +216,13 @@ WORKSPACE_TREE_ATTACHMENTS = [
         "/workspaces/acme/group-sync/workspace-mappings/",
     ),
     ("releases.tags", lambda ws: ws.releases.tags, ReleaseTags, "/workspaces/acme/releases/tags/"),
+    ("webhooks", lambda ws: ws.webhooks, Webhooks, "/workspaces/acme/webhooks/"),
+    (
+        "webhooks.logs",
+        lambda ws: ws.webhooks.logs,
+        WebhookLogs,
+        None,  # its collection URL carries the webhook id -- see the test below
+    ),
 ]
 
 
@@ -303,4 +323,162 @@ def test_release_tags_is_wired_onto_releases_not_workspaces(config: Configuratio
 
     assert responses.calls[0].request.url.startswith(
         "https://api.example.com/api/v2/workspaces/acme/releases/tags/"
+    )
+
+
+# -- Task 6: wiring the project band onto the tree ---------------------------------
+
+
+# The project-scoped sibling of `WORKSPACE_TREE_ATTACHMENTS`, same shape and same
+# completeness assertion. `expected_url` is filled for the workspace `acme` and the
+# project `ENG`, so a row that names the wrong class -- or the right class wired at
+# the wrong template -- fails rather than passing on a bare `hasattr`. Rows whose
+# name contains a `.` are children of a project-band resource (`cycles.work_items`),
+# and are excluded from the completeness comparison the same way the workspace table
+# excludes `group_sync.config`.
+PROJECT_TREE_ATTACHMENTS = [
+    ("cycles", lambda p: p.cycles, Cycles, "/workspaces/acme/projects/ENG/cycles/"),
+    (
+        "milestones",
+        lambda p: p.milestones,
+        Milestones,
+        "/workspaces/acme/projects/ENG/milestones/",
+    ),
+    ("modules", lambda p: p.modules, Modules, "/workspaces/acme/projects/ENG/modules/"),
+    ("estimates", lambda p: p.estimates, Estimates, "/workspaces/acme/projects/ENG/estimates/"),
+    ("intakes", lambda p: p.intakes, Intakes, "/workspaces/acme/projects/ENG/intake-issues/"),
+    ("members", lambda p: p.members, ProjectMembers, "/workspaces/acme/projects/ENG/members/"),
+    ("views", lambda p: p.views, ProjectViews, "/workspaces/acme/projects/ENG/views/"),
+    ("features", lambda p: p.features, ProjectFeatures, "/workspaces/acme/projects/ENG/features/"),
+    (
+        "permissions",
+        lambda p: p.permissions,
+        ProjectPermissions,
+        "/workspaces/acme/projects/ENG/permissions/me/",
+    ),
+    (
+        "work_item_templates",
+        lambda p: p.work_item_templates,
+        ProjectWorkItemTemplates,
+        "/workspaces/acme/projects/ENG/work-item-templates/",
+    ),
+    (
+        "worklogs",
+        lambda p: p.worklogs,
+        ProjectWorklogs,
+        "/workspaces/acme/projects/ENG/worklogs/summary/",
+    ),
+    ("pages", lambda p: p.pages, ProjectPages, "/workspaces/acme/projects/ENG/pages/"),
+    (
+        "cycles.work_items",
+        lambda p: p.cycles.work_items,
+        CycleWorkItems,
+        None,  # needs a cycle id too; `test_cycle_work_items_bridge_url` covers it
+    ),
+    (
+        "milestones.work_items",
+        lambda p: p.milestones.work_items,
+        MilestoneWorkItems,
+        None,
+    ),
+    ("modules.work_items", lambda p: p.modules.work_items, ModuleWorkItems, None),
+    ("estimates.points", lambda p: p.estimates.points, EstimatePoints, None),
+]
+
+
+# The three attributes `Projects` already had before this batch: `states` and `labels`
+# are covered by `test_tree_reaches_states_by_attribute`, and `work_items` carries its
+# own subtree (`tests/v2/test_work_items_resource.py`).
+PRE_EXISTING_PROJECT_ATTRIBUTES = {"states", "labels", "work_items"}
+
+
+def test_the_project_attachment_table_covers_every_attachment(config: Configuration) -> None:
+    """The project-band twin of `test_the_attachment_table_covers_every_attachment`:
+    attach a resource in `Projects.__init__` and forget its row here, and this fails
+    by name instead of quietly leaving the resource unproven."""
+    attached = set(vars(V2Namespace(config).workspaces.projects)) - {"transport"}
+    tabled = {name for name, *_ in PROJECT_TREE_ATTACHMENTS if "." not in name}
+
+    assert attached - PRE_EXISTING_PROJECT_ATTRIBUTES == tabled, (
+        "every attribute on `client.v2.workspaces.projects` needs a row in "
+        "PROJECT_TREE_ATTACHMENTS (or, for the three that predate this batch, a name "
+        "in PRE_EXISTING_PROJECT_ATTRIBUTES). Missing rows: "
+        f"{sorted(attached - PRE_EXISTING_PROJECT_ATTRIBUTES - tabled)}; rows with no "
+        f"attachment: {sorted(tabled - attached)}."
+    )
+
+
+@pytest.mark.parametrize(
+    ("name", "getter", "expected_class", "expected_url"),
+    PROJECT_TREE_ATTACHMENTS,
+    ids=[row[0] for row in PROJECT_TREE_ATTACHMENTS],
+)
+def test_project_tree_attachment_is_the_right_class_at_the_right_url(
+    config: Configuration, name, getter, expected_class, expected_url
+) -> None:
+    resource = getter(V2Namespace(config).workspaces.projects)
+
+    assert isinstance(resource, expected_class), f"{name} is not a {expected_class.__name__}"
+    if expected_url is not None:
+        assert resource._collection_url(slug="acme", project_id="ENG") == expected_url, name
+
+
+def test_cycle_work_items_bridge_url(config: Configuration) -> None:
+    """The four project-band children take an extra id of their own, so their rows
+    above carry no `expected_url` -- proved here instead."""
+    projects = V2Namespace(config).workspaces.projects
+
+    assert (
+        projects.cycles.work_items._collection_url(slug="acme", project_id="ENG", cycle_id="c1")
+        == "/workspaces/acme/projects/ENG/cycles/c1/work-items/"
+    )
+    assert (
+        projects.estimates.points._collection_url(slug="acme", project_id="ENG", estimate_id="e1")
+        == "/workspaces/acme/projects/ENG/estimates/e1/points/"
+    )
+
+
+@responses.activate
+def test_a_wired_project_resource_reaches_its_url(config: Configuration) -> None:
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/cycles/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    V2Namespace(config).workspaces.projects.cycles.list("acme", "ENG")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/cycles/"
+    )
+
+
+@responses.activate
+def test_project_pages_is_wired_at_last(config: Configuration) -> None:
+    """`ProjectPages` was migrated by an earlier plan but never attached, so nothing
+    could reach it; the completeness assertion above now keeps it attached."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/pages/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    V2Namespace(config).workspaces.projects.pages.list("acme", "ENG")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/pages/"
+    )
+
+
+@responses.activate
+def test_webhook_logs_is_reachable_under_the_workspace(config: Configuration) -> None:
+    """`Webhooks` carries `logs`, but nothing wired `Webhooks` itself onto the
+    workspace, so `webhooks.logs` was unreachable from `client.v2`."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/webhook-logs/wh1/",
+        json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
+    )
+
+    V2Namespace(config).workspaces.webhooks.logs.list("acme", "wh1")
+
+    assert responses.calls[0].request.url.startswith(
+        "https://api.example.com/api/v2/workspaces/acme/webhook-logs/wh1/"
     )

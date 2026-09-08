@@ -27,6 +27,7 @@ from .roles import Roles
 from .stickies import Stickies
 from .teamspaces import Teamspaces
 from .views import WorkspaceViews
+from .webhooks import Webhooks
 from .wiki_node import Wiki
 from .work_item_relation_definitions import WorkItemRelationDefinitions
 from .work_item_templates import WorkspaceWorkItemTemplates
@@ -57,6 +58,7 @@ class Workspaces(V2Resource[Workspace, Never, Never]):
         self.stickies = Stickies(transport)
         self.teamspaces = Teamspaces(transport)
         self.views = WorkspaceViews(transport)
+        self.webhooks = Webhooks(transport)
         self.work_item_relation_definitions = WorkItemRelationDefinitions(transport)
         self.work_item_templates = WorkspaceWorkItemTemplates(transport)
         self.work_items = WorkspaceWorkItems(transport)
