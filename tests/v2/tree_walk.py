@@ -218,6 +218,27 @@ def flat_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
     return flat
 
 
+def navigable_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
+    """Every resource whose fetches answer with a `Loaded` row -- i.e. every class
+    that declares a `loaded_model`.
+
+    The subject set of `tests/v2/test_loaded_navigation.py`: the sweep that ties a
+    resource's attached children to its loaded row's navigation properties. Derived,
+    not listed, for the same reason as every other set in this module -- a family
+    that gains navigable rows is swept the moment it declares `loaded_model`."""
+    return [cls for cls in all_resource_classes() if getattr(cls, "loaded_model", None) is not None]
+
+
+def child_resources(resource: V2Resource) -> dict[str, V2Resource]:  # type: ignore[type-arg]
+    """The child resources an instance attaches in its own `__init__`, by attribute
+    name (`{"states": States(...), ...}`)."""
+    return {
+        name: value
+        for name, value in vars(resource).items()
+        if not name.startswith("_") and isinstance(value, V2Resource)
+    }
+
+
 def migrated_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
     """The set the rule sweeps run over: every resource class in the package except
     the ones explicitly opted out as still pre-flat. Sorted by name so parametrized

@@ -328,3 +328,75 @@ def test_find_by_name_returns_a_navigable_row(config: Configuration) -> None:
     project.states.list()
 
     assert responses.calls[-1].request.url.endswith("/projects/ENG/states/")
+
+
+# -- A fetched project reaches all fifteen of its children ------------------------
+# (regression: `Projects.__init__` attached fifteen resources while `LoadedProject`
+# exposed three, so `workspaces.projects.cycles.list(slug, project)` worked and
+# `project.cycles.list()` raised `AttributeError`. `tests/v2/test_loaded_navigation.py`
+# sweeps the correspondence; these two prove the calls actually reach the wire.)
+
+
+@responses.activate
+def test_fetched_project_reaches_its_cycles(config: Configuration) -> None:
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/",
+        json={"id": "p1", "identifier": "ENG", "name": "Engineering"},
+    )
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/cycles/",
+        json={
+            "data": [{"id": "c1", "name": "Sprint 1"}],
+            "pagination": {"style": "offset"},
+            "total_count": 1,
+        },
+    )
+
+    project = V2Namespace(config).workspaces.projects.retrieve("acme", "ENG")
+    page = project.cycles.list()
+
+    assert page.data[0].name == "Sprint 1"
+    assert (
+        responses.calls[-1].request.url
+        == "https://api.example.com/api/v2/workspaces/acme/projects/ENG/cycles/"
+    )
+
+
+@responses.activate
+def test_fetched_project_reaches_its_singleton_children(config: Configuration) -> None:
+    """`permissions` and `worklogs` have no primary key of their own, so their
+    navigation properties bind the project's ids and take nothing further."""
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/",
+        json={"id": "p1", "identifier": "ENG", "name": "Engineering"},
+    )
+    responses.get(
+        "https://api.example.com/api/v2/workspaces/acme/projects/ENG/permissions/me/",
+        json={"permissions": []},
+    )
+
+    project = V2Namespace(config).workspaces.projects.retrieve("acme", "ENG")
+    project.permissions.me()
+
+    assert (
+        responses.calls[-1].request.url
+        == "https://api.example.com/api/v2/workspaces/acme/projects/ENG/permissions/me/"
+    )
+
+
+@responses.activate
+def test_fetched_project_reaches_a_cycle_row_that_reaches_its_own_work_items(
+    config: Configuration,
+) -> None:
+    """Two levels through the new properties: `project.cycles.retrieve(...)` must
+    itself come back loaded, so the cycle reaches `.work_items` with no ids repeated."""
+    base = "https://api.example.com/api/v2/workspaces/acme/projects/ENG"
+    responses.get(f"{base}/", json={"id": "p1", "identifier": "ENG"})
+    responses.get(f"{base}/cycles/c1/", json={"id": "c1", "name": "Sprint 1"})
+    responses.post(f"{base}/cycles/c1/work-items/", json={"added": ["w1"]})
+
+    project = V2Namespace(config).workspaces.projects.retrieve("acme", "ENG")
+    added = project.cycles.retrieve("c1").work_items.add(["w1"])
+
+    assert added == ["w1"]
+    assert responses.calls[-1].request.url == f"{base}/cycles/c1/work-items/"
