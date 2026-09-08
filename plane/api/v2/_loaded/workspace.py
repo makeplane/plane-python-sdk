@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from ..permissions import WorkspacePermissions
     from ..projects import Projects
     from ..releases import Releases
+    from ..releases.tags import ReleaseTags
     from ..roles import Roles
     from ..stickies import Stickies
     from ..teamspaces import Teamspaces
@@ -78,6 +79,15 @@ if TYPE_CHECKING:
         create = staticmethod(bind1(Releases.create))
         update = staticmethod(bind1(Releases.update))
         delete = staticmethod(bind1(Releases.delete))
+
+    class _OwnedReleaseTags(Owned["ReleaseTags"]):
+        list = staticmethod(bind1(ReleaseTags.list))
+        iterate = staticmethod(bind1(ReleaseTags.iterate))
+        retrieve = staticmethod(bind1(ReleaseTags.retrieve))
+        find_by_version = staticmethod(bind1(ReleaseTags.find_by_version))
+        create = staticmethod(bind1(ReleaseTags.create))
+        update = staticmethod(bind1(ReleaseTags.update))
+        delete = staticmethod(bind1(ReleaseTags.delete))
 
     class _OwnedArtifacts(Owned["Artifacts"]):
         create = staticmethod(bind1(Artifacts.create))
@@ -246,7 +256,7 @@ if TYPE_CHECKING:
 class LoadedWorkspace(Loaded, Workspace):
     """A workspace row that is also the place its children live.
 
-    Every one of the twenty-four resources `Workspaces.__init__` attaches is
+    Every one of the twenty-five resources `Workspaces.__init__` attaches is
     reachable here, so `workspace.projects.list()` works exactly the way
     `workspace.roles.list()` does, with the slug supplied once at fetch time.
 
@@ -284,6 +294,13 @@ class LoadedWorkspace(Loaded, Workspace):
         return cast(
             "_OwnedReleases",
             Owned(self._resources.releases, self._ids, self._id_names),
+        )
+
+    @property
+    def release_tags(self) -> _OwnedReleaseTags:
+        return cast(
+            "_OwnedReleaseTags",
+            Owned(self._resources.release_tags, self._ids, self._id_names),
         )
 
     @property

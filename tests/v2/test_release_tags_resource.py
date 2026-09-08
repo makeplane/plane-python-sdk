@@ -1,7 +1,8 @@
 """Offline coverage for `ReleaseTags`, constructed standalone here (also reachable
-as `Releases.tags` -- see `tests/v2/test_tree.py` for that wiring). Asserts every
-method's exact request URL, including the golden/server mismatch on `tag_id` that
-`find_by_version` exists to work around."""
+as `Workspaces.release_tags` -- see `tests/v2/test_tree.py` for that wiring, and
+`test_release_tags_is_a_workspace_catalog_not_a_release_child` there for why it is
+not `Releases.tags`). Asserts every method's exact request URL, including the
+golden/server mismatch on `tag_id` that `find_by_version` exists to work around."""
 
 import pytest
 import responses
@@ -64,6 +65,19 @@ def test_retrieve_by_uuid(release_tags: ReleaseTags) -> None:
 
     assert row.id == "tag-1"
     assert responses.calls[0].request.url == f"{BASE}/tag-1/"
+
+
+@responses.activate
+def test_retrieve_round_trips_a_version_prefixed_pk(release_tags: ReleaseTags) -> None:
+    """The golden documents the tag detail pk as UUID *or* `version:<value>` -- the
+    SDK does not special-case this, it just percent-encodes whatever string is
+    passed, so the colon-prefixed form round-trips like any other pk. (Live it 404s;
+    `find_by_version` below is the supported route.)"""
+    responses.get(f"{BASE}/version%3A1.0.0/", json={"id": "tag-1", "version": "1.0.0"})
+
+    fetched = release_tags.retrieve("acme", "version:1.0.0")
+
+    assert fetched.id == "tag-1"
 
 
 @responses.activate

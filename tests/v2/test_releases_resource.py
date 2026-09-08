@@ -17,13 +17,11 @@ from plane.models.v2.releases import (
     CreateReleaseComment,
     CreateReleaseLabel,
     CreateReleaseLink,
-    CreateReleaseTag,
     UpdateRelease,
     UpdateReleaseChangelog,
     UpdateReleaseComment,
     UpdateReleaseLabel,
     UpdateReleaseLink,
-    UpdateReleaseTag,
 )
 
 BASE = "https://api.example.com/api/v2/workspaces/acme/releases"
@@ -400,52 +398,3 @@ def test_labels_catalog_find_by_name(releases: Releases) -> None:
     )
 
     assert releases.labels.find_by_name("acme", "breaking").id == "lbl-1"
-
-
-# -- Catalog: tags (workspace-level, version:-prefixed lookup) -------------------
-
-
-@responses.activate
-def test_tags_catalog_crud(releases: Releases) -> None:
-    responses.get(
-        f"{BASE}/tags/",
-        json={"data": [{"id": "tag-1", "version": "1.0.0"}], "pagination": {"style": "offset"}},
-    )
-    responses.post(f"{BASE}/tags/", json={"id": "tag-1", "version": "1.0.0"}, status=201)
-    responses.patch(f"{BASE}/tags/tag-1/", json={"id": "tag-1", "version": "1.0.1"})
-    responses.delete(f"{BASE}/tags/tag-1/", status=204)
-
-    page = releases.tags.list("acme")
-    assert page.data[0].version == "1.0.0"
-    assert responses.calls[0].request.url == f"{BASE}/tags/"
-
-    created = releases.tags.create("acme", CreateReleaseTag(version="1.0.0"))
-    assert created.id == "tag-1"
-
-    updated = releases.tags.update("acme", "tag-1", UpdateReleaseTag(version="1.0.1"))
-    assert updated.version == "1.0.1"
-    assert responses.calls[2].request.url == f"{BASE}/tags/tag-1/"
-
-    assert releases.tags.delete("acme", "tag-1") is None
-
-
-@responses.activate
-def test_tags_catalog_retrieve_by_version_prefixed_pk(releases: Releases) -> None:
-    """The golden documents the tag detail pk as UUID *or* `version:<value>` --
-    the SDK does not special-case this, it just percent-encodes whatever string
-    is passed, so the colon-prefixed form round-trips like any other pk."""
-    responses.get(f"{BASE}/tags/version%3A1.0.0/", json={"id": "tag-1", "version": "1.0.0"})
-
-    fetched = releases.tags.retrieve("acme", "version:1.0.0")
-
-    assert fetched.id == "tag-1"
-
-
-@responses.activate
-def test_tags_catalog_find_by_version(releases: Releases) -> None:
-    responses.get(
-        f"{BASE}/tags/",
-        json={"data": [{"id": "tag-1", "version": "1.0.0"}], "pagination": {"style": "offset"}},
-    )
-
-    assert releases.tags.find_by_version("acme", "1.0.0").id == "tag-1"

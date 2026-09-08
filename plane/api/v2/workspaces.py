@@ -39,6 +39,7 @@ from .permission_schemes import PermissionSchemes
 from .permissions import WorkspacePermissions
 from .projects import Projects
 from .releases import Releases
+from .releases.tags import ReleaseTags
 from .roles import Roles
 from .stickies import Stickies
 from .teamspaces import Teamspaces
@@ -65,6 +66,7 @@ class Workspaces(V2Resource[Workspace, Never, Never], LoadsNavigableRows[LoadedW
         self.wiki = Wiki(transport)
         self.features = WorkspaceFeatures(transport)
         self.releases = Releases(transport)
+        self.release_tags = ReleaseTags(transport)
         self.artifacts = Artifacts(transport)
         self.assets = WorkspaceAssets(transport)
         self.audit_logs = AuditLogs(transport)

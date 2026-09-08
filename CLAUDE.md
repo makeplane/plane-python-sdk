@@ -105,7 +105,7 @@ PlaneClient
   navigable, which is where 16 families become 19 classes) — a fetched row
   reaches its child with no ids repeated. `workspaces` is the root of that set
   and the last to join it: `client.v2.workspaces.retrieve("acme")` answers a
-  `LoadedWorkspace` reaching all 24 workspace-scoped families
+  `LoadedWorkspace` reaching all 25 workspace-scoped families
   (`workspace.projects.list()`), and its children address it by `slug`, never
   the UUID `id`, which that path segment does not accept. `estimates`' child is
   `estimate_points`, not `points` — `Estimate.points` is itself an API field,
@@ -243,7 +243,7 @@ PlaneClient
     `customer.py`, `initiative.py`, `release.py`, `work_item_type.py`,
     `work_item_property.py`, `automation.py`, `workflow.py`, `workspace.py`; copy
     whichever is closest in shape (single bridge-only child vs. several plain-CRUD
-    children). `workspace.py` is the `bind1` exemplar and the widest, at 24
+    children). `workspace.py` is the `bind1` exemplar and the widest, at 25
     children; the two grouping nodes (`wiki`, `group_sync`) are deliberately not
     among them — neither holds a `V2Resource` base, so neither is a child a row can
     bind, and they are reached from the namespace instead.
@@ -322,7 +322,13 @@ PlaneClient
     }
     ```
 
-    sends `add`/`remove` to the per-release URL instead. The retired `bridge_path`
+    sends `add`/`remove` to the per-release URL instead. **A catalog with no such
+    bridge is not a child of the family at all**: `ReleaseTags` sat at
+    `ws.releases.tags` with nothing per-release to reach (a release points at a tag
+    through its own `tag_id` field), which made `release.tags` a navigation property
+    whose every call raised — a shell kept only to satisfy the navigation sweep. It
+    is `client.v2.workspaces.release_tags` now. Attach a catalog where its own URL
+    is scoped, not next to the family it reads well beside. The retired `bridge_path`
     (a single override for the whole class) is gone; `url_for` raises `TypeError` if
     a class still declares it. The bridge class declares the golden's single manage
     operationId under the `"bridge"` key of `operations`. The `*Manage*`

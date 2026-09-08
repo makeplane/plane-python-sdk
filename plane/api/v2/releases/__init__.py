@@ -1,7 +1,14 @@
 """Releases (api_v2) -- workspace-scoped, not project-scoped. Beyond CRUD:
-a `.work_items` membership bridge, a `.changelog` singleton, catalog siblings
-`.labels` (itself a bridge for the per-release association)/`.tags`, and
-nested `.comments`/`.links` (see `tags.py` for a golden/server mismatch).
+a `.work_items` membership bridge, a `.changelog` singleton, the catalog sibling
+`.labels` (itself a bridge for the per-release association), and nested
+`.comments`/`.links`.
+
+The release-tag catalog is **not** here: it is `client.v2.workspaces.release_tags`.
+It is workspace-level (`/workspaces/{slug}/releases/tags/`, one path id) and a
+release points at a tag through its own `tag_id` field, with no per-release
+association at all -- so it is not a child of a release row, and attaching it here
+made `release.tags` a navigation property on which every call raised. See
+`tags.py` for a golden/server mismatch on its `retrieve`.
 
 A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as a
 `LoadedRelease`: it carries the row's data and can reach `.comments.list(...)` and
@@ -63,7 +70,6 @@ class Releases(
     def __init__(self, transport: V2Transport) -> None:
         super().__init__(transport)
         self.labels = ReleaseLabels(transport)
-        self.tags = ReleaseTags(transport)
         self.comments = ReleaseComments(transport)
         self.links = ReleaseLinks(transport)
         self.changelog = ReleaseChangelogResource(transport)

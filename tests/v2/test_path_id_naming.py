@@ -202,20 +202,26 @@ def test_the_check_ignores_id_suffixed_parameters_that_are_not_path_ids() -> Non
 
 CATALOG_SIBLINGS = {
     ("Releases", "ReleaseLabels"),
-    ("Releases", "ReleaseTags"),
     ("Initiatives", "InitiativeLabels"),
 }
 """(parent, child) pairs where the child's `list` is legitimately shorter than its
 parent's `loaded_names` -- exempted rather than made to agree with it.
 
-`ReleaseLabels` and `ReleaseTags` live at `ws.releases.labels`/`.tags` for the sake
-of their per-release *bridges* (`add`/`remove`, which do take `(slug, release)`, the
-`_OwnedReleaseLabels`/`_OwnedReleaseTags` views in `_loaded/release.py`), but each is
-also a workspace-level catalog reached as `Releases`' sibling, not its nested child:
-`ReleaseLabels.list`/`ReleaseTags.list` list the whole workspace catalog and so take
-only `(slug,)`. The rule this test enforces is about a *nested* child's own path ids
-matching what `Owned` will prepend -- it does not apply to a catalog resource that
-merely happens to be attached next to a navigable parent for convenience.
+`ReleaseLabels` lives at `ws.releases.labels` for the sake of its per-release
+*bridge* (`add`/`remove`, which do take `(slug, release)` -- the
+`_OwnedReleaseLabels` view in `_loaded/release.py`), but it is also a
+workspace-level catalog reached as `Releases`' sibling, not its nested child:
+`ReleaseLabels.list` lists the whole workspace catalog and so takes only `(slug,)`.
+The rule this test enforces is about a *nested* child's own path ids matching what
+`Owned` will prepend -- it does not apply to a catalog resource that merely happens
+to be attached next to a navigable parent for its bridge.
+
+`ReleaseTags` used to be the second entry here and is not any more. It had no
+per-release bridge at all -- no reason to sit under `Releases` -- so the exemption
+was carrying an attachment that should not have existed: `release.tags` was a
+navigation property on which every call raised. It is `ws.release_tags` now, a
+workspace child of a workspace catalog, and needs no exemption. An entry here is
+for a class with a *real* per-parent bridge; without one, move the attachment.
 
 `InitiativeLabels` is the third of exactly that shape and joined the set the moment
 `Initiatives` was wired onto the tree (`plane/api/v2/initiatives/labels.py` says so

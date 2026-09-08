@@ -154,10 +154,11 @@ def test_a_catalog_sibling_next_to_a_family_still_works(config: Configuration) -
 
 
 @responses.activate
-def test_releases_own_crud_and_all_six_children_are_reachable(config: Configuration) -> None:
-    """`Releases` and its full family (`labels`, `tags`, `comments`, `links`,
-    `changelog`, `work_items`) are migrated now -- none of them raise
-    `NotImplementedError` any more."""
+def test_releases_own_crud_and_all_five_children_are_reachable(config: Configuration) -> None:
+    """`Releases` and its full family (`labels`, `comments`, `links`, `changelog`,
+    `work_items`) are migrated now -- none of them raise `NotImplementedError` any
+    more. `tags` is deliberately not among them: see
+    `test_release_tags_is_a_workspace_catalog_not_a_release_child` below."""
     base = "https://api.example.com/api/v2/workspaces/acme/releases"
     responses.get(f"{base}/", json={"data": [], "pagination": {"style": "offset"}})
     responses.get(f"{base}/r1/", json={"id": "r1"})
@@ -325,7 +326,12 @@ WORKSPACE_TREE_ATTACHMENTS = [
         GroupSyncWorkspaceMappings,
         "/workspaces/acme/group-sync/workspace-mappings/",
     ),
-    ("releases.tags", lambda ws: ws.releases.tags, ReleaseTags, "/workspaces/acme/releases/tags/"),
+    (
+        "release_tags",
+        lambda ws: ws.release_tags,
+        ReleaseTags,
+        "/workspaces/acme/releases/tags/",
+    ),
     ("webhooks", lambda ws: ws.webhooks, Webhooks, "/workspaces/acme/webhooks/"),
     (
         "webhooks.logs",
@@ -415,7 +421,7 @@ WORKSPACE_TREE_ATTACHMENTS = [
 # The four attributes `Workspaces` already had before this batch: `projects` and `wiki`
 # carry their own subtrees (covered by the tests above and by `test_loaded_project.py`),
 # `features` is the singleton exemplar, `releases` is wired only for the sake of its
-# migrated `labels`/`tags` children (which do have rows).
+# migrated `labels` child (which does have a row).
 PRE_EXISTING_WORKSPACE_ATTRIBUTES = {"projects", "wiki", "features", "releases"}
 
 
@@ -497,19 +503,31 @@ def test_group_sync_project_mappings_child_reaches_its_url(config: Configuration
 
 
 @responses.activate
-def test_release_tags_is_wired_onto_releases_not_workspaces(config: Configuration) -> None:
-    """`ReleaseTags` attaches to `Releases`, not `Workspaces` -- its siblings
-    (comments, links, changelog, work_items) hang off `Releases` too."""
+def test_release_tags_is_a_workspace_catalog_not_a_release_child(
+    config: Configuration,
+) -> None:
+    """`ReleaseTags` attaches to `Workspaces`, not `Releases` -- the reverse of where
+    it started.
+
+    Its URL takes one path id (`/workspaces/{slug}/releases/tags/`) and a release
+    points at a tag through its own `tag_id` field, so there is no per-release
+    association to reach. Hung off `Releases` -- whose rows *are* navigable -- it
+    became a `release.tags` navigation property that bound two ids into a
+    one-id resource, so every call through it raised. The property existed only to
+    satisfy the navigation sweep. Fixing the attachment is what removes the need for
+    it; `LoadedRelease` has no `tags` at all now."""
     responses.get(
         "https://api.example.com/api/v2/workspaces/acme/releases/tags/",
         json={"data": [], "pagination": {"style": "offset"}, "total_count": 0},
     )
 
-    V2Namespace(config).workspaces.releases.tags.list("acme")
+    v2 = V2Namespace(config)
+    v2.workspaces.release_tags.list("acme")
 
     assert responses.calls[0].request.url.startswith(
         "https://api.example.com/api/v2/workspaces/acme/releases/tags/"
     )
+    assert not hasattr(v2.workspaces.releases, "tags")
 
 
 # -- Task 6: wiring the project band onto the tree ---------------------------------

@@ -14,7 +14,6 @@ if TYPE_CHECKING:
         ReleaseLabels,
         ReleaseLinks,
         Releases,
-        ReleaseTags,
         ReleaseWorkItems,
     )
 
@@ -31,13 +30,6 @@ if TYPE_CHECKING:
 
         add = staticmethod(bind2(ReleaseLabels.add))
         remove = staticmethod(bind2(ReleaseLabels.remove))
-
-    class _OwnedReleaseTags(Owned[ReleaseTags]):
-        """`ReleaseTags` has no per-release association at all -- a release points
-        at a tag through its own `tag_id` field, not a bridge -- so this view binds
-        nothing. It exists so `release.tags` still resolves to the right child
-        resource for the loaded-navigation sweep; reach the tag catalog through
-        `ws.releases.tags` directly instead."""
 
     class _OwnedReleaseComments(Owned["ReleaseComments"]):
         list = staticmethod(bind2(ReleaseComments.list))
@@ -65,7 +57,14 @@ if TYPE_CHECKING:
 
 
 class LoadedRelease(Loaded, Release):
-    """A release row that is also the place its children live."""
+    """A release row that is also the place its children live.
+
+    No `tags`: the release-tag catalog is workspace-level and a release points at a
+    tag through its own `tag_id` field, so there is nothing per-release to bind. It
+    used to be attached to `Releases` anyway, which made `release.tags` a navigation
+    property whose every call raised -- present only to satisfy the navigation sweep.
+    Fixed at the attachment: the catalog is `client.v2.workspaces.release_tags` now,
+    and this property is gone rather than kept as a shell."""
 
     model_config = {**Release.model_config, "arbitrary_types_allowed": True}
 
@@ -78,10 +77,6 @@ class LoadedRelease(Loaded, Release):
     @property
     def labels(self) -> _OwnedReleaseLabels:
         return cast("_OwnedReleaseLabels", Owned(self._resources.labels, self._ids, self._id_names))
-
-    @property
-    def tags(self) -> _OwnedReleaseTags:
-        return cast("_OwnedReleaseTags", Owned(self._resources.tags, self._ids, self._id_names))
 
     @property
     def comments(self) -> _OwnedReleaseComments:

@@ -1,8 +1,13 @@
 """Navigable rows for the two families migrated in this plan: `Release` (children
-`labels`, `tags`, `comments`, `links`, `changelog`, `work_items`) and `Initiative`
+`labels`, `comments`, `links`, `changelog`, `work_items`) and `Initiative`
 (children `labels`, `projects`, `work_items`).
 
-`Releases` is already wired onto `Workspaces` (for the sake of `.labels`/`.tags`, now
+`Release` has no `tags` child: the release-tag catalog is workspace-level
+(`ws.release_tags`) and a release points at a tag through its own `tag_id` field --
+see `test_release_tags_is_a_workspace_catalog_not_a_release_child` in
+`tests/v2/test_tree.py`.
+
+`Releases` is already wired onto `Workspaces` (for the sake of `.labels`, now
 joined by its own CRUD and the rest of the family); `Initiatives` is not wired onto
 the tree yet -- that is later follow-on work -- so it is constructed directly through
 `V2Transport`, the same way every other offline resource test in this package is."""
