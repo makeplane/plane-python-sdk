@@ -253,19 +253,31 @@ class Projects(
     ) -> ProjectSummary:
         """Project identity plus resource counts (v1 summary parity).
 
-        `counts` narrows the response to specific count keys; omit for all of them."""
-        payload = self.transport.request(
-            "GET",
-            f"{self._detail_url(project, slug=slug)}summary/",
-            params=self._query({"counts": counts}, action="summary"),
+        `counts` narrows the response to specific count keys; omit for all of them.
+
+        `_custom_action` with a `pk`, which builds exactly this URL
+        (`{detail}/summary/`) -- the hand-rolled f-string it replaces also skipped
+        passing the action name into `_detail_url`, so a missing path id reported
+        `<call>` instead of `summary`."""
+        return self._custom_action(
+            "summary",
+            model=ProjectSummary,
+            method="GET",
+            pk=project,
+            params={"counts": counts},
+            slug=slug,
         )
-        return ProjectSummary.model_validate(payload)
 
     def role_distribution(self, slug: str) -> ProjectRoleDistribution:
         """Workspace-wide counts of members per project role. A single read-only
-        report, not a paginated collection -- one object per workspace, no `id`."""
-        payload = self.transport.request("GET", self.url_for("role_distribution", slug=slug))
-        return ProjectRoleDistribution.model_validate(payload)
+        report, not a paginated collection -- one object per workspace, no `id`.
+
+        `_custom_action` with no `pk`, so the URL comes from `url_for` and its
+        `extra_paths` override -- the same URL, now with the query string validated
+        against the golden like every other call."""
+        return self._custom_action(
+            "role_distribution", model=ProjectRoleDistribution, method="GET", slug=slug
+        )
 
     # -- Navigation -----------------------------------------------------------------
 

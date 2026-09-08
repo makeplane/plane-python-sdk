@@ -25,12 +25,9 @@ class Artifacts(V2Resource[ArtifactDetail, CreateArtifact, UpdateArtifactUpdate]
     }
 
     def create(self, slug: str, data: CreateArtifact) -> Artifact:
-        payload = self.transport.request(
-            "POST",
-            self._collection_url("create", slug=slug),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return Artifact.model_validate(payload)
+        """`_custom_action` like its three siblings here: the response is a lean
+        `Artifact`, not the `ArtifactDetail` this resource's `model` names."""
+        return self._custom_action("create", model=Artifact, data=data, slug=slug)
 
     def retrieve(self, slug: str, artifact: str) -> ArtifactDetail:
         """Metadata + the current version's HTML."""

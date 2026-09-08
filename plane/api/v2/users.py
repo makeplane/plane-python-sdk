@@ -18,6 +18,8 @@ class Users(V2Resource[WhoAmI, WhoAmI, WhoAmI]):
 
     def me(self) -> WhoAmI:
         """The authenticated principal behind the current request. OAuth tokens
-        need a read scope (API keys bypass scope checks)."""
-        payload = self.transport.request("GET", self._collection_url())
-        return self.model.model_validate(payload)
+        need a read scope (API keys bypass scope checks).
+
+        `_retrieve_singleton`, because `/users/me/` *is* the row -- there is no pk to
+        append, the way there is none for a workspace or a feature-toggle set."""
+        return self._retrieve_singleton(action="me")

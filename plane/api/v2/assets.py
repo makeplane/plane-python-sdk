@@ -81,13 +81,11 @@ class WorkspaceAssets(V2Resource[WorkspaceAsset, CreateWorkspaceAsset, Workspace
 
     def create(self, slug: str, data: CreateWorkspaceAsset) -> WorkspaceAssetUploadResult:
         """Registers the asset's metadata and returns presigned upload instructions;
-        no `fields` param (a sparse response could drop `upload_data`)."""
-        payload = self.transport.request(
-            "POST",
-            self._collection_url("create", slug=slug),
-            json=data.model_dump(mode="json", exclude_none=True),
-        )
-        return WorkspaceAssetUploadResult.model_validate(payload)
+        no `fields` param (a sparse response could drop `upload_data`).
+
+        `_custom_action`: the response is an upload envelope, not a `WorkspaceAsset`
+        row, so `_create` cannot parse it."""
+        return self._custom_action("create", model=WorkspaceAssetUploadResult, data=data, slug=slug)
 
     def update(
         self,
@@ -156,11 +154,11 @@ class UserAssets(V2Resource[UserAsset, CreateUserAsset, UserAssetConfirm]):
         instructions (see the module docstring for the contract caveat);
         no `fields` param: `upload_data`'s presigned fields exist only in this
         one reply and cannot be re-fetched, so a projection could silently and
-        irrecoverably drop them."""
-        payload = self.transport.request(
-            "POST", self._collection_url(), json=data.model_dump(mode="json", exclude_none=True)
-        )
-        return UserAssetUploadResult.model_validate(payload)
+        irrecoverably drop them.
+
+        `_custom_action` for the same reason as `WorkspaceAssets.create`: the
+        response is an upload envelope, not a `UserAsset` row."""
+        return self._custom_action("create", model=UserAssetUploadResult, data=data)
 
     def update(
         self,
