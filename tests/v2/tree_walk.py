@@ -1,20 +1,32 @@
-"""Derive the set of migrated v2 resources instead of hand-listing it.
+"""Derive the set of v2 resources the rule sweeps run over -- by enumeration, not
+by opportunity.
 
 Not a test module (no `test_` prefix, so pytest never collects it): a helper the
-rule-enforcing sweeps import. Every hand-written "these are the migrated classes"
-list drifts the moment a migration plan lands a batch and nobody remembers to
-append to it -- which is exactly how a batch of nineteen resources shipped past
-`test_path_id_naming.py`. So the set is computed twice over, from the code itself:
+rule-enforcing sweeps import.
 
-* `reachable_resources()` walks the live tree from `V2Namespace`, through grouping
-  nodes (`Wiki`, `GroupSync`) as well as resources, and yields every `V2Resource`
-  instance a caller can actually reach by attribute access.
-* `flat_resource_classes()` walks the package instead, and keeps the classes whose
-  `list` already takes every path id its own URL template names -- the mechanical
-  definition of "migrated to the flat shape". This catches a migrated resource that
-  is not (yet) wired onto the tree; `ProjectPages` is one today.
+**The set is every `V2Resource` subclass in the package, minus an explicit opt-out
+list.** That inversion is the whole point. The previous derivation was the union of
+two *opportunistic* discoveries -- classes wired onto the live tree, plus classes
+whose `list` already consumed every path id its URL template names -- and both miss
+by construction:
 
-`migrated_resource_classes()` is the union, which is what the sweeps assert on.
+* `flat_resource_classes()` needs a `list` method to judge. Eighteen of the ninety
+  `V2Resource` subclasses have none: every membership bridge (`CycleWorkItems`,
+  `InitiativeProjects`, ...), every singleton (`ProjectFeatures`,
+  `WorkspacePermissions`, ...) and the workspace root itself. They were permanently
+  outside both sweeps however they were written.
+* `reachable_resources()` needs the class to be wired. A resource migrated by one
+  task and wired by a later one is unchecked in between -- exactly the state
+  `ProjectPages` sat in for a whole plan.
+
+Enumerating instead makes inclusion the default and exclusion the thing somebody has
+to write down: a newly migrated class is swept the moment it exists, wired or not,
+`list` or not. `UNMIGRATED_RESOURCES` is the written-down part, and it must shrink
+toward empty -- `tests/v2/test_path_id_naming.py` ratchets its size and refuses to
+let a name in it stay opted out once the class is wired or flat-shaped.
+
+`flat_resource_classes()` and `reachable_resources()` survive as *guards* on that
+list rather than as the source of the set.
 """
 
 from __future__ import annotations
@@ -37,6 +49,68 @@ WALK_CONFIG = Configuration(base_path="https://api.example.com", api_key="secret
 """Constructing the tree makes no request (see `test_tree.py`), so any config works."""
 
 
+UNMIGRATED_RESOURCES = frozenset(
+    {
+        # wiki collections
+        "CollectionMembers",
+        "CollectionPages",
+        "Collections",
+        # customers
+        "CustomerPropertyValues",
+        "CustomerRequests",
+        "CustomerWorkItems",
+        "Customers",
+        # initiatives
+        "InitiativeLabels",
+        "InitiativeProjects",
+        "InitiativeWorkItems",
+        "Initiatives",
+        # automations (project and workspace flavours)
+        "ProjectAutomationActivities",
+        "ProjectAutomationEdges",
+        "ProjectAutomationNodes",
+        "ProjectAutomations",
+        "WorkspaceAutomationActivities",
+        "WorkspaceAutomationEdges",
+        "WorkspaceAutomationNodes",
+        "WorkspaceAutomations",
+        # the four release children that stayed behind when labels/tags migrated
+        "ReleaseChangelogResource",
+        "ReleaseComments",
+        "ReleaseLinks",
+        "ReleaseWorkItems",
+        # work item types and properties (both flavours)
+        "WorkItemProperties",
+        "WorkItemPropertyContexts",
+        "WorkItemPropertyOptions",
+        "WorkItemTypeProperties",
+        "WorkItemTypes",
+        "WorkspaceWorkItemProperties",
+        "WorkspaceWorkItemPropertyOptions",
+        "WorkspaceWorkItemTypeProperties",
+        "WorkspaceWorkItemTypes",
+        # workflows
+        "WorkflowStates",
+        "WorkflowTransitions",
+        "Workflows",
+    }
+)
+"""Resource classes still on the retired pre-flat shape, excluded from the sweeps.
+
+**This list may only shrink.** It is the plan-4 backlog written down: every family
+deferred by this plan's scope ruling (collections, customers, initiatives, the four
+remaining release children, both automations flavours, work item types and
+properties, workflows). Their methods omit the leading path ids their URL templates
+name and still spell their ids `<resource>_id`, so sweeping them would report
+dozens of violations that the migration itself is going to rewrite.
+
+Deleting a name from here is part of migrating that class -- and
+`tests/v2/test_path_id_naming.py` makes it compulsory rather than optional: it
+fails if an opted-out class turns out to be wired onto the tree or flat-shaped, and
+it fails if this list ever grows.
+"""
+
+
 def is_pending(function: Any) -> bool:
     """True for a method still carrying its pre-flat body behind
     `@pending_flat_migration` -- it is documented as unmigrated, so the rules that
@@ -53,6 +127,11 @@ def public_methods(resource_class: type) -> dict[str, Any]:
     }
 
 
+def template_keys(template: str) -> list[str]:
+    """The `{...}` placeholders a URL template names, in path order."""
+    return _TEMPLATE_KEY.findall(template)
+
+
 def reachable_resources(namespace: V2Namespace | None = None) -> dict[type, str]:
     """Every `V2Resource` class reachable by attribute access from `V2Namespace`,
     mapped to the dotted path it was first reached by (`v2.workspaces.roles`).
@@ -60,7 +139,11 @@ def reachable_resources(namespace: V2Namespace | None = None) -> dict[type, str]
     Grouping nodes (`Wiki`, `GroupSync`) hold no `V2Resource` base of their own but
     do hold children, so they are descended into rather than skipped.
     `PendingMigration` placeholders hold nothing public, so they fall out on their
-    own."""
+    own.
+
+    No longer the source of the swept set -- see the module docstring -- but still
+    what pairs a parent with its children for the `Owned` check, and what proves an
+    opted-out class is not quietly wired."""
     found: dict[type, str] = {}
 
     def walk(node: object, prefix: str) -> None:
@@ -81,8 +164,8 @@ def reachable_resources(namespace: V2Namespace | None = None) -> dict[type, str]
 
 def _iter_resource_classes(package: ModuleType) -> list[type[V2Resource]]:  # type: ignore[type-arg]
     """Every `V2Resource` subclass defined under `package`; underscore-prefixed
-    modules and subpackages are excluded (same discovery as
-    `test_operations_coverage.py`)."""
+    modules and subpackages are excluded (`_generated`, `_kernel`, `_loaded`, and any
+    `_experimental` to come -- same discovery as `test_operations_coverage.py`)."""
     found: list[type[V2Resource]] = []  # type: ignore[type-arg]
     prefix = f"{package.__name__}."
     for module_info in pkgutil.walk_packages(package.__path__, prefix=prefix):
@@ -99,6 +182,15 @@ def _iter_resource_classes(package: ModuleType) -> list[type[V2Resource]]:  # ty
     return found
 
 
+def all_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
+    """Every `V2Resource` subclass in the package, migrated or not, sorted by name.
+
+    Membership does not depend on having a `list`, on being wired, or on anything
+    else a migration might not have got to yet -- which is precisely why it is the
+    base of the swept set."""
+    return sorted(set(_iter_resource_classes(v2_package)), key=lambda cls: cls.__name__)
+
+
 def _leading_path_ids(function: Any) -> int:
     """How many positional-or-keyword parameters a method takes before its `*`."""
     return sum(
@@ -110,24 +202,24 @@ def _leading_path_ids(function: Any) -> int:
 
 def flat_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
     """Classes whose `list` already consumes exactly the path ids its URL template
-    names -- i.e. migrated to the flat shape.
+    names -- the mechanical signature of the flat shape, for classes that have a
+    `list` at all.
 
-    The pre-flat shape is precisely the one that omits them (`Releases.list()` takes
-    none while `/workspaces/{slug}/releases/` names one), so the count is the
-    discriminator; a class with no `list` of its own (singletons like
-    `WorkspacePermissions`) is left to `reachable_resources` to contribute."""
+    Kept as a *guard*: a class named in `UNMIGRATED_RESOURCES` that shows up here has
+    been migrated and the opt-out is now stale. It is no longer used to build the
+    swept set, because 18 of the 90 classes have no `list` to judge."""
     flat = []
-    for resource_class in _iter_resource_classes(v2_package):
+    for resource_class in all_resource_classes():
         function = vars(resource_class).get("list")
         if not inspect.isfunction(function) or is_pending(function):
             continue
-        if _leading_path_ids(function) == len(set(_TEMPLATE_KEY.findall(resource_class.path))):
+        if _leading_path_ids(function) == len(set(template_keys(resource_class.path))):
             flat.append(resource_class)
     return flat
 
 
 def migrated_resource_classes() -> list[type[V2Resource]]:  # type: ignore[type-arg]
-    """The derived set the rule sweeps run over: reachable on the tree, or flat-shaped
-    in the package. Sorted by name so parametrized ids are stable."""
-    classes = set(reachable_resources()) | set(flat_resource_classes())
-    return sorted(classes, key=lambda cls: cls.__name__)
+    """The set the rule sweeps run over: every resource class in the package except
+    the ones explicitly opted out as still pre-flat. Sorted by name so parametrized
+    ids are stable."""
+    return [cls for cls in all_resource_classes() if cls.__name__ not in UNMIGRATED_RESOURCES]
