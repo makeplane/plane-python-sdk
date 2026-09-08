@@ -43,9 +43,7 @@ class TestAuditLogs:
     def test_category_filter_narrows_results(
         self, audit_logs: AuditLogs, workspace_slug: str
     ) -> None:
-        page = audit_logs.list(
-            workspace_slug, category="project", per_page=50, paginate="cursor"
-        )
+        page = audit_logs.list(workspace_slug, category="project", per_page=50, paginate="cursor")
         assert all(row.category == "project" for row in page.data)
 
     def test_iterate_follows_the_cursor_envelope(

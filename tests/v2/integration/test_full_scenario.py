@@ -9,8 +9,6 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-import pytest
-
 from plane.api.v2 import PlaneAPIError
 from plane.client import PlaneClient
 from plane.models.v2.collections import CreateCollection
@@ -23,11 +21,13 @@ from plane.models.v2.work_item_properties import CreateWorkItemProperty
 from plane.models.v2.work_item_types import CreateWorkItemType
 from plane.models.v2.work_items import CreateWorkItem, CreateWorkItemComment, UpdateWorkItem
 
+from ._guard import skip_absent_capability
+
 KEEP = os.environ.get("PLANE_E2E_KEEP") == "1"
 
 
 def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
-    ws = client.v2.workspace(workspace_slug)
+    ws = client.v2.workspaces.retrieve(workspace_slug)
     tag = uuid.uuid4().hex[:5].upper()
     cleanup: list[Any] = []  # (label, callable) pairs, run in reverse order
 
@@ -37,10 +37,19 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
             CreateProject(name=f"E2E Scenario {tag}", identifier=f"E{tag}")
         )
         cleanup.append(("project", lambda: ws.projects.delete(project.id)))
-        proj = ws.project(project.identifier or project.id)  # address by key from here on
+        # `Projects.create` already answers a loaded row, and `_row_id` is
+        # `identifier`, so `project` *is* the by-key handle -- there is nothing left to
+        # re-bind. That is the whole point of the loaded-row design, and this line
+        # used to be the locator call that made it look otherwise.
+        proj = project
 
         # ---- 2. Work item types + a custom property (mode-aware) ---------------------
         workspace_mode = bool(ws.features.retrieve().is_work_item_types_enabled)
+        # `bug_type`/`severity` are loaded rows of *different* classes depending on the
+        # branch (workspace- vs project-scoped work item types), so they are annotated
+        # `Any`: the two are the same shape to this scenario, but not the same type.
+        bug_type: Any
+        severity: Any
         try:
             if workspace_mode:
                 bug_type = ws.work_item_types.create(CreateWorkItemType(name=f"Bug {tag}"))
@@ -50,13 +59,8 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
                     CreateWorkItemProperty(display_name=f"Severity {tag}", property_type="TEXT")
                 )
                 cleanup.append(("property", lambda: ws.work_item_properties.delete(severity.id)))
-                ws.work_item_types.properties.link(bug_type.id, [severity.id])
-                cleanup.append(
-                    (
-                        "unlink",
-                        lambda: ws.work_item_types.properties.unlink(bug_type.id, severity.id),
-                    )
-                )
+                bug_type.properties.link([severity.id])
+                cleanup.append(("unlink", lambda: bug_type.properties.unlink(severity.id)))
             else:
                 proj.work_item_types.enable()
                 bug_type = proj.work_item_types.create(CreateWorkItemType(name=f"Bug {tag}"))
@@ -65,16 +69,11 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
                     CreateWorkItemProperty(display_name=f"Severity {tag}", property_type="TEXT")
                 )
                 cleanup.append(("property", lambda: proj.work_item_properties.delete(severity.id)))
-                proj.work_item_types.properties.link(bug_type.id, [severity.id])
-                cleanup.append(
-                    (
-                        "unlink",
-                        lambda: proj.work_item_types.properties.unlink(bug_type.id, severity.id),
-                    )
-                )
+                bug_type.properties.link([severity.id])
+                cleanup.append(("unlink", lambda: bug_type.properties.unlink(severity.id)))
         except PlaneAPIError as exc:
             if exc.status == 402:
-                pytest.skip("work item types are not enabled on this workspace's plan")
+                skip_absent_capability("work item types are not enabled on this workspace's plan")
             raise
         severity_key = severity.name
         assert severity_key
@@ -106,7 +105,10 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
         assert item.state_id == todo.id
         assert bug_label.id in (item.label_ids or [])
         assert item.type_id == bug_type.id
-        assert item.custom_fields and item.custom_fields[severity_key]["value"] == "high"  # type: ignore[index]
+        assert item.custom_fields is not None
+        severity_value = item.custom_fields[severity_key]
+        assert isinstance(severity_value, dict)
+        assert severity_value["value"] == "high"
         assert item.identifier  # e.g. "E1A2B-1"
 
         subtask = proj.work_items.create(
@@ -115,15 +117,13 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
         cleanup.append(("sub-task", lambda: proj.work_items.delete(subtask.id)))
         assert subtask.parent_id == item.id
 
-        proj.cycles.work_items.add(sprint.id, [item.id, subtask.id])
-        proj.modules.work_items.add(auth.id, [item.id])
+        sprint.work_items.add([item.id, subtask.id])
+        auth.work_items.add([item.id])
         in_sprint = {row.id for row in proj.work_items.list(cycle_id=sprint.id).data}
         assert in_sprint >= {item.id, subtask.id}
 
-        proj.work_items.comments.create(
-            item.id, CreateWorkItemComment(comment_html="<p>Repro attached.</p>")
-        )
-        assert len(proj.work_items.comments.list(item.id).data) == 1
+        item.comments.create(CreateWorkItemComment(comment_html="<p>Repro attached.</p>"))
+        assert len(item.comments.list().data) == 1
 
         moved = proj.work_items.update(item.id, UpdateWorkItem(state="In Progress"))
         assert moved.state_id == in_progress.id
@@ -134,12 +134,21 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
         assert auth.id in (by_key.module_ids or [])
 
         # ---- 6. Wiki: a collection, a page inside it, and a project page --------------
-        handbook = ws.wiki.collections.create(CreateCollection(name=f"Handbook {tag}"))
-        cleanup.append(("collection", lambda: ws.wiki.collections.delete(handbook.id)))
-        runbook = ws.wiki.pages.create(CreatePage(name="Login runbook", collection_id=handbook.id))
-        cleanup.append(("wiki page", lambda: _archive_then_delete(ws.wiki.pages, runbook.id)))
+        # `wiki` is a grouping node, not a resource: it holds no `V2Resource` base and
+        # consumes no path id, so a loaded workspace deliberately does not reach it and
+        # its children each take `slug` themselves. Flat path, by design.
+        collections = client.v2.workspaces.wiki.collections
+        wiki_pages = client.v2.workspaces.wiki.pages
+        handbook = collections.create(workspace_slug, CreateCollection(name=f"Handbook {tag}"))
+        cleanup.append(("collection", lambda: collections.delete(workspace_slug, handbook.id)))
+        runbook = wiki_pages.create(
+            workspace_slug, CreatePage(name="Login runbook", collection_id=handbook.id)
+        )
+        cleanup.append(
+            ("wiki page", lambda: _archive_then_delete(wiki_pages, workspace_slug, runbook.id))
+        )
         assert runbook.collection_id == handbook.id
-        in_handbook = ws.wiki.pages.list(collection_id=handbook.id).data
+        in_handbook = wiki_pages.list(workspace_slug, collection_id=handbook.id).data
         assert any(row.id == runbook.id for row in in_handbook)
 
         notes = proj.pages.create(CreatePage(name="Sprint 1 notes"))
@@ -157,7 +166,9 @@ def test_full_scenario(client: PlaneClient, workspace_slug: str) -> None:
     assert not failures, "cleanup left rows behind:\n" + "\n".join(failures)
 
 
-def _archive_then_delete(pages: Any, page_id: str) -> None:
-    """v2 refuses to delete a live page: archive first (PATCH `archived_at`), then delete."""
-    pages.update(page_id, UpdatePage(archived_at=datetime.now(timezone.utc)))
-    pages.delete(page_id)
+def _archive_then_delete(pages: Any, *ids: str) -> None:
+    """v2 refuses to delete a live page: archive first (PATCH `archived_at`), then
+    delete. `*ids` are whatever leading path ids the caller's handle still needs --
+    none for a bound `proj.pages`, the workspace slug for the flat `wiki.pages`."""
+    pages.update(*ids, UpdatePage(archived_at=datetime.now(timezone.utc)))
+    pages.delete(*ids)

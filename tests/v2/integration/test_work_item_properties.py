@@ -64,7 +64,9 @@ def project_property(project: LoadedProject) -> Iterator[Any]:
         pass
 
 
-def _create_workspace_property_or_skip(workspace: LoadedWorkspace, data: CreateWorkItemProperty) -> Any:
+def _create_workspace_property_or_skip(
+    workspace: LoadedWorkspace, data: CreateWorkItemProperty
+) -> Any:
     """Any-scoped property writes require workspace-managed mode
     symmetrically to `_create_project_property_or_skip` above
     (`views/workspace_work_item_properties.py`)."""
@@ -107,7 +109,9 @@ class TestProjectScopedProperties:
         finally:
             project.work_item_properties.delete(created.id)
 
-    def test_retrieve_returns_the_created_row(self, project: LoadedProject, project_property: Any) -> None:
+    def test_retrieve_returns_the_created_row(
+        self, project: LoadedProject, project_property: Any
+    ) -> None:
         fetched = project.work_item_properties.retrieve(project_property.id)
         assert fetched.id == project_property.id
 
@@ -143,14 +147,17 @@ class TestProjectScopedProperties:
 
     def test_delete_then_retrieve_404s(self, project: LoadedProject) -> None:
         created = _create_project_property_or_skip(
-            project, CreateWorkItemProperty(display_name=unique_name("wip-del"), property_type="TEXT")
+            project,
+            CreateWorkItemProperty(display_name=unique_name("wip-del"), property_type="TEXT"),
         )
         project.work_item_properties.delete(created.id)
         with pytest.raises(PlaneAPIError) as exc_info:
             project.work_item_properties.retrieve(created.id)
         assert exc_info.value.status == 404
 
-    def test_fields_returns_a_sparse_row(self, project: LoadedProject, project_property: Any) -> None:
+    def test_fields_returns_a_sparse_row(
+        self, project: LoadedProject, project_property: Any
+    ) -> None:
         fetched = project.work_item_properties.retrieve(project_property.id, fields=["id"])
         assert fetched.id == project_property.id
         assert fetched.display_name is None
@@ -207,7 +214,9 @@ class TestWorkspaceScopedProperties:
         finally:
             workspace.work_item_properties.delete(created.id)
 
-    def test_retrieve_returns_the_created_row(self, workspace: LoadedWorkspace, workspace_property: Any) -> None:
+    def test_retrieve_returns_the_created_row(
+        self, workspace: LoadedWorkspace, workspace_property: Any
+    ) -> None:
         fetched = workspace.work_item_properties.retrieve(workspace_property.id)
         assert fetched.id == workspace_property.id
 
@@ -227,7 +236,8 @@ class TestWorkspaceScopedProperties:
 
     def test_delete_then_retrieve_404s(self, workspace: LoadedWorkspace) -> None:
         created = _create_workspace_property_or_skip(
-            workspace, CreateWorkItemProperty(display_name=unique_name("wswip-del"), property_type="TEXT")
+            workspace,
+            CreateWorkItemProperty(display_name=unique_name("wswip-del"), property_type="TEXT"),
         )
         workspace.work_item_properties.delete(created.id)
         with pytest.raises(PlaneAPIError) as exc_info:
@@ -259,7 +269,9 @@ class TestWorkspaceScopedOptions:
 
 
 class TestContexts:
-    def test_crud(self, workspace: LoadedWorkspace, project_id: str, workspace_property: Any) -> None:
+    def test_crud(
+        self, workspace: LoadedWorkspace, project_id: str, workspace_property: Any
+    ) -> None:
         created = workspace_property.contexts.create(
             # `issue_type_ids` is required unless `applies_to_all_work_item_types`;
             # an unnamed create clashes with the auto-provisioned "Default" context

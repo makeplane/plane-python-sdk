@@ -1,5 +1,12 @@
 """Live smoke test for the v2 surface; skips unless
-PLANE_BASE_URL/PLANE_API_KEY/WORKSPACE_SLUG/V2_PROJECT are set."""
+PLANE_BASE_URL/PLANE_API_KEY/WORKSPACE_SLUG/V2_PROJECT are set.
+
+Outside `tests/v2/integration/`, so outside the silent-skip guard's scope -- but the
+same trap applies, and this file fell into it too: both tests were written against the
+retired `client.v2.workspace(slug).project(key)` locator and had been skipping green
+ever since. `tests/v2/test_integration_surface.py` does not cover this path either,
+so the two calls below are deliberately spelled once each way: the flat path and a
+loaded row. A regression in either is a compile error under `mypy tests/v2`."""
 
 import os
 
@@ -34,18 +41,20 @@ def project_key() -> str:
 
 
 def test_states_round_trip(live_client: PlaneClient, workspace_slug: str, project_key: str) -> None:
-    scope = live_client.v2.workspace(workspace_slug).project(project_key)
-    page = scope.states.list(fields=["id", "name"])
+    """The flat path, with both ids passed explicitly."""
+    states = live_client.v2.workspaces.projects.states
+    page = states.list(workspace_slug, project_key, fields=["id", "name"])
     assert page.data, "expected at least one state in the project"
 
     first = page.data[0]
     assert first.name is not None
-    found = scope.states.find_by_name(first.name)
+    found = states.find_by_name(workspace_slug, project_key, first.name)
     assert found.id == first.id
 
 
-def test_chained_labels_list(
+def test_labels_list_through_a_loaded_project(
     live_client: PlaneClient, workspace_slug: str, project_key: str
 ) -> None:
-    scope = live_client.v2.workspace(workspace_slug).project(project_key)
-    assert scope.labels.list(fields=["id", "name"]) is not None
+    """The other way in: fetch the project, then navigate off the row."""
+    project = live_client.v2.workspaces.projects.retrieve(workspace_slug, project_key)
+    assert project.labels.list(fields=["id", "name"]) is not None

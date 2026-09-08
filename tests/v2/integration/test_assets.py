@@ -19,8 +19,8 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def workspace_assets(client: PlaneClient, workspace_slug: str) -> WorkspaceAssets:
-    return client.v2.workspace(workspace_slug).assets
+def workspace_assets(client: PlaneClient) -> WorkspaceAssets:
+    return client.v2.workspaces.assets
 
 
 @pytest.fixture
@@ -30,10 +30,10 @@ def user_assets(client: PlaneClient) -> UserAssets:
 
 class TestWorkspaceAssets:
     def test_create_returns_presigned_upload_data(
-        self, workspace_assets: WorkspaceAssets
+        self, workspace_assets: WorkspaceAssets, workspace_slug: str
     ) -> None:
         result = workspace_assets.create(
-            CreateWorkspaceAsset(name=f"{unique_name('asset')}.txt", size=11)
+            workspace_slug, CreateWorkspaceAsset(name=f"{unique_name('asset')}.txt", size=11)
         )
         try:
             assert result.asset_id
@@ -44,34 +44,36 @@ class TestWorkspaceAssets:
             assert result.upload_data  # the contract question this test pins
             assert result.asset.id == result.asset_id
         finally:
-            workspace_assets.delete(result.asset_id)
+            workspace_assets.delete(workspace_slug, result.asset_id)
 
     def test_confirm_then_retrieve_reflects_is_uploaded(
-        self, workspace_assets: WorkspaceAssets
+        self, workspace_assets: WorkspaceAssets, workspace_slug: str
     ) -> None:
         created = workspace_assets.create(
-            CreateWorkspaceAsset(name=f"{unique_name('asset')}.txt", size=11)
+            workspace_slug, CreateWorkspaceAsset(name=f"{unique_name('asset')}.txt", size=11)
         )
         try:
             confirmed = workspace_assets.update(
-                created.asset_id, WorkspaceAssetConfirm(is_uploaded=True)
+                workspace_slug, created.asset_id, WorkspaceAssetConfirm(is_uploaded=True)
             )
             assert confirmed.is_uploaded is True
 
-            fetched = workspace_assets.retrieve(created.asset_id)
+            fetched = workspace_assets.retrieve(workspace_slug, created.asset_id)
             assert fetched.is_uploaded is True
         finally:
-            workspace_assets.delete(created.asset_id)
+            workspace_assets.delete(workspace_slug, created.asset_id)
 
-    def test_list_includes_the_created_asset(self, workspace_assets: WorkspaceAssets) -> None:
+    def test_list_includes_the_created_asset(
+        self, workspace_assets: WorkspaceAssets, workspace_slug: str
+    ) -> None:
         created = workspace_assets.create(
-            CreateWorkspaceAsset(name=f"{unique_name('asset')}.txt", size=11)
+            workspace_slug, CreateWorkspaceAsset(name=f"{unique_name('asset')}.txt", size=11)
         )
         try:
-            ids = {row.id for row in workspace_assets.list().data}
+            ids = {row.id for row in workspace_assets.list(workspace_slug).data}
             assert created.asset_id in ids
         finally:
-            workspace_assets.delete(created.asset_id)
+            workspace_assets.delete(workspace_slug, created.asset_id)
 
 
 class TestUserAssets:

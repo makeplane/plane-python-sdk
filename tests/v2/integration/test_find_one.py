@@ -15,9 +15,7 @@ from .helpers import ResourceSpec, unique_name
 
 
 class TestFindByName:
-    def test_single_match(
-        self, project: LoadedProject, spec: ResourceSpec
-    ) -> None:
+    def test_single_match(self, project: LoadedProject, spec: ResourceSpec) -> None:
         ops = spec.on(project)
         name = unique_name(f"{spec.key}-single")
         created = ops.create(spec.make_write(name))

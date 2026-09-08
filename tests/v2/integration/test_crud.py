@@ -85,9 +85,7 @@ class TestList:
         row: Any,
     ) -> None:
         """A field not requested comes back None, not an error or a KeyError."""
-        page = spec.flat(client).list(
-            workspace_slug, project_id, fields=["id", spec.name_field]
-        )
+        page = spec.flat(client).list(workspace_slug, project_id, fields=["id", spec.name_field])
         found = next(item for item in page.data if item.id == row.id)
         assert getattr(found, spec.name_field) is not None
         assert found.created_at is None

@@ -16,36 +16,36 @@ from .helpers import unique_name
 
 
 @pytest.fixture(scope="module")
-def stickies(client: PlaneClient, workspace_slug: str) -> Stickies:
-    return client.v2.workspace(workspace_slug).stickies
+def stickies(client: PlaneClient) -> Stickies:
+    return client.v2.workspaces.stickies
 
 
 @pytest.fixture
-def sticky(stickies: Stickies) -> Iterator[Any]:
-    created = stickies.create(CreateSticky(name=unique_name("sticky")))
+def sticky(stickies: Stickies, workspace_slug: str) -> Iterator[Any]:
+    created = stickies.create(workspace_slug, CreateSticky(name=unique_name("sticky")))
     yield created
     try:
-        stickies.delete(created.id)
+        stickies.delete(workspace_slug, created.id)
     except Exception:
         pass
 
 
-def test_list(stickies: Stickies) -> None:
-    page = stickies.list()
+def test_list(stickies: Stickies, workspace_slug: str) -> None:
+    page = stickies.list(workspace_slug)
     assert isinstance(page.data, list)
 
 
-def test_create_with_empty_body(stickies: Stickies) -> None:
-    created = stickies.create(CreateSticky())
+def test_create_with_empty_body(stickies: Stickies, workspace_slug: str) -> None:
+    created = stickies.create(workspace_slug, CreateSticky())
     try:
         assert created.id
     finally:
-        stickies.delete(created.id)
+        stickies.delete(workspace_slug, created.id)
 
 
-def test_retrieve_patch_delete(stickies: Stickies, sticky: Any) -> None:
-    fetched = stickies.retrieve(sticky.id)
+def test_retrieve_patch_delete(stickies: Stickies, sticky: Any, workspace_slug: str) -> None:
+    fetched = stickies.retrieve(workspace_slug, sticky.id)
     assert fetched.id == sticky.id
 
-    updated = stickies.update(sticky.id, UpdateSticky(color="#336699"))
+    updated = stickies.update(workspace_slug, sticky.id, UpdateSticky(color="#336699"))
     assert updated.color == "#336699"

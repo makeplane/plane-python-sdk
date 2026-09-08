@@ -1,6 +1,17 @@
-"""`client.v2.workspace(slug).releases` and its sub-resources against a real
-server; gated by the `RELEASES` flag plus `is_release_enabled`, so fixtures
-skip (never fail) the module when that gate is closed. No upsert/bulk-* here."""
+"""`client.v2.workspaces.releases` and its sub-resources against a real server;
+gated by the `RELEASES` flag plus `is_release_enabled`, which is a declared
+server-capability skip. No upsert/bulk-* here.
+
+Three ways in, one per shape the resource actually has:
+
+* the release family off the loaded `workspace`;
+* a release's comments, links, changelog and its label/work-item bridges off the
+  loaded *release*, so the release id is written once;
+* the **catalogs** flat. `ReleaseLabels` is two things behind one class -- a
+  workspace-level label catalog at `path`, and a per-release membership bridge at
+  `extra_paths["add"]/["remove"]` -- and the catalog half has no release to hang off.
+  `ReleaseTags` is a catalog with no bridge at all, which is why it lives at
+  `client.v2.workspaces.release_tags` rather than under the family."""
 
 from __future__ import annotations
 
@@ -11,6 +22,7 @@ import pytest
 
 from plane.api.v2 import LoadedWorkspace, PlaneAPIError
 from plane.client import PlaneClient
+from plane.models.v2.common import CursorPage, OffsetPage
 from plane.models.v2.releases import (
     CreateRelease,
     CreateReleaseComment,
@@ -25,6 +37,7 @@ from plane.models.v2.releases import (
     UpdateReleaseTag,
 )
 
+from ._guard import skip_absent_capability
 from .helpers import unique_name
 
 
@@ -33,14 +46,28 @@ def _create_release_or_skip(workspace: LoadedWorkspace, name: str) -> Any:
         return workspace.releases.create(CreateRelease(name=name))
     except PlaneAPIError as exc:
         if exc.status == 402:
-            pytest.skip("RELEASES not enabled on this workspace")
+            skip_absent_capability("RELEASES is not enabled on this workspace")
         raise
+
+
+@pytest.fixture
+def release_labels(client: PlaneClient) -> Any:
+    """The label *catalog*, flat. `ReleaseLabels.add`/`remove` -- the per-release
+    bridge half of the same class -- are reached off a loaded release instead."""
+    return client.v2.workspaces.releases.labels
+
+
+@pytest.fixture
+def release_tags(client: PlaneClient, release_tags: Any) -> Any:
+    """A catalog with no per-release bridge at all, so it hangs off the workspace
+    rather than the release family: `client.v2.workspaces.release_tags`."""
+    return client.v2.workspaces.release_tags
 
 
 @pytest.fixture
 def release(workspace: LoadedWorkspace) -> Iterator[Any]:
     """One freshly created release, deleted afterwards."""
-    created = _create_release_or_skip(releases, unique_name("release"))
+    created = _create_release_or_skip(workspace, unique_name("release"))
     yield created
     try:
         workspace.releases.delete(created.id)
@@ -51,7 +78,7 @@ def release(workspace: LoadedWorkspace) -> Iterator[Any]:
 class TestCRUD:
     def test_create_returns_the_written_fields(self, workspace: LoadedWorkspace) -> None:
         name = unique_name("release")
-        created = _create_release_or_skip(releases, name)
+        created = _create_release_or_skip(workspace, name)
         try:
             assert created.name == name
             assert created.id
@@ -59,7 +86,9 @@ class TestCRUD:
         finally:
             workspace.releases.delete(created.id)
 
-    def test_retrieve_returns_the_created_row(self, workspace: LoadedWorkspace, release: Any) -> None:
+    def test_retrieve_returns_the_created_row(
+        self, workspace: LoadedWorkspace, release: Any
+    ) -> None:
         fetched = workspace.releases.retrieve(release.id)
         assert fetched.id == release.id
         assert fetched.name == release.name
@@ -83,14 +112,16 @@ class TestCRUD:
         found = workspace.releases.find_by_name(release.name)
         assert found.id == release.id
 
-    def test_patch_updates_only_the_given_fields(self, workspace: LoadedWorkspace, release: Any) -> None:
+    def test_patch_updates_only_the_given_fields(
+        self, workspace: LoadedWorkspace, release: Any
+    ) -> None:
         new_name = unique_name("release-renamed")
         updated = workspace.releases.update(release.id, UpdateRelease(name=new_name))
         assert updated.id == release.id
         assert updated.name == new_name
 
     def test_delete_then_retrieve_404s(self, workspace: LoadedWorkspace) -> None:
-        created = _create_release_or_skip(releases, unique_name("release"))
+        created = _create_release_or_skip(workspace, unique_name("release"))
         workspace.releases.delete(created.id)
         with pytest.raises(PlaneAPIError) as exc_info:
             workspace.releases.retrieve(created.id)
@@ -113,7 +144,7 @@ class TestErrors:
             workspace.releases.create(CreateRelease(name=too_long))
         error = exc_info.value
         if error.status == 402:
-            pytest.skip("RELEASES not enabled on this workspace")
+            skip_absent_capability("RELEASES is not enabled on this workspace")
         assert error.status == 400
         assert error.errors is not None
         assert any(field_error.field == "name" for field_error in error.errors)
@@ -131,7 +162,7 @@ class TestPagination:
         marker = unique_name("release-pg")
         ids = []
         for _ in range(self.ROW_COUNT):
-            row = _create_release_or_skip(releases, f"{marker}-{unique_name('row')}")
+            row = _create_release_or_skip(workspace, f"{marker}-{unique_name('row')}")
             ids.append(row.id)
         yield marker, ids
         for pk in ids:
@@ -145,6 +176,7 @@ class TestPagination:
     ) -> None:
         marker, _ids = seeded
         page = workspace.releases.list(search=marker, per_page=self.PER_PAGE)
+        assert isinstance(page, OffsetPage), "no `paginate=`, so this is the offset envelope"
         assert len(page.data) == self.PER_PAGE
         assert page.next is not None
         assert page.total_count == self.ROW_COUNT
@@ -166,26 +198,31 @@ class TestPagination:
             paginate="cursor",
             order_by="created_at",
         )
+        assert isinstance(page, CursorPage), "`paginate='cursor'` must answer the keyset envelope"
         assert len(page.data) == self.PER_PAGE
         assert page.has_more is True
         assert page.next_cursor is not None
 
 
 class TestLabelsAndWorkItemsBridges:
-    def test_labels_add_then_remove(self, workspace: LoadedWorkspace, release: Any) -> None:
-        label = workspace.releases.labels.create(CreateReleaseLabel(name=unique_name("rel-label")))
+    def test_labels_add_then_remove(
+        self, workspace: LoadedWorkspace, release: Any, release_labels: Any, workspace_slug: str
+    ) -> None:
+        label = release_labels.create(
+            workspace_slug, CreateReleaseLabel(name=unique_name("rel-label"))
+        )
         try:
-            added = workspace.releases.labels.add(release.id, [label.id])
+            added = release.labels.add([label.id])
             assert label.id in added
 
             fetched = workspace.releases.retrieve(release.id)
             assert fetched.label_ids is not None
             assert label.id in fetched.label_ids
 
-            removed = workspace.releases.labels.remove(release.id, [label.id])
+            removed = release.labels.remove([label.id])
             assert label.id in removed
         finally:
-            workspace.releases.labels.delete(label.id)
+            release_labels.delete(workspace_slug, label.id)
 
     def test_work_items_add_then_remove(
         self,
@@ -197,121 +234,123 @@ class TestLabelsAndWorkItemsBridges:
     ) -> None:
         from plane.models.v2.work_items import CreateWorkItem
 
-        work_items = client.v2.workspace(workspace_slug).project(project_id).work_items
-        work_item = work_items.create(CreateWorkItem(name=unique_name("release-wi")))
+        work_items = client.v2.workspaces.projects.work_items
+        work_item = work_items.create(
+            workspace_slug, project_id, CreateWorkItem(name=unique_name("release-wi"))
+        )
         try:
-            added = workspace.releases.work_items.add(release.id, [work_item.id])
+            added = release.work_items.add([work_item.id])
             assert work_item.id in added
 
-            removed = workspace.releases.work_items.remove(release.id, [work_item.id])
+            removed = release.work_items.remove([work_item.id])
             assert work_item.id in removed
         finally:
-            work_items.delete(work_item.id)
+            work_items.delete(workspace_slug, project_id, work_item.id)
 
 
 class TestChangelog:
     def test_get_then_update(self, workspace: LoadedWorkspace, release: Any) -> None:
-        changelog = workspace.releases.changelog.retrieve(release.id)
+        changelog = release.changelog.retrieve()
         assert changelog.release_id == release.id
 
-        updated = workspace.releases.changelog.update(
-            release.id, UpdateReleaseChangelog(description_html="<p>notes</p>")
-        )
+        updated = release.changelog.update(UpdateReleaseChangelog(description_html="<p>notes</p>"))
         assert updated.description_html == "<p>notes</p>"
 
 
 class TestComments:
     def test_crud(self, workspace: LoadedWorkspace, release: Any) -> None:
-        created = workspace.releases.comments.create(
-            release.id, CreateReleaseComment(comment_html="<p>hi</p>")
-        )
+        created = release.comments.create(CreateReleaseComment(comment_html="<p>hi</p>"))
         try:
             assert created.release_id == release.id
 
-            fetched = workspace.releases.comments.retrieve(release.id, created.id)
+            fetched = release.comments.retrieve(created.id)
             assert fetched.id == created.id
 
-            page = workspace.releases.comments.list(release.id)
+            page = release.comments.list()
             assert any(c.id == created.id for c in page.data)
 
-            updated = workspace.releases.comments.update(
-                release.id, created.id, UpdateReleaseComment(comment_html="<p>bye</p>")
+            updated = release.comments.update(
+                created.id, UpdateReleaseComment(comment_html="<p>bye</p>")
             )
             assert updated.comment_html == "<p>bye</p>"
         finally:
-            workspace.releases.comments.delete(release.id, created.id)
+            release.comments.delete(created.id)
 
         with pytest.raises(PlaneAPIError) as exc_info:
-            workspace.releases.comments.retrieve(release.id, created.id)
+            release.comments.retrieve(created.id)
         assert exc_info.value.status == 404
 
 
 class TestLinks:
     def test_crud(self, workspace: LoadedWorkspace, release: Any) -> None:
-        created = workspace.releases.links.create(
-            release.id, CreateReleaseLink(title="Docs", url="https://example.com/a")
-        )
+        created = release.links.create(CreateReleaseLink(title="Docs", url="https://example.com/a"))
         try:
             assert created.url == "https://example.com/a"
 
-            updated = workspace.releases.links.update(
-                release.id, created.id, UpdateReleaseLink(url="https://example.com/b")
+            updated = release.links.update(
+                created.id, UpdateReleaseLink(url="https://example.com/b")
             )
             assert updated.url == "https://example.com/b"
 
-            page = workspace.releases.links.list(release.id)
+            page = release.links.list()
             assert any(link.id == created.id for link in page.data)
         finally:
-            workspace.releases.links.delete(release.id, created.id)
+            release.links.delete(created.id)
 
 
 class TestLabelsCatalog:
-    def test_crud_and_find_by_name(self, workspace: LoadedWorkspace) -> None:
+    def test_crud_and_find_by_name(
+        self, workspace: LoadedWorkspace, release_labels: Any, workspace_slug: str
+    ) -> None:
         name = unique_name("rel-label")
-        created = workspace.releases.labels.create(CreateReleaseLabel(name=name))
+        created = release_labels.create(workspace_slug, CreateReleaseLabel(name=name))
         try:
             assert created.name == name
 
-            fetched = workspace.releases.labels.retrieve(created.id)
+            fetched = release_labels.retrieve(workspace_slug, created.id)
             assert fetched.id == created.id
 
-            found = workspace.releases.labels.find_by_name(name)
+            found = release_labels.find_by_name(workspace_slug, name)
             assert found.id == created.id
 
             new_name = unique_name("rel-label-renamed")
-            updated = workspace.releases.labels.update(created.id, UpdateReleaseLabel(name=new_name))
+            updated = release_labels.update(
+                workspace_slug, created.id, UpdateReleaseLabel(name=new_name)
+            )
             assert updated.name == new_name
         finally:
-            workspace.releases.labels.delete(created.id)
+            release_labels.delete(workspace_slug, created.id)
 
         with pytest.raises(PlaneAPIError) as exc_info:
-            workspace.releases.labels.retrieve(created.id)
+            release_labels.retrieve(workspace_slug, created.id)
         assert exc_info.value.status == 404
 
 
 class TestTagsCatalog:
-    def test_crud_find_by_version_and_prefixed_lookup(self, workspace: LoadedWorkspace) -> None:
+    def test_crud_find_by_version_and_prefixed_lookup(
+        self, workspace: LoadedWorkspace, release_tags: Any, workspace_slug: str
+    ) -> None:
         version = f"0.0.0-{unique_name('rel-tag')}"
-        created = workspace.releases.tags.create(CreateReleaseTag(version=version))
+        created = release_tags.create(workspace_slug, CreateReleaseTag(version=version))
         try:
             assert created.version == version
 
-            by_uuid = workspace.releases.tags.retrieve(created.id)
+            by_uuid = release_tags.retrieve(workspace_slug, created.id)
             assert by_uuid.id == created.id
 
             # NOT `retrieve(f"version:{version}")`: the golden implies a
             # `version:`-prefixed lookup but it 404s live (no custom `get_object`);
             # `find_by_version` is the real way to resolve a version to an id.
-            found = workspace.releases.tags.find_by_version(version)
+            found = release_tags.find_by_version(workspace_slug, version)
             assert found.id == created.id
 
-            updated = workspace.releases.tags.update(
-                created.id, UpdateReleaseTag(description="release notes")
+            updated = release_tags.update(
+                workspace_slug, created.id, UpdateReleaseTag(description="release notes")
             )
             assert updated.description == "release notes"
         finally:
-            workspace.releases.tags.delete(created.id)
+            release_tags.delete(workspace_slug, created.id)
 
         with pytest.raises(PlaneAPIError) as exc_info:
-            workspace.releases.tags.retrieve(created.id)
+            release_tags.retrieve(workspace_slug, created.id)
         assert exc_info.value.status == 404

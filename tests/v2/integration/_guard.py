@@ -106,6 +106,7 @@ class SilentSkipGuard:
 
     def __init__(self, root: Path) -> None:
         self.root = Path(root).resolve()
+        self.collect_only = False
         self.collected = 0
         self.executed = 0
         self.sanctioned_skips = 0
@@ -123,6 +124,9 @@ class SilentSkipGuard:
     def pytest_collection_modifyitems(
         self, config: pytest.Config, items: list[pytest.Item]
     ) -> None:
+        # `--collect-only` never runs a test, so "collected N, executed 0" is the
+        # correct outcome there rather than the failure this guard exists for.
+        self.collect_only = bool(config.getoption("collectonly", default=False))
         mine = [item for item in items if self._mine(item)]
         self.collected = len(mine)
         reason = dormant_reason()
@@ -167,7 +171,7 @@ class SilentSkipGuard:
 
     def verdict(self) -> str | None:
         """The session-level complaint, or `None` if the session was honest."""
-        if self.collected == 0:
+        if self.collected == 0 or self.collect_only:
             return None
         if dormant_reason() is not None:
             if self.sanctioned_skips != self.collected:
@@ -190,7 +194,7 @@ class SilentSkipGuard:
     def pytest_terminal_summary(
         self, terminalreporter: Any, exitstatus: int, config: pytest.Config
     ) -> None:
-        if self.collected == 0:
+        if self.collected == 0 or self.collect_only:
             return
         complaint = self.verdict()
         if complaint is not None:

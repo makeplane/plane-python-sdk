@@ -15,9 +15,7 @@ from .helpers import ResourceSpec, unique_name
 
 
 class TestBulkCreate:
-    def test_all_rows_succeed(
-        self, project: LoadedProject, spec: ResourceSpec
-    ) -> None:
+    def test_all_rows_succeed(self, project: LoadedProject, spec: ResourceSpec) -> None:
         ops = spec.on(project)
         items = [spec.make_write(unique_name(f"{spec.key}-bc")) for _ in range(3)]
         result = ops.bulk_create(items)
@@ -77,9 +75,7 @@ class TestBulkCreate:
 
 
 class TestBulkUpdate:
-    def test_all_rows_succeed(
-        self, project: LoadedProject, spec: ResourceSpec
-    ) -> None:
+    def test_all_rows_succeed(self, project: LoadedProject, spec: ResourceSpec) -> None:
         ops = spec.on(project)
         created = ops.bulk_create(
             [spec.make_write(unique_name(f"{spec.key}-bu")) for _ in range(2)]
@@ -119,9 +115,7 @@ class TestBulkUpdate:
 
 
 class TestBulkDelete:
-    def test_all_rows_succeed(
-        self, project: LoadedProject, spec: ResourceSpec
-    ) -> None:
+    def test_all_rows_succeed(self, project: LoadedProject, spec: ResourceSpec) -> None:
         ops = spec.on(project)
         created = ops.bulk_create(
             [spec.make_write(unique_name(f"{spec.key}-bd")) for _ in range(2)]

@@ -1,4 +1,4 @@
-"""`Webhooks` against a real server, reached as `client.v2.workspace(slug).webhooks`.
+"""`Webhooks` against a real server, reached as `client.v2.workspaces.webhooks`.
 Pins the open contract question in `plane.models.v2.webhooks`: whether `create()`
 really returns `secret_key` despite the golden documenting a bare `Webhook`."""
 
@@ -15,8 +15,8 @@ from .helpers import unique_name
 
 
 @pytest.fixture
-def webhooks(client: PlaneClient, workspace_slug: str) -> Webhooks:
-    return client.v2.workspace(workspace_slug).webhooks
+def webhooks(client: PlaneClient) -> Webhooks:
+    return client.v2.workspaces.webhooks
 
 
 def _unique_url() -> str:
@@ -24,55 +24,63 @@ def _unique_url() -> str:
 
 
 class TestCRUD:
-    def test_create_returns_a_secret_key_once(self, webhooks: Webhooks) -> None:
-        created = webhooks.create(CreateWebhook(url=_unique_url()))
+    def test_create_returns_a_secret_key_once(
+        self, webhooks: Webhooks, workspace_slug: str
+    ) -> None:
+        created = webhooks.create(workspace_slug, CreateWebhook(url=_unique_url()))
         try:
             assert created.id
             assert created.secret_key
         finally:
-            webhooks.delete(created.id)
+            webhooks.delete(workspace_slug, created.id)
 
-    def test_retrieve_does_not_carry_a_secret(self, webhooks: Webhooks) -> None:
-        created = webhooks.create(CreateWebhook(url=_unique_url()))
+    def test_retrieve_does_not_carry_a_secret(
+        self, webhooks: Webhooks, workspace_slug: str
+    ) -> None:
+        created = webhooks.create(workspace_slug, CreateWebhook(url=_unique_url()))
         try:
-            fetched = webhooks.retrieve(created.id)
+            fetched = webhooks.retrieve(workspace_slug, created.id)
             assert fetched.id == created.id
             assert "secret_key" not in (fetched.model_extra or {})
         finally:
-            webhooks.delete(created.id)
+            webhooks.delete(workspace_slug, created.id)
 
-    def test_patch_updates_only_the_given_fields(self, webhooks: Webhooks) -> None:
-        created = webhooks.create(CreateWebhook(url=_unique_url()))
+    def test_patch_updates_only_the_given_fields(
+        self, webhooks: Webhooks, workspace_slug: str
+    ) -> None:
+        created = webhooks.create(workspace_slug, CreateWebhook(url=_unique_url()))
         try:
-            updated = webhooks.update(created.id, UpdateWebhook(is_active=False))
+            updated = webhooks.update(workspace_slug, created.id, UpdateWebhook(is_active=False))
             assert updated.id == created.id
             assert updated.is_active is False
         finally:
-            webhooks.delete(created.id)
+            webhooks.delete(workspace_slug, created.id)
 
-    def test_delete_then_retrieve_404s(self, webhooks: Webhooks) -> None:
-        created = webhooks.create(CreateWebhook(url=_unique_url()))
-        webhooks.delete(created.id)
+    def test_delete_then_retrieve_404s(self, webhooks: Webhooks, workspace_slug: str) -> None:
+        created = webhooks.create(workspace_slug, CreateWebhook(url=_unique_url()))
+        webhooks.delete(workspace_slug, created.id)
         with pytest.raises(PlaneAPIError) as exc_info:
-            webhooks.retrieve(created.id)
+            webhooks.retrieve(workspace_slug, created.id)
         assert exc_info.value.status == 404
 
-    def test_find_by_name(self, webhooks: Webhooks) -> None:
+    def test_find_by_name(self, webhooks: Webhooks, workspace_slug: str) -> None:
         name = unique_name("webhook")
-        created = webhooks.create(CreateWebhook(url=_unique_url(), name=name))
+        created = webhooks.create(workspace_slug, CreateWebhook(url=_unique_url(), name=name))
         try:
-            assert webhooks.find_by_name(name).id == created.id
+            assert webhooks.find_by_name(workspace_slug, name).id == created.id
         finally:
-            webhooks.delete(created.id)
+            webhooks.delete(workspace_slug, created.id)
 
 
 class TestRegenerate:
-    def test_regenerate_mints_a_different_secret(self, webhooks: Webhooks) -> None:
-        created = webhooks.create(CreateWebhook(url=_unique_url()))
+    def test_regenerate_mints_a_different_secret(
+        self, webhooks: Webhooks, workspace_slug: str
+    ) -> None:
+        created = webhooks.create(workspace_slug, CreateWebhook(url=_unique_url()))
         try:
-            regenerated = webhooks.regenerate(created.id)
+            regenerated = webhooks.regenerate(workspace_slug, created.id)
             assert regenerated.id == created.id
             assert regenerated.secret_key
             assert regenerated.secret_key != created.secret_key
         finally:
-            webhooks.delete(created.id)
+            webhooks.delete(workspace_slug, created.id)

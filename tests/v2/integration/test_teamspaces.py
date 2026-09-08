@@ -34,7 +34,9 @@ def test_create_retrieve_patch_delete(workspace: LoadedWorkspace, teamspace: Any
     fetched = workspace.teamspaces.retrieve(teamspace.id)
     assert fetched.id == teamspace.id
 
-    updated = workspace.teamspaces.update(teamspace.id, UpdateTeamspace(description_html="<p>desc</p>"))
+    updated = workspace.teamspaces.update(
+        teamspace.id, UpdateTeamspace(description_html="<p>desc</p>")
+    )
     assert updated.description_html == "<p>desc</p>"
 
 

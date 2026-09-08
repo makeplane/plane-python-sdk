@@ -9,8 +9,7 @@ from typing import Any
 
 import pytest
 
-from plane.api.v2 import PlaneAPIError
-from plane.client import PlaneClient
+from plane.api.v2 import LoadedProject, LoadedWorkspace, PlaneAPIError
 from plane.models.v2.work_item_properties import (
     CreateWorkItemProperty,
     CreateWorkItemPropertyOption,
@@ -18,6 +17,7 @@ from plane.models.v2.work_item_properties import (
 from plane.models.v2.work_item_types import CreateWorkItemType
 from plane.models.v2.work_items import CreateWorkItem
 
+from ._guard import skip_absent_capability
 from .helpers import unique_name
 
 KEEP = os.environ.get("PLANE_E2E_KEEP") == "1"
@@ -31,23 +31,30 @@ def _id(row: Any) -> str:
     return str(row["id"] if isinstance(row, dict) else row.id)
 
 
-@pytest.fixture
-def ws(client: PlaneClient, workspace_slug: str) -> Any:
-    return client.v2.workspace(workspace_slug)
+def _custom_field(row: Any, key: str) -> dict[str, Any]:
+    """One entry out of `custom_fields`, which the model types `dict[str, object]`.
 
-
-@pytest.fixture
-def proj(ws: Any, project_id: str) -> Any:
-    return ws.project(project_id)
+    The server's per-property envelope (`{"value": ..., "value_detail": {...}}`) is
+    open-ended by design, so the model cannot promise a shape and a reader has to
+    assert the one it expects. Doing that here keeps the assertions below readable
+    instead of scattering casts through them."""
+    fields = row.custom_fields
+    assert fields is not None, "the server returned no custom_fields"
+    entry = fields[key]
+    assert isinstance(entry, dict), f"custom_fields[{key!r}] is {type(entry).__name__}, not a dict"
+    return entry
 
 
 @pytest.fixture(autouse=True)
-def _require_project_mode(ws: Any) -> None:
-    if ws.features.retrieve().is_work_item_types_enabled:
-        pytest.skip("workspace manages work item types at the workspace level; needs project mode")
+def _require_project_mode(workspace: LoadedWorkspace) -> None:
+    if workspace.features.retrieve().is_work_item_types_enabled:
+        skip_absent_capability(
+            "workspace manages work item types at the workspace level; this flow needs "
+            "project mode"
+        )
 
 
-def test_project_work_item_types_flow(proj: Any) -> None:
+def test_project_work_item_types_flow(project: LoadedProject) -> None:
     suffix = unique_name("")[1:]
     created_work_items: list[str] = []
     attached: list[str] = []
@@ -56,25 +63,25 @@ def test_project_work_item_types_flow(proj: Any) -> None:
 
     try:
         # 1. enable -- bootstraps the project's default (non-epic) type
-        enabled = proj.work_item_types.enable()
+        enabled = project.work_item_types.enable()
         assert enabled.is_epic is False
 
         # 2. create a project-owned type
         type_name = f"E2E Type {suffix}"
-        wtype = proj.work_item_types.create(CreateWorkItemType(name=type_name))
+        wtype = project.work_item_types.create(CreateWorkItemType(name=type_name))
         type_id = wtype.id
         assert wtype.name == type_name
         assert wtype.is_epic is False
 
         # 3. list + retrieve + schema
-        assert any(row.id == type_id for row in proj.work_item_types.list().data)
-        assert proj.work_item_types.retrieve(type_id).id == type_id
-        schema = proj.work_item_types.schema(type_id)
+        assert any(row.id == type_id for row in project.work_item_types.list().data)
+        assert project.work_item_types.retrieve(type_id).id == type_id
+        schema = project.work_item_types.schema(type_id)
         assert schema.fields is not None
         assert schema.custom_fields is not None
 
         # 4. TEXT property
-        text_prop = proj.work_item_properties.create(
+        text_prop = project.work_item_properties.create(
             CreateWorkItemProperty(display_name=f"Severity {suffix}", property_type="TEXT")
         )
         properties.append(text_prop.id)
@@ -82,7 +89,7 @@ def test_project_work_item_types_flow(proj: Any) -> None:
         assert sev_key
 
         # 5. OPTION property with inline options
-        option_prop = proj.work_item_properties.create(
+        option_prop = project.work_item_properties.create(
             CreateWorkItemProperty(
                 display_name=f"Tier {suffix}",
                 property_type="OPTION",
@@ -98,29 +105,27 @@ def test_project_work_item_types_flow(proj: Any) -> None:
         assert {_name(o) for o in option_prop.options or []} == {"Gold", "Silver"}
         gold_id = next(_id(o) for o in option_prop.options or [] if _name(o) == "Gold")
 
-        # 6. add one more option through the options endpoint
-        proj.work_item_properties.options.create(
-            option_prop.id, CreateWorkItemPropertyOption(name="Bronze")
-        )
-        names = {row.name for row in proj.work_item_properties.options.list(option_prop.id).data}
+        # 6. add one more option through the options endpoint, off the loaded property
+        option_prop.property_options.create(CreateWorkItemPropertyOption(name="Bronze"))
+        names = {row.name for row in option_prop.property_options.list().data}
         assert names == {"Gold", "Silver", "Bronze"}
 
         # 7. a second default option is rejected
         with pytest.raises(PlaneAPIError) as exc_info:
-            proj.work_item_properties.options.create(
-                option_prop.id, CreateWorkItemPropertyOption(name="Platinum", is_default=True)
+            option_prop.property_options.create(
+                CreateWorkItemPropertyOption(name="Platinum", is_default=True)
             )
         assert exc_info.value.status == 400
 
-        # 8. attach both properties to the type
-        result = proj.work_item_types.properties.link(type_id, [text_prop.id, option_prop.id])
+        # 8. attach both properties to the type, off the loaded type
+        result = wtype.properties.link([text_prop.id, option_prop.id])
         attached.extend([text_prop.id, option_prop.id])
         assert {text_prop.id, option_prop.id}.issubset(set(result.properties))
-        listed = {row.id for row in proj.work_item_types.properties.list(type_id).data}
+        listed = {row.id for row in wtype.properties.list().data}
         assert {text_prop.id, option_prop.id}.issubset(listed)
 
         # 9. create a work item of this type with custom_fields, read it back
-        item = proj.work_items.create(
+        item = project.work_items.create(
             CreateWorkItem(
                 name="E2E work item",
                 type_id=type_id,
@@ -128,34 +133,32 @@ def test_project_work_item_types_flow(proj: Any) -> None:
             )
         )
         created_work_items.append(item.id)
-        assert item.custom_fields is not None
-        assert item.custom_fields[sev_key]["value"] == "high"
-        assert item.custom_fields[tier_key]["value_detail"]["name"] == "Gold"
+        assert _custom_field(item, sev_key)["value"] == "high"
+        assert _custom_field(item, tier_key)["value_detail"]["name"] == "Gold"
 
-        fetched = proj.work_items.retrieve(item.id)
-        assert fetched.custom_fields is not None
-        assert fetched.custom_fields[sev_key]["value"] == "high"
+        fetched = project.work_items.retrieve(item.id)
+        assert _custom_field(fetched, sev_key)["value"] == "high"
 
         # 10. the readable `type` name resolves to the same type
-        item2 = proj.work_items.create(CreateWorkItem(name="E2E by type name", type=type_name))
+        item2 = project.work_items.create(CreateWorkItem(name="E2E by type name", type=type_name))
         created_work_items.append(item2.id)
         assert item2.type_id == type_id
 
         # 11. mark-default
-        assert proj.work_item_types.mark_default(type_id).is_default is True
+        assert project.work_item_types.mark_default(type_id).is_default is True
     finally:
         if not KEEP:
             for work_item_id in created_work_items:
-                _swallow(proj.work_items.delete, work_item_id)
+                _swallow(project.work_items.delete, work_item_id)
             for property_id in attached:
-                _swallow(proj.work_item_types.properties.unlink, type_id or "", property_id)
+                _swallow(wtype.properties.unlink, property_id)
             for property_id in properties:
-                _swallow(proj.work_item_properties.delete, property_id)
+                _swallow(project.work_item_properties.delete, property_id)
 
     if not KEEP and type_id:
         # the type is now the project default, so delete is refused
         with pytest.raises(PlaneAPIError) as exc_info:
-            proj.work_item_types.delete(type_id)
+            project.work_item_types.delete(type_id)
         assert exc_info.value.status == 409
 
 

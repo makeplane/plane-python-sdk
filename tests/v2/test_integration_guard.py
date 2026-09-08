@@ -247,6 +247,37 @@ def test_one_missing_credential_is_enough_to_go_dormant_and_names_it(
     assert "PLANE_BASE_URL" not in result.stdout.split("dormant", 1)[-1], result.stdout
 
 
+def test_collect_only_is_not_a_session_that_executed_nothing(tmp_path: pathlib.Path) -> None:
+    """`--collect-only` runs no test by definition, which is not the failure this
+    guard is for. Found by running `pytest --collect-only` to count the suite."""
+    (tmp_path / "conftest.py").write_text(textwrap.dedent(CONFTEST))
+    (tmp_path / "test_probe.py").write_text("def test_one():\n    assert True\n")
+
+    env = dict(os.environ)
+    env["PYTHONPATH"] = str(REPO_ROOT)
+    env.update(CREDENTIALS)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            str(tmp_path),
+            "--collect-only",
+            "--override-ini=addopts=",
+            "-p",
+            "no:cacheprovider",
+        ],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        env=env,
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "DID NOT RUN" not in result.stdout, result.stdout
+
+
 # -- The guard is actually installed on the real suite ---------------------------
 
 

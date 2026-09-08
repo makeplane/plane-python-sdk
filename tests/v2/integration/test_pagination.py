@@ -114,9 +114,7 @@ class TestPagination:
         """`?count=false` skips the `COUNT(*)`; the rows still come back, `total_count`
         does not. The kernel's `_find_one` has always sent this -- no caller could."""
         counted = seeded.ops.list(external_source=seeded.marker, per_page=PER_PAGE)
-        uncounted = seeded.ops.list(
-            external_source=seeded.marker, per_page=PER_PAGE, count=False
-        )
+        uncounted = seeded.ops.list(external_source=seeded.marker, per_page=PER_PAGE, count=False)
         assert counted.total_count == ROW_COUNT
         assert uncounted.total_count is None
         assert len(uncounted.data) == PER_PAGE

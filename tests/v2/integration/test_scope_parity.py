@@ -50,9 +50,7 @@ class TestScopeParity:
         )
         fetched_via_key = ops.retrieve(workspace_slug, project_key, created_via_id.id)
         assert fetched_via_key.id == created_via_id.id
-        assert getattr(fetched_via_key, spec.name_field) == getattr(
-            created_via_id, spec.name_field
-        )
+        assert getattr(fetched_via_key, spec.name_field) == getattr(created_via_id, spec.name_field)
 
         new_name = unique_name(f"{spec.key}-scope-renamed")
         updated_via_key = ops.update(

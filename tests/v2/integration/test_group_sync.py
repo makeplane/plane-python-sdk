@@ -34,7 +34,7 @@ def group_sync(client: PlaneClient) -> GroupSync:
 
 def _require_group_sync(group_sync: GroupSync, workspace_slug: str) -> None:
     try:
-        group_sync.config.get(workspace_slug)
+        group_sync.config.retrieve(workspace_slug)
     except PlaneAPIError as exc:
         if exc.status == 402:
             skip_absent_capability("IDP_GROUP_SYNC is not enabled on this workspace")
@@ -47,13 +47,13 @@ class TestGroupSyncConfig:
         _require_group_sync(group_sync, workspace_slug)
 
     def test_retrieve_returns_a_row(self, group_sync: GroupSync, workspace_slug: str) -> None:
-        config = group_sync.config.get(workspace_slug)
+        config = group_sync.config.retrieve(workspace_slug)
         assert config.id
 
     def test_update_round_trips_and_restores(
         self, group_sync: GroupSync, workspace_slug: str
     ) -> None:
-        original = group_sync.config.get(workspace_slug)
+        original = group_sync.config.retrieve(workspace_slug)
         try:
             toggled = group_sync.config.update(
                 workspace_slug, UpdateGroupSyncConfig(auto_remove=not bool(original.auto_remove))
@@ -79,7 +79,7 @@ class TestGroupSyncProjectMappings:
                 idp_group_name=unique_name("idp-group"),
                 role_slug="member",
                 project_id=project_id,
-            )
+            ),
         )
         try:
             page = group_sync.project_mappings.list(workspace_slug)
@@ -105,7 +105,7 @@ class TestGroupSyncProjectMappings:
                 idp_group_name=unique_name("idp-group-all"),
                 role_slug="member",
                 all_projects=True,
-            )
+            ),
         )
         try:
             assert created.all_projects is True
@@ -126,7 +126,7 @@ class TestGroupSyncWorkspaceMappings:
             workspace_slug,
             CreateWorkspaceGroupMapping(
                 idp_group_name=unique_name("idp-ws-group"), role_slug="member"
-            )
+            ),
         )
         try:
             page = group_sync.workspace_mappings.list(workspace_slug)

@@ -106,7 +106,9 @@ class TestEstimatesBulk:
 
 
 class TestEstimateExpandPoints:
-    def test_expand_points_inlines_the_points_list(self, project: LoadedProject, estimate: Any) -> None:
+    def test_expand_points_inlines_the_points_list(
+        self, project: LoadedProject, estimate: Any
+    ) -> None:
         created_point = estimate.estimate_points.create(CreateEstimatePoint(value="1", key=0))
         try:
             fetched = project.estimates.retrieve(estimate.id, expand=["points"])

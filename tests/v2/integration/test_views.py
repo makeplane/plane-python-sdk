@@ -30,7 +30,9 @@ def project_view(project: LoadedProject) -> Iterator[Any]:
 
 
 class TestProjectViews:
-    def test_list_includes_the_created_view(self, project: LoadedProject, project_view: Any) -> None:
+    def test_list_includes_the_created_view(
+        self, project: LoadedProject, project_view: Any
+    ) -> None:
         page = project.views.list()
         assert any(row.id == project_view.id for row in page.data)
 

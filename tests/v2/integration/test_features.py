@@ -1,69 +1,60 @@
 """Feature-toggle singletons against a real server; no gate needed since they
 exist for any workspace/project. Restores whatever it flips so this suite is
-safe to run repeatedly. Not verified against a live server yet."""
+safe to run repeatedly. Not verified against a live server yet.
+
+Both singletons are reached off loaded rows, which is the point: `workspace.features`
+and `project.features` are the same operation at two scopes, and they now answer to
+the same verb. They did not -- `WorkspaceFeatures` spelled the read `get` while
+`ProjectFeatures`, three lines below it in the same module, spelled it `retrieve`.
+This file was written against `retrieve` on both and had never run.
+See `tests/v2/test_singleton_verbs.py`."""
 
 from __future__ import annotations
 
-import pytest
-
-from plane.api.v2.features import ProjectFeatures, WorkspaceFeatures
-from plane.client import PlaneClient
+from plane.api.v2 import LoadedProject, LoadedWorkspace
 from plane.models.v2.features import UpdateProjectFeature, UpdateWorkspaceFeature
 
 
-@pytest.fixture(scope="module")
-def workspace_features(client: PlaneClient, workspace_slug: str) -> WorkspaceFeatures:
-    return client.v2.workspace(workspace_slug).features
-
-
-@pytest.fixture(scope="module")
-def project_features(client: PlaneClient, workspace_slug: str, project_id: str) -> ProjectFeatures:
-    return client.v2.workspace(workspace_slug).project(project_id).features
-
-
-def test_workspace_features_retrieve(workspace_features: WorkspaceFeatures) -> None:
-    feature = workspace_features.retrieve()
+def test_workspace_features_retrieve(workspace: LoadedWorkspace) -> None:
+    feature = workspace.features.retrieve()
     assert feature.id
 
 
-def test_workspace_features_round_trip_toggle(workspace_features: WorkspaceFeatures) -> None:
-    original = workspace_features.retrieve()
+def test_workspace_features_round_trip_toggle(workspace: LoadedWorkspace) -> None:
+    original = workspace.features.retrieve()
     original_value = bool(original.is_wiki_enabled)
     try:
-        flipped = workspace_features.update(
+        flipped = workspace.features.update(
             UpdateWorkspaceFeature(is_wiki_enabled=not original_value)
         )
         assert flipped.is_wiki_enabled is (not original_value)
     finally:
-        workspace_features.update(UpdateWorkspaceFeature(is_wiki_enabled=original_value))
+        workspace.features.update(UpdateWorkspaceFeature(is_wiki_enabled=original_value))
 
 
-def test_project_features_retrieve_has_no_id(project_features: ProjectFeatures) -> None:
-    feature = project_features.retrieve()
+def test_project_features_retrieve_has_no_id(project: LoadedProject) -> None:
+    feature = project.features.retrieve()
     assert not hasattr(feature, "id")
 
 
 def test_project_features_round_trip_toggle(
-    client: PlaneClient,
-    project_features: ProjectFeatures,
-    workspace_slug: str,
+    workspace: LoadedWorkspace,
+    project: LoadedProject,
 ) -> None:
     # `is_epic_enabled` cannot be re-enabled at the project level once the
     # workspace owns work item types (`ProjectFeature.save()`) -- detect that
     # via the same `is_work_item_types_enabled` flag `test_work_item_types.py` guards.
-    workspace_owns_types = bool(
-        client.v2.transport.request("GET", f"/workspaces/{workspace_slug}/features/").get(
-            "is_work_item_types_enabled"
-        )
-    )
-    original = project_features.retrieve()
+    # Through the resource, not `transport.request`: a hand-rolled request skips the
+    # kernel's own query validation, and this is the very singleton under test.
+    workspace_owns_types = bool(workspace.features.retrieve().is_work_item_types_enabled)
+    original = project.features.retrieve()
     original_value = bool(original.is_epic_enabled)
     try:
-        flipped = project_features.update(UpdateProjectFeature(is_epic_enabled=not original_value))
+        flipped = project.features.update(UpdateProjectFeature(is_epic_enabled=not original_value))
         if workspace_owns_types:
             # Coerced back off regardless of what was requested.
             assert flipped.is_epic_enabled is False
         else:
             assert flipped.is_epic_enabled is (not original_value)
     finally:
-        project_features.update(UpdateProjectFeature(is_epic_enabled=original_value))
+        project.features.update(UpdateProjectFeature(is_epic_enabled=original_value))

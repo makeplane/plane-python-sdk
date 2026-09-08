@@ -20,41 +20,44 @@ from .helpers import unique_name
 
 
 @pytest.fixture(scope="module")
-def relation_definitions(
-    client: PlaneClient, workspace_slug: str
-) -> WorkItemRelationDefinitions:
-    return client.v2.workspace(workspace_slug).work_item_relation_definitions
+def relation_definitions(client: PlaneClient) -> WorkItemRelationDefinitions:
+    return client.v2.workspaces.work_item_relation_definitions
 
 
 @pytest.fixture
-def relation_definition(relation_definitions: WorkItemRelationDefinitions) -> Iterator[Any]:
+def relation_definition(
+    relation_definitions: WorkItemRelationDefinitions, workspace_slug: str
+) -> Iterator[Any]:
     name = unique_name("relates-to")
     created = relation_definitions.create(
-        CreateWorkItemRelationDefinition(name=name, inward=name, outward=name)
+        workspace_slug, CreateWorkItemRelationDefinition(name=name, inward=name, outward=name)
     )
     yield created
     try:
-        relation_definitions.delete(created.id)
+        relation_definitions.delete(workspace_slug, created.id)
     except Exception:
         pass
 
 
-def test_list_includes_seeded_defaults(relation_definitions: WorkItemRelationDefinitions) -> None:
-    page = relation_definitions.list()
+def test_list_includes_seeded_defaults(
+    relation_definitions: WorkItemRelationDefinitions, workspace_slug: str
+) -> None:
+    page = relation_definitions.list(workspace_slug)
     assert any(row.is_default for row in page.data)
 
 
 def test_create_retrieve_patch_delete(
     relation_definitions: WorkItemRelationDefinitions,
     relation_definition: Any,
+    workspace_slug: str,
 ) -> None:
     assert relation_definition.is_default is not True
 
-    fetched = relation_definitions.retrieve(relation_definition.id)
+    fetched = relation_definitions.retrieve(workspace_slug, relation_definition.id)
     assert fetched.id == relation_definition.id
 
     updated = relation_definitions.update(
-        relation_definition.id, UpdateWorkItemRelationDefinition(color="#abcdef")
+        workspace_slug, relation_definition.id, UpdateWorkItemRelationDefinition(color="#abcdef")
     )
     assert updated.color == "#abcdef"
 
@@ -62,6 +65,7 @@ def test_create_retrieve_patch_delete(
 def test_find_by_name(
     relation_definitions: WorkItemRelationDefinitions,
     relation_definition: Any,
+    workspace_slug: str,
 ) -> None:
-    found = relation_definitions.find_by_name(relation_definition.name)
+    found = relation_definitions.find_by_name(workspace_slug, relation_definition.name)
     assert found.id == relation_definition.id

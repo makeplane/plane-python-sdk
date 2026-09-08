@@ -32,13 +32,13 @@ def test_list(workspace: LoadedWorkspace) -> None:
     assert isinstance(page.data, list)
 
 
-def test_create_retrieve_patch_delete(
-    workspace: LoadedWorkspace, property_row: Any
-) -> None:
+def test_create_retrieve_patch_delete(workspace: LoadedWorkspace, property_row: Any) -> None:
     fetched = workspace.customer_properties.retrieve(property_row.id)
     assert fetched.property_type == "TEXT"
 
-    updated = workspace.customer_properties.update(property_row.id, UpdateCustomerProperty(is_active=False))
+    updated = workspace.customer_properties.update(
+        property_row.id, UpdateCustomerProperty(is_active=False)
+    )
     assert updated.is_active is False
 
 

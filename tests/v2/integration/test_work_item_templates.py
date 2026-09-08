@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 
 from plane.api.v2 import LoadedProject, PlaneAPIError
+from plane.client import PlaneClient
 from plane.models.v2.work_item_templates import (
     CreateWorkItemTemplate,
     UpdateWorkItemTemplate,
@@ -36,11 +37,15 @@ def project_template(project: LoadedProject) -> Iterator[Any]:
 
 
 class TestProjectWorkItemTemplates:
-    def test_list_includes_the_created_template(self, project: LoadedProject, project_template: Any) -> None:
+    def test_list_includes_the_created_template(
+        self, project: LoadedProject, project_template: Any
+    ) -> None:
         page = project.work_item_templates.list()
         assert any(row.id == project_template.id for row in page.data)
 
-    def test_retrieve_returns_the_seed_data(self, project: LoadedProject, project_template: Any) -> None:
+    def test_retrieve_returns_the_seed_data(
+        self, project: LoadedProject, project_template: Any
+    ) -> None:
         fetched = project.work_item_templates.retrieve(project_template.id)
         assert fetched.id == project_template.id
         assert fetched.template_data is not None
@@ -51,7 +56,9 @@ class TestProjectWorkItemTemplates:
         )
         assert updated.name == "Renamed template"
 
-    def test_use_instantiates_a_work_item(self, project: LoadedProject, project_template: Any) -> None:
+    def test_use_instantiates_a_work_item(
+        self, project: LoadedProject, project_template: Any
+    ) -> None:
         work_item = project.work_item_templates.use(project_template.id)
         try:
             assert work_item.id
@@ -59,7 +66,9 @@ class TestProjectWorkItemTemplates:
         finally:
             project.work_items.delete(work_item.id)
 
-    def test_use_honors_a_name_override(self, project: LoadedProject, project_template: Any) -> None:
+    def test_use_honors_a_name_override(
+        self, project: LoadedProject, project_template: Any
+    ) -> None:
         work_item = project.work_item_templates.use(
             project_template.id, WorkItemTemplateUse(name="Overridden name")
         )
@@ -82,19 +91,20 @@ class TestProjectWorkItemTemplates:
 
 class TestWorkspaceWorkItemTemplates:
     def test_create_list_delete_round_trip(self, client: PlaneClient, workspace_slug: str) -> None:
-        templates = client.v2.workspace(workspace_slug).work_item_templates
+        templates = client.v2.workspaces.work_item_templates
         created = templates.create(
+            workspace_slug,
             CreateWorkItemTemplate(
                 name=unique_name("ws-template"),
                 template_data=WorkItemTemplateData(name="Any templated item"),
             ),
         )
         try:
-            page = templates.list()
+            page = templates.list(workspace_slug)
             assert any(row.id == created.id for row in page.data)
         finally:
-            templates.delete(created.id)
+            templates.delete(workspace_slug, created.id)
 
-    def test_has_no_use_action(self, client: PlaneClient, workspace_slug: str) -> None:
-        templates = client.v2.workspace(workspace_slug).work_item_templates
+    def test_has_no_use_action(self, client: PlaneClient) -> None:
+        templates = client.v2.workspaces.work_item_templates
         assert not hasattr(templates, "use")
