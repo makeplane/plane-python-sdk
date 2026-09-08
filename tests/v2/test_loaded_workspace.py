@@ -104,7 +104,7 @@ def test_the_workspace_singleton_child_is_reachable_too(config: Configuration) -
     responses.get(f"{BASE}/", json={"id": "ws1", "slug": "acme"})
     responses.get(f"{BASE}/features/", json={"id": "f1", "is_project_grouping_enabled": True})
 
-    V2Namespace(config).workspaces.retrieve("acme").features.get()
+    V2Namespace(config).workspaces.retrieve("acme").features.retrieve()
 
     assert str(responses.calls[1].request.url).startswith(f"{BASE}/features/")
 

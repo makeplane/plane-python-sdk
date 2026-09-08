@@ -28,7 +28,7 @@ def test_workspace_features_get_hits_the_bare_collection_url(
 ) -> None:
     responses.get(WORKSPACE_URL, json={"id": "1", "is_wiki_enabled": True})
 
-    feature = workspace_features.get("acme")
+    feature = workspace_features.retrieve("acme")
 
     assert responses.calls[0].request.url == WORKSPACE_URL
     assert feature.is_wiki_enabled is True

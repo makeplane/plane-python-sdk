@@ -21,7 +21,7 @@ def test_grouping_node_consumes_no_id(config: Configuration) -> None:
 def test_singleton_has_no_pk(config: Configuration) -> None:
     responses.get(f"{WS}/features/", json={"id": "f1", "is_project_grouping_enabled": True})
 
-    features = V2Namespace(config).workspaces.features.get("acme")
+    features = V2Namespace(config).workspaces.features.retrieve("acme")
 
     assert features.is_project_grouping_enabled is True
 

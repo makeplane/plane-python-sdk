@@ -68,7 +68,7 @@ if TYPE_CHECKING:
         role_distribution = staticmethod(bind1(Projects.role_distribution))
 
     class _OwnedWorkspaceFeatures(Owned["WorkspaceFeatures"]):
-        get = staticmethod(bind1(WorkspaceFeatures.get))
+        retrieve = staticmethod(bind1(WorkspaceFeatures.retrieve))
         update = staticmethod(bind1(WorkspaceFeatures.update))
 
     class _OwnedReleases(Owned["Releases"]):

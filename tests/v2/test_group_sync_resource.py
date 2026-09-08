@@ -34,7 +34,7 @@ def test_group_sync_config_get(group_sync: GroupSync) -> None:
         json={"id": "1", "is_enabled": True, "group_attribute_key": "groups"},
     )
 
-    config = group_sync.config.get("acme")
+    config = group_sync.config.retrieve("acme")
 
     assert config.is_enabled is True
     assert config.group_attribute_key == "groups"

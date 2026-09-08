@@ -27,12 +27,15 @@ class WorkspaceFeatures(V2Resource[WorkspaceFeature, Never, UpdateWorkspaceFeatu
     path = "/workspaces/{slug}/features/"
     model = WorkspaceFeature
     operations = {
-        "get": "workspace_features_retrieve",
+        "retrieve": "workspace_features_retrieve",
         "update": "workspace_features_update",
     }
 
-    def get(self, slug: str) -> WorkspaceFeature:
-        return self._retrieve_singleton(action="get", slug=slug)
+    def retrieve(self, slug: str) -> WorkspaceFeature:
+        """`retrieve`, not `get`: a singleton has no primary key, but reading one is
+        still the CRUD read. Its project-scoped twin below has always been spelled this
+        way, and so is the golden's own operationId (`workspace_features_retrieve`)."""
+        return self._retrieve_singleton(action="retrieve", slug=slug)
 
     def update(self, slug: str, data: UpdateWorkspaceFeature) -> WorkspaceFeature:
         return self._update_singleton(data, action="update", slug=slug)

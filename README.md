@@ -220,7 +220,7 @@ workspace-wide, list-only resource, not to be confused with the project-scoped
 `wiki` (`.pages`, `.collections`) and `group_sync` (`.config`,
 `.project_mappings`, `.workspace_mappings`). Each takes the workspace slug as
 its leading argument, e.g. `client.v2.workspaces.roles.list("acme")` or
-`client.v2.workspaces.group_sync.config.get("acme")`.
+`client.v2.workspaces.group_sync.config.retrieve("acme")`.
 
 The whole project band is wired onto `client.v2.workspaces.projects`: `states`,
 `labels`, `work_items`, `cycles`, `milestones`, `modules`, `estimates`,
@@ -258,7 +258,7 @@ client.v2.workspaces.retrieve("acme")
 client.v2.workspaces.projects.states.list("acme", "ENG", fields=["id", "name"])
 client.v2.workspaces.projects.work_items.comments.list("acme", "ENG", "ENG-12")
 client.v2.workspaces.wiki.pages.list("acme")   # `wiki` groups, consumes no id
-client.v2.workspaces.features.get("acme")      # singleton: no primary key at all
+client.v2.workspaces.features.retrieve("acme")      # singleton: no primary key at all
 
 client.v2.workspaces.projects.states.create(
     "acme", "ENG", CreateState(name="In Review", color="#4ECDC4")
@@ -450,7 +450,7 @@ client.v2.workspaces.permissions.me("acme")
 id itself — each child still takes its own leading `slug`:
 
 ```python
-client.v2.workspaces.group_sync.config.get("acme")
+client.v2.workspaces.group_sync.config.retrieve("acme")
 client.v2.workspaces.group_sync.project_mappings.list("acme")
 client.v2.workspaces.group_sync.workspace_mappings.list("acme")
 ```

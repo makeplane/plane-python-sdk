@@ -12,18 +12,18 @@ from .._kernel.resource import V2Resource
 class GroupSyncConfigResource(
     V2Resource[GroupSyncConfig, UpdateGroupSyncConfig, UpdateGroupSyncConfig]
 ):
-    """One row per workspace, no create/delete/list -- only `get`/`update` against
+    """One row per workspace, no create/delete/list -- only `retrieve`/`update` against
     a fixed path, so both hit the collection URL directly, not `_retrieve`/`_update`."""
 
     path = "/workspaces/{slug}/group-sync/config/"
     model = GroupSyncConfig
     operations = {
-        "get": "group_sync_config_retrieve",
+        "retrieve": "group_sync_config_retrieve",
         "update": "group_sync_config_update",
     }
 
-    def get(self, slug: str) -> GroupSyncConfig:
-        return self._retrieve_singleton(action="get", slug=slug)
+    def retrieve(self, slug: str) -> GroupSyncConfig:
+        return self._retrieve_singleton(action="retrieve", slug=slug)
 
     def update(self, slug: str, data: UpdateGroupSyncConfig) -> GroupSyncConfig:
         return self._update_singleton(data, action="update", slug=slug)
