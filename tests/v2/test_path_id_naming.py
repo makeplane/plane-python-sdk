@@ -50,9 +50,61 @@ from tests.v2.tree_walk import (
 
 MIGRATED = migrated_resource_classes()
 
-OPT_OUT_CEILING = 35
-"""The size of `UNMIGRATED_RESOURCES` when the enumeration landed. A ratchet: the
-list is the plan-4 backlog and may only shrink, so growing it fails here."""
+BASELINE_OPT_OUT = frozenset(
+    {
+        # wiki collections
+        "CollectionMembers",
+        "CollectionPages",
+        "Collections",
+        # customers
+        "CustomerPropertyValues",
+        "CustomerRequests",
+        "CustomerWorkItems",
+        "Customers",
+        # initiatives
+        "InitiativeLabels",
+        "InitiativeProjects",
+        "InitiativeWorkItems",
+        "Initiatives",
+        # automations (project and workspace flavours)
+        "ProjectAutomationActivities",
+        "ProjectAutomationEdges",
+        "ProjectAutomationNodes",
+        "ProjectAutomations",
+        "WorkspaceAutomationActivities",
+        "WorkspaceAutomationEdges",
+        "WorkspaceAutomationNodes",
+        "WorkspaceAutomations",
+        # the four release children that stayed behind when labels/tags migrated
+        "ReleaseChangelogResource",
+        "ReleaseComments",
+        "ReleaseLinks",
+        "ReleaseWorkItems",
+        # work item types and properties (both flavours)
+        "WorkItemProperties",
+        "WorkItemPropertyContexts",
+        "WorkItemPropertyOptions",
+        "WorkItemTypeProperties",
+        "WorkItemTypes",
+        "WorkspaceWorkItemProperties",
+        "WorkspaceWorkItemPropertyOptions",
+        "WorkspaceWorkItemTypeProperties",
+        "WorkspaceWorkItemTypes",
+        # workflows
+        "WorkflowStates",
+        "WorkflowTransitions",
+        "Workflows",
+    }
+)
+"""Exactly the 35 names `UNMIGRATED_RESOURCES` held when the enumeration landed.
+
+Membership, not size. The earlier guard pinned `len(UNMIGRATED_RESOURCES)` under a
+ceiling, and a ceiling -- or even an equality on the length -- still admits a swap:
+drop one name, add another, the count is unchanged and the sweep stays green while a
+brand-new class quietly opts itself out. Frozen as a set instead,
+`UNMIGRATED_RESOURCES <= BASELINE_OPT_OUT` forbids every addition, allows removals
+freely, and needs no constant lowered as plan 4 shrinks the list toward empty. When
+the list reaches empty, delete both."""
 
 
 def _singular(segment: str) -> str:
@@ -131,11 +183,17 @@ def test_the_sweep_covers_every_class_that_is_not_explicitly_opted_out() -> None
 
 
 def test_the_opt_out_list_only_shrinks() -> None:
-    assert len(UNMIGRATED_RESOURCES) <= OPT_OUT_CEILING, (
-        f"UNMIGRATED_RESOURCES has grown to {len(UNMIGRATED_RESOURCES)} (ceiling "
-        f"{OPT_OUT_CEILING}). It is the plan-4 backlog and may only shrink: a new "
-        "resource class is swept from the moment it exists. If a genuinely pre-flat "
-        "class was just added, lower it into shape instead of opting it out."
+    """A membership ratchet, not a size one: every name in `UNMIGRATED_RESOURCES`
+    must already be in the frozen baseline. Removing names is how the backlog gets
+    paid down and needs no edit here; adding one -- even in exchange for a name
+    dropped in the same commit, which a length check cannot see -- fails."""
+    added = sorted(UNMIGRATED_RESOURCES - BASELINE_OPT_OUT)
+
+    assert added == [], (
+        f"UNMIGRATED_RESOURCES has gained {added}. It is the plan-4 backlog and may "
+        "only shrink: a new resource class is swept from the moment it exists. If a "
+        "genuinely pre-flat class was just added, lower it into shape instead of "
+        "opting it out."
     )
 
 
