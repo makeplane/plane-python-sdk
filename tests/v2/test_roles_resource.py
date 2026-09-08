@@ -1,7 +1,10 @@
+import inspect
+
 import pytest
 import responses
 from responses import matchers
 
+from plane.api.v2._generated.constants import RolesListFilters
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.roles import Roles
 from plane.config import Configuration
@@ -191,3 +194,43 @@ def test_find_by_slug_with_namespace(roles: Roles) -> None:
 
     assert found.id == "1"
     assert responses.calls[0].request.url.startswith(f"{BASE}/")
+
+
+# -- The generated filter set, pinned ---------------------------------------------
+# `Roles.list`/`iterate` spell their filters out one by one instead of taking
+# `**filters: Unpack[RolesListFilters]`, because the golden's own `?slug=` role
+# filter collides by name with the leading path id `slug` (the workspace) and is
+# carried as `role_slug`. The cost of writing them out is that a regenerated
+# `constants.py` can add a fifth filter and it would silently be unreachable --
+# exactly the bug this batch fixed when `?slug=` itself turned out to be missing.
+# So the explicit set is pinned against the generated TypedDict.
+
+QUERY_OPTIONS = {"fields", "order_by", "per_page", "offset"}
+"""Not filters: the paging/shaping options every list method takes."""
+
+ALIASED_FILTERS = {"role_slug": "slug"}
+"""`role_slug` carries the golden's `?slug=` past the collision with the path id."""
+
+
+def _declared_filters(method: object) -> set[str]:
+    parameters = inspect.signature(method).parameters  # type: ignore[arg-type]
+    return {
+        ALIASED_FILTERS.get(name, name)
+        for name, parameter in parameters.items()
+        if parameter.kind is parameter.KEYWORD_ONLY and name not in QUERY_OPTIONS
+    }
+
+
+@pytest.mark.parametrize("method_name", ["list", "iterate"])
+def test_roles_spells_out_exactly_the_generated_filter_set(method_name: str) -> None:
+    generated = set(RolesListFilters.__annotations__)
+
+    declared = _declared_filters(getattr(Roles, method_name))
+
+    assert declared == generated, (
+        f"Roles.{method_name}() declares {sorted(declared)} but the golden offers "
+        f"{sorted(generated)}. A filter in `RolesListFilters` with no parameter here is "
+        "unreachable from the SDK; add it (aliasing it in ALIASED_FILTERS if its name "
+        "collides with the leading path id `slug`), or drop the parameter the golden no "
+        "longer offers."
+    )
