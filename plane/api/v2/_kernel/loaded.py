@@ -107,6 +107,16 @@ class Loaded:
                 raise AttributeError(name) from None
 
 
+def _is_resource(value: Any) -> bool:
+    """Is this a `V2Resource` instance -- i.e. a sub-resource rather than a method?
+
+    Imported lazily: `_kernel/resource.py` mixes in `LoadsNavigableRows` from this
+    module, so a module-level import would close the cycle."""
+    from .resource import V2Resource
+
+    return isinstance(value, V2Resource)
+
+
 class Owned(Generic[TResource]):
     """A child resource with its parent's path ids already supplied.
 
@@ -143,6 +153,31 @@ class Owned(Generic[TResource]):
         # the per-child view classes' declared methods instead.
         def __getattr__(self, name: str) -> Any:
             attribute = getattr(self._resource, name)
+            if _is_resource(attribute):
+                # A *sub-resource* of the child, e.g. `project.estimates.points`.
+                # `callable()` is False for one, so it used to fall through the
+                # branch below and be handed back raw: an unbound resource that
+                # looks perfectly usable and has silently dropped every id this
+                # `Owned` was carrying. `points.create(estimate_id, data)` then
+                # raises `MissingPathId` for a `slug` the caller had already
+                # supplied, and the same expression means two different things
+                # depending on how many arguments you pass it.
+                #
+                # Binding it here instead would work at runtime -- a sub-resource's
+                # leading path ids are its parent's, by URL nesting -- but it would
+                # be an *untyped* navigation hop, which the design rules out
+                # (CLAUDE.md, "Navigation must be typed, not `Any`"): the per-child
+                # view classes declare methods, not nested children, so a type
+                # checker sees nothing here. So it refuses and names both routes
+                # that are typed.
+                raise AttributeError(
+                    f"{type(self._resource).__name__}.{name} is a sub-resource, not a "
+                    f"method, and reaching it through a bound {type(self).__name__} "
+                    f"would drop the ids {self._ids!r} this row already carries.\n"
+                    f"Use the flat path, which takes every id explicitly "
+                    f"(`client.v2.workspaces...{name}.list(...)`), or fetch the row in "
+                    f"between and navigate from it -- that is the hop that is typed."
+                )
             if not callable(attribute):
                 return attribute
 
