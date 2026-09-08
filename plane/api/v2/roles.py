@@ -6,15 +6,8 @@ from __future__ import annotations
 from collections.abc import Iterator, Sequence
 from typing import Any
 
-from typing_extensions import Unpack
-
 from ...models.v2.roles import Role
-from ._generated.constants import (
-    RolesListField,
-    RolesListFilters,
-    RolesListOrderBy,
-    RolesRetrieveField,
-)
+from ._generated.constants import RolesListField, RolesListOrderBy, RolesRetrieveField
 from ._kernel.errors import MultipleMatchesFound, NoMatchFound
 from ._kernel.pagination import Page
 from ._kernel.resource import V2Resource
@@ -28,7 +21,7 @@ class Roles(V2Resource[Role, Role, Role]):
         "retrieve": "roles_retrieve",
     }
 
-    def list(  # type: ignore[misc]
+    def list(
         self,
         slug: str,
         *,
@@ -36,35 +29,52 @@ class Roles(V2Resource[Role, Role, Role]):
         order_by: RolesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
-        **filters: Unpack[RolesListFilters],
+        namespace: str | None = None,
+        is_system: bool | None = None,
+        search: str | None = None,
+        role_slug: str | None = None,
     ) -> Page[Role]:
-        """One page of roles. `**filters` covers the golden's query filters
-        directly, e.g. `namespace="workspace"`, `is_system=True`, `search="admin"`.
-        The golden's own `?slug=` filter (the role's slug) is not reachable here --
-        `slug` already names the workspace, the leading path id -- use
-        `find_by_slug` instead."""
+        """One page of roles. `RolesListFilters` has only four keys -- `namespace`,
+        `is_system`, `search`, and `slug` -- declared here explicitly (rather than
+        `**filters: Unpack[RolesListFilters]`) because that last one, the golden's
+        own `?slug=` role filter, collides by name with the leading path id `slug`
+        (the workspace). `role_slug` carries it through to the `slug` query key."""
         return self._list(
             params={
                 "fields": fields,
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
-                **filters,
+                "namespace": namespace,
+                "is_system": is_system,
+                "search": search,
+                "slug": role_slug,
             },
             slug=slug,
         )
 
-    def iterate(  # type: ignore[misc]
+    def iterate(
         self,
         slug: str,
         *,
         fields: Sequence[RolesListField] | None = None,
         order_by: RolesListOrderBy | None = None,
-        **filters: Unpack[RolesListFilters],
+        namespace: str | None = None,
+        is_system: bool | None = None,
+        search: str | None = None,
+        role_slug: str | None = None,
     ) -> Iterator[Role]:
-        """Every role, following pages automatically."""
+        """Every role, following pages automatically. See `list` for why the
+        filters are named explicitly rather than `**filters`."""
         return self._iter(
-            params={"fields": fields, "order_by": order_by, **filters},
+            params={
+                "fields": fields,
+                "order_by": order_by,
+                "namespace": namespace,
+                "is_system": is_system,
+                "search": search,
+                "slug": role_slug,
+            },
             slug=slug,
         )
 
@@ -75,8 +85,10 @@ class Roles(V2Resource[Role, Role, Role]):
 
     def find_by_name(self, slug: str, name: str, *, namespace: str | None = None) -> Role:
         """The one role with this name; raises if none or several match. Filters
-        client-side (no `?name=`); names are unique only *within* a namespace, so
-        pass `namespace` or expect `MultipleMatchesFound`."""
+        client-side: the golden's `roles_list` has no `?name=` query param (its
+        filters are `is_system`, `namespace`, `search`, `slug` -- no `name`), so
+        there is no server-side way to ask for this. Names are unique only *within*
+        a namespace, so pass `namespace` or expect `MultipleMatchesFound`."""
         filters: dict[str, Any] = {"namespace": namespace} if namespace else {}
         matches = [row for row in self.iterate(slug, **filters) if row.name == name]
         if not matches:
@@ -90,8 +102,10 @@ class Roles(V2Resource[Role, Role, Role]):
 
     def find_by_slug(self, slug: str, role_slug: str, *, namespace: str | None = None) -> Role:
         """The one role with this slug in the workspace; raises if none or several
-        match. Slugs are unique only within a namespace, so pass `namespace` or
-        expect `MultipleMatchesFound`. `slug` is the workspace; `role_slug` is the role."""
+        match. Server-side via the golden's `?slug=` filter on `roles_list` -- one
+        request, not a client-side scan. Slugs are unique only within a namespace,
+        so pass `namespace` or expect `MultipleMatchesFound`. `slug` is the
+        workspace; `role_slug` is the role."""
         filters: dict[str, Any] = {"slug": role_slug}
         if namespace is not None:
             filters["namespace"] = namespace

@@ -74,6 +74,33 @@ def test_list_per_page_and_offset_reach_the_query_string(roles: Roles) -> None:
 
 
 @responses.activate
+def test_list_role_slug_filter_reaches_the_golden_slug_query_param(roles: Roles) -> None:
+    """`role_slug` is the way to reach the golden's own `?slug=` role filter from
+    `list()`, since the leading path id already claims the keyword `slug` for the
+    workspace."""
+    responses.get(
+        f"{BASE}/",
+        json={"data": [{"id": "1", "slug": "admin"}], "pagination": {"style": "offset"}},
+    )
+
+    roles.list("acme", role_slug="admin")
+
+    assert "slug=admin" in responses.calls[0].request.url
+
+
+@responses.activate
+def test_list_namespace_is_system_and_search_reach_the_query_string(roles: Roles) -> None:
+    responses.get(f"{BASE}/", json={"data": [], "pagination": {"style": "offset"}})
+
+    roles.list("acme", namespace="workspace", is_system=True, search="admin")
+
+    request_url = responses.calls[0].request.url
+    assert "namespace=workspace" in request_url
+    assert "is_system=True" in request_url
+    assert "search=admin" in request_url
+
+
+@responses.activate
 def test_iterate_takes_the_workspace_slug(roles: Roles) -> None:
     responses.get(
         f"{BASE}/",
