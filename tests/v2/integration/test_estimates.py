@@ -17,7 +17,7 @@ from typing import Any
 
 import pytest
 
-from plane.api.v2 import LoadedProject, PlaneAPIError
+from plane.api.v2 import FieldNotRequested, LoadedProject, PlaneAPIError
 from plane.models.v2.estimates import (
     CreateEstimate,
     CreateEstimatePoint,
@@ -61,10 +61,16 @@ class TestEstimatesCrud:
             project.estimates.retrieve(created.id)
         assert exc_info.value.status == 404
 
-    def test_sparse_fields_leave_others_none(self, project: LoadedProject, estimate: Any) -> None:
+    def test_sparse_fields_hide_the_rest(self, project: LoadedProject, estimate: Any) -> None:
+        """A field left out of `fields=` is absent, not `None`: reading `created_at`
+        raises and the message names the fields the server did return."""
         fetched = project.estimates.retrieve(estimate.id, fields=["id", "name"])
         assert fetched.id == estimate.id
-        assert fetched.created_at is None
+        assert fetched.name == estimate.name
+        with pytest.raises(FieldNotRequested) as exc_info:
+            _ = fetched.created_at
+        assert "LoadedEstimate.created_at" in str(exc_info.value)
+        assert "['id', 'name']" in str(exc_info.value)
 
 
 class TestEstimatesUpsert:

@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from plane.api.v2 import LoadedProject, LoadedWorkspace, PlaneAPIError
+from plane.api.v2 import FieldNotRequested, LoadedProject, LoadedWorkspace, PlaneAPIError
 from plane.client import PlaneClient
 from plane.models.v2.automations import (
     CreateAutomation,
@@ -108,9 +108,16 @@ class TestProjectAutomationsCrud:
     def test_retrieve_with_fields_is_sparse(
         self, project: LoadedProject, project_automation: Any
     ) -> None:
+        """`fields=` narrows the row to what was asked for. `scope` was not, so the
+        loaded row raises on it -- and says what the server did return -- rather than
+        reading as `None`, which would be indistinguishable from an empty scope."""
         fetched = project.automations.retrieve(project_automation.id, fields=["id", "name"])
         assert fetched.id == project_automation.id
-        assert fetched.scope is None
+        assert fetched.name == project_automation.name
+        with pytest.raises(FieldNotRequested) as exc_info:
+            _ = fetched.scope
+        assert "LoadedProjectAutomation.scope" in str(exc_info.value)
+        assert "['id', 'name']" in str(exc_info.value)
 
     def test_find_by_name(self, project: LoadedProject, project_automation: Any) -> None:
         found = project.automations.find_by_name(project_automation.name)

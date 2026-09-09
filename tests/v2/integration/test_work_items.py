@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 
-from plane.api.v2 import LoadedProject, PlaneAPIError
+from plane.api.v2 import FieldNotRequested, LoadedProject, PlaneAPIError
 from plane.client import PlaneClient
 from plane.models.v2.common import OffsetPage
 from plane.models.v2.work_items import CreateWorkItem, UpdateWorkItem
@@ -82,9 +82,16 @@ class TestCRUD:
 
 class TestFieldsAndExpand:
     def test_fields_returns_a_sparse_row(self, project: LoadedProject, work_item: Any) -> None:
+        """Only `id` and `name` come back. `priority` has a real server-side default,
+        so reading it as `None` would look like data -- the loaded row raises instead
+        and names what the server returned."""
         fetched = project.work_items.retrieve(work_item.id, fields=["id", "name"])
         assert fetched.id == work_item.id
-        assert fetched.priority is None
+        assert fetched.name == work_item.name
+        with pytest.raises(FieldNotRequested) as exc_info:
+            _ = fetched.priority
+        assert "LoadedWorkItem.priority" in str(exc_info.value)
+        assert "['id', 'name']" in str(exc_info.value)
 
     def test_expand_state_adds_the_embedded_object(
         self, project: LoadedProject, work_item: Any
