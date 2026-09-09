@@ -91,9 +91,7 @@ def test_create_fields_reach_the_query_string(webhooks: Webhooks) -> None:
         status=201,
     )
 
-    webhooks.create(
-        "acme", CreateWebhook(url="https://example.com/hook"), fields=["id", "name"]
-    )
+    webhooks.create("acme", CreateWebhook(url="https://example.com/hook"), fields=["id", "name"])
 
     assert "fields=id%2Cname" in responses.calls[0].request.url
 

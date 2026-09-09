@@ -361,6 +361,5 @@ def test_the_opt_out_list_is_empty() -> None:
     from tests.v2.tree_walk import UNMIGRATED_RESOURCES
 
     assert UNMIGRATED_RESOURCES == frozenset(), (
-        f"{len(UNMIGRATED_RESOURCES)} classes remain unmigrated: "
-        f"{sorted(UNMIGRATED_RESOURCES)}"
+        f"{len(UNMIGRATED_RESOURCES)} classes remain unmigrated: " f"{sorted(UNMIGRATED_RESOURCES)}"
     )
