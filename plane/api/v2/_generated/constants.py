@@ -1,5 +1,5 @@
 """Generated from the api_v2 OpenAPI golden (version 2.0.0) -- never hand-edited.
-Source: ../plane-ee-preview/apps/api/plane/api_v2/core/schema/openapi
+Source: ../plane-ee/apps/api/plane/api_v2/core/schema/openapi
 Regenerate: python scripts/generate_v2_constants.py <path-to>/api_v2/core/schema/openapi"""
 
 from collections.abc import Sequence
