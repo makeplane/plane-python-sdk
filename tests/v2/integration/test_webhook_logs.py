@@ -5,14 +5,13 @@ fixture setup rather than at the assertion."""
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any
 
 import pytest
 
 from plane.api.v2._kernel.errors import PlaneAPIError
 from plane.api.v2.webhook_logs import WebhookLogs
 from plane.client import PlaneClient
-from plane.models.v2.webhooks import CreateWebhook
+from plane.models.v2.webhooks import CreateWebhook, WebhookCreateResult
 
 
 @pytest.fixture
@@ -21,7 +20,7 @@ def webhook_logs(client: PlaneClient) -> WebhookLogs:
 
 
 @pytest.fixture
-def webhook(client: PlaneClient, workspace_slug: str) -> Iterator[Any]:
+def webhook(client: PlaneClient, workspace_slug: str) -> Iterator[WebhookCreateResult]:
     """A throwaway webhook, through `Webhooks.create` -- it used to hand-roll
     `transport.request`, which skipped the kernel's query validation and left this
     fixture's request path untested along with everything else here."""
@@ -45,10 +44,10 @@ def webhook(client: PlaneClient, workspace_slug: str) -> Iterator[Any]:
 
 class TestWebhookLogs:
     def test_list_on_a_fresh_webhook_is_empty(
-        self, webhook_logs: WebhookLogs, webhook: dict[str, Any], workspace_slug: str
+        self, webhook_logs: WebhookLogs, webhook: WebhookCreateResult, workspace_slug: str
     ) -> None:
         """No deliveries have happened yet -- an empty page, not an error."""
-        page = webhook_logs.list(workspace_slug, str(webhook["id"]))
+        page = webhook_logs.list(workspace_slug, webhook.id)
         assert page.data == []
 
     def test_list_for_a_webhook_in_another_workspace_is_404(
