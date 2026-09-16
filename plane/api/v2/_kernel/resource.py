@@ -1,0 +1,486 @@
+"""Generic CRUD kernel. A resource declares a path and a model; the kernel does the rest."""
+
+from __future__ import annotations
+
+from collections.abc import Iterator, Mapping, Sequence
+from typing import Any, ClassVar, Generic, TypeVar
+from urllib.parse import quote
+
+from pydantic import BaseModel
+
+from ....models.v2.common import BulkWriteResponse
+from .._generated.constants import BULK_MAX_ITEMS, EXPAND, FIELDS, ORDER_BY
+from .errors import MissingPathId, MultipleMatchesFound, NoMatchFound
+from .pagination import Page, iterate, parse_page
+from .transport import V2Transport
+
+TModel = TypeVar("TModel", bound=BaseModel)
+"""Any pydantic model, used where a method answers with something other than the
+resource's own `model` (`_custom_action`)."""
+
+TRead = TypeVar("TRead", bound=BaseModel)
+TWrite = TypeVar("TWrite", bound=BaseModel)
+TPatch = TypeVar("TPatch", bound=BaseModel)
+
+BRIDGE_MAX_IDS = 100
+"""Per-call id cap on membership bridges (`.../{parent}/work-items/` and friends): the
+golden's manage schemas cap `add`/`remove` at 100 ids each."""
+
+_BRIDGE_RESULT_KEYS = {"add": "added", "remove": "removed"}
+
+
+def encode_fields(operation_id: str, fields: Any) -> str:
+    """`["id", "name"]` -> `"id,name"`, rejecting names the operation does not offer."""
+    if isinstance(fields, str):
+        requested = [part.strip() for part in fields.split(",") if part.strip()]
+    else:
+        requested = [str(part) for part in fields]
+    allowed = FIELDS.get(operation_id)
+    if allowed is not None:
+        unknown = [name for name in requested if name not in allowed]
+        if unknown:
+            raise ValueError(
+                f"Unknown field(s) for {operation_id}: {', '.join(unknown)}. "
+                f"Allowed: {', '.join(sorted(allowed))}."
+            )
+    return ",".join(requested)
+
+
+def encode_expand(operation_id: str, expand: Any) -> str:
+    """`["state", "labels"]` -> `"state,labels"`, rejecting relations the operation
+    does not expand (same shape as `encode_fields`, per-operation enum)."""
+    if isinstance(expand, str):
+        requested = [part.strip() for part in expand.split(",") if part.strip()]
+    else:
+        requested = [str(part) for part in expand]
+    allowed = EXPAND.get(operation_id)
+    if allowed is not None:
+        unknown = [name for name in requested if name not in allowed]
+        if unknown:
+            raise ValueError(
+                f"Unknown expand value(s) for {operation_id}: {', '.join(unknown)}. "
+                f"Allowed: {', '.join(sorted(allowed))}."
+            )
+    return ",".join(requested)
+
+
+class V2Resource(Generic[TRead, TWrite, TPatch]):
+    """Base for every api_v2 resource; subclasses set `path`, `model`, and `operations`
+    (action name -> operationId, for `?fields=`/`?expand=` validation)."""
+
+    path: ClassVar[str]
+    model: ClassVar[type[BaseModel]]
+    operations: ClassVar[dict[str, str]]
+    extra_paths: ClassVar[dict[str, str]] = {}
+    """Per-method override templates: a method name that POSTs (or otherwise builds
+    its URL) somewhere other than `path` (a catalog resource like release labels
+    bridges `add`/`remove` at `.../releases/{release_id}/labels/`, not its own
+    `.../releases/labels/`)."""
+
+    def __init__(self, transport: V2Transport) -> None:
+        self.transport = transport
+
+    # URL + params
+    def _format_path(self, template: str, action: str, /, **path_params: Any) -> str:
+        """Fill `template` from `path_params`, percent-encoding each value; `safe=""`
+        stops a value from injecting extra URL segments.
+
+        A path id the call never supplied is the first failure most callers hit --
+        reaching a resource whose flat migration is still pending, or forgetting a
+        leading id on the flat path. `str.format_map` would report that as a bare
+        `KeyError('project_id')`, naming the template key and nothing else, so it is
+        re-raised as `MissingPathId` naming the resource, the method, the template,
+        the id that is missing and the ids that were supplied."""
+        try:
+            return template.format_map(
+                {key: quote(str(value), safe="") for key, value in path_params.items()}
+            )
+        except KeyError as missing:
+            name = missing.args[0]
+            supplied = ", ".join(sorted(path_params)) or "none"
+            raise MissingPathId(
+                f"{type(self).__name__}.{action}() needs the path id {name!r}, which "
+                f"was not supplied. The URL template is {template!r}; ids supplied: "
+                f"{supplied}. Pass every path id the template names, in path order."
+            ) from None
+
+    def url_for(self, method: str, **path_params: Any) -> str:
+        """The URL for `method`: its override template if it declares one, else `path`.
+
+        Guards at the point of harm, not at import: a subclass that still declares the
+        retired `bridge_path` (pre-Task-5) would otherwise silently build the wrong URL
+        here, so this raises the moment that would happen instead."""
+        if hasattr(self, "bridge_path"):
+            raise TypeError(
+                f"{type(self).__name__} declares 'bridge_path', which V2Resource no "
+                "longer reads (Task 5 replaced it with per-method 'extra_paths' "
+                'overrides). Set `extra_paths = {"add": "...", "remove": "..."}` '
+                "instead."
+            )
+        return self._format_path(self.extra_paths.get(method, self.path), method, **path_params)
+
+    def _collection_url(self, action: str = "<call>", /, **path_params: Any) -> str:
+        """Build the collection URL, percent-encoding every path param.
+
+        `action` is the calling method's name; it is positional-only so it can never
+        collide with a path param, and only feeds the `MissingPathId` message."""
+        return self._format_path(self.path, action, **path_params)
+
+    def _detail_url(self, pk: Any, action: str = "<call>", /, **path_params: Any) -> str:
+        base = self._collection_url(action, **path_params)
+        return f"{base}{quote(str(pk), safe='')}/"
+
+    def _query(self, params: Mapping[str, Any] | None, *, action: str) -> dict[str, Any]:
+        """Drop Nones, join list values, and validate `fields`/`expand`/`order_by`
+        against the golden, keyed by `action`'s own operationId."""
+        prepared: dict[str, Any] = {}
+        operation_id = self.operations.get(action)
+        for key, value in (params or {}).items():
+            if value is None:
+                continue
+            if key == "fields":
+                if operation_id is None:
+                    raise ValueError(
+                        f"{type(self).__name__}.operations has no entry for {action!r}; "
+                        "cannot validate `fields` for this action."
+                    )
+                prepared[key] = encode_fields(operation_id, value)
+            elif key == "expand":
+                if operation_id is None:
+                    raise ValueError(
+                        f"{type(self).__name__}.operations has no entry for {action!r}; "
+                        "cannot validate `expand` for this action."
+                    )
+                prepared[key] = encode_expand(operation_id, value)
+            elif key == "order_by":
+                allowed = ORDER_BY.get(operation_id) if operation_id is not None else None
+                if isinstance(value, list | tuple | set):
+                    requested = [str(item) for item in value]
+                    if allowed:
+                        unknown = [item for item in requested if item not in allowed]
+                        if unknown:
+                            raise ValueError(
+                                f"Unknown order_by {', '.join(unknown)} for {operation_id}. "
+                                f"Allowed: {', '.join(sorted(allowed))}."
+                            )
+                    prepared[key] = ",".join(requested)
+                else:
+                    if allowed and value not in allowed:
+                        raise ValueError(
+                            f"Unknown order_by {value!r} for {operation_id}. "
+                            f"Allowed: {', '.join(sorted(allowed))}."
+                        )
+                    prepared[key] = value
+            elif isinstance(value, list | tuple | set):
+                prepared[key] = ",".join(str(item) for item in value)
+            else:
+                prepared[key] = value
+        return prepared
+
+    # Actions
+    def _list(self, *, params: Mapping[str, Any] | None = None, **path_params: Any) -> Page[TRead]:
+        payload = self.transport.request(
+            "GET",
+            self._collection_url("list", **path_params),
+            params=self._query(params, action="list"),
+        )
+        return parse_page(payload, self.model)  # type: ignore[arg-type]
+
+    def _iter(
+        self, *, params: Mapping[str, Any] | None = None, **path_params: Any
+    ) -> Iterator[TRead]:
+        url = self._collection_url("iterate", **path_params)
+
+        def fetch(query: dict[str, Any]) -> Page[TRead]:
+            payload = self.transport.request("GET", url, params=query)
+            return parse_page(payload, self.model)  # type: ignore[arg-type]
+
+        return iterate(fetch, self._query(params, action="list"))
+
+    def _retrieve(
+        self, *, pk: Any, params: Mapping[str, Any] | None = None, **path_params: Any
+    ) -> TRead:
+        payload = self.transport.request(
+            "GET",
+            self._detail_url(pk, "retrieve", **path_params),
+            params=self._query(params, action="retrieve"),
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _create(
+        self, data: TWrite, *, params: Mapping[str, Any] | None = None, **path_params: Any
+    ) -> TRead:
+        payload = self.transport.request(
+            "POST",
+            self._collection_url("create", **path_params),
+            params=self._query(params, action="create"),
+            json=data.model_dump(mode="json", exclude_none=True),
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _update(
+        self, data: TPatch, *, pk: Any, params: Mapping[str, Any] | None = None, **path_params: Any
+    ) -> TRead:
+        payload = self.transport.request(
+            "PATCH",
+            self._detail_url(pk, "update", **path_params),
+            params=self._query(params, action="update"),
+            json=data.model_dump(mode="json", exclude_none=True),
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _delete(self, *, pk: Any, **path_params: Any) -> None:
+        self.transport.request("DELETE", self._detail_url(pk, "delete", **path_params))
+        return None
+
+    def _upsert(
+        self, data: TWrite, *, params: Mapping[str, Any] | None = None, **path_params: Any
+    ) -> TRead:
+        """Create, or reconcile an existing row on (external_source, external_id)."""
+        payload = self.transport.request(
+            "POST",
+            f"{self._collection_url('upsert', **path_params)}upsert/",
+            params=self._query(params, action="upsert"),
+            json=data.model_dump(mode="json", exclude_none=True),
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _custom_request(
+        self,
+        action: str,
+        *,
+        method: str = "POST",
+        pk: Any | None = None,
+        data: BaseModel | None = None,
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> Any:
+        """The shared body of a custom action whose *response envelope* is not the
+        resource's own `model` -- so `_action`/`_void_action`/`_upsert` cannot be used
+        -- returning the raw payload for the caller to parse.
+
+        Four such actions grew near-identical hand-rolled `transport.request` blocks
+        (`artifacts.publish`/`update`, `invitations.bulk`, `members.remove`,
+        `work_items.retrieve_by_identifier`); 59 more resources are about to be
+        migrated from the same exemplars, so the block lives here once instead.
+
+        Two URL shapes, matching the two that occur: with `pk`, the verb hangs off a
+        row (`{detail_url}{action}/`, exactly `_action`'s URL); without it, the action
+        has a template of its own and goes through `url_for`, which fills its
+        `extra_paths` override or falls back to `path`. Either way `action` keys
+        `operations` for `fields`/`expand` validation, so the query string is checked
+        against the golden the same as any other call.
+
+        Prefer `_action` (or `_void_action`) whenever the response *is* a row of this
+        resource's `model`; this is only for the envelopes that are not."""
+        url = (
+            self.url_for(action, **path_params)
+            if pk is None
+            else f"{self._detail_url(pk, action, **path_params)}{action}/"
+        )
+        return self.transport.request(
+            method,
+            url,
+            params=self._query(params, action=action),
+            json=data.model_dump(mode="json", exclude_none=True) if data is not None else None,
+        )
+
+    def _custom_action(
+        self,
+        action: str,
+        *,
+        model: type[TModel],
+        method: str = "POST",
+        pk: Any | None = None,
+        data: BaseModel | None = None,
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> TModel:
+        """`_custom_request`, parsed as `model` -- the arbitrary-envelope twin of
+        `_action`. `model` is explicit precisely because it is *not* `self.model`."""
+        return model.model_validate(
+            self._custom_request(
+                action, method=method, pk=pk, data=data, params=params, **path_params
+            )
+        )
+
+    def _custom_action_list(
+        self,
+        action: str,
+        *,
+        model: type[TModel],
+        method: str = "POST",
+        pk: Any | None = None,
+        data: BaseModel | None = None,
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> list[TModel]:
+        """`_custom_request` for an action answering a bare JSON array rather than a
+        paginated envelope. A lone object is tolerated as a one-row array: the golden
+        types these as arrays, and a server that answers one object for a one-item
+        request should not raise a validation error."""
+        payload = self._custom_request(
+            action, method=method, pk=pk, data=data, params=params, **path_params
+        )
+        rows = payload if isinstance(payload, list) else [payload]
+        return [model.model_validate(row) for row in rows]
+
+    def _action(
+        self,
+        name: str,
+        *,
+        pk: Any,
+        data: BaseModel | None = None,
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> TRead:
+        """POST a custom single-row verb action (`{detail_url}{name}/`), parsing the
+        row as `model`; `name` also keys `operations` for `fields`/`expand` validation."""
+        payload = self.transport.request(
+            "POST",
+            f"{self._detail_url(pk, name, **path_params)}{name}/",
+            params=self._query(params, action=name),
+            json=data.model_dump(mode="json", exclude_none=True) if data is not None else None,
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    # Singletons and void actions
+    def _retrieve_singleton(
+        self,
+        *,
+        action: str = "retrieve",
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> TRead:
+        """GET a route whose row *is* the collection -- a workspace (the slug is the
+        key), a feature-toggle set. No pk to append, so this goes through `url_for`
+        rather than `_detail_url`."""
+        payload = self.transport.request(
+            "GET",
+            self.url_for(action, **path_params),
+            params=self._query(params, action=action),
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _update_singleton(
+        self,
+        data: BaseModel,
+        *,
+        action: str = "update",
+        params: Mapping[str, Any] | None = None,
+        **path_params: Any,
+    ) -> TRead:
+        """PATCH the counterpart of `_retrieve_singleton`."""
+        payload = self.transport.request(
+            "PATCH",
+            self.url_for(action, **path_params),
+            params=self._query(params, action=action),
+            json=data.model_dump(mode="json", exclude_none=True),
+        )
+        return self.model.model_validate(payload)  # type: ignore[return-value]
+
+    def _void_action(
+        self, name: str, *, pk: Any, data: BaseModel | None = None, **path_params: Any
+    ) -> None:
+        """POST a single-row verb action that answers 204 with no body -- the
+        no-response-model twin of `_action`."""
+        self.transport.request(
+            "POST",
+            f"{self._detail_url(pk, name, **path_params)}{name}/",
+            json=data.model_dump(mode="json", exclude_none=True) if data is not None else None,
+        )
+        return None
+
+    def _batch(self, action: str, body: dict[str, Any], **path_params: Any) -> BulkWriteResponse:
+        payload = self.transport.request(
+            "POST", f"{self._collection_url(action, **path_params)}{action}/", json=body
+        )
+        return BulkWriteResponse.model_validate(payload)
+
+    @staticmethod
+    def _check_cap(count: int, *, empty_detail: str) -> None:
+        """Reject an empty or over-cap batch before it reaches the wire.
+
+        `empty_detail` echoes the API's own per-endpoint wording for the empty case."""
+        if count == 0:
+            raise ValueError(empty_detail)
+        if count > BULK_MAX_ITEMS:
+            raise ValueError(f"At most {BULK_MAX_ITEMS} items per call (received {count}).")
+
+    def _bulk_create(
+        self, items: list[TWrite], *, all_or_none: bool = False, **path_params: Any
+    ) -> BulkWriteResponse:
+        self._check_cap(len(items), empty_detail="Provide a non-empty list of write bodies.")
+        return self._batch(
+            "bulk-create",
+            {
+                "items": [item.model_dump(mode="json", exclude_none=True) for item in items],
+                "all_or_none": all_or_none,
+            },
+            **path_params,
+        )
+
+    def _bulk_update(
+        self, items: list[Mapping[str, Any]], *, all_or_none: bool = False, **path_params: Any
+    ) -> BulkWriteResponse:
+        """Each item is `{"id": <uuid>, ...fields to change}`. Human keys are rejected."""
+        self._check_cap(
+            len(items), empty_detail="Provide a non-empty list of write bodies, each with an id."
+        )
+        return self._batch(
+            "bulk-update",
+            {"items": [dict(item) for item in items], "all_or_none": all_or_none},
+            **path_params,
+        )
+
+    def _bulk_delete(
+        self, ids: list[str], *, all_or_none: bool = False, **path_params: Any
+    ) -> BulkWriteResponse:
+        self._check_cap(len(ids), empty_detail="Provide a non-empty list of ids.")
+        return self._batch(
+            "bulk-delete", {"ids": list(ids), "all_or_none": all_or_none}, **path_params
+        )
+
+    def _bridge(self, *, key: str, ids: Sequence[Any], **path_params: Any) -> list[str]:
+        """One side of a membership bridge: POST `{key: [...]}` (`key` is `"add"` or
+        `"remove"`) to `url_for(key, ...)` (its `extra_paths` override, or `path`) and
+        return the ids the server reports as actually changed -- `added` for `add`,
+        `removed` for `remove`, `[]` when the key is absent. Entries may be plain ids
+        or pydantic rows (serialized with `exclude_none`). 0 or more than
+        `BRIDGE_MAX_IDS` entries raise `ValueError` before any request is sent."""
+        try:
+            result_key = _BRIDGE_RESULT_KEYS[key]
+        except KeyError:
+            raise ValueError(f"Bridge key must be 'add' or 'remove', not {key!r}.") from None
+        entries = list(ids)
+        if not entries:
+            raise ValueError(f"Provide at least one id to {key}.")
+        if len(entries) > BRIDGE_MAX_IDS:
+            raise ValueError(f"At most {BRIDGE_MAX_IDS} ids per call (received {len(entries)}).")
+        body = [
+            (
+                entry.model_dump(mode="json", exclude_none=True)
+                if isinstance(entry, BaseModel)
+                else entry
+            )
+            for entry in entries
+        ]
+        url = self.url_for(key, **path_params)
+        payload = self.transport.request("POST", url, json={key: body})
+        return list(payload.get(result_key) or [])
+
+    def _find_one(self, *, filters: Mapping[str, Any], **path_params: Any) -> TRead:
+        """Resolve exactly one row by identity filter, or raise.
+
+        Requests `per_page=2` to distinguish "no match" from "ambiguous" in one call."""
+        page = self._list(params={**filters, "per_page": 2, "count": False}, **path_params)
+        described = ", ".join(f"{key}={value!r}" for key, value in filters.items())
+        if not page.data:
+            raise NoMatchFound(f"No {type(self).__name__} matched {described}.")
+        if len(page.data) > 1:
+            raise MultipleMatchesFound(
+                f"Multiple rows matched {described}; "
+                f"use the id instead, or list with the "
+                f"same filter to see every match."
+            )
+        return page.data[0]

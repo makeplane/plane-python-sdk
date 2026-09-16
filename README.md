@@ -196,6 +196,292 @@ work_items = client.work_items.list(
 )
 ```
 
+## API v2
+
+`client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
+
+The v2 surface is complete: every one of the 90 `V2Resource` subclasses in the
+package (`tests/v2/tree_walk.py`'s `all_resource_classes()`, the enumeration the
+test suite itself sweeps) is on the flat shape described below and reachable
+through `client.v2`. Counting resources means not counting grouping nodes:
+`wiki` and `group_sync` hold no `V2Resource` base, `path` or `operations` of
+their own — they only group children (`wiki.pages`, `wiki.collections`,
+`group_sync.config`) — and are outside the 90.
+
+Wired directly on `client.v2.workspaces`: `artifacts`, `assets`, `audit_logs`,
+`automations`, `customer_properties`, `customers`, `features`, `initiatives`,
+`invitations`, `members`, `permission_schemes`, `permissions`, `projects`,
+`releases` (`.labels`, `.tags`, `.comments`, `.links`, `.changelog`,
+`.work_items`), `roles`, `stickies`, `teamspaces`, `views`, `webhooks` (with
+`.logs`), `work_item_properties`, `work_item_relation_definitions`,
+`work_item_templates`, `work_item_types`, and `work_items` (a distinct,
+workspace-wide, list-only resource, not to be confused with the project-scoped
+`client.v2.workspaces.projects.work_items` below), plus the grouping nodes
+`wiki` (`.pages`, `.collections`) and `group_sync` (`.config`,
+`.project_mappings`, `.workspace_mappings`). Each takes the workspace slug as
+its leading argument, e.g. `client.v2.workspaces.roles.list("acme")` or
+`client.v2.workspaces.group_sync.config.retrieve("acme")`.
+
+The whole project band is wired onto `client.v2.workspaces.projects`: `states`,
+`labels`, `work_items`, `cycles`, `milestones`, `modules`, `estimates`,
+`intakes`, `members`, `views`, `features`, `permissions`, `work_item_templates`,
+`worklogs`, `pages`, `automations`, `work_item_properties`, `work_item_types`
+and `workflows`.
+
+Two of these are worth calling out because they surprise people:
+
+- `client.v2.workspaces.roles.list("acme", role_slug="admin")` — the workspace
+  slug is the positional argument; the *role's* own slug filter is `role_slug`,
+  spelled out rather than folded into `**filters`, because the two would
+  otherwise collide.
+- `client.v2.workspaces.group_sync.project_mappings` is workspace-level despite
+  the name — it takes only the workspace slug, no project.
+
+The bound-locator chain from earlier releases (`client.v2.workspace(slug).project(key)`)
+is **gone**. There are two ways to reach a resource now:
+
+### 1. The flat path
+
+A static tree, reached by plain attribute access. Read it left to right: every
+segment that names an actual resource consumes one URL path id (a workspace slug,
+a project key, a work item identifier, ...); a segment that only *groups* children
+(`wiki`) consumes none.
+
+```python
+from plane import PlaneClient
+from plane.models.v2 import CreateState
+
+client = PlaneClient(base_url="https://api.plane.so", api_key="...")
+
+client.v2.users.me()
+client.v2.workspaces.retrieve("acme")
+client.v2.workspaces.projects.states.list("acme", "ENG", fields=["id", "name"])
+client.v2.workspaces.projects.work_items.comments.list("acme", "ENG", "ENG-12")
+client.v2.workspaces.wiki.pages.list("acme")   # `wiki` groups, consumes no id
+client.v2.workspaces.features.retrieve("acme")      # singleton: no primary key at all
+
+client.v2.workspaces.projects.states.create(
+    "acme", "ENG", CreateState(name="In Review", color="#4ECDC4")
+)
+```
+
+Path ids are plain positional-or-keyword parameters, so they can be passed by
+keyword too — handy when a call's own arguments would otherwise read ambiguously:
+
+```python
+client.v2.workspaces.projects.states.list(slug="acme", project="ENG")
+```
+
+### 2. Loaded rows
+
+A resource with children (`projects`, `work_items`, `cycles`, `milestones`,
+`modules`, `estimates`, `webhooks`, `collections`, `customers`, `initiatives`,
+`releases`, `work_item_types`, `work_item_properties`, `automations` and
+`workflows` — 18 of the 90 classes, some families having a separate
+project-scoped and workspace-scoped resource, each independently navigable)
+doesn't just hand back a bare pydantic model from `retrieve`/`list`/`iterate` —
+it hands back a row that carries its own data *and* already knows where it
+lives, so the row's own children are reached with none of the ids repeated:
+
+```python
+p = client.v2.workspaces.projects.retrieve("acme", "ENG")
+p.name
+p.states.list()                                    # no "acme", "ENG" to repeat
+item = p.work_items.retrieve("ENG-12")
+item.comments.list()                                # same, one level deeper
+```
+
+Membership bridges hang off a loaded row the same way. A fetched cycle reaches
+its own work-item membership without repeating `"acme"`, `"ENG"` or the cycle's
+own id:
+
+```python
+cycle = client.v2.workspaces.projects.cycles.retrieve("acme", "ENG", "c1")
+cycle.name
+cycle.work_items.add(["w1"])       # moves work item "w1" into this cycle
+```
+
+The same navigable shape holds throughout: `milestones`/`modules` via their own
+`.work_items` bridge; `estimates` via `.estimate_points` (not `.points`, which
+is the row's own inline-expand field); `webhooks` via `.logs`, its delivery
+log; `collections` via `.members`/`.pages`; `customers` via `.requests`,
+`.property_values`, `.work_items`; `initiatives` via `.labels`, `.projects`,
+`.work_items`; `releases` via `.labels`, `.tags`, `.comments`, `.links`,
+`.changelog`, `.work_items`; `work_item_types` via `.properties`;
+`work_item_properties` via `.property_options` (plus `.contexts` on the
+workspace-scoped resource only); `automations` via `.edges`, `.nodes`,
+`.activities`; and `workflows` via `.states`, `.transitions`. A work item
+itself reaches all seven of its own children this way — `comments`,
+`attachments`, `links`, `worklogs`, `activities`, `relations`, `dependencies`.
+
+`list` and `iterate` yield these same navigable rows, not bare pydantic models —
+`for project in client.v2.workspaces.projects.iterate("acme"): project.states.list()`
+works with no extra plumbing. Resources without children (`states`, `labels`,
+`workspaces`, `wiki.pages`, `features`, `releases.labels`, `intakes`, and most
+other leaf resources) still return plain pydantic models — the `Loaded` mixin
+(`plane/api/v2/_kernel/loaded.py`) is generic and every resource with children
+picks it up the same way. `tests/v2/test_loaded_navigation.py` sweeps every
+class that declares a `loaded_model` and fails if its row's navigation
+properties don't match its resource's own children exactly — see
+[the four rules the tests enforce](#the-four-rules-the-tests-enforce) below.
+
+### Sparse responses raise, they don't lie
+
+Every read field except `id` is optional at the model level, because `?fields=`
+and collection deferral can both omit any field the server would otherwise send.
+On a Loaded row, *reading* a field the response didn't carry raises
+`FieldNotRequested` instead of silently returning `None` — a `None` you get back is
+a real null, not a sign the data was never fetched:
+
+```python
+from plane.api.v2 import FieldNotRequested
+
+p = client.v2.workspaces.projects.retrieve("acme", "ENG", fields=["id"])
+p.name          # raises FieldNotRequested -- "name" was not requested
+
+# The same holds with no `fields=` at all: presence follows what the server
+# actually returned, so a row the collection route deferred fields on still
+# raises rather than handing back a `None` that looks like real data.
+row = client.v2.workspaces.projects.list("acme").data[0]
+row.description  # raises FieldNotRequested if the list route omitted it
+```
+
+### Typing is not decorative
+
+Field names, `order_by` values and filter keyword names are all generated
+`Literal`/`TypedDict` types (from `plane/api/v2/_generated/constants.py`, produced
+from the api_v2 OpenAPI golden), and the package ships a `py.typed` marker so a
+type checker actually reads them. A typo in a filter keyword is a `mypy` error,
+not a runtime surprise:
+
+```python
+# mypy rejects this: "not_a_filter" isn't in StatesListFilters
+client.v2.workspaces.projects.states.list("acme", "ENG", not_a_filter="x")
+```
+
+Navigation off a loaded row is typed the same way, not `Any`: `project.states.list()`
+resolves to `Page[State]`, a misspelled child (`project.states.lst()`) or an unknown
+keyword on it is still a `mypy` error, and this holds several hops deep — a fetched
+work item reached through a fetched project still resolves its `.comments.list()` to
+a real model, not a collapsed `Any`. `tests/v2/test_typing.py` runs mypy over probe
+scripts to prove it, rather than trusting it by inspection.
+
+### The five rules the tests enforce
+
+Five properties of the surface are each enforced by a sweep in `tests/v2/`, over
+every one of the 90 resource classes (`tests/v2/tree_walk.py`'s
+`all_resource_classes()`) rather than a hand-picked subset — so a newly added
+resource is covered the moment it exists, with nothing to remember to add it to:
+
+- **Path-id naming** (`tests/v2/test_path_id_naming.py`). Every path-id parameter
+  is named after the resource it identifies, singular, with no `_id` suffix —
+  `slug`, `project`, `work_item`, `state`, `label`, `page`, `comment`, `release`,
+  and so on, the same name whether it's a method's own primary key or an
+  ancestor's. This isn't cosmetic: `Owned` (the mechanism behind loaded-row
+  navigation) matches a child method's leading parameter names against its
+  parent's literally, so a resource that suffixed its own id would silently break
+  navigation from its parent. URL templates and model field names keep their own
+  golden-derived names (`{project_id}`, `WorkItem.state_id`) — this rule is about
+  method parameters only.
+- **`expand` exposure** (`tests/v2/test_expand_coverage.py`). Wherever the api_v2
+  OpenAPI golden declares an operation can expand a relation, the SDK method
+  exposes an `expand` parameter for it. A method that just omits the parameter
+  makes that capability unreachable from the SDK with no error to notice it by —
+  which is exactly how eleven methods shipped without it before this sweep
+  existed.
+- **`fields` exposure** (`tests/v2/test_fields_coverage.py`). The same shape for
+  `?fields=`: wherever the golden declares it for an operation, the method exposes
+  it. The one deliberate exception is a response that cannot be re-fetched — a
+  secret shown once (`Webhooks.regenerate`) or a presigned-upload envelope whose
+  extra data exists only in that one reply (`WorkItemAttachments.create`,
+  `WorkspaceAssets.create`, `UserAssets.create`) — where projecting fields could
+  silently and irrecoverably drop data the caller has no second chance at. Those
+  are named, with their reason, in the test's own `ONE_TIME_RESPONSES` set, and
+  the reason is repeated in the method's docstring so the next reader doesn't
+  "fix" the omission back.
+- **Pagination exposure** (`tests/v2/test_pagination_coverage.py`). The same
+  shape again, for the parameters that pick the *envelope* rather than shape the
+  rows: `per_page`, `offset`, `paginate` and `count`. `list` exposes every one its
+  operation declares; `iterate` exposes `per_page` and `paginate` (page size and
+  envelope choice are the caller's) but not `offset` or `count`, which belong to
+  the auto-pager's own walk. This sweep is the newest, and it was added because
+  its absence was expensive: `paginate` and `count` were *reserved* by the
+  constants generator — kept out of every `*Filters` TypedDict on the grounds that
+  each belonged on the method as an explicit parameter — and then never added to a
+  single one of the 68 list methods. Nothing could see it, because `FIELDS` and
+  `EXPAND` were the only golden tables the generator emitted. The cost:
+  `client.v2.workspaces.audit_logs` could not be listed at all (the server refuses
+  the offset envelope there), the `CursorPage` branch of `parse_page` was
+  unreachable from any public method, and `count=false` was unsendable while the
+  kernel's own `_find_one` had been sending it all along.
+- **Loaded-row navigation completeness** (`tests/v2/test_loaded_navigation.py`).
+  For every resource that declares a `loaded_model`, its `Loaded` row type's
+  navigation properties must be exactly the child resources the resource class
+  itself attaches — no more, no fewer, and each must wrap its own child rather
+  than a copy-pasted sibling's. This is what closes the gap a name-only
+  comparison would miss: a resource can attach fifteen children while its row
+  exposes three, with every other test still green, unless something checks the
+  two sides against each other.
+
+### What else is wired
+
+`releases.labels` sits on `workspaces` too (`client.v2.workspaces.releases.labels`)
+and, being both a catalog *and* a membership bridge, additionally exposes `add`/
+`remove` to attach/detach existing labels on a specific release. Both take every
+path id the bridge's own URL needs — the workspace slug, then the release id —
+ahead of 1..100 label ids to add/remove:
+
+```python
+client.v2.workspaces.releases.labels.add("acme", release.id, [label.id])
+client.v2.workspaces.releases.labels.remove("acme", release.id, [label.id])
+```
+
+An empty list, or more than 100 ids, raises `ValueError` before any request is
+sent.
+
+`workspaces.permissions` is a singleton like `features`, reached with just the
+slug and no primary key:
+
+```python
+client.v2.workspaces.permissions.me("acme")
+```
+
+`group_sync` groups three resources under one namespace without consuming a path
+id itself — each child still takes its own leading `slug`:
+
+```python
+client.v2.workspaces.group_sync.config.retrieve("acme")
+client.v2.workspaces.group_sync.project_mappings.list("acme")
+client.v2.workspaces.group_sync.workspace_mappings.list("acme")
+```
+
+### Errors
+
+Errors from `client.v2` calls raise `PlaneAPIError` (RFC 9457 problem detail —
+`.status`, `.type`, `.code`, `.detail`, `.errors`), and `find_by_name` raises
+`NoMatchFound` or `MultipleMatchesFound` when it can't resolve to exactly one row.
+All three, plus `FieldError` (the shape of one entry in `.errors`), are re-exported
+from both `plane.api.v2` and the top-level `plane` package:
+
+```python
+from plane.api.v2 import MultipleMatchesFound, NoMatchFound, PlaneAPIError
+
+# or, equivalently:
+# from plane import MultipleMatchesFound, NoMatchFound, PlaneAPIError
+
+try:
+    todo = client.v2.workspaces.projects.states.find_by_name("acme", "ENG", "Todo")
+except NoMatchFound:
+    ...
+except MultipleMatchesFound:
+    ...
+
+try:
+    client.v2.workspaces.projects.states.create("acme", "ENG", CreateState(name="", color="#fff"))
+except PlaneAPIError as e:
+    print(e.status, e.code, e.detail)
+```
+
 ## Architecture
 
 ### Client Structure

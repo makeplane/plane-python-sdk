@@ -13,6 +13,7 @@ from .api.states import States
 from .api.stickies import Stickies
 from .api.teamspaces import Teamspaces
 from .api.users import Users
+from .api.v2 import FieldError, MultipleMatchesFound, NoMatchFound, PlaneAPIError, V2Namespace
 from .api.work_item_properties import WorkItemProperties
 from .api.work_item_relation_definitions import WorkItemRelationDefinitions
 from .api.work_item_type_governance import WorkItemTypeGovernance
@@ -102,6 +103,11 @@ __all__ = [
     "PlaneClient",
     "OAuthClient",
     "Configuration",
+    "V2Namespace",
+    "PlaneAPIError",
+    "NoMatchFound",
+    "MultipleMatchesFound",
+    "FieldError",
     "AgentRuns",
     "WorkItems",
     "WorkItemTypes",
