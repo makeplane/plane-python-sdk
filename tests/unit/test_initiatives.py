@@ -12,6 +12,7 @@ from plane.models.initiatives import (
     UpdateInitiativeLabel,
 )
 from plane.models.projects import Project
+from plane.models.work_items import CreateWorkItem
 
 
 class TestInitiativesAPI:
@@ -298,3 +299,75 @@ class TestInitiativeEpicsAPI:
         assert hasattr(response, "results")
         assert hasattr(response, "count")
         assert isinstance(response.results, list)
+
+
+class TestInitiativeWorkItemsAPI:
+    """Test Initiative Work Items API operations."""
+
+    @pytest.fixture
+    def initiative(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+    ):
+        """Create a test initiative and yield it, then delete it."""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        initiative_data = CreateInitiative(
+            name=f"Test Initiative Work Items {timestamp}",
+            description="Test initiative for work item operations",
+        )
+        initiative = client.initiatives.create(workspace_slug, initiative_data)
+        yield initiative
+        try:
+            client.initiatives.delete(workspace_slug, initiative.id)
+        except Exception:
+            pass
+
+    @pytest.fixture
+    def work_item(self, client: PlaneClient, workspace_slug: str, project: Project):
+        """Create a test work item and yield it, then delete it."""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        work_item = client.work_items.create(
+            workspace_slug,
+            project.id,
+            CreateWorkItem(name=f"Test Initiative Work Item {timestamp}"),
+        )
+        yield work_item
+        try:
+            client.work_items.delete(workspace_slug, project.id, work_item.id)
+        except Exception:
+            pass
+
+    def test_list_work_items(self, client: PlaneClient, workspace_slug: str, initiative) -> None:
+        """Test listing work items in an initiative."""
+        response = client.initiatives.work_items.list(workspace_slug, initiative.id)
+        assert response is not None
+        assert hasattr(response, "results")
+        assert hasattr(response, "count")
+        assert isinstance(response.results, list)
+
+    def test_list_work_items_with_params(
+        self, client: PlaneClient, workspace_slug: str, initiative
+    ) -> None:
+        """Test listing work items in an initiative with query parameters."""
+        response = client.initiatives.work_items.list(
+            workspace_slug, initiative.id, params={"per_page": 5}
+        )
+        assert response is not None
+        assert len(response.results) <= 5
+
+    def test_add_and_remove_work_items(
+        self, client: PlaneClient, workspace_slug: str, initiative, work_item
+    ) -> None:
+        """Test adding and removing work items from an initiative."""
+        added = client.initiatives.work_items.add(workspace_slug, initiative.id, [work_item.id])
+        assert isinstance(added, list)
+        assert work_item.id in [item.id for item in added]
+
+        listed = client.initiatives.work_items.list(workspace_slug, initiative.id)
+        assert work_item.id in [item.id for item in listed.results]
+
+        client.initiatives.work_items.remove(workspace_slug, initiative.id, [work_item.id])
+
+        remaining = client.initiatives.work_items.list(workspace_slug, initiative.id)
+        assert work_item.id not in [item.id for item in remaining.results]

@@ -11,6 +11,7 @@ from ..base_resource import BaseResource
 from .epics import InitiativeEpics
 from .labels import InitiativeLabels
 from .projects import InitiativeProjects
+from .work_items import InitiativeWorkItems
 
 
 class Initiatives(BaseResource):
@@ -22,6 +23,7 @@ class Initiatives(BaseResource):
         # Initialize sub-resources
         self.labels = InitiativeLabels(config)
         self.projects = InitiativeProjects(config)
+        self.work_items = InitiativeWorkItems(config)
         self.epics = InitiativeEpics(config)
 
     def create(self, workspace_slug: str, data: CreateInitiative) -> Initiative:
