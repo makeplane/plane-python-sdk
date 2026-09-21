@@ -257,6 +257,28 @@ class WorkItemPropertyValue(BaseModel):
     value_option: str | None = None
 
 
+class RichTextValue(BaseModel):
+    """The value of a rich text property: `property_type=RELATION`, `relation_type=RICH_TEXT`.
+
+    Plane requires an object here, not a bare HTML string, and sanitises the HTML
+    before storing it. Reads return the stored content in `value_detail`.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    description_html: str = Field(..., description="The content, as HTML, e.g. '<p>Notes</p>'")
+
+
+class RichTextValueDetail(BaseModel):
+    """The stored content of a rich text property value, as Plane returns it."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    id: str | None = Field(None, description="ID of the stored description; None when never set")
+    description_html: str = Field(..., description="The content as sanitised HTML")
+    description_stripped: str = Field("", description="The content as plain text")
+
+
 class CreateWorkItemPropertyValue(BaseModel):
     """Request model for creating/updating a work item property value.
 
@@ -267,6 +289,7 @@ class CreateWorkItemPropertyValue(BaseModel):
     - BOOLEAN: boolean (true/false)
     - OPTION/RELATION (single): string (UUID)
     - OPTION/RELATION (multi, when is_multi=True): list of strings (UUIDs) or single string
+    - RELATION with relation_type=RICH_TEXT: RichTextValue
 
     For multi-value properties (is_multi=True):
     - Accept either a single UUID string or a list of UUID strings
@@ -279,7 +302,7 @@ class CreateWorkItemPropertyValue(BaseModel):
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
-    value: str | bool | int | float | list[str] = Field(
+    value: str | bool | int | float | list[str] | RichTextValue = Field(
         ..., description="The value to set for the property (type depends on property type)"
     )
     external_id: str | None = Field(None, description="Optional external identifier for syncing")
@@ -304,6 +327,11 @@ class WorkItemPropertyValueDetail(BaseModel):
         ..., description="The actual value, formatted according to property type"
     )
     value_type: str | None = Field(None, description="Type of the value")
+    value_detail: RichTextValueDetail | None = Field(
+        None,
+        description="The stored content of a rich text property. For rich text, `value` is "
+        "the ID of that stored content; the HTML is here.",
+    )
     external_id: str | None = Field(
         None, description="External identifier if synced with external system"
     )

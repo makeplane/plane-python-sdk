@@ -22,7 +22,7 @@ from plane.models.customers import (
     UpdateCustomerPropertyOption,
     UpdateCustomerRequest,
 )
-from plane.models.enums import PropertyType
+from plane.models.enums import CustomerPropertyType, PropertyType, RelationType
 from plane.models.projects import Project
 from plane.models.work_item_property_configurations import TextAttributeSettings
 from plane.models.work_items import CreateWorkItem
@@ -660,3 +660,39 @@ class TestCustomerWorkItems:
                 client.customers.requests.delete(workspace_slug, customer.id, req.id)
             except Exception:
                 pass
+
+
+class TestCustomerPropertyTypesOffline:
+    """Customer properties take Plane's customer set, not the work item one."""
+
+    BASE = {"name": "tier", "display_name": "Tier"}
+
+    @pytest.mark.parametrize("property_type", ["FORMULA", "CASCADING"])
+    def test_a_work_item_only_type_is_refused(self, property_type: str) -> None:
+        with pytest.raises(ValueError, match="property_type"):
+            CreateCustomerProperty(**self.BASE, property_type=property_type)
+
+    @pytest.mark.parametrize("relation_type", ["RELEASE", "RICH_TEXT"])
+    def test_a_work_item_only_relation_is_refused(self, relation_type: str) -> None:
+        with pytest.raises(ValueError, match="relation_type"):
+            CreateCustomerProperty(
+                **self.BASE, property_type="RELATION", relation_type=relation_type
+            )
+
+    def test_the_shared_enums_still_build_a_customer_property(self) -> None:
+        """Code written against PropertyType and RelationType keeps working, and a
+        property built that way still compares equal to the shared member."""
+        prop = CreateCustomerProperty(
+            **self.BASE, property_type=PropertyType.RELATION, relation_type=RelationType.USER
+        )
+
+        assert prop.property_type == PropertyType.RELATION
+        assert isinstance(prop.property_type, CustomerPropertyType)
+        assert prop.model_dump(exclude_none=True, include={"property_type", "relation_type"}) == {
+            "property_type": "RELATION",
+            "relation_type": "USER",
+        }
+
+    def test_a_shared_member_the_customer_set_lacks_is_still_refused(self) -> None:
+        with pytest.raises(ValueError, match="property_type"):
+            CreateCustomerProperty(**self.BASE, property_type=PropertyType.FORMULA)

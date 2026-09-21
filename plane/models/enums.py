@@ -55,8 +55,9 @@ PropertyTypeEnum = Literal[
     "EMAIL",
     "FILE",
     "FORMULA",
+    "CASCADING",
 ]
-RelationTypeEnum = Literal["ISSUE", "USER", "RELEASE"]
+RelationTypeEnum = Literal["ISSUE", "USER", "RELEASE", "RICH_TEXT"]
 CycleStatusEnum = Literal["current", "upcoming", "completed", "draft", "incomplete"]
 # Deprecated alias for CycleStatusEnum. ``status`` is the canonical cycle filter
 # going forward; ``cycle_view`` is kept only for backward compatibility.
@@ -64,8 +65,9 @@ CycleViewEnum = CycleStatusEnum
 
 
 # Proper Enum classes for better type safety and IDE support
-class PropertyType(Enum):
-    """Property type enumeration."""
+
+class PropertyType(str, Enum):
+    """Work item property types."""
 
     TEXT = "TEXT"
     DATETIME = "DATETIME"
@@ -77,15 +79,37 @@ class PropertyType(Enum):
     EMAIL = "EMAIL"
     FILE = "FILE"
     FORMULA = "FORMULA"
+    CASCADING = "CASCADING"
 
 
-class RelationType(Enum):
-    """Relation type enumeration."""
+class RelationType(str, Enum):
+    """Work item relation types."""
 
     ISSUE = "ISSUE"
     USER = "USER"
     RELEASE = "RELEASE"
     RICH_TEXT = "RICH_TEXT"
+
+
+class CustomerPropertyType(str, Enum):
+    """Customer property types -- the work item set without FORMULA and CASCADING."""
+
+    TEXT = "TEXT"
+    DATETIME = "DATETIME"
+    DECIMAL = "DECIMAL"
+    BOOLEAN = "BOOLEAN"
+    OPTION = "OPTION"
+    RELATION = "RELATION"
+    URL = "URL"
+    EMAIL = "EMAIL"
+    FILE = "FILE"
+
+
+class CustomerRelationType(str, Enum):
+    """Customer relation types -- a customer property can relate to a work item or a user."""
+
+    ISSUE = "ISSUE"
+    USER = "USER"
 
 
 class Priority(Enum):

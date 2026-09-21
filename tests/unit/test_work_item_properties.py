@@ -8,7 +8,11 @@ from plane.models.projects import Project
 from plane.models.work_item_properties import (
     CreateWorkItemProperty,
     CreateWorkItemPropertyOption,
+    CreateWorkItemPropertyValue,
+    RichTextValue,
     UpdateWorkItemProperty,
+    WorkItemProperty,
+    WorkItemPropertyValueDetail,
 )
 from plane.models.work_item_property_configurations import (
     DateAttributeSettings,
@@ -776,3 +780,73 @@ class TestProjectLevelWorkItemPropertiesAPI:
                 client.work_item_types.delete(workspace_slug, project.id, wit.id)
             except Exception:
                 pass
+
+
+class TestWorkItemPropertyTypesOffline:
+    """What the models accept and send. Offline, so it runs without a Plane instance."""
+
+    def test_a_cascading_property_parses(self) -> None:
+        """Plane returns CASCADING properties; the enum lacked the value, so listing a
+        workspace that had one raised ValidationError."""
+        prop = WorkItemProperty.model_validate(
+            {"id": "p", "property_type": "CASCADING", "display_name": "Region"}
+        )
+
+        assert prop.property_type == PropertyType.CASCADING
+
+    def test_rich_text_is_a_relation_type_not_a_property_type(self) -> None:
+        assert "RICH_TEXT" in {member.value for member in RelationType}
+        assert "RICH_TEXT" not in {member.value for member in PropertyType}
+
+
+class TestRichTextValueOffline:
+    """A rich text value is an object with description_html -- Plane answers a bare
+    string with 400 "Rich text value must be an object"."""
+
+    @pytest.fixture
+    def sent(self, monkeypatch: pytest.MonkeyPatch):
+        client = PlaneClient(api_key="k", base_url="http://plane.invalid")
+        payloads: list[dict] = []
+
+        def post(endpoint: str, data: dict | None = None, params: dict | None = None) -> dict:
+            payloads.append(data or {})
+            return {"id": "v", "property_id": "p", "issue_id": "w", "value": "desc-1"}
+
+        monkeypatch.setattr(client.work_item_properties.values, "_post", post)
+
+        def send(value) -> dict:
+            client.work_item_properties.values.create(
+                "ws", "p", "w", "prop", CreateWorkItemPropertyValue(value=value)
+            )
+            return payloads[-1]
+
+        return send
+
+    def test_a_rich_text_value_is_sent_as_an_object(self, sent) -> None:
+        assert sent(RichTextValue(description_html="<p>Notes</p>")) == {
+            "value": {"description_html": "<p>Notes</p>"}
+        }
+
+    def test_the_other_value_types_are_unchanged(self, sent) -> None:
+        assert sent("plain") == {"value": "plain"}
+        assert sent(True) == {"value": True}
+        assert sent(["a", "b"]) == {"value": ["a", "b"]}
+
+    def test_a_rich_text_read_carries_its_html_in_value_detail(self) -> None:
+        """`value` is the stored content's ID; the HTML is beside it."""
+        detail = WorkItemPropertyValueDetail.model_validate(
+            {
+                "id": "v",
+                "property_id": "p",
+                "issue_id": "w",
+                "value": "desc-1",
+                "value_detail": {
+                    "id": "desc-1",
+                    "description_html": "<p>Notes</p>",
+                    "description_stripped": "Notes",
+                },
+            }
+        )
+
+        assert detail.value == "desc-1"
+        assert detail.value_detail.description_html == "<p>Notes</p>"

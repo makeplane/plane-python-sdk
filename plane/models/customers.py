@@ -2,7 +2,10 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_serializer, model_validator
 
-from .enums import PropertyType, RelationType
+from .enums import CustomerPropertyType, CustomerRelationType
+
+from .enums import PropertyType as PropertyType
+from .enums import RelationType as RelationType
 from .pagination import PaginatedResponse
 from .work_item_property_configurations import (
     DateAttributeSettings,
@@ -161,8 +164,8 @@ class CustomerProperty(BaseModel):
     description: str | None = None
     logo_props: Any | None = None
     sort_order: float | None = None
-    property_type: PropertyType
-    relation_type: RelationType | None = None
+    property_type: CustomerPropertyType
+    relation_type: CustomerRelationType | None = None
     is_required: bool | None = None
     default_value: list[str] | None = None
     settings: PropertySettings | dict = None
@@ -177,11 +180,11 @@ class CustomerProperty(BaseModel):
     options: list[CustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str | None:
+    def serialize_property_type(self, value: CustomerPropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str | None:
+    def serialize_relation_type(self, value: CustomerRelationType) -> str | None:
         return value.value if value else None
 
 
@@ -195,8 +198,8 @@ class CreateCustomerProperty(BaseModel):
     description: str | None = None
     logo_props: Any | None = None
     sort_order: float | None = None
-    property_type: PropertyType
-    relation_type: RelationType | None = None
+    property_type: CustomerPropertyType
+    relation_type: CustomerRelationType | None = None
     is_required: bool | None = None
     default_value: list[str] | None = None
     settings: PropertySettings = None
@@ -208,11 +211,11 @@ class CreateCustomerProperty(BaseModel):
     options: list[CreateCustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str | None:
+    def serialize_property_type(self, value: CustomerPropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str | None:
+    def serialize_relation_type(self, value: CustomerRelationType) -> str | None:
         return value.value if value else None
 
     @model_validator(mode="after")
@@ -223,7 +226,7 @@ class CreateCustomerProperty(BaseModel):
         relation_type = self.relation_type
 
         # TEXT properties require TextAttributeSettings
-        if prop_type == PropertyType.TEXT:
+        if prop_type == CustomerPropertyType.TEXT:
             if settings is None:
                 raise ValueError(
                     "settings with TextAttributeSettings is required for TEXT properties"
@@ -232,7 +235,7 @@ class CreateCustomerProperty(BaseModel):
                 raise ValueError("settings must be TextAttributeSettings for TEXT properties")
 
         # DATETIME properties require DateAttributeSettings
-        if prop_type == PropertyType.DATETIME:
+        if prop_type == CustomerPropertyType.DATETIME:
             if settings is None:
                 raise ValueError(
                     "settings with DateAttributeSettings is required for DATETIME properties"
@@ -241,7 +244,7 @@ class CreateCustomerProperty(BaseModel):
                 raise ValueError("settings must be DateAttributeSettings for DATETIME properties")
 
         # RELATION properties require relation_type
-        if prop_type == PropertyType.RELATION:
+        if prop_type == CustomerPropertyType.RELATION:
             if relation_type is None:
                 raise ValueError("relation_type is required for RELATION properties")
 
@@ -257,8 +260,8 @@ class UpdateCustomerProperty(BaseModel):
     description: str | None = None
     logo_props: Any | None = None
     sort_order: float | None = None
-    property_type: PropertyType | None = None
-    relation_type: RelationType | None = None
+    property_type: CustomerPropertyType | None = None
+    relation_type: CustomerRelationType | None = None
     is_required: bool | None = None
     default_value: list[str] | None = None
     settings: PropertySettings = None
@@ -272,11 +275,11 @@ class UpdateCustomerProperty(BaseModel):
     options: list[UpdateCustomerPropertyOption] | None = None
 
     @field_serializer("property_type")
-    def serialize_property_type(self, value: PropertyType) -> str | None:
+    def serialize_property_type(self, value: CustomerPropertyType) -> str | None:
         return value.value if value else None
 
     @field_serializer("relation_type")
-    def serialize_relation_type(self, value: RelationType) -> str | None:
+    def serialize_relation_type(self, value: CustomerRelationType) -> str | None:
         return value.value if value else None
 
     @model_validator(mode="after")
@@ -291,7 +294,7 @@ class UpdateCustomerProperty(BaseModel):
             return self
 
         # TEXT properties require TextAttributeSettings
-        if prop_type == PropertyType.TEXT:
+        if prop_type == CustomerPropertyType.TEXT:
             if settings is None:
                 raise ValueError(
                     "settings with TextAttributeSettings is required when updating to "
@@ -301,7 +304,7 @@ class UpdateCustomerProperty(BaseModel):
                 raise ValueError("settings must be TextAttributeSettings for TEXT properties")
 
         # DATETIME properties require DateAttributeSettings
-        if prop_type == PropertyType.DATETIME:
+        if prop_type == CustomerPropertyType.DATETIME:
             if settings is None:
                 raise ValueError(
                     "settings with DateAttributeSettings is required when updating to "
@@ -311,7 +314,7 @@ class UpdateCustomerProperty(BaseModel):
                 raise ValueError("settings must be DateAttributeSettings for DATETIME properties")
 
         # RELATION properties require relation_type
-        if prop_type == PropertyType.RELATION:
+        if prop_type == CustomerPropertyType.RELATION:
             if relation_type is None:
                 raise ValueError(
                     "relation_type is required when updating to RELATION property_type"
