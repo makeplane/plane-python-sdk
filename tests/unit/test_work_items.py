@@ -268,6 +268,24 @@ class TestWorkItemsAPICRUD:
         assert updated is not None
         assert updated.id == work_item.id
 
+    def test_update_clears_a_date_set_to_none(
+        self, client: PlaneClient, workspace_slug: str, project: Project, work_item
+    ) -> None:
+        """An explicit None clears the date; a date left out keeps its value."""
+        client.work_items.update(
+            workspace_slug,
+            project.id,
+            work_item.id,
+            UpdateWorkItem(start_date="2026-01-01", target_date="2026-01-31"),
+        )
+
+        cleared = client.work_items.update(
+            workspace_slug, project.id, work_item.id, UpdateWorkItem(target_date=None)
+        )
+
+        assert cleared.target_date is None
+        assert cleared.start_date == "2026-01-01"
+
 
 class TestWorkItemsSubResources:
     """Test WorkItems sub-resources (comments, links, relations, etc.)."""
@@ -434,3 +452,41 @@ class TestWorkItemsArchive:
                 client.work_items.delete(workspace_slug, project.id, wi.id)
             except Exception:
                 pass
+
+
+class TestWorkItemUpdatePayload:
+    """What `update` puts on the wire. Offline, so it runs without a Plane instance.
+
+    Plane patches partially, so the payload is the whole contract: a field that is
+    present is written, and a field that is absent is left alone. `exclude_none`
+    used to erase an explicit None, which made a nullable date impossible to clear.
+    """
+
+    @pytest.fixture
+    def sent(self, monkeypatch: pytest.MonkeyPatch):
+        client = PlaneClient(api_key="k", base_url="http://plane.invalid")
+        payloads: list[dict] = []
+
+        def patch(endpoint: str, data: dict | None = None) -> dict:
+            payloads.append(data or {})
+            return {"id": "w"}
+
+        monkeypatch.setattr(client.work_items, "_patch", patch)
+
+        def send(data: UpdateWorkItem) -> dict:
+            client.work_items.update("ws", "p", "w", data)
+            return payloads[-1]
+
+        return send
+
+    def test_a_field_set_to_none_is_sent_as_null(self, sent) -> None:
+        assert sent(UpdateWorkItem(target_date=None)) == {"target_date": None}
+
+    def test_a_field_left_out_is_not_sent(self, sent) -> None:
+        assert sent(UpdateWorkItem(name="Renamed")) == {"name": "Renamed"}
+
+    def test_clearing_one_date_leaves_the_other_alone(self, sent) -> None:
+        assert sent(UpdateWorkItem(start_date="2026-01-01", target_date=None)) == {
+            "start_date": "2026-01-01",
+            "target_date": None,
+        }
