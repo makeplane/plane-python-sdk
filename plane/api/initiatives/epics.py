@@ -6,7 +6,14 @@ from ..base_resource import BaseResource
 
 
 class InitiativeEpics(BaseResource):
-    """API client for managing epics associated with initiatives."""
+    """Deprecated. Use :class:`~plane.api.initiatives.work_items.InitiativeWorkItems`.
+
+    The ``/epics/`` endpoints are preserved for backward compatibility. Server-side
+    they share one implementation and one association model with ``/work-items/``,
+    so any work-item type is accepted and returned here despite the name; the
+    request field is spelled ``epic_ids`` only because it predates the unified
+    model. New code should call ``client.initiatives.work_items``.
+    """
 
     def __init__(self, config: Any) -> None:
         super().__init__(config, "/workspaces/")
