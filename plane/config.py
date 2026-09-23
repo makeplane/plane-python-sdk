@@ -23,6 +23,7 @@ class Configuration:
         access_token: str | None = None,
         timeout: float | tuple[float, float] | None = 30.0,
         retry: RetryConfig | None = None,
+        verify: bool | str = True,
     ) -> None:
         if not api_key and not access_token:
             raise ConfigurationError(
@@ -41,3 +42,4 @@ class Configuration:
         self.access_token = access_token
         self.timeout = timeout
         self.retry = retry
+        self.verify = verify

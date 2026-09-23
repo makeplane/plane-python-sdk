@@ -1406,6 +1406,7 @@ client = PlaneClient(
 | `access_token` | `str`                          | Optional | Access token for authentication |
 | `timeout`      | `float \| tuple[float, float]` | `30.0`   | Request timeout in seconds      |
 | `retry`        | `RetryConfig`                  | None     | Retry configuration             |
+| `verify`       | `bool \| str`                  | `True`   | TLS verification: `True` to verify against the system CA store, `False` to disable verification entirely, or a path to a CA bundle file to verify against a custom CA. Passed straight through to `requests.Session.verify` — see [requests: SSL Cert Verification](https://requests.readthedocs.io/en/latest/user/advanced/#ssl-cert-verification). |
 
 **Note**: Provide exactly one of `api_key` or `access_token`.
 
