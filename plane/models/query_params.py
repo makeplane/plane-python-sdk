@@ -111,6 +111,23 @@ class RetrieveQueryParams(BaseQueryParams):
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
 
+class WorkItemSearchQueryParams(BaseQueryParams):
+    """Query parameters for the work item search endpoint.
+
+    Search is not cursor paginated; the API caps the result set with ``limit``
+    instead. When ``limit`` is omitted it returns 10 results, and the response
+    carries no total or truncation marker, so a caller cannot distinguish a
+    complete result set from a truncated one.
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    limit: int | None = Field(
+        None,
+        description="Maximum number of results to return. The API returns 10 when omitted.",
+    )
+
+
 class MemberQueryParams(BaseQueryParams):
     """Query parameters for workspace/project member list endpoints.
 
@@ -358,4 +375,5 @@ __all__ = [
     "WorkItemCountGroupBy",
     "WorkItemCountQueryParams",
     "WorkItemQueryParams",
+    "WorkItemSearchQueryParams",
 ]
