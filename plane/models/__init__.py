@@ -24,8 +24,8 @@ from .query_params import (
     PaginatedQueryParams,
     ProjectLiteListQueryParams,
     RetrieveQueryParams,
-    WorkItemSearchQueryParams,
     WorkItemQueryParams,
+    WorkItemSearchQueryParams,
 )
 
 __all__ = [
@@ -54,8 +54,8 @@ __all__ = [
     "PaginatedQueryParams",
     "ProjectLiteListQueryParams",
     "RetrieveQueryParams",
-    "WorkItemSearchQueryParams",
     "WorkItemQueryParams",
+    "WorkItemSearchQueryParams",
 ]
 
 

@@ -375,4 +375,5 @@ __all__ = [
     "WorkItemCountGroupBy",
     "WorkItemCountQueryParams",
     "WorkItemQueryParams",
+    "WorkItemSearchQueryParams",
 ]

@@ -165,12 +165,21 @@ class TestWorkItemsAPI:
 
         Without ``limit`` the API returns at most 10 results and gives no
         indication the set was truncated, so a caller cannot page past it.
+
+        The unlimited search runs first and the test skips when the workspace
+        has fewer than two matching work items, so the assertions cannot pass
+        vacuously against an empty result set.
         """
+        unlimited = client.work_items.search(workspace_slug, "e")
+        if len(unlimited.issues) < 2:
+            pytest.skip("workspace has too few matching work items to exercise the limit")
+
         params = WorkItemSearchQueryParams(limit=1)
-        response = client.work_items.search(workspace_slug, "test", params=params)
-        assert response is not None
-        assert isinstance(response.issues, list)
-        assert len(response.issues) <= 1
+        limited = client.work_items.search(workspace_slug, "e", params=params)
+        assert limited is not None
+        assert isinstance(limited.issues, list)
+        assert len(limited.issues) == 1
+        assert len(limited.issues) < len(unlimited.issues)
 
     def test_advanced_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test advanced search with query only."""
