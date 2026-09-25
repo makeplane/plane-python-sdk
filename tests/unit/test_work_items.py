@@ -4,7 +4,11 @@ import pytest
 
 from plane.client import PlaneClient
 from plane.models.projects import Project
-from plane.models.query_params import PaginatedQueryParams, WorkItemQueryParams
+from plane.models.query_params import (
+    PaginatedQueryParams,
+    WorkItemQueryParams,
+    WorkItemSearchQueryParams,
+)
 from plane.models.work_items import (
     AdvancedSearchWorkItem,
     CreateWorkItem,
@@ -153,6 +157,20 @@ class TestWorkItemsAPI:
         assert response is not None
         assert hasattr(response, "issues")
         assert isinstance(response.issues, list)
+
+    def test_search_work_items_respects_limit(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """Test that search honors an explicit result limit.
+
+        Without ``limit`` the API returns at most 10 results and gives no
+        indication the set was truncated, so a caller cannot page past it.
+        """
+        params = WorkItemSearchQueryParams(limit=1)
+        response = client.work_items.search(workspace_slug, "test", params=params)
+        assert response is not None
+        assert isinstance(response.issues, list)
+        assert len(response.issues) <= 1
 
     def test_advanced_search_work_items(self, client: PlaneClient, workspace_slug: str) -> None:
         """Test advanced search with query only."""
