@@ -4,13 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "plane-sdk"
-version = "0.3.1"
+version = "0.3.2"
 description = "Python SDK for Plane API"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Plane", email = "engineering@plane.so" }]
-dependencies = ["requests>=2.31.0", "pydantic>=2.4.0", "typing_extensions>=4.7"]
+dependencies = [
+    "requests>=2.31.0",
+    "pydantic>=2.4.0",
+    "typing_extensions>=4.7",
+    # 2026.10.19 removes the emSign ECC Root CA - G3 (eMudhra CA incident, 2026-10-20).
+    "certifi>=2026.10.19",
+]
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-dependency"]
