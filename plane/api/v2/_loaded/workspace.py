@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from ..automations import WorkspaceAutomations
     from ..customer_properties import CustomerProperties
     from ..customers.customers import Customers
+    from ..dashboards import Dashboards
     from ..features import WorkspaceFeatures
     from ..initiatives.initiatives import Initiatives
     from ..invitations import Invitations
@@ -137,6 +138,16 @@ if TYPE_CHECKING:
         update = staticmethod(bind1(Customers.update))
         delete = staticmethod(bind1(Customers.delete))
         upsert = staticmethod(bind1(Customers.upsert))
+
+    class _OwnedDashboards(Owned["Dashboards"]):
+        list = staticmethod(bind1(Dashboards.list))
+        iterate = staticmethod(bind1(Dashboards.iterate))
+        retrieve = staticmethod(bind1(Dashboards.retrieve))
+        create = staticmethod(bind1(Dashboards.create))
+        update = staticmethod(bind1(Dashboards.update))
+        delete = staticmethod(bind1(Dashboards.delete))
+        copy = staticmethod(bind1(Dashboards.copy))
+        widget_types = staticmethod(bind1(Dashboards.widget_types))
 
     class _OwnedInitiatives(Owned["Initiatives"]):
         list = staticmethod(bind1(Initiatives.list))
@@ -343,6 +354,13 @@ class LoadedWorkspace(Loaded, Workspace):
         return cast(
             "_OwnedCustomers",
             Owned(self._resources.customers, self._ids, self._id_names),
+        )
+
+    @property
+    def dashboards(self) -> _OwnedDashboards:
+        return cast(
+            "_OwnedDashboards",
+            Owned(self._resources.dashboards, self._ids, self._id_names),
         )
 
     @property
