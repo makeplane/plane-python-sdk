@@ -66,6 +66,13 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "cycles_transfer",
         "cycles_upsert",
         "cycles_work_items_manage",
+        "dashboards_copy",
+        "dashboards_create",
+        "dashboards_destroy",
+        "dashboards_list",
+        "dashboards_partial_update",
+        "dashboards_retrieve",
+        "dashboards_widget_types",
         "estimate_points_bulk_create",
         "estimate_points_bulk_delete",
         "estimate_points_bulk_update",
@@ -278,6 +285,13 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "webhooks_partial_update",
         "webhooks_regenerate",
         "webhooks_retrieve",
+        "widgets_chart",
+        "widgets_charts",
+        "widgets_create",
+        "widgets_destroy",
+        "widgets_list",
+        "widgets_partial_update",
+        "widgets_retrieve",
         "work_item_comments_bulk_create",
         "work_item_comments_bulk_delete",
         "work_item_comments_bulk_update",
@@ -1231,6 +1245,126 @@ FIELDS: dict[str, frozenset[str]] = {
             "sort_order",
             "start_date",
             "timezone",
+        ]
+    ),
+    "dashboards_copy": frozenset(
+        [
+            "access",
+            "all",
+            "archived_at",
+            "created_at",
+            "created_by_id",
+            "filters",
+            "id",
+            "is_published",
+            "is_shared",
+            "logo_props",
+            "name",
+            "owned_by_id",
+            "pql_filters",
+            "project_ids",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
+    "dashboards_create": frozenset(
+        [
+            "access",
+            "all",
+            "archived_at",
+            "created_at",
+            "created_by_id",
+            "filters",
+            "id",
+            "is_published",
+            "is_shared",
+            "logo_props",
+            "name",
+            "owned_by_id",
+            "pql_filters",
+            "project_ids",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
+    "dashboards_destroy": frozenset(
+        [
+            "access",
+            "all",
+            "archived_at",
+            "created_at",
+            "created_by_id",
+            "filters",
+            "id",
+            "is_published",
+            "is_shared",
+            "logo_props",
+            "name",
+            "owned_by_id",
+            "pql_filters",
+            "project_ids",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
+    "dashboards_list": frozenset(
+        [
+            "access",
+            "all",
+            "archived_at",
+            "created_at",
+            "created_by_id",
+            "filters",
+            "id",
+            "is_published",
+            "is_shared",
+            "logo_props",
+            "name",
+            "owned_by_id",
+            "pql_filters",
+            "project_ids",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
+    "dashboards_partial_update": frozenset(
+        [
+            "access",
+            "all",
+            "archived_at",
+            "created_at",
+            "created_by_id",
+            "filters",
+            "id",
+            "is_published",
+            "is_shared",
+            "logo_props",
+            "name",
+            "owned_by_id",
+            "pql_filters",
+            "project_ids",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
+    "dashboards_retrieve": frozenset(
+        [
+            "access",
+            "all",
+            "archived_at",
+            "created_at",
+            "created_by_id",
+            "filters",
+            "id",
+            "is_published",
+            "is_shared",
+            "logo_props",
+            "name",
+            "owned_by_id",
+            "pql_filters",
+            "project_ids",
+            "updated_at",
+            "updated_by_id",
         ]
     ),
     "estimate_points_create": frozenset(
@@ -3689,6 +3823,141 @@ FIELDS: dict[str, frozenset[str]] = {
             "version",
         ]
     ),
+    "widgets_create": frozenset(
+        [
+            "all",
+            "chart_model",
+            "chart_type",
+            "config",
+            "created_at",
+            "created_by_id",
+            "dashboard_id",
+            "filters",
+            "group_by",
+            "height",
+            "id",
+            "last_used_filter",
+            "name",
+            "pql_filters",
+            "rich_filters",
+            "updated_at",
+            "updated_by_id",
+            "width",
+            "x_axis_coord",
+            "x_axis_date_grouping",
+            "x_axis_property",
+            "y_axis_coord",
+            "y_axis_metric",
+        ]
+    ),
+    "widgets_destroy": frozenset(
+        [
+            "all",
+            "chart_model",
+            "chart_type",
+            "config",
+            "created_at",
+            "created_by_id",
+            "dashboard_id",
+            "filters",
+            "group_by",
+            "height",
+            "id",
+            "last_used_filter",
+            "name",
+            "pql_filters",
+            "rich_filters",
+            "updated_at",
+            "updated_by_id",
+            "width",
+            "x_axis_coord",
+            "x_axis_date_grouping",
+            "x_axis_property",
+            "y_axis_coord",
+            "y_axis_metric",
+        ]
+    ),
+    "widgets_list": frozenset(
+        [
+            "all",
+            "chart_model",
+            "chart_type",
+            "config",
+            "created_at",
+            "created_by_id",
+            "dashboard_id",
+            "filters",
+            "group_by",
+            "height",
+            "id",
+            "last_used_filter",
+            "name",
+            "pql_filters",
+            "rich_filters",
+            "updated_at",
+            "updated_by_id",
+            "width",
+            "x_axis_coord",
+            "x_axis_date_grouping",
+            "x_axis_property",
+            "y_axis_coord",
+            "y_axis_metric",
+        ]
+    ),
+    "widgets_partial_update": frozenset(
+        [
+            "all",
+            "chart_model",
+            "chart_type",
+            "config",
+            "created_at",
+            "created_by_id",
+            "dashboard_id",
+            "filters",
+            "group_by",
+            "height",
+            "id",
+            "last_used_filter",
+            "name",
+            "pql_filters",
+            "rich_filters",
+            "updated_at",
+            "updated_by_id",
+            "width",
+            "x_axis_coord",
+            "x_axis_date_grouping",
+            "x_axis_property",
+            "y_axis_coord",
+            "y_axis_metric",
+        ]
+    ),
+    "widgets_retrieve": frozenset(
+        [
+            "all",
+            "chart_model",
+            "chart_type",
+            "config",
+            "created_at",
+            "created_by_id",
+            "dashboard_id",
+            "filters",
+            "group_by",
+            "height",
+            "id",
+            "last_used_filter",
+            "name",
+            "pql_filters",
+            "rich_filters",
+            "updated_at",
+            "updated_by_id",
+            "width",
+            "x_axis_coord",
+            "x_axis_date_grouping",
+            "x_axis_property",
+            "y_axis_coord",
+            "y_axis_metric",
+        ]
+    ),
     "work_item_comments_upsert": frozenset(
         [
             "access",
@@ -5558,6 +5827,9 @@ ORDER_BY: dict[str, frozenset[str]] = {
     "cycles_list": frozenset(
         ["-created_at", "-id", "-sort_order", "created_at", "id", "sort_order"]
     ),
+    "dashboards_list": frozenset(
+        ["-created_at", "-id", "-name", "-updated_at", "created_at", "id", "name", "updated_at"]
+    ),
     "estimate_points_list": frozenset(["-created_at", "-id", "-key", "created_at", "id", "key"]),
     "estimates_list": frozenset(["-created_at", "-id", "-name", "created_at", "id", "name"]),
     "group_sync_project_mappings_list": frozenset(
@@ -5647,6 +5919,7 @@ ORDER_BY: dict[str, frozenset[str]] = {
     "user_assets_list": frozenset(["-created_at", "-id", "created_at", "id"]),
     "webhook_logs_list": frozenset(["-created_at", "-id", "created_at", "id"]),
     "webhooks_list": frozenset(["-created_at", "-id", "created_at", "id"]),
+    "widgets_list": frozenset(["-created_at", "-id", "created_at", "id"]),
     "work_item_properties_list": frozenset(
         ["-created_at", "-id", "-sort_order", "created_at", "id", "sort_order"]
     ),
@@ -5862,6 +6135,7 @@ PAGINATION: dict[str, frozenset[str]] = {
     "customer_requests_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "customers_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "cycles_list": frozenset(["count", "offset", "paginate", "per_page"]),
+    "dashboards_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "estimate_points_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "estimates_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "group_sync_project_mappings_list": frozenset(["count", "offset", "paginate", "per_page"]),
@@ -5897,6 +6171,7 @@ PAGINATION: dict[str, frozenset[str]] = {
     "user_assets_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "webhook_logs_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "webhooks_list": frozenset(["count", "offset", "paginate", "per_page"]),
+    "widgets_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "work_item_properties_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "work_item_property_contexts_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "work_item_property_options_list": frozenset(["count", "offset", "paginate", "per_page"]),
@@ -6671,6 +6946,114 @@ CyclesUpsertField = Literal[
     "sort_order",
     "start_date",
     "timezone",
+]
+DashboardsCopyField = Literal[
+    "access",
+    "all",
+    "archived_at",
+    "created_at",
+    "created_by_id",
+    "filters",
+    "id",
+    "is_published",
+    "is_shared",
+    "logo_props",
+    "name",
+    "owned_by_id",
+    "pql_filters",
+    "project_ids",
+    "updated_at",
+    "updated_by_id",
+]
+DashboardsCreateField = Literal[
+    "access",
+    "all",
+    "archived_at",
+    "created_at",
+    "created_by_id",
+    "filters",
+    "id",
+    "is_published",
+    "is_shared",
+    "logo_props",
+    "name",
+    "owned_by_id",
+    "pql_filters",
+    "project_ids",
+    "updated_at",
+    "updated_by_id",
+]
+DashboardsDestroyField = Literal[
+    "access",
+    "all",
+    "archived_at",
+    "created_at",
+    "created_by_id",
+    "filters",
+    "id",
+    "is_published",
+    "is_shared",
+    "logo_props",
+    "name",
+    "owned_by_id",
+    "pql_filters",
+    "project_ids",
+    "updated_at",
+    "updated_by_id",
+]
+DashboardsListField = Literal[
+    "access",
+    "all",
+    "archived_at",
+    "created_at",
+    "created_by_id",
+    "filters",
+    "id",
+    "is_published",
+    "is_shared",
+    "logo_props",
+    "name",
+    "owned_by_id",
+    "pql_filters",
+    "project_ids",
+    "updated_at",
+    "updated_by_id",
+]
+DashboardsPartialUpdateField = Literal[
+    "access",
+    "all",
+    "archived_at",
+    "created_at",
+    "created_by_id",
+    "filters",
+    "id",
+    "is_published",
+    "is_shared",
+    "logo_props",
+    "name",
+    "owned_by_id",
+    "pql_filters",
+    "project_ids",
+    "updated_at",
+    "updated_by_id",
+]
+DashboardsRetrieveField = Literal[
+    "access",
+    "all",
+    "archived_at",
+    "created_at",
+    "created_by_id",
+    "filters",
+    "id",
+    "is_published",
+    "is_shared",
+    "logo_props",
+    "name",
+    "owned_by_id",
+    "pql_filters",
+    "project_ids",
+    "updated_at",
+    "updated_by_id",
 ]
 EstimatePointsCreateField = Literal[
     "all",
@@ -8825,6 +9208,131 @@ WebhooksRetrieveField = Literal[
     "url",
     "version",
 ]
+WidgetsCreateField = Literal[
+    "all",
+    "chart_model",
+    "chart_type",
+    "config",
+    "created_at",
+    "created_by_id",
+    "dashboard_id",
+    "filters",
+    "group_by",
+    "height",
+    "id",
+    "last_used_filter",
+    "name",
+    "pql_filters",
+    "rich_filters",
+    "updated_at",
+    "updated_by_id",
+    "width",
+    "x_axis_coord",
+    "x_axis_date_grouping",
+    "x_axis_property",
+    "y_axis_coord",
+    "y_axis_metric",
+]
+WidgetsDestroyField = Literal[
+    "all",
+    "chart_model",
+    "chart_type",
+    "config",
+    "created_at",
+    "created_by_id",
+    "dashboard_id",
+    "filters",
+    "group_by",
+    "height",
+    "id",
+    "last_used_filter",
+    "name",
+    "pql_filters",
+    "rich_filters",
+    "updated_at",
+    "updated_by_id",
+    "width",
+    "x_axis_coord",
+    "x_axis_date_grouping",
+    "x_axis_property",
+    "y_axis_coord",
+    "y_axis_metric",
+]
+WidgetsListField = Literal[
+    "all",
+    "chart_model",
+    "chart_type",
+    "config",
+    "created_at",
+    "created_by_id",
+    "dashboard_id",
+    "filters",
+    "group_by",
+    "height",
+    "id",
+    "last_used_filter",
+    "name",
+    "pql_filters",
+    "rich_filters",
+    "updated_at",
+    "updated_by_id",
+    "width",
+    "x_axis_coord",
+    "x_axis_date_grouping",
+    "x_axis_property",
+    "y_axis_coord",
+    "y_axis_metric",
+]
+WidgetsPartialUpdateField = Literal[
+    "all",
+    "chart_model",
+    "chart_type",
+    "config",
+    "created_at",
+    "created_by_id",
+    "dashboard_id",
+    "filters",
+    "group_by",
+    "height",
+    "id",
+    "last_used_filter",
+    "name",
+    "pql_filters",
+    "rich_filters",
+    "updated_at",
+    "updated_by_id",
+    "width",
+    "x_axis_coord",
+    "x_axis_date_grouping",
+    "x_axis_property",
+    "y_axis_coord",
+    "y_axis_metric",
+]
+WidgetsRetrieveField = Literal[
+    "all",
+    "chart_model",
+    "chart_type",
+    "config",
+    "created_at",
+    "created_by_id",
+    "dashboard_id",
+    "filters",
+    "group_by",
+    "height",
+    "id",
+    "last_used_filter",
+    "name",
+    "pql_filters",
+    "rich_filters",
+    "updated_at",
+    "updated_by_id",
+    "width",
+    "x_axis_coord",
+    "x_axis_date_grouping",
+    "x_axis_property",
+    "y_axis_coord",
+    "y_axis_metric",
+]
 WorkItemCommentsUpsertField = Literal[
     "access",
     "actor_id",
@@ -10485,6 +10993,9 @@ CustomerPropertiesListOrderBy = Literal[
 CustomerRequestsListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 CustomersListOrderBy = Literal["-created_at", "-id", "-name", "created_at", "id", "name"]
 CyclesListOrderBy = Literal["-created_at", "-id", "-sort_order", "created_at", "id", "sort_order"]
+DashboardsListOrderBy = Literal[
+    "-created_at", "-id", "-name", "-updated_at", "created_at", "id", "name", "updated_at"
+]
 EstimatePointsListOrderBy = Literal["-created_at", "-id", "-key", "created_at", "id", "key"]
 EstimatesListOrderBy = Literal["-created_at", "-id", "-name", "created_at", "id", "name"]
 GroupSyncProjectMappingsListOrderBy = Literal[
@@ -10558,6 +11069,7 @@ TeamspacesListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 UserAssetsListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 WebhookLogsListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 WebhooksListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
+WidgetsListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 WorkItemPropertiesListOrderBy = Literal[
     "-created_at", "-id", "-sort_order", "created_at", "id", "sort_order"
 ]
@@ -10700,6 +11212,13 @@ class CyclesListFilters(TypedDict, total=False):
     external_id: str
     external_source: str
     name: str
+    owned_by_id: str
+    search: str
+
+
+class DashboardsListFilters(TypedDict, total=False):
+    access: int
+    is_shared: bool
     owned_by_id: str
     search: str
 
@@ -10953,6 +11472,22 @@ class WebhooksListFilters(TypedDict, total=False):
     name: str
     search: str
     url: str
+
+
+class WidgetsChartFilters(TypedDict, total=False):
+    column_page: int
+    page: int
+    row_ids: str
+
+
+class WidgetsChartsFilters(TypedDict, total=False):
+    widget_ids: str
+
+
+class WidgetsListFilters(TypedDict, total=False):
+    chart_model: str
+    chart_type: str
+    search: str
 
 
 class WorkItemPropertiesListFilters(TypedDict, total=False):

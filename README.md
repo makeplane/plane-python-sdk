@@ -200,16 +200,17 @@ work_items = client.work_items.list(
 
 `client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
 
-The v2 surface is complete: every one of the 90 `V2Resource` subclasses in the
+The v2 surface is complete: every one of the 92 `V2Resource` subclasses in the
 package (`tests/v2/tree_walk.py`'s `all_resource_classes()`, the enumeration the
 test suite itself sweeps) is on the flat shape described below and reachable
 through `client.v2`. Counting resources means not counting grouping nodes:
 `wiki` and `group_sync` hold no `V2Resource` base, `path` or `operations` of
 their own — they only group children (`wiki.pages`, `wiki.collections`,
-`group_sync.config`) — and are outside the 90.
+`group_sync.config`) — and are outside the 92.
 
 Wired directly on `client.v2.workspaces`: `artifacts`, `assets`, `audit_logs`,
-`automations`, `customer_properties`, `customers`, `features`, `initiatives`,
+`automations`, `customer_properties`, `customers`, `dashboards` (`.widgets`),
+`features`, `initiatives`,
 `invitations`, `members`, `permission_schemes`, `permissions`, `projects`,
 `releases` (`.labels`, `.tags`, `.comments`, `.links`, `.changelog`,
 `.work_items`), `roles`, `stickies`, `teamspaces`, `views`, `webhooks` (with
@@ -276,8 +277,8 @@ client.v2.workspaces.projects.states.list(slug="acme", project="ENG")
 
 A resource with children (`projects`, `work_items`, `cycles`, `milestones`,
 `modules`, `estimates`, `webhooks`, `collections`, `customers`, `initiatives`,
-`releases`, `work_item_types`, `work_item_properties`, `automations` and
-`workflows` — 18 of the 90 classes, some families having a separate
+`releases`, `work_item_types`, `work_item_properties`, `automations`,
+`workflows` and `dashboards` — 19 of the 92 classes, some families having a separate
 project-scoped and workspace-scoped resource, each independently navigable)
 doesn't just hand back a bare pydantic model from `retrieve`/`list`/`iterate` —
 it hands back a row that carries its own data *and* already knows where it
@@ -310,7 +311,8 @@ log; `collections` via `.members`/`.pages`; `customers` via `.requests`,
 `.changelog`, `.work_items`; `work_item_types` via `.properties`;
 `work_item_properties` via `.property_options` (plus `.contexts` on the
 workspace-scoped resource only); `automations` via `.edges`, `.nodes`,
-`.activities`; and `workflows` via `.states`, `.transitions`. A work item
+`.activities`; `workflows` via `.states`, `.transitions`; and `dashboards` via
+`.widgets`. A work item
 itself reaches all seven of its own children this way — `comments`,
 `attachments`, `links`, `worklogs`, `activities`, `relations`, `dependencies`.
 
@@ -324,6 +326,35 @@ picks it up the same way. `tests/v2/test_loaded_navigation.py` sweeps every
 class that declares a `loaded_model` and fails if its row's navigation
 properties don't match its resource's own children exactly — see
 [the four rules the tests enforce](#the-four-rules-the-tests-enforce) below.
+
+### Dashboards and widgets
+
+A dashboard is a workspace-level page of charts over the work items in its projects; each
+widget is one chart. A fetched dashboard reaches its widgets directly, and `chart()` returns
+the data the widget displays (its shape depends on the chart type):
+
+```python
+from plane.models.v2 import CreateDashboard, CreateWidget
+
+dashboards = client.v2.workspaces.dashboards
+dashboard = dashboards.create("acme", CreateDashboard(name="Engineering", project_ids=[project_id]))
+
+widget = dashboard.widgets.create(
+    CreateWidget(
+        name="By priority",
+        chart_type="BAR_CHART",
+        chart_model="STACKED",
+        x_axis_property="PRIORITY",
+        y_axis_metric="WORK_ITEM_COUNT",
+        group_by="STATE_GROUPS",
+    )
+)
+chart = dashboard.widgets.chart(widget.id)       # chart.data, chart.chart_schema, paging fields
+chart = dashboard.widgets.chart(widget.id, page=2)
+everything = dashboard.widgets.charts()          # every widget's first page in one call
+dashboards.widget_types("acme")                  # chart types, their models, plan availability
+dashboards.copy("acme", dashboard.id)            # copies settings, filters and widgets
+```
 
 ### Sparse responses raise, they don't lie
 
@@ -369,7 +400,7 @@ scripts to prove it, rather than trusting it by inspection.
 ### The five rules the tests enforce
 
 Five properties of the surface are each enforced by a sweep in `tests/v2/`, over
-every one of the 90 resource classes (`tests/v2/tree_walk.py`'s
+every one of the 92 resource classes (`tests/v2/tree_walk.py`'s
 `all_resource_classes()`) rather than a hand-picked subset — so a newly added
 resource is covered the moment it exists, with nothing to remember to add it to:
 
