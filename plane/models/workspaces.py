@@ -26,6 +26,22 @@ class PaginatedWorkspaceMemberResponse(PaginatedResponse):
     results: list[WorkspaceMember]
 
 
+class WorkspaceAssetDownload(BaseModel):
+    """Presigned download details for a workspace asset.
+
+    Returned by Workspaces.get_asset(). ``asset_url`` is time-limited and can be
+    fetched without Plane authentication. It is None when the server could not
+    presign the stored file.
+    """
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    asset_id: str
+    asset_url: str | None = None
+    asset_name: str | None = None
+    asset_type: str | None = None
+
+
 class WorkspaceFeature(BaseModel):
     """Workspace feature model.
 
