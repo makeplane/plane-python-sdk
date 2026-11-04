@@ -162,7 +162,13 @@ class WidgetTypeList(BaseModel):
 
 
 class Widget(BaseModel):
-    """For axis charts the axis fields are mirrored into `config`."""
+    """For axis charts the axis fields are mirrored into `config`.
+
+    `last_used_filter`, `x_axis_date_grouping` and `y_axis_metric` are plain strings here, not the
+    choices a write accepts: the server stores free text and leaves them `""` on charts that don't
+    use them. `last_used_filter` picks the filter the chart applies: `filters` when it is
+    `rich_filters` (the server default), `pql_filters.stripped` when it is `pql_filters`.
+    `rich_filters` is stored but never read by a chart."""
 
     model_config = ConfigDict(extra="allow")
 
@@ -176,7 +182,7 @@ class Widget(BaseModel):
     filters: dict[str, Any] | None = None
     group_by: str | None = None
     height: int | None = None
-    last_used_filter: WidgetLastUsedFilter | None = None
+    last_used_filter: str | None = None
     name: str | None = None
     pql_filters: dict[str, Any] | None = None
     rich_filters: dict[str, Any] | None = None
@@ -184,17 +190,21 @@ class Widget(BaseModel):
     updated_by_id: str | None = None
     width: int | None = None
     x_axis_coord: int | None = None
-    x_axis_date_grouping: WidgetDateGrouping | None = None
+    x_axis_date_grouping: str | None = None
     x_axis_property: str | None = None
     y_axis_coord: int | None = None
-    y_axis_metric: WidgetMetric | None = None
+    y_axis_metric: str | None = None
 
 
 class CreateWidget(BaseModel):
     """POST body. Checked against its chart type before it's saved: a missing required setting or
     a model the chart type doesn't support is refused with 400. `x_axis_property`/`group_by` take
     an axis property (`PRIORITY`, `STATE_GROUPS`, ...) or a custom property as `cp_<id>`.
-    Set `last_used_filter="pql_filters"` when sending `pql_filters`."""
+
+    `last_used_filter` picks the filter the chart applies: `filters` when it is `rich_filters`
+    (the default), `pql_filters.stripped` when it is `pql_filters`. Sending non-empty
+    `pql_filters` with neither `filters` nor `last_used_filter` stores `pql_filters`
+    automatically. `rich_filters` is stored but never read by a chart."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -218,7 +228,10 @@ class CreateWidget(BaseModel):
 
 class UpdateWidget(BaseModel):
     """PATCH body -- every field optional. A change that would leave the widget unable to show
-    data is refused with 400 and nothing is saved."""
+    data is refused with 400 and nothing is saved.
+
+    Only the fields you set are sent, and a field set to `None` is sent as `null`, which clears it
+    (e.g. `UpdateWidget(group_by=None)`). `last_used_filter` works as on `CreateWidget`."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -248,8 +261,10 @@ class WidgetChart(BaseModel):
     share are declared; every other key (`x_axis_schema_key`, `group_keys`, `columns`, `value`,
     `results`, ...) is kept and readable as an attribute or via `model_dump()`.
 
-    `schema` maps the ids in `data` to display details, keyed by entity (`state`, `priority`,
-    ...). The pagination fields are present only on paginated chart types."""
+    `chart_schema` is the response's `schema` key, which maps the ids in `data` to display
+    details keyed by entity (`state`, `priority`, ...). It is renamed because `schema` would
+    shadow pydantic's `BaseModel.schema`; `model_dump(by_alias=True)` gives `schema` back. The
+    pagination fields are present only on paginated chart types."""
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
@@ -264,8 +279,9 @@ class WidgetChart(BaseModel):
 
 
 class WidgetChartResult(BaseModel):
-    """One widget's entry in `Widgets.charts`: `chart` on success (`status` 200), otherwise
-    `error` (a problem-details body) with that error's `status`."""
+    """One widget's entry in `Widgets.charts`. On success `status` is 200 and `chart` is set;
+    otherwise `chart` is `None` and `error` holds the problem-details body that `chart` alone
+    would have answered with, under the same `status`."""
 
     model_config = ConfigDict(extra="allow")
 

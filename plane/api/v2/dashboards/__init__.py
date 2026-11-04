@@ -149,7 +149,8 @@ class Dashboards(
         fields: Sequence[DashboardsPartialUpdateField] | None = None,
     ) -> LoadedDashboard:
         """Change only the fields sent. Making a dashboard public (`access=1`) removes its shared
-        members; only the owner, or an admin on a public dashboard, can change `access`."""
+        members. Only the owner, or an admin on a public dashboard, can change `access`; sending
+        the value it already has needs no extra rights."""
         row = self._update(data, pk=dashboard, params={"fields": fields}, slug=slug)
         return self._load(row, slug, fields=fields)
 

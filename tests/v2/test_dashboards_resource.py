@@ -17,6 +17,7 @@ from plane.models.v2.dashboards import (
     CreateWidget,
     UpdateDashboard,
     UpdateWidget,
+    Widget,
 )
 
 BASE = "https://api.example.com/api/v2/workspaces/acme/dashboards"
@@ -339,6 +340,157 @@ def test_charts_returns_each_widgets_result(dashboards: Dashboards) -> None:
     assert results[1].chart is None
     assert results[1].status == 402
     assert results[1].error == {"code": "payment_required", "detail": "Upgrade."}
+
+
+def test_widget_reads_the_free_text_the_server_stores() -> None:
+    widget = Widget.model_validate(
+        {
+            "id": "w",
+            "last_used_filter": "",
+            "x_axis_date_grouping": "",
+            "y_axis_metric": "SOME_NEW_METRIC",
+        }
+    )
+
+    assert widget.last_used_filter == ""
+    assert widget.x_axis_date_grouping == ""
+    assert widget.y_axis_metric == "SOME_NEW_METRIC"
+
+
+@responses.activate
+def test_widgets_list_keeps_a_page_with_blank_choice_fields(dashboards: Dashboards) -> None:
+    responses.get(
+        f"{BASE}/d1/widgets/",
+        json={
+            "data": [
+                {"id": "w1", "chart_type": "NUMBER", "last_used_filter": ""},
+                {"id": "w2", "chart_type": "BAR_CHART", "last_used_filter": "pql_filters"},
+            ],
+            "pagination": {"style": "offset"},
+        },
+    )
+
+    page = dashboards.widgets.list("acme", "d1")
+
+    assert [row.last_used_filter for row in page.data] == ["", "pql_filters"]
+
+
+def test_write_models_keep_the_fixed_choices() -> None:
+    with pytest.raises(ValueError):
+        UpdateWidget(last_used_filter="")  # type: ignore[arg-type]
+    with pytest.raises(ValueError):
+        CreateWidget(
+            name="n", chart_type="NUMBER", chart_model="BASIC", y_axis_metric="NOPE"  # type: ignore[arg-type]
+        )
+
+
+@responses.activate
+def test_widgets_update_sends_explicit_none_to_clear(dashboards: Dashboards) -> None:
+    responses.patch(f"{BASE}/d1/widgets/w1/", json={"id": "w1", "group_by": None})
+
+    dashboards.widgets.update(
+        "acme",
+        "d1",
+        "w1",
+        UpdateWidget(
+            chart_model="BASIC",
+            group_by=None,
+            x_axis_property=None,
+            x_axis_date_grouping=None,
+            y_axis_metric=None,
+        ),
+    )
+
+    assert json.loads(responses.calls[0].request.body) == {
+        "chart_model": "BASIC",
+        "group_by": None,
+        "x_axis_property": None,
+        "x_axis_date_grouping": None,
+        "y_axis_metric": None,
+    }
+
+
+@responses.activate
+def test_widgets_update_passes_fields(dashboards: Dashboards) -> None:
+    responses.patch(f"{BASE}/d1/widgets/w1/", json={"id": "w1", "name": "Renamed"})
+
+    updated = dashboards.widgets.update(
+        "acme", "d1", "w1", UpdateWidget(name="Renamed"), fields=["id", "name"]
+    )
+
+    assert updated.name == "Renamed"
+    assert _query() == {"fields": ["id,name"]}
+    assert json.loads(responses.calls[0].request.body) == {"name": "Renamed"}
+
+
+@responses.activate
+def test_widgets_create_with_pql_filters(dashboards: Dashboards) -> None:
+    pql = {"raw": 'priority = "high"', "stripped": 'priority = "high"'}
+    responses.post(
+        f"{BASE}/d1/widgets/",
+        json={
+            "id": "w1",
+            "chart_type": "NUMBER",
+            "chart_model": "BASIC",
+            "pql_filters": pql,
+            "last_used_filter": "pql_filters",
+        },
+        status=201,
+    )
+
+    widget = dashboards.widgets.create(
+        "acme",
+        "d1",
+        CreateWidget(
+            name="High priority",
+            chart_type="NUMBER",
+            chart_model="BASIC",
+            y_axis_metric="WORK_ITEM_COUNT",
+            pql_filters=pql,
+            last_used_filter="pql_filters",
+        ),
+    )
+
+    assert widget.last_used_filter == "pql_filters"
+    assert widget.pql_filters == pql
+    assert json.loads(responses.calls[0].request.body) == {
+        "name": "High priority",
+        "chart_type": "NUMBER",
+        "chart_model": "BASIC",
+        "y_axis_metric": "WORK_ITEM_COUNT",
+        "pql_filters": pql,
+        "last_used_filter": "pql_filters",
+    }
+
+
+@responses.activate
+def test_chart_pages_a_table_chart(dashboards: Dashboards) -> None:
+    responses.get(
+        f"{BASE}/d1/widgets/w1/chart/",
+        json={
+            "schema": {},
+            "data": [{"group_by_id": "backlog"}],
+            "total_count": 25,
+            "total_pages": 3,
+            "page": 2,
+            "per_page": 10,
+            "next_page": 3,
+            "prev_page": 1,
+            "columns": [{"id": "high"}],
+        },
+    )
+
+    chart = dashboards.widgets.chart("acme", "d1", "w1", page=2, column_page=3)
+
+    assert _query() == {"page": ["2"], "column_page": ["3"]}
+    assert (chart.page, chart.next_page, chart.prev_page, chart.total_pages) == (2, 3, 1, 3)
+    assert chart.columns == [{"id": "high"}]  # type: ignore[attr-defined]
+
+
+def test_charts_with_no_widget_ids_makes_no_request(dashboards: Dashboards) -> None:
+    with responses.RequestsMock() as mocked:
+        assert dashboards.widgets.charts("acme", "d1", widget_ids=[]) == []
+        assert len(mocked.calls) == 0
 
 
 # -- Navigation ---------------------------------------------------------------------
