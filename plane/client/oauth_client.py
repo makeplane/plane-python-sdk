@@ -131,6 +131,7 @@ class OAuthClient:
         client_id: str,
         client_secret: str,
         timeout: float | tuple[float, float] | None = 30.0,
+        verify: bool | str = True,
     ) -> None:
         """
         Initialize OAuth client.
@@ -140,6 +141,8 @@ class OAuthClient:
             client_id: OAuth client ID
             client_secret: OAuth client secret
             timeout: Request timeout in seconds (default: 30.0)
+            verify: TLS verification, passed through to requests.Session.verify:
+                True (default), False, or a path to a CA bundle.
 
         Raises:
             ConfigurationError: If required parameters are missing
@@ -156,6 +159,7 @@ class OAuthClient:
 
         # Initialize session
         self.session = requests.Session()
+        self.session.verify = verify
 
     def get_authorization_url(
         self,
