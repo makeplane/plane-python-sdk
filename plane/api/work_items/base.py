@@ -8,6 +8,7 @@ from ...models.query_params import (
     RetrieveQueryParams,
     WorkItemCountQueryParams,
     WorkItemQueryParams,
+    WorkItemSearchQueryParams,
 )
 from ...models.work_items import (
     AdvancedSearchResult,
@@ -350,14 +351,16 @@ class WorkItems(BaseResource):
         self,
         workspace_slug: str,
         query: str,
-        params: RetrieveQueryParams | None = None,
+        params: WorkItemSearchQueryParams | RetrieveQueryParams | None = None,
     ) -> WorkItemSearch:
         """Search work items.
 
         Args:
             workspace_slug: The workspace slug identifier
             query: Search query string
-            params: Optional query parameters for expand, fields, etc.
+            params: Optional query parameters for expand, fields, limit, etc.
+                Pass :class:`WorkItemSearchQueryParams` to raise the result cap;
+                the API returns 10 results when ``limit`` is omitted.
         """
         search_params = {"search": query}
         if params:

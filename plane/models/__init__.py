@@ -25,6 +25,7 @@ from .query_params import (
     ProjectLiteListQueryParams,
     RetrieveQueryParams,
     WorkItemQueryParams,
+    WorkItemSearchQueryParams,
 )
 
 __all__ = [
@@ -54,6 +55,7 @@ __all__ = [
     "ProjectLiteListQueryParams",
     "RetrieveQueryParams",
     "WorkItemQueryParams",
+    "WorkItemSearchQueryParams",
 ]
 
 
