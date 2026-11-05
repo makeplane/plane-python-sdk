@@ -619,3 +619,12 @@ def test_widgets_iterate_follows_pages(dashboards: Dashboards) -> None:
     )
 
     assert [row.id for row in dashboards.widgets.iterate("acme", "d1", per_page=1)] == ["w1", "w2"]
+
+
+@responses.activate
+def test_chart_sends_the_null_row_in_row_ids(dashboards: Dashboards) -> None:
+    responses.get(f"{BASE}/d1/widgets/w1/chart/", json={"schema": {}, "data": [], "columns": []})
+
+    dashboards.widgets.chart("acme", "d1", "w1", column_page=2, row_ids=["u1", None])
+
+    assert json.loads(_query()["row_ids"][0]) == ["u1", None]

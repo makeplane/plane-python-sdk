@@ -173,15 +173,18 @@ class Widgets(V2Resource[Widget, CreateWidget, UpdateWidget]):
         *,
         page: int | None = None,
         column_page: int | None = None,
-        row_ids: Sequence[str] | None = None,
+        row_ids: Sequence[str | None] | None = None,
     ) -> WidgetChart:
         """The data the widget displays; the shape depends on its chart type. It applies the
         widget's `filters` or `pql_filters` per `last_used_filter`, never `rich_filters`.
 
         `page` pages the rows (buckets, groups, counters) of a paginated chart type; the page size
         is the chart's own `config` setting. `column_page` and `row_ids` are `TABLE_CHART` only:
-        pass the `group_by_id`s already on screen as `row_ids` to load another column page for the
-        same rows without ranking them again. A parameter the chart type doesn't read is ignored.
+        pass the `group_by_id`s already on screen as `row_ids` (`None` included, for the "no value"
+        row) to load another column page for the same rows without ranking them again. With
+        `row_ids` the row paging fields of the answer only echo the request, so keep your own row
+        paging and read just the `column_*` fields. A parameter the chart type doesn't read is
+        ignored.
         """
         if isinstance(row_ids, str):
             # A bare string is a Sequence[str] too, and would be sent one character per id.
