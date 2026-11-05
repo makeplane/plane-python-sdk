@@ -103,8 +103,10 @@ class Dashboard(BaseModel):
 
 
 class CreateDashboard(BaseModel):
-    """POST body. `pql_filters` is `{"raw": "<PQL>", "stripped": "<PQL>"}`; `filters` is a filter
-    object such as `{"priority__in": "urgent"}`. Both are validated on save."""
+    """POST body. `pql_filters` is `{"stripped": "<PQL>"}` (an optional `json` key holds the web
+    app's editor state; charts never read it); `filters` is a filter object such as
+    `{"priority__in": "urgent"}`. Both are validated on save. `access` defaults to `1` (public:
+    the whole workspace can see it); send `0` for a private dashboard."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -121,7 +123,7 @@ class UpdateDashboard(BaseModel):
 
     A field left as `None` is not sent. None of these fields can be null on the server, so clear
     them with an empty value instead: `project_ids=[]`, `filters={}`, `logo_props={}`, and
-    `pql_filters={"raw": "", "stripped": ""}`."""
+    `pql_filters={"json": {}, "stripped": ""}` (the server's own empty state)."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -134,8 +136,10 @@ class UpdateDashboard(BaseModel):
 
 
 class CopyDashboard(BaseModel):
-    """POST body for `copy` -- every field optional; each one sent replaces the copied value.
-    `name` defaults to `"<source name> (Copy)"` server-side."""
+    """POST body for `copy` -- every field optional; each one sent replaces the copied value and is
+    validated like a create. The source's own values are copied as stored, so an older dashboard
+    always copies. `name` defaults to `"<source name> (Copy)"` server-side (shortened to fit 255
+    characters), and a source with the retired `access` `2` copies as private."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -240,8 +244,12 @@ class UpdateWidget(BaseModel):
     """PATCH body -- every field optional. A change that would leave the widget unable to show
     data is refused with 400 and nothing is saved.
 
-    Only the fields you set are sent, and a field set to `None` is sent as `null`, which clears it
-    (e.g. `UpdateWidget(group_by=None)`). `last_used_filter` works as on `CreateWidget`."""
+    Only the fields you set are sent. Setting one of the four axis fields (`x_axis_property`,
+    `x_axis_date_grouping`, `y_axis_metric`, `group_by`) to `None` sends `null`, which clears it
+    (e.g. `UpdateWidget(group_by=None)`). The server can't store `null` in any other field, so a
+    `None` there is not sent: clear filters with `{}` instead. `last_used_filter` works as on
+    `CreateWidget`. (The server also takes `""` there, meaning the default; this model doesn't, so
+    leave it unset for the same effect.)"""
 
     model_config = ConfigDict(extra="ignore")
 

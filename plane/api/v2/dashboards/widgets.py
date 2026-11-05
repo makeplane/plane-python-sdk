@@ -38,6 +38,12 @@ from .._kernel.resource import V2Resource
 __all__ = ["Widgets"]
 
 
+#: The only widget write fields the server stores `null` in; `None` elsewhere is not sent.
+_NULLABLE_WIDGET_FIELDS = frozenset(
+    {"x_axis_property", "x_axis_date_grouping", "y_axis_metric", "group_by"}
+)
+
+
 class Widgets(V2Resource[Widget, CreateWidget, UpdateWidget]):
     path = "/workspaces/{slug}/dashboards/{dashboard_id}/widgets/"
     model = Widget
@@ -140,14 +146,19 @@ class Widgets(V2Resource[Widget, CreateWidget, UpdateWidget]):
         *,
         fields: Sequence[WidgetsPartialUpdateField] | None = None,
     ) -> Widget:
-        """Change only the fields set on `data`; a field set to `None` is sent as `null` and
-        clears it."""
+        """Change only the fields set on `data`. An axis field set to `None` is sent as `null` and
+        clears it; a `None` on any other field is not sent (the server can't store `null` there)."""
+        body = {
+            key: value
+            for key, value in data.model_dump(mode="json", exclude_unset=True).items()
+            if value is not None or key in _NULLABLE_WIDGET_FIELDS
+        }
         payload = self.transport.request(
             "PATCH",
             self._detail_url(widget, "update", slug=slug, dashboard_id=dashboard),
             params=self._query({"fields": fields}, action="update"),
-            # Not `_update`'s `exclude_none`: that would drop the `None` a caller sets to clear.
-            json=data.model_dump(mode="json", exclude_unset=True),
+            # Not `_update`'s `exclude_none`: it would drop the `None` that clears an axis.
+            json=body,
         )
         return Widget.model_validate(payload)
 
@@ -172,6 +183,9 @@ class Widgets(V2Resource[Widget, CreateWidget, UpdateWidget]):
         pass the `group_by_id`s already on screen as `row_ids` to load another column page for the
         same rows without ranking them again. A parameter the chart type doesn't read is ignored.
         """
+        if isinstance(row_ids, str):
+            # A bare string is a Sequence[str] too, and would be sent one character per id.
+            raise TypeError("row_ids must be a list of group ids, not a string")
         return self._custom_action(
             "chart",
             model=WidgetChart,
@@ -201,7 +215,12 @@ class Widgets(V2Resource[Widget, CreateWidget, UpdateWidget]):
         The call itself succeeds even when some widgets fail: each failing widget's entry has
         `chart=None` and the `status` and `error` body its own `chart` call would have answered
         with (e.g. 402 for a chart type not on the plan), and the other widgets still carry their
-        data. Like `chart`, it never reads `rich_filters`. Page further with `chart`."""
+        data. Like `chart`, it never reads `rich_filters`. Page further with `chart`.
+
+        The server charts at most 50 widgets per call and answers 400 past that; pass
+        `widget_ids` to chart a larger dashboard in batches."""
+        if isinstance(widget_ids, str):
+            raise TypeError("widget_ids must be a list of widget ids, not a string")
         if widget_ids is not None and len(widget_ids) == 0:
             return []
         return self._custom_action(

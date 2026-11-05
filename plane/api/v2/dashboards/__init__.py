@@ -169,7 +169,7 @@ class Dashboards(
     ) -> LoadedDashboard:
         """A new dashboard owned by the caller with the source's settings, projects, filters and
         every widget. Shared members and the public link aren't copied. Each field in `data`
-        replaces the copied value."""
+        replaces the copied value; the source's own values are copied as stored."""
         row = self._action(
             "copy",
             pk=dashboard,

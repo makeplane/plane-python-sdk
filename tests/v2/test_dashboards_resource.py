@@ -8,7 +8,7 @@ import pytest
 import responses
 from pydantic import ValidationError
 
-from plane.api.v2 import V2Namespace
+from plane.api.v2 import PlaneAPIError, V2Namespace
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.dashboards import Dashboards
 from plane.config import Configuration
@@ -93,7 +93,7 @@ def test_create_sends_the_body(dashboards: Dashboards) -> None:
             name="Eng",
             access=1,
             project_ids=["p1"],
-            pql_filters={"raw": 'priority = "high"', "stripped": 'priority = "high"'},
+            pql_filters={"json": {}, "stripped": 'priority = "high"'},
         ),
     )
 
@@ -102,7 +102,7 @@ def test_create_sends_the_body(dashboards: Dashboards) -> None:
         "name": "Eng",
         "access": 1,
         "project_ids": ["p1"],
-        "pql_filters": {"raw": 'priority = "high"', "stripped": 'priority = "high"'},
+        "pql_filters": {"json": {}, "stripped": 'priority = "high"'},
     }
 
 
@@ -462,7 +462,7 @@ def test_widgets_update_passes_fields(dashboards: Dashboards) -> None:
 
 @responses.activate
 def test_widgets_create_with_pql_filters(dashboards: Dashboards) -> None:
-    pql = {"raw": 'priority = "high"', "stripped": 'priority = "high"'}
+    pql = {"json": {}, "stripped": 'priority = "high"'}
     responses.post(
         f"{BASE}/d1/widgets/",
         json={
@@ -558,3 +558,64 @@ def test_a_fetched_workspace_reaches_its_dashboards(config: Configuration) -> No
     workspace.dashboards.list()
 
     assert responses.calls[1].request.url == f"{BASE}/"
+
+
+@responses.activate
+def test_widgets_update_does_not_send_none_where_the_server_refuses_null(
+    dashboards: Dashboards,
+) -> None:
+    # A pass-through helper sets every field it takes; only the axis fields may go out as null.
+    responses.patch(f"{BASE}/d1/widgets/w1/", json={"id": "w1", "width": 4})
+
+    dashboards.widgets.update(
+        "acme",
+        "d1",
+        "w1",
+        UpdateWidget(name=None, config=None, filters=None, width=4, group_by=None),
+    )
+
+    assert json.loads(responses.calls[0].request.body) == {"width": 4, "group_by": None}
+
+
+def test_a_bare_string_is_refused_for_id_lists(dashboards: Dashboards) -> None:
+    with pytest.raises(TypeError):
+        dashboards.widgets.chart("acme", "d1", "w1", row_ids="backlog")
+    with pytest.raises(TypeError):
+        dashboards.widgets.charts("acme", "d1", widget_ids="w1")
+
+
+@responses.activate
+def test_charts_without_widget_ids_sends_no_filter(dashboards: Dashboards) -> None:
+    responses.get(f"{BASE}/d1/widgets/charts/", json={"data": []})
+
+    assert dashboards.widgets.charts("acme", "d1") == []
+    assert "widget_ids" not in _query()
+
+
+@responses.activate
+def test_a_chart_error_is_raised_as_plane_api_error(dashboards: Dashboards) -> None:
+    responses.get(
+        f"{BASE}/d1/widgets/w1/chart/",
+        status=402,
+        json={"type": "payment_required", "code": "payment_required", "detail": "Upgrade."},
+        content_type="application/problem+json",
+    )
+
+    with pytest.raises(PlaneAPIError) as exc_info:
+        dashboards.widgets.chart("acme", "d1", "w1")
+
+    assert exc_info.value.status_code == 402
+
+
+@responses.activate
+def test_widgets_iterate_follows_pages(dashboards: Dashboards) -> None:
+    responses.get(
+        f"{BASE}/d1/widgets/",
+        json={"data": [{"id": "w1"}], "next": 1, "pagination": {"style": "offset"}},
+    )
+    responses.get(
+        f"{BASE}/d1/widgets/",
+        json={"data": [{"id": "w2"}], "next": None, "pagination": {"style": "offset"}},
+    )
+
+    assert [row.id for row in dashboards.widgets.iterate("acme", "d1", per_page=1)] == ["w1", "w2"]
