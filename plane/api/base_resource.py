@@ -91,7 +91,7 @@ class BaseResource:
     def _headers(self) -> dict[str, str]:
         headers: dict[str, str] = {"Content-Type": "application/json"}
         if self.config.api_key:
-            headers["X-Api-Key"] = self.config.api_key
+            headers[self.config.api_key_header] = self.config.api_key
         if self.config.access_token:
             headers["Authorization"] = f"Bearer {self.config.access_token}"
         return headers
