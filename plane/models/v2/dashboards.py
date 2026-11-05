@@ -10,7 +10,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 DashboardAccess = Literal[0, 1]  # 0 = Private, 1 = Public
 
-# Every chart type a stored widget can carry, including legacy ones the API no longer creates.
+# Every chart type a stored widget can carry today, including legacy ones the API no longer
+# creates. The server adds chart types over time, so the read model types `chart_type` as `str`.
 WidgetChartType = Literal[
     "BAR_CHART",
     "LINE_CHART",
@@ -78,10 +79,14 @@ WidgetMetric = Literal[
 
 
 class Dashboard(BaseModel):
+    """`access` is `0` (private) or `1` (public) on every dashboard written today. It is a plain
+    integer here, not the choice a write accepts, because older dashboards can still carry the
+    retired `2` ("shared")."""
+
     model_config = ConfigDict(extra="allow")
 
     id: str
-    access: DashboardAccess | None = None
+    access: int | None = None
     archived_at: datetime | None = None
     created_at: datetime | None = None
     created_by_id: str | None = None
@@ -112,7 +117,11 @@ class CreateDashboard(BaseModel):
 
 
 class UpdateDashboard(BaseModel):
-    """PATCH body -- every field optional. v2 has no PUT. `project_ids` replaces the whole list."""
+    """PATCH body -- every field optional. v2 has no PUT. `project_ids` replaces the whole list.
+
+    A field left as `None` is not sent. None of these fields can be null on the server, so clear
+    them with an empty value instead: `project_ids=[]`, `filters={}`, `logo_props={}`, and
+    `pql_filters={"raw": "", "stripped": ""}`."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -168,13 +177,14 @@ class Widget(BaseModel):
     choices a write accepts: the server stores free text and leaves them `""` on charts that don't
     use them. `last_used_filter` picks the filter the chart applies: `filters` when it is
     `rich_filters` (the server default), `pql_filters.stripped` when it is `pql_filters`.
-    `rich_filters` is stored but never read by a chart."""
+    `rich_filters` is stored but never read by a chart. `chart_type` and `chart_model` are plain
+    strings too, so a chart type the server adds later doesn't break reading the page."""
 
     model_config = ConfigDict(extra="allow")
 
     id: str
-    chart_model: WidgetChartModel | None = None
-    chart_type: WidgetChartType | None = None
+    chart_model: str | None = None
+    chart_type: str | None = None
     config: dict[str, Any] | None = None
     created_at: datetime | None = None
     created_by_id: str | None = None

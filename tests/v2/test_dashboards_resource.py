@@ -6,6 +6,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 import responses
+from pydantic import ValidationError
 
 from plane.api.v2 import V2Namespace
 from plane.api.v2._kernel.transport import V2Transport
@@ -15,6 +16,7 @@ from plane.models.v2.dashboards import (
     CopyDashboard,
     CreateDashboard,
     CreateWidget,
+    Dashboard,
     UpdateDashboard,
     UpdateWidget,
     Widget,
@@ -373,6 +375,41 @@ def test_widgets_list_keeps_a_page_with_blank_choice_fields(dashboards: Dashboar
     page = dashboards.widgets.list("acme", "d1")
 
     assert [row.last_used_filter for row in page.data] == ["", "pql_filters"]
+
+
+def test_dashboard_reads_a_legacy_access_value() -> None:
+    # `2` ("shared") was retired without a data migration, so old rows can still carry it.
+    assert Dashboard.model_validate({"id": "d", "access": 2}).access == 2
+
+
+@responses.activate
+def test_dashboards_list_keeps_a_page_with_a_legacy_access_value(dashboards: Dashboards) -> None:
+    responses.get(
+        BASE + "/",
+        json={
+            "data": [{"id": "d1", "access": 1}, {"id": "d2", "access": 2}],
+            "pagination": {"style": "offset"},
+        },
+    )
+
+    page = dashboards.list("acme")
+
+    assert [row.access for row in page.data] == [1, 2]
+
+
+def test_widget_reads_a_chart_type_the_sdk_does_not_know_yet() -> None:
+    widget = Widget.model_validate(
+        {"id": "w", "chart_type": "SOME_NEW_CHART", "chart_model": "SOME_MODEL"}
+    )
+
+    assert widget.chart_type == "SOME_NEW_CHART"
+    assert widget.chart_model == "SOME_MODEL"
+
+
+def test_dashboard_write_models_keep_the_access_choices() -> None:
+    for model in (CreateDashboard, UpdateDashboard, CopyDashboard):
+        with pytest.raises(ValidationError):
+            model.model_validate({"name": "D", "access": 2})
 
 
 def test_write_models_keep_the_fixed_choices() -> None:

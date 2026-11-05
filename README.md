@@ -278,8 +278,9 @@ client.v2.workspaces.projects.states.list(slug="acme", project="ENG")
 A resource with children (`projects`, `work_items`, `cycles`, `milestones`,
 `modules`, `estimates`, `webhooks`, `collections`, `customers`, `initiatives`,
 `releases`, `work_item_types`, `work_item_properties`, `automations`,
-`workflows` and `dashboards` — 19 of the 92 classes, some families having a separate
-project-scoped and workspace-scoped resource, each independently navigable)
+`workflows`, `dashboards` and `workspaces` — 20 of the 92 classes, some families
+having a separate project-scoped and workspace-scoped resource, each independently
+navigable)
 doesn't just hand back a bare pydantic model from `retrieve`/`list`/`iterate` —
 it hands back a row that carries its own data *and* already knows where it
 lives, so the row's own children are reached with none of the ids repeated:
