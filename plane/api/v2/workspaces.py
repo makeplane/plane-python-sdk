@@ -30,6 +30,7 @@ from .audit_logs import AuditLogs
 from .automations import WorkspaceAutomations
 from .customer_properties import CustomerProperties
 from .customers import Customers
+from .dashboards import Dashboards
 from .features import WorkspaceFeatures
 from .group_sync import GroupSync
 from .initiatives import Initiatives
@@ -73,6 +74,7 @@ class Workspaces(V2Resource[Workspace, Never, Never], LoadsNavigableRows[LoadedW
         self.automations = WorkspaceAutomations(transport)
         self.customer_properties = CustomerProperties(transport)
         self.customers = Customers(transport)
+        self.dashboards = Dashboards(transport)
         self.group_sync = GroupSync(transport)
         self.initiatives = Initiatives(transport)
         self.invitations = Invitations(transport)

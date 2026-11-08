@@ -4,7 +4,7 @@ plain attribute, reached by attribute access, never a chain of locator calls.
 `users`/`user_assets` have no workspace in their path and sit on `V2Namespace`
 directly.
 
-The 19 `Loaded*` row types are re-exported here too. They are the declared return
+The 20 `Loaded*` row types are re-exported here too. They are the declared return
 type of every `retrieve`/`list`/`iterate`/`find_by_*`/verb on a navigable resource,
 so a caller must be able to *name* one -- to annotate a variable, a helper's
 parameter or a test fixture -- without importing out of the private `_loaded`
@@ -26,6 +26,7 @@ from ._loaded.automation import LoadedProjectAutomation, LoadedWorkspaceAutomati
 from ._loaded.collection import LoadedCollection
 from ._loaded.customer import LoadedCustomer
 from ._loaded.cycle import LoadedCycle
+from ._loaded.dashboard import LoadedDashboard
 from ._loaded.estimate import LoadedEstimate
 from ._loaded.initiative import LoadedInitiative
 from ._loaded.milestone import LoadedMilestone
@@ -46,6 +47,7 @@ from .collections import CollectionMembers, CollectionPages, Collections
 from .customer_properties import CustomerProperties
 from .customers import Customers
 from .cycles import Cycles
+from .dashboards import Dashboards, Widgets
 from .estimates import Estimates
 from .features import ProjectFeatures, WorkspaceFeatures
 from .group_sync import GroupSync
@@ -100,6 +102,7 @@ __all__ = [
     "Customers",
     "CustomerProperties",
     "Cycles",
+    "Dashboards",
     "Estimates",
     "FieldError",
     "FieldNotRequested",
@@ -111,6 +114,7 @@ __all__ = [
     "LoadedCollection",
     "LoadedCustomer",
     "LoadedCycle",
+    "LoadedDashboard",
     "LoadedEstimate",
     "LoadedInitiative",
     "LoadedMilestone",
@@ -151,6 +155,7 @@ __all__ = [
     "Users",
     "V2Namespace",
     "Webhooks",
+    "Widgets",
     "Wiki",
     "WikiPages",
     "WorkItemProperties",
