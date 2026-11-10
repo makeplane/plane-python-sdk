@@ -15,6 +15,13 @@ class ConfigurationError(PlaneError):
     def __init__(self, message: str) -> None:
         super().__init__(message, status_code=None)
 
+    def __reduce__(self) -> tuple:
+        # `ConfigurationError.__init__` only takes a `message`, so the
+        # default `PlaneError.__reduce__` (which passes `status_code`) breaks
+        # pickling with `TypeError: ConfigurationError.__init__() takes 2
+        # positional arguments but 3 were given`.
+        return (type(self), (str(self),))
+
 
 def _extract_detail(payload: object) -> str | None:
     """Extract a human-readable detail string from an API error payload.

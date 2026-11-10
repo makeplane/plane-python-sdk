@@ -164,6 +164,21 @@ class TestConfigurationError:
         with pytest.raises(PlaneError):
             raise ConfigurationError("test")
 
+    def test_error_can_be_pickled(self) -> None:
+        """Regression test: ``PlaneError.__reduce__`` passes ``status_code`` to
+        ``__init__``, but ``ConfigurationError.__init__`` only accepts a
+        ``message``. Without an override, ``pickle.dumps`` raises
+        ``TypeError: ConfigurationError.__init__() takes 2 positional arguments
+        but 3 were given``.
+        """
+        import pickle
+
+        err = ConfigurationError("missing api_key")
+        roundtripped = pickle.loads(pickle.dumps(err))
+        assert isinstance(roundtripped, ConfigurationError)
+        assert str(roundtripped) == "missing api_key"
+        assert roundtripped.status_code is None
+
 
 # ---------------------------------------------------------------------------
 # HttpError — __str__

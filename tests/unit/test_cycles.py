@@ -1,10 +1,12 @@
 """Unit tests for Cycles API resource (smoke tests with real HTTP requests)."""
 
 from datetime import datetime
+from unittest.mock import MagicMock
 
 import pytest
 
 from plane.client import PlaneClient
+from plane.config import Configuration
 from plane.models.cycles import CreateCycle, Cycle, CycleLite, UpdateCycle
 from plane.models.projects import Project, ProjectFeature
 from plane.models.query_params import CycleLiteListQueryParams, CycleListQueryParams
@@ -160,4 +162,80 @@ class TestCyclesAPICRUD:
         assert hasattr(response, "results")
         assert hasattr(response, "count")
         assert isinstance(response.results, list)
+
+
+
+# ---------------------------------------------------------------------------
+# Pure unit tests for archive/unarchive return type
+# ---------------------------------------------------------------------------
+class TestCyclesArchiveReturnType:
+    """Regression tests: ``Cycles.archive`` and ``Cycles.unarchive`` historically
+    were annotated ``-> bool`` and hardcoded ``return True``, but their
+    ``_post`` / ``_delete`` calls return ``None`` on 2xx and raise on errors.
+    The signature now matches the docstring (``-> None``) and the rest of the
+    SDK.
+    """
+
+    @pytest.fixture
+    def cycles(self):
+        from plane.api.cycles import Cycles
+
+        config = Configuration(
+            base_path="https://api.plane.so",
+            api_key="test-key",
+        )
+        return Cycles(config)
+
+    def test_archive_signature_returns_none(self, cycles) -> None:
+        """Annotation must be ``None``, matching the rest of the SDK."""
+        import inspect
+
+        sig = inspect.signature(cycles.archive)
+        assert sig.return_annotation is None, (
+            f"archive should return None, got {sig.return_annotation!r}"
+        )
+
+    def test_unarchive_signature_returns_none(self, cycles) -> None:
+        """Annotation must be ``None``, matching the rest of the SDK."""
+        import inspect
+
+        sig = inspect.signature(cycles.unarchive)
+        assert sig.return_annotation is None, (
+            f"unarchive should return None, got {sig.return_annotation!r}"
+        )
+
+    def test_archive_returns_none_on_success(self, cycles) -> None:
+        """On a 204, ``archive`` should return ``None`` (not a hardcoded ``True``)."""
+        cycles._post = MagicMock(return_value=None)
+        result = cycles.archive("ws", "proj-id", "cycle-id")
+        assert result is None
+        cycles._post.assert_called_once()
+
+    def test_unarchive_returns_none_on_success(self, cycles) -> None:
+        """On a 204, ``unarchive`` should return ``None`` (not a hardcoded ``True``)."""
+        cycles._delete = MagicMock(return_value=None)
+        result = cycles.unarchive("ws", "proj-id", "cycle-id")
+        assert result is None
+        cycles._delete.assert_called_once()
+
+    def test_archive_propagates_http_errors(self, cycles) -> None:
+        """An HTTP error from ``_post`` must propagate -- the old ``return True``
+        silently swallowed 4xx/5xx into a misleading ``True``.
+        """
+        from plane.errors.errors import HttpError
+
+        cycles._post = MagicMock(
+            side_effect=HttpError("HTTP 400: Bad Request", 400, {"detail": "oops"})
+        )
+        with pytest.raises(HttpError):
+            cycles.archive("ws", "proj-id", "cycle-id")
+
+    def test_unarchive_propagates_http_errors(self, cycles) -> None:
+        from plane.errors.errors import HttpError
+
+        cycles._delete = MagicMock(
+            side_effect=HttpError("HTTP 404: Not Found", 404, {"detail": "not found"})
+        )
+        with pytest.raises(HttpError):
+            cycles.unarchive("ws", "proj-id", "cycle-id")
 
