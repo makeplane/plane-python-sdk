@@ -8,6 +8,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from .agent_runs import AgentRunLite
+
 Priority = Literal["none", "low", "medium", "high", "urgent"]
 CommentAccess = Literal["INTERNAL", "EXTERNAL"]
 DependencyRelationType = Literal[
@@ -119,6 +121,11 @@ class WorkItemComment(BaseModel):
     id: str
     access: CommentAccess | None = None
     actor_id: str | None = None
+    agent_run_id: str | None = None
+    """The agent run this comment is the thread root of, or null: set on the comment that
+    started a run, null on the replies inside its thread. With several runs, the oldest."""
+    agent_run: AgentRunLite | None = None
+    """Populated only when the request set `expand=["agent_run"]`."""
     comment_html: str | None = None
     comment_stripped: str | None = None
     created_at: datetime | None = None

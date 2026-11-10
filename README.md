@@ -200,15 +200,16 @@ work_items = client.work_items.list(
 
 `client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
 
-The v2 surface is complete: every one of the 90 `V2Resource` subclasses in the
+The v2 surface is complete: every one of the 93 `V2Resource` subclasses in the
 package (`tests/v2/tree_walk.py`'s `all_resource_classes()`, the enumeration the
 test suite itself sweeps) is on the flat shape described below and reachable
 through `client.v2`. Counting resources means not counting grouping nodes:
 `wiki` and `group_sync` hold no `V2Resource` base, `path` or `operations` of
 their own — they only group children (`wiki.pages`, `wiki.collections`,
-`group_sync.config`) — and are outside the 90.
+`group_sync.config`) — and are outside the 93.
 
-Wired directly on `client.v2.workspaces`: `artifacts`, `assets`, `audit_logs`,
+Wired directly on `client.v2.workspaces`: `agent_runs` (with `.activities`),
+`agent_run_activities`, `artifacts`, `assets`, `audit_logs`,
 `automations`, `customer_properties`, `customers`, `features`, `initiatives`,
 `invitations`, `members`, `permission_schemes`, `permissions`, `projects`,
 `releases` (`.labels`, `.tags`, `.comments`, `.links`, `.changelog`,
@@ -276,8 +277,8 @@ client.v2.workspaces.projects.states.list(slug="acme", project="ENG")
 
 A resource with children (`projects`, `work_items`, `cycles`, `milestones`,
 `modules`, `estimates`, `webhooks`, `collections`, `customers`, `initiatives`,
-`releases`, `work_item_types`, `work_item_properties`, `automations` and
-`workflows` — 18 of the 90 classes, some families having a separate
+`releases`, `work_item_types`, `work_item_properties`, `automations`,
+`workflows` and `agent_runs` — 20 of the 93 classes, some families having a separate
 project-scoped and workspace-scoped resource, each independently navigable)
 doesn't just hand back a bare pydantic model from `retrieve`/`list`/`iterate` —
 it hands back a row that carries its own data *and* already knows where it
@@ -310,7 +311,8 @@ log; `collections` via `.members`/`.pages`; `customers` via `.requests`,
 `.changelog`, `.work_items`; `work_item_types` via `.properties`;
 `work_item_properties` via `.property_options` (plus `.contexts` on the
 workspace-scoped resource only); `automations` via `.edges`, `.nodes`,
-`.activities`; and `workflows` via `.states`, `.transitions`. A work item
+`.activities`; `workflows` via `.states`, `.transitions`; and `agent_runs` via
+`.activities`, the run's log. A work item
 itself reaches all seven of its own children this way — `comments`,
 `attachments`, `links`, `worklogs`, `activities`, `relations`, `dependencies`.
 
@@ -369,7 +371,7 @@ scripts to prove it, rather than trusting it by inspection.
 ### The five rules the tests enforce
 
 Five properties of the surface are each enforced by a sweep in `tests/v2/`, over
-every one of the 90 resource classes (`tests/v2/tree_walk.py`'s
+every one of the 93 resource classes (`tests/v2/tree_walk.py`'s
 `all_resource_classes()`) rather than a hand-picked subset — so a newly added
 resource is covered the moment it exists, with nothing to remember to add it to:
 
@@ -454,6 +456,37 @@ client.v2.workspaces.group_sync.config.retrieve("acme")
 client.v2.workspaces.group_sync.project_mappings.list("acme")
 client.v2.workspaces.group_sync.workspace_mappings.list("acme")
 ```
+
+### Agent runs
+
+`agent_runs` is the work an agent (an installed app's bot) does in a workspace.
+A person starts a run on a top-level work item comment, replies to it with a
+`prompt` and can `stop` it; only the agent itself — a client built on the app
+bot's access token — may `update` the run or post its output activities. A run
+is settled, never deleted, so there is no `delete`.
+
+```python
+from plane.models.v2 import CreateAgentRun, CreateAgentRunActivity, UpdateAgentRun
+
+workspace = client.v2.workspaces.retrieve("acme")
+run = workspace.agent_runs.create(CreateAgentRun(agent_slug="poem-agent", comment_id=comment.id))
+run.activities.create(
+    CreateAgentRunActivity(type="prompt", content={"type": "prompt", "body": "<p>Make it rhyme</p>"})
+)
+workspace.agent_runs.stop(run.id)  # -> status "stopping"; 409 if it already ended
+
+# As the agent (PlaneClient(base_url=..., access_token=<bot token>)):
+agent.v2.workspaces.agent_runs.update("acme", run.id, UpdateAgentRun(status="completed"))
+```
+
+To follow runs, poll `agent_runs.list(slug, paginate="cursor",
+updated_at__gte=...)`, or follow one feed of every run's activity with
+`agent_run_activities.list(slug, paginate="cursor", created_at__gte=...)`. Both
+hold back rows written in the last 3 seconds, so dedupe by `id`. A bot token
+sees only its own runs; a person sees a run only if they can see its work item.
+A work item comment that started a run carries `agent_run_id`, filters on
+`comments.list(..., agent_run_id=...)` and inlines the run with
+`expand=["agent_run"]`.
 
 ### Errors
 
