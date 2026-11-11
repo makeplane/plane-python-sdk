@@ -4,7 +4,7 @@ plain attribute, reached by attribute access, never a chain of locator calls.
 `users`/`user_assets` have no workspace in their path and sit on `V2Namespace`
 directly.
 
-The 19 `Loaded*` row types are re-exported here too. They are the declared return
+The 20 `Loaded*` row types are re-exported here too. They are the declared return
 type of every `retrieve`/`list`/`iterate`/`find_by_*`/verb on a navigable resource,
 so a caller must be able to *name* one -- to annotate a variable, a helper's
 parameter or a test fixture -- without importing out of the private `_loaded`
@@ -22,6 +22,7 @@ from ._kernel.errors import (
     PlaneAPIError,
 )
 from ._kernel.transport import V2Transport
+from ._loaded.agent_run import LoadedAgentRun
 from ._loaded.automation import LoadedProjectAutomation, LoadedWorkspaceAutomation
 from ._loaded.collection import LoadedCollection
 from ._loaded.customer import LoadedCustomer
@@ -38,6 +39,7 @@ from ._loaded.work_item_property import LoadedWorkItemProperty, LoadedWorkspaceW
 from ._loaded.work_item_type import LoadedWorkItemType, LoadedWorkspaceWorkItemType
 from ._loaded.workflow import LoadedWorkflow
 from ._loaded.workspace import LoadedWorkspace
+from .agent_runs import AgentRunActivities, AgentRuns, WorkspaceAgentRunActivities
 from .artifacts import Artifacts
 from .assets import UserAssets, WorkspaceAssets
 from .audit_logs import AuditLogs
@@ -90,6 +92,8 @@ class V2Namespace:
 
 
 __all__ = [
+    "AgentRunActivities",
+    "AgentRuns",
     "Artifacts",
     "AuditLogs",
     "ProjectAutomations",
@@ -108,6 +112,7 @@ __all__ = [
     "Intakes",
     "Invitations",
     "Labels",
+    "LoadedAgentRun",
     "LoadedCollection",
     "LoadedCustomer",
     "LoadedCycle",
@@ -151,6 +156,7 @@ __all__ = [
     "Users",
     "V2Namespace",
     "Webhooks",
+    "WorkspaceAgentRunActivities",
     "Wiki",
     "WikiPages",
     "WorkItemProperties",

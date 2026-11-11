@@ -27,7 +27,7 @@ from plane.client import PlaneClient
 from plane.models.v2.projects import CreateProject
 from plane.models.v2.work_items import CreateWorkItem
 
-from ._guard import register
+from ._guard import register, skip_absent_capability
 from .helpers import SPECS, ResourceSpec, unique_name
 
 
@@ -88,8 +88,38 @@ def client(base_url: str, api_key: str) -> PlaneClient:
 
 
 @pytest.fixture(scope="session")
+def agent_slug() -> str:
+    """The slug of an agent app installed in the test workspace -- agent runs need an
+    agent to run. Optional: without it the agent-run tests skip as a declared capability
+    gap (the workspace has no agent for them), and every other test still runs."""
+    slug = os.getenv("AGENT_SLUG")
+    if not slug:
+        skip_absent_capability(
+            "no agent app to start runs with -- set AGENT_SLUG to an app installed in "
+            "the workspace"
+        )
+    return slug
+
+
+@pytest.fixture(scope="session")
+def agent_client(base_url: str) -> PlaneClient:
+    """A client authenticated as that agent's bot (`AGENT_BOT_TOKEN`, an access token
+    the app was issued in the test workspace) -- the only principal the API lets update
+    a run or post the agent's output activities. Optional, like `agent_slug`."""
+    token = os.getenv("AGENT_BOT_TOKEN")
+    if not token:
+        skip_absent_capability(
+            "no agent bot token to act as the agent with -- set AGENT_BOT_TOKEN to an "
+            "access token of the AGENT_SLUG app's bot"
+        )
+    plane_client = PlaneClient(base_url=base_url, access_token=token)
+    _install_rate_limit_retry(plane_client.v2.transport)
+    return plane_client
+
+
+@pytest.fixture(scope="session")
 def workspace(client: PlaneClient, workspace_slug: str) -> LoadedWorkspace:
-    """The test workspace as a loaded row, reaching all 25 workspace-scoped families
+    """The test workspace as a loaded row, reaching all 27 workspace-scoped families
     with the slug bound once (`workspace.roles.list()`).
 
     The suite deliberately uses **both** ways into a resource, file by file, and says

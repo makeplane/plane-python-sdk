@@ -24,6 +24,7 @@ from ._kernel.loaded import LoadsNavigableRows
 from ._kernel.resource import V2Resource
 from ._kernel.transport import V2Transport
 from ._loaded.workspace import LoadedWorkspace
+from .agent_runs import AgentRuns, WorkspaceAgentRunActivities
 from .artifacts import Artifacts
 from .assets import WorkspaceAssets
 from .audit_logs import AuditLogs
@@ -67,6 +68,8 @@ class Workspaces(V2Resource[Workspace, Never, Never], LoadsNavigableRows[LoadedW
         self.features = WorkspaceFeatures(transport)
         self.releases = Releases(transport)
         self.release_tags = ReleaseTags(transport)
+        self.agent_runs = AgentRuns(transport)
+        self.agent_run_activities = WorkspaceAgentRunActivities(transport)
         self.artifacts = Artifacts(transport)
         self.assets = WorkspaceAssets(transport)
         self.audit_logs = AuditLogs(transport)
