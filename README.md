@@ -761,6 +761,13 @@ client.work_items.links.delete(workspace_slug, project_id, work_item_id, link_id
 
 # Relations
 relations = client.work_items.relations.list(workspace_slug, project_id, work_item_id)
+# Community Edition returns references with both the target and its project.
+# Bare-ID entries remain supported for compatibility with the existing SDK shape.
+for target in relations.blocked_by:
+    if isinstance(target, str):
+        print(target)
+    else:
+        print(target.project_id, target.issue_id)
 relation = client.work_items.relations.create(workspace_slug, project_id, work_item_id, data)
 
 # Activities
