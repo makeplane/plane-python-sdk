@@ -398,6 +398,7 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "workspace_features_retrieve",
         "workspace_features_update",
         "workspace_members_list",
+        "workspace_members_partial_update",
         "workspace_members_remove",
         "workspace_pages_create",
         "workspace_pages_destroy",
@@ -5465,6 +5466,7 @@ FIELDS: dict[str, frozenset[str]] = {
         ]
     ),
     "workspace_members_list": frozenset(["all", "id", "member_id", "role"]),
+    "workspace_members_partial_update": frozenset(["all", "id", "member_id", "role"]),
     "workspace_pages_create": frozenset(
         [
             "access",
@@ -6378,6 +6380,7 @@ EXPAND: dict[str, frozenset[str]] = {
     "worklogs_partial_update": frozenset(["logged_by"]),
     "worklogs_retrieve": frozenset(["logged_by"]),
     "workspace_members_list": frozenset(["member"]),
+    "workspace_members_partial_update": frozenset(["member"]),
     "workspace_pages_create": frozenset(["owned_by", "parent"]),
     "workspace_pages_destroy": frozenset(["owned_by", "parent"]),
     "workspace_pages_list": frozenset(["owned_by", "parent"]),
@@ -10943,6 +10946,7 @@ WorkspaceAutomationsRetrieveField = Literal[
     "updated_at",
 ]
 WorkspaceMembersListField = Literal["all", "id", "member_id", "role"]
+WorkspaceMembersPartialUpdateField = Literal["all", "id", "member_id", "role"]
 WorkspacePagesCreateField = Literal[
     "access",
     "all",

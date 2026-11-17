@@ -172,6 +172,7 @@ from .members import (
     CreateProjectMember,
     Member,
     UpdateProjectMember,
+    UpdateWorkspaceMember,
     WorkspaceMemberRemove,
 )
 from .milestones import (
@@ -483,6 +484,7 @@ __all__ = [
     "ProjectFeature",
     "UpdateProjectFeature",
     "UpdateProjectMember",
+    "UpdateWorkspaceMember",
     "CreateProjectMember",
     "UpdateProject",
     "ProjectRoleDistribution",

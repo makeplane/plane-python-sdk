@@ -9,7 +9,12 @@ import responses
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.members import ProjectMembers, WorkspaceMembers
 from plane.config import Configuration
-from plane.models.v2.members import CreateProjectMember, UpdateProjectMember, WorkspaceMemberRemove
+from plane.models.v2.members import (
+    CreateProjectMember,
+    UpdateProjectMember,
+    UpdateWorkspaceMember,
+    WorkspaceMemberRemove,
+)
 
 PROJECT_BASE = "https://api.example.com/api/v2/workspaces/acme/projects/ENG/members"
 WORKSPACE_BASE = "https://api.example.com/api/v2/workspaces/acme/members"
@@ -102,7 +107,7 @@ def test_project_members_delete_returns_none(project_members: ProjectMembers) ->
     assert responses.calls[0].request.url == f"{PROJECT_BASE}/m1/"
 
 
-# -- WorkspaceMembers (list-only + remove) ----------------------------------------
+# -- WorkspaceMembers (list, role change, remove) ---------------------------------
 
 
 @responses.activate
@@ -134,12 +139,22 @@ def test_workspace_members_list_per_page_and_offset(workspace_members: Workspace
 
 @responses.activate
 def test_workspace_members_has_no_detail_crud(workspace_members: WorkspaceMembers) -> None:
-    """`WorkspaceMembers` deliberately exposes no `retrieve`/`create`/`update`/
-    `delete` -- the golden has no such operations for this resource."""
+    """`WorkspaceMembers` deliberately exposes no `retrieve`/`create`/`delete` --
+    the golden has no such operations for this resource."""
     assert not hasattr(workspace_members, "retrieve")
     assert not hasattr(workspace_members, "create")
-    assert not hasattr(workspace_members, "update")
     assert not hasattr(workspace_members, "delete")
+
+
+@responses.activate
+def test_workspace_members_update_changes_role(workspace_members: WorkspaceMembers) -> None:
+    responses.patch(f"{WORKSPACE_BASE}/m1/", json={"id": "m1", "member_id": "u1", "role": "guest"})
+
+    updated = workspace_members.update("acme", "m1", UpdateWorkspaceMember(role="guest"))
+
+    assert updated.role == "guest"
+    assert responses.calls[0].request.url == f"{WORKSPACE_BASE}/m1/"
+    assert json.loads(responses.calls[0].request.body) == {"role": "guest"}
 
 
 @responses.activate
