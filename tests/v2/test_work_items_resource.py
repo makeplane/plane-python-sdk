@@ -255,6 +255,63 @@ def test_comments_upsert(work_items: WorkItems) -> None:
 
 
 @responses.activate
+def test_comments_filter_and_expand_by_agent_run(work_items: WorkItems) -> None:
+    """A comment that started an agent run carries `agent_run_id`; `?agent_run_id=` finds
+    it, and `expand=["agent_run"]` inlines the run's id, status and agent."""
+    responses.get(
+        f"{BASE}/wi-1/comments/",
+        json={
+            "data": [
+                {
+                    "id": "c1",
+                    "agent_run_id": "r1",
+                    "agent_run": {
+                        "id": "r1",
+                        "status": "awaiting",
+                        "agent_user_id": "bot-1",
+                        "native_agent_id": None,
+                    },
+                }
+            ],
+            "pagination": {"style": "offset"},
+        },
+    )
+
+    page = work_items.comments.list(
+        "acme",
+        "ENG",
+        "wi-1",
+        agent_run_id="r1",
+        expand=["actor", "agent_run"],
+        fields=["id", "agent_run_id"],
+    )
+
+    query = responses.calls[0].request.url.split("?", 1)[1]
+    assert "agent_run_id=r1" in query
+    assert "expand=actor%2Cagent_run" in query
+    assert "fields=id%2Cagent_run_id" in query
+    comment = page.data[0]
+    assert comment.agent_run_id == "r1"
+    assert comment.agent_run is not None
+    assert (comment.agent_run.status, comment.agent_run.agent_user_id) == ("awaiting", "bot-1")
+
+
+@responses.activate
+def test_a_comment_without_a_run_reads_agent_run_id_as_none(work_items: WorkItems) -> None:
+    responses.get(f"{BASE}/wi-1/comments/c2/", json={"id": "c2", "agent_run_id": None})
+
+    comment = work_items.comments.retrieve("acme", "ENG", "wi-1", "c2", expand=["agent_run"])
+
+    assert comment.agent_run_id is None
+    assert comment.agent_run is None
+
+
+def test_comments_reject_an_expand_the_golden_does_not_offer(work_items: WorkItems) -> None:
+    with pytest.raises(ValueError, match="Unknown expand"):
+        work_items.comments.list("acme", "ENG", "wi-1", expand=["agent_runs"])
+
+
+@responses.activate
 def test_comments_have_their_own_bulk_operations(work_items: WorkItems) -> None:
     """Comments' bulk ops (`work_item_comments_bulk_*`) are distinct operationIds
     from the parent work item's own bulk ops -- this hits the comments sub-path,

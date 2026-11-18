@@ -14,6 +14,7 @@ from ....models.v2.workspaces import Workspace
 from .._kernel.loaded import Loaded, Owned, bind1
 
 if TYPE_CHECKING:
+    from ..agent_runs import AgentRuns, WorkspaceAgentRunActivities
     from ..artifacts import Artifacts
     from ..assets import WorkspaceAssets
     from ..audit_logs import AuditLogs
@@ -66,6 +67,18 @@ if TYPE_CHECKING:
         unarchive = staticmethod(bind1(Projects.unarchive))
         summary = staticmethod(bind1(Projects.summary))
         role_distribution = staticmethod(bind1(Projects.role_distribution))
+
+    class _OwnedAgentRuns(Owned["AgentRuns"]):
+        list = staticmethod(bind1(AgentRuns.list))
+        iterate = staticmethod(bind1(AgentRuns.iterate))
+        retrieve = staticmethod(bind1(AgentRuns.retrieve))
+        create = staticmethod(bind1(AgentRuns.create))
+        update = staticmethod(bind1(AgentRuns.update))
+        stop = staticmethod(bind1(AgentRuns.stop))
+
+    class _OwnedWorkspaceAgentRunActivities(Owned["WorkspaceAgentRunActivities"]):
+        list = staticmethod(bind1(WorkspaceAgentRunActivities.list))
+        iterate = staticmethod(bind1(WorkspaceAgentRunActivities.iterate))
 
     class _OwnedWorkspaceFeatures(Owned["WorkspaceFeatures"]):
         retrieve = staticmethod(bind1(WorkspaceFeatures.retrieve))
@@ -256,7 +269,7 @@ if TYPE_CHECKING:
 class LoadedWorkspace(Loaded, Workspace):
     """A workspace row that is also the place its children live.
 
-    Every one of the twenty-five resources `Workspaces.__init__` attaches is
+    Every one of the twenty-seven resources `Workspaces.__init__` attaches is
     reachable here, so `workspace.projects.list()` works exactly the way
     `workspace.roles.list()` does, with the slug supplied once at fetch time.
 
@@ -301,6 +314,20 @@ class LoadedWorkspace(Loaded, Workspace):
         return cast(
             "_OwnedReleaseTags",
             Owned(self._resources.release_tags, self._ids, self._id_names),
+        )
+
+    @property
+    def agent_runs(self) -> _OwnedAgentRuns:
+        return cast(
+            "_OwnedAgentRuns",
+            Owned(self._resources.agent_runs, self._ids, self._id_names),
+        )
+
+    @property
+    def agent_run_activities(self) -> _OwnedWorkspaceAgentRunActivities:
+        return cast(
+            "_OwnedWorkspaceAgentRunActivities",
+            Owned(self._resources.agent_run_activities, self._ids, self._id_names),
         )
 
     @property

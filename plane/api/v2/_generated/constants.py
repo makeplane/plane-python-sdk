@@ -245,6 +245,14 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "releases_work_items",
         "roles_list",
         "roles_retrieve",
+        "run_activities_create",
+        "run_activities_list",
+        "run_activities_retrieve",
+        "runs_create",
+        "runs_list",
+        "runs_partial_update",
+        "runs_retrieve",
+        "runs_stop",
         "states_bulk_create",
         "states_bulk_delete",
         "states_bulk_update",
@@ -382,6 +390,7 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "workspace_pages_list",
         "workspace_pages_partial_update",
         "workspace_pages_retrieve",
+        "workspace_run_activities_list",
         "workspace_views_create",
         "workspace_views_destroy",
         "workspace_views_list",
@@ -709,6 +718,7 @@ FIELDS: dict[str, frozenset[str]] = {
         [
             "access",
             "actor_id",
+            "agent_run_id",
             "all",
             "comment_html",
             "comment_stripped",
@@ -725,6 +735,7 @@ FIELDS: dict[str, frozenset[str]] = {
         [
             "access",
             "actor_id",
+            "agent_run_id",
             "all",
             "comment_html",
             "comment_stripped",
@@ -741,6 +752,7 @@ FIELDS: dict[str, frozenset[str]] = {
         [
             "access",
             "actor_id",
+            "agent_run_id",
             "all",
             "comment_html",
             "comment_stripped",
@@ -757,6 +769,7 @@ FIELDS: dict[str, frozenset[str]] = {
         [
             "access",
             "actor_id",
+            "agent_run_id",
             "all",
             "comment_html",
             "comment_stripped",
@@ -773,6 +786,7 @@ FIELDS: dict[str, frozenset[str]] = {
         [
             "access",
             "actor_id",
+            "agent_run_id",
             "all",
             "comment_html",
             "comment_stripped",
@@ -3234,6 +3248,226 @@ FIELDS: dict[str, frozenset[str]] = {
     "roles_retrieve": frozenset(
         ["all", "description", "id", "is_system", "level", "name", "namespace", "slug", "status"]
     ),
+    "run_activities_create": frozenset(
+        [
+            "actor_id",
+            "agent_run_id",
+            "all",
+            "comment_id",
+            "content",
+            "content_metadata",
+            "created_at",
+            "created_by_id",
+            "ephemeral",
+            "id",
+            "project_id",
+            "signal",
+            "signal_metadata",
+            "type",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
+    "run_activities_list": frozenset(
+        [
+            "actor_id",
+            "agent_run_id",
+            "all",
+            "comment_id",
+            "content",
+            "content_metadata",
+            "created_at",
+            "created_by_id",
+            "ephemeral",
+            "id",
+            "project_id",
+            "signal",
+            "signal_metadata",
+            "type",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
+    "run_activities_retrieve": frozenset(
+        [
+            "actor_id",
+            "agent_run_id",
+            "all",
+            "comment_id",
+            "content",
+            "content_metadata",
+            "created_at",
+            "created_by_id",
+            "ephemeral",
+            "id",
+            "project_id",
+            "signal",
+            "signal_metadata",
+            "type",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
+    "runs_create": frozenset(
+        [
+            "agent_user_id",
+            "all",
+            "comment_id",
+            "created_at",
+            "created_by_id",
+            "creator_id",
+            "credit_usage",
+            "ended_at",
+            "error_metadata",
+            "external_link",
+            "external_trigger_id",
+            "external_trigger_source",
+            "id",
+            "native_agent_id",
+            "project_id",
+            "source_comment_id",
+            "started_at",
+            "status",
+            "stopped_at",
+            "stopped_by_id",
+            "summary",
+            "title",
+            "token_usage",
+            "trigger_type",
+            "type",
+            "updated_at",
+            "updated_by_id",
+            "work_item_id",
+        ]
+    ),
+    "runs_list": frozenset(
+        [
+            "agent_user_id",
+            "all",
+            "comment_id",
+            "created_at",
+            "created_by_id",
+            "creator_id",
+            "credit_usage",
+            "ended_at",
+            "error_metadata",
+            "external_link",
+            "external_trigger_id",
+            "external_trigger_source",
+            "id",
+            "native_agent_id",
+            "project_id",
+            "source_comment_id",
+            "started_at",
+            "status",
+            "stopped_at",
+            "stopped_by_id",
+            "summary",
+            "title",
+            "token_usage",
+            "trigger_type",
+            "type",
+            "updated_at",
+            "updated_by_id",
+            "work_item_id",
+        ]
+    ),
+    "runs_partial_update": frozenset(
+        [
+            "agent_user_id",
+            "all",
+            "comment_id",
+            "created_at",
+            "created_by_id",
+            "creator_id",
+            "credit_usage",
+            "ended_at",
+            "error_metadata",
+            "external_link",
+            "external_trigger_id",
+            "external_trigger_source",
+            "id",
+            "native_agent_id",
+            "project_id",
+            "source_comment_id",
+            "started_at",
+            "status",
+            "stopped_at",
+            "stopped_by_id",
+            "summary",
+            "title",
+            "token_usage",
+            "trigger_type",
+            "type",
+            "updated_at",
+            "updated_by_id",
+            "work_item_id",
+        ]
+    ),
+    "runs_retrieve": frozenset(
+        [
+            "agent_user_id",
+            "all",
+            "comment_id",
+            "created_at",
+            "created_by_id",
+            "creator_id",
+            "credit_usage",
+            "ended_at",
+            "error_metadata",
+            "external_link",
+            "external_trigger_id",
+            "external_trigger_source",
+            "id",
+            "native_agent_id",
+            "project_id",
+            "source_comment_id",
+            "started_at",
+            "status",
+            "stopped_at",
+            "stopped_by_id",
+            "summary",
+            "title",
+            "token_usage",
+            "trigger_type",
+            "type",
+            "updated_at",
+            "updated_by_id",
+            "work_item_id",
+        ]
+    ),
+    "runs_stop": frozenset(
+        [
+            "agent_user_id",
+            "all",
+            "comment_id",
+            "created_at",
+            "created_by_id",
+            "creator_id",
+            "credit_usage",
+            "ended_at",
+            "error_metadata",
+            "external_link",
+            "external_trigger_id",
+            "external_trigger_source",
+            "id",
+            "native_agent_id",
+            "project_id",
+            "source_comment_id",
+            "started_at",
+            "status",
+            "stopped_at",
+            "stopped_by_id",
+            "summary",
+            "title",
+            "token_usage",
+            "trigger_type",
+            "type",
+            "updated_at",
+            "updated_by_id",
+            "work_item_id",
+        ]
+    ),
     "states_create": frozenset(
         [
             "all",
@@ -3693,6 +3927,7 @@ FIELDS: dict[str, frozenset[str]] = {
         [
             "access",
             "actor_id",
+            "agent_run_id",
             "all",
             "comment_html",
             "comment_stripped",
@@ -5081,6 +5316,26 @@ FIELDS: dict[str, frozenset[str]] = {
             "view_props",
         ]
     ),
+    "workspace_run_activities_list": frozenset(
+        [
+            "actor_id",
+            "agent_run_id",
+            "all",
+            "comment_id",
+            "content",
+            "content_metadata",
+            "created_at",
+            "created_by_id",
+            "ephemeral",
+            "id",
+            "project_id",
+            "signal",
+            "signal_metadata",
+            "type",
+            "updated_at",
+            "updated_by_id",
+        ]
+    ),
     "workspace_views_create": frozenset(
         [
             "access",
@@ -5639,6 +5894,8 @@ ORDER_BY: dict[str, frozenset[str]] = {
     "roles_list": frozenset(
         ["-id", "-level", "-name", "-namespace", "id", "level", "name", "namespace"]
     ),
+    "run_activities_list": frozenset(["-created_at", "-id", "created_at", "id"]),
+    "runs_list": frozenset(["-created_at", "-id", "-updated_at", "created_at", "id", "updated_at"]),
     "states_list": frozenset(["-created_at", "-id", "-sequence", "created_at", "id", "sequence"]),
     "stickies_list": frozenset(
         ["-created_at", "-id", "-sort_order", "created_at", "id", "sort_order"]
@@ -5696,6 +5953,7 @@ ORDER_BY: dict[str, frozenset[str]] = {
     "workspace_pages_list": frozenset(
         ["-created_at", "-id", "-name", "-updated_at", "created_at", "id", "name", "updated_at"]
     ),
+    "workspace_run_activities_list": frozenset(["-created_at", "-id", "created_at", "id"]),
     "workspace_views_list": frozenset(
         ["-created_at", "-id", "-sort_order", "created_at", "id", "sort_order"]
     ),
@@ -5736,11 +5994,11 @@ EXPAND: dict[str, frozenset[str]] = {
     "activities_list": frozenset(["actor"]),
     "activities_retrieve": frozenset(["actor"]),
     "collections_members_list": frozenset(["member"]),
-    "comments_create": frozenset(["actor"]),
-    "comments_destroy": frozenset(["actor"]),
-    "comments_list": frozenset(["actor"]),
-    "comments_partial_update": frozenset(["actor"]),
-    "comments_retrieve": frozenset(["actor"]),
+    "comments_create": frozenset(["actor", "agent_run"]),
+    "comments_destroy": frozenset(["actor", "agent_run"]),
+    "comments_list": frozenset(["actor", "agent_run"]),
+    "comments_partial_update": frozenset(["actor", "agent_run"]),
+    "comments_retrieve": frozenset(["actor", "agent_run"]),
     "cycles_create": frozenset(["owned_by"]),
     "cycles_destroy": frozenset(["owned_by"]),
     "cycles_list": frozenset(["owned_by"]),
@@ -5795,12 +6053,22 @@ EXPAND: dict[str, frozenset[str]] = {
     "releases_list": frozenset(["lead", "tag"]),
     "releases_partial_update": frozenset(["lead", "tag"]),
     "releases_retrieve": frozenset(["lead", "tag"]),
+    "run_activities_create": frozenset(["actor"]),
+    "run_activities_list": frozenset(["actor"]),
+    "run_activities_retrieve": frozenset(["actor"]),
+    "runs_create": frozenset(["agent_user", "comment", "creator", "source_comment", "work_item"]),
+    "runs_list": frozenset(["agent_user", "comment", "creator", "source_comment", "work_item"]),
+    "runs_partial_update": frozenset(
+        ["agent_user", "comment", "creator", "source_comment", "work_item"]
+    ),
+    "runs_retrieve": frozenset(["agent_user", "comment", "creator", "source_comment", "work_item"]),
+    "runs_stop": frozenset(["agent_user", "comment", "creator", "source_comment", "work_item"]),
     "teamspaces_create": frozenset(["lead"]),
     "teamspaces_destroy": frozenset(["lead"]),
     "teamspaces_list": frozenset(["lead"]),
     "teamspaces_partial_update": frozenset(["lead"]),
     "teamspaces_retrieve": frozenset(["lead"]),
-    "work_item_comments_upsert": frozenset(["actor"]),
+    "work_item_comments_upsert": frozenset(["actor", "agent_run"]),
     "work_items_archive": frozenset(
         ["assignees", "cycle", "labels", "modules", "parent", "state", "type"]
     ),
@@ -5842,6 +6110,7 @@ EXPAND: dict[str, frozenset[str]] = {
     "workspace_pages_list": frozenset(["owned_by", "parent"]),
     "workspace_pages_partial_update": frozenset(["owned_by", "parent"]),
     "workspace_pages_retrieve": frozenset(["owned_by", "parent"]),
+    "workspace_run_activities_list": frozenset(["actor"]),
     "workspace_views_create": frozenset(["owned_by"]),
     "workspace_views_destroy": frozenset(["owned_by"]),
     "workspace_views_list": frozenset(["owned_by"]),
@@ -5891,6 +6160,8 @@ PAGINATION: dict[str, frozenset[str]] = {
     "release_tags_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "releases_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "roles_list": frozenset(["count", "offset", "paginate", "per_page"]),
+    "run_activities_list": frozenset(["count", "offset", "paginate", "per_page"]),
+    "runs_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "states_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "stickies_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "teamspaces_list": frozenset(["count", "offset", "paginate", "per_page"]),
@@ -5914,6 +6185,7 @@ PAGINATION: dict[str, frozenset[str]] = {
     "workspace_automations_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "workspace_members_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "workspace_pages_list": frozenset(["count", "offset", "paginate", "per_page"]),
+    "workspace_run_activities_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "workspace_views_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "workspace_work_item_properties_list": frozenset(["count", "offset", "paginate", "per_page"]),
     "workspace_work_item_property_options_list": frozenset(
@@ -6201,6 +6473,7 @@ CollectionsPagesSearchField = Literal["all", "id", "logo_props", "name"]
 CommentsCreateField = Literal[
     "access",
     "actor_id",
+    "agent_run_id",
     "all",
     "comment_html",
     "comment_stripped",
@@ -6215,6 +6488,7 @@ CommentsCreateField = Literal[
 CommentsDestroyField = Literal[
     "access",
     "actor_id",
+    "agent_run_id",
     "all",
     "comment_html",
     "comment_stripped",
@@ -6229,6 +6503,7 @@ CommentsDestroyField = Literal[
 CommentsListField = Literal[
     "access",
     "actor_id",
+    "agent_run_id",
     "all",
     "comment_html",
     "comment_stripped",
@@ -6243,6 +6518,7 @@ CommentsListField = Literal[
 CommentsPartialUpdateField = Literal[
     "access",
     "actor_id",
+    "agent_run_id",
     "all",
     "comment_html",
     "comment_stripped",
@@ -6257,6 +6533,7 @@ CommentsPartialUpdateField = Literal[
 CommentsRetrieveField = Literal[
     "access",
     "actor_id",
+    "agent_run_id",
     "all",
     "comment_html",
     "comment_stripped",
@@ -8428,6 +8705,210 @@ RolesListField = Literal[
 RolesRetrieveField = Literal[
     "all", "description", "id", "is_system", "level", "name", "namespace", "slug", "status"
 ]
+RunActivitiesCreateField = Literal[
+    "actor_id",
+    "agent_run_id",
+    "all",
+    "comment_id",
+    "content",
+    "content_metadata",
+    "created_at",
+    "created_by_id",
+    "ephemeral",
+    "id",
+    "project_id",
+    "signal",
+    "signal_metadata",
+    "type",
+    "updated_at",
+    "updated_by_id",
+]
+RunActivitiesListField = Literal[
+    "actor_id",
+    "agent_run_id",
+    "all",
+    "comment_id",
+    "content",
+    "content_metadata",
+    "created_at",
+    "created_by_id",
+    "ephemeral",
+    "id",
+    "project_id",
+    "signal",
+    "signal_metadata",
+    "type",
+    "updated_at",
+    "updated_by_id",
+]
+RunActivitiesRetrieveField = Literal[
+    "actor_id",
+    "agent_run_id",
+    "all",
+    "comment_id",
+    "content",
+    "content_metadata",
+    "created_at",
+    "created_by_id",
+    "ephemeral",
+    "id",
+    "project_id",
+    "signal",
+    "signal_metadata",
+    "type",
+    "updated_at",
+    "updated_by_id",
+]
+RunsCreateField = Literal[
+    "agent_user_id",
+    "all",
+    "comment_id",
+    "created_at",
+    "created_by_id",
+    "creator_id",
+    "credit_usage",
+    "ended_at",
+    "error_metadata",
+    "external_link",
+    "external_trigger_id",
+    "external_trigger_source",
+    "id",
+    "native_agent_id",
+    "project_id",
+    "source_comment_id",
+    "started_at",
+    "status",
+    "stopped_at",
+    "stopped_by_id",
+    "summary",
+    "title",
+    "token_usage",
+    "trigger_type",
+    "type",
+    "updated_at",
+    "updated_by_id",
+    "work_item_id",
+]
+RunsListField = Literal[
+    "agent_user_id",
+    "all",
+    "comment_id",
+    "created_at",
+    "created_by_id",
+    "creator_id",
+    "credit_usage",
+    "ended_at",
+    "error_metadata",
+    "external_link",
+    "external_trigger_id",
+    "external_trigger_source",
+    "id",
+    "native_agent_id",
+    "project_id",
+    "source_comment_id",
+    "started_at",
+    "status",
+    "stopped_at",
+    "stopped_by_id",
+    "summary",
+    "title",
+    "token_usage",
+    "trigger_type",
+    "type",
+    "updated_at",
+    "updated_by_id",
+    "work_item_id",
+]
+RunsPartialUpdateField = Literal[
+    "agent_user_id",
+    "all",
+    "comment_id",
+    "created_at",
+    "created_by_id",
+    "creator_id",
+    "credit_usage",
+    "ended_at",
+    "error_metadata",
+    "external_link",
+    "external_trigger_id",
+    "external_trigger_source",
+    "id",
+    "native_agent_id",
+    "project_id",
+    "source_comment_id",
+    "started_at",
+    "status",
+    "stopped_at",
+    "stopped_by_id",
+    "summary",
+    "title",
+    "token_usage",
+    "trigger_type",
+    "type",
+    "updated_at",
+    "updated_by_id",
+    "work_item_id",
+]
+RunsRetrieveField = Literal[
+    "agent_user_id",
+    "all",
+    "comment_id",
+    "created_at",
+    "created_by_id",
+    "creator_id",
+    "credit_usage",
+    "ended_at",
+    "error_metadata",
+    "external_link",
+    "external_trigger_id",
+    "external_trigger_source",
+    "id",
+    "native_agent_id",
+    "project_id",
+    "source_comment_id",
+    "started_at",
+    "status",
+    "stopped_at",
+    "stopped_by_id",
+    "summary",
+    "title",
+    "token_usage",
+    "trigger_type",
+    "type",
+    "updated_at",
+    "updated_by_id",
+    "work_item_id",
+]
+RunsStopField = Literal[
+    "agent_user_id",
+    "all",
+    "comment_id",
+    "created_at",
+    "created_by_id",
+    "creator_id",
+    "credit_usage",
+    "ended_at",
+    "error_metadata",
+    "external_link",
+    "external_trigger_id",
+    "external_trigger_source",
+    "id",
+    "native_agent_id",
+    "project_id",
+    "source_comment_id",
+    "started_at",
+    "status",
+    "stopped_at",
+    "stopped_by_id",
+    "summary",
+    "title",
+    "token_usage",
+    "trigger_type",
+    "type",
+    "updated_at",
+    "updated_by_id",
+    "work_item_id",
+]
 StatesCreateField = Literal[
     "all",
     "color",
@@ -8828,6 +9309,7 @@ WebhooksRetrieveField = Literal[
 WorkItemCommentsUpsertField = Literal[
     "access",
     "actor_id",
+    "agent_run_id",
     "all",
     "comment_html",
     "comment_stripped",
@@ -10063,6 +10545,24 @@ WorkspacePagesRetrieveField = Literal[
     "sort_order",
     "view_props",
 ]
+WorkspaceRunActivitiesListField = Literal[
+    "actor_id",
+    "agent_run_id",
+    "all",
+    "comment_id",
+    "content",
+    "content_metadata",
+    "created_at",
+    "created_by_id",
+    "ephemeral",
+    "id",
+    "project_id",
+    "signal",
+    "signal_metadata",
+    "type",
+    "updated_at",
+    "updated_by_id",
+]
 WorkspaceViewsCreateField = Literal[
     "access",
     "all",
@@ -10552,6 +11052,8 @@ ReleasesListOrderBy = Literal[
 RolesListOrderBy = Literal[
     "-id", "-level", "-name", "-namespace", "id", "level", "name", "namespace"
 ]
+RunActivitiesListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
+RunsListOrderBy = Literal["-created_at", "-id", "-updated_at", "created_at", "id", "updated_at"]
 StatesListOrderBy = Literal["-created_at", "-id", "-sequence", "created_at", "id", "sequence"]
 StickiesListOrderBy = Literal["-created_at", "-id", "-sort_order", "created_at", "id", "sort_order"]
 TeamspacesListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
@@ -10603,6 +11105,7 @@ WorkspaceMembersListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 WorkspacePagesListOrderBy = Literal[
     "-created_at", "-id", "-name", "-updated_at", "created_at", "id", "name", "updated_at"
 ]
+WorkspaceRunActivitiesListOrderBy = Literal["-created_at", "-id", "created_at", "id"]
 WorkspaceViewsListOrderBy = Literal[
     "-created_at", "-id", "-sort_order", "created_at", "id", "sort_order"
 ]
@@ -10668,6 +11171,7 @@ class AuditLogsListFilters(TypedDict, total=False):
 
 class CommentsListFilters(TypedDict, total=False):
     access: str
+    agent_run_id: str
     external_id: str
     external_source: str
     search: str
@@ -10926,6 +11430,28 @@ class RolesListFilters(TypedDict, total=False):
     slug: str
 
 
+class RunActivitiesListFilters(TypedDict, total=False):
+    actor_id: str
+    agent_run_id: str
+    comment_id: str
+    created_at__gte: str
+    ephemeral: bool
+    signal: str
+    type: str
+    type__in: Sequence[str]
+
+
+class RunsListFilters(TypedDict, total=False):
+    agent_user_id: str
+    project_id: str
+    status: str
+    status__in: Sequence[str]
+    trigger_type: str
+    type: str
+    updated_at__gte: str
+    work_item_id: str
+
+
 class StatesListFilters(TypedDict, total=False):
     external_id: str
     external_source: str
@@ -11085,6 +11611,17 @@ class WorkspacePagesListFilters(TypedDict, total=False):
     parent_id: str
     search: str
     type: str
+
+
+class WorkspaceRunActivitiesListFilters(TypedDict, total=False):
+    actor_id: str
+    agent_run_id: str
+    comment_id: str
+    created_at__gte: str
+    ephemeral: bool
+    signal: str
+    type: str
+    type__in: Sequence[str]
 
 
 class WorkspaceViewsListFilters(TypedDict, total=False):
