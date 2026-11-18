@@ -446,6 +446,27 @@ slug and no primary key:
 
 ```python
 client.v2.workspaces.permissions.me("acme")
+client.v2.workspaces.teamspaces.my_permissions("acme", teamspace_id)
+```
+
+Custom roles are built from permission schemes. The catalogue lists the keys a
+scheme may grant; the server adds each key's prerequisites on save:
+
+```python
+from plane.models.v2 import CreatePermissionScheme, CreateRole, UpdateRole
+
+ws = client.v2.workspaces
+catalogue = ws.permissions.resources("acme", namespace="project")
+scheme = ws.permission_schemes.create(
+    "acme",
+    CreatePermissionScheme(name="Triage", namespace="project", permissions=["workitem:edit"]),
+)
+role = ws.roles.create(
+    "acme", CreateRole(name="Triager", namespace="project", permission_scheme_ids=[scheme.id])
+)
+ws.permission_schemes.impact("acme", scheme.id)  # roles, users, projects a change reaches
+ws.roles.update("acme", role.id, UpdateRole(status="inactive", reassign_to=other_role_id))
+ws.roles.delete("acme", role.id, reassign_to=other_role_id)  # needed when it has members
 ```
 
 `group_sync` groups three resources under one namespace without consuming a path

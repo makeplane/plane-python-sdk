@@ -6,6 +6,7 @@ Both are migrated flat: `WorkspacePermissions` (leading `slug`), per Task 2, and
 
 import pytest
 import responses
+from responses import matchers
 
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.permissions import ProjectPermissions, WorkspacePermissions
@@ -62,3 +63,47 @@ def test_me_and_project_me_hit_different_urls(
     project_result = project_permissions.me("acme", "ENG")
 
     assert workspace_result.relation != project_result.relation
+
+
+RESOURCES_URL = "https://api.example.com/api/v2/workspaces/acme/permissions/resources/"
+
+
+@responses.activate
+def test_resources_reads_the_catalogue_for_a_namespace(
+    workspace_permissions: WorkspacePermissions,
+) -> None:
+    responses.get(
+        RESOURCES_URL,
+        json={
+            "resources": [
+                {
+                    "resource_type": "workitem",
+                    "permissions": [
+                        {
+                            "permission": "workitem:edit",
+                            "requires": ["workitem:view"],
+                            "includes": [],
+                        }
+                    ],
+                }
+            ]
+        },
+        match=[matchers.query_param_matcher({"namespace": "project"})],
+    )
+
+    catalogue = workspace_permissions.resources("acme", namespace="project")
+
+    key = catalogue.resources[0].permissions[0]
+    assert catalogue.resources[0].resource_type == "workitem"
+    assert (key.permission, key.requires) == ("workitem:edit", ["workitem:view"])
+
+
+@responses.activate
+def test_resources_without_namespace_leaves_the_server_default(
+    workspace_permissions: WorkspacePermissions,
+) -> None:
+    responses.get(RESOURCES_URL, json={"resources": []})
+
+    workspace_permissions.resources("acme")
+
+    assert responses.calls[0].request.url == RESOURCES_URL
