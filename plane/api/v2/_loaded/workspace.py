@@ -177,9 +177,14 @@ if TYPE_CHECKING:
         list = staticmethod(bind1(PermissionSchemes.list))
         iterate = staticmethod(bind1(PermissionSchemes.iterate))
         retrieve = staticmethod(bind1(PermissionSchemes.retrieve))
+        create = staticmethod(bind1(PermissionSchemes.create))
+        update = staticmethod(bind1(PermissionSchemes.update))
+        delete = staticmethod(bind1(PermissionSchemes.delete))
+        impact = staticmethod(bind1(PermissionSchemes.impact))
 
     class _OwnedWorkspacePermissions(Owned["WorkspacePermissions"]):
         me = staticmethod(bind1(WorkspacePermissions.me))
+        resources = staticmethod(bind1(WorkspacePermissions.resources))
 
     class _OwnedRoles(Owned["Roles"]):
         list = staticmethod(bind1(Roles.list))
@@ -187,6 +192,9 @@ if TYPE_CHECKING:
         retrieve = staticmethod(bind1(Roles.retrieve))
         find_by_name = staticmethod(bind1(Roles.find_by_name))
         find_by_slug = staticmethod(bind1(Roles.find_by_slug))
+        create = staticmethod(bind1(Roles.create))
+        update = staticmethod(bind1(Roles.update))
+        delete = staticmethod(bind1(Roles.delete))
 
     class _OwnedStickies(Owned["Stickies"]):
         list = staticmethod(bind1(Stickies.list))
@@ -204,6 +212,7 @@ if TYPE_CHECKING:
         create = staticmethod(bind1(Teamspaces.create))
         update = staticmethod(bind1(Teamspaces.update))
         delete = staticmethod(bind1(Teamspaces.delete))
+        my_permissions = staticmethod(bind1(Teamspaces.my_permissions))
 
     class _OwnedWorkspaceViews(Owned["WorkspaceViews"]):
         list = staticmethod(bind1(WorkspaceViews.list))
