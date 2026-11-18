@@ -182,6 +182,7 @@ if TYPE_CHECKING:
     class _OwnedWorkspaceMembers(Owned["WorkspaceMembers"]):
         list = staticmethod(bind1(WorkspaceMembers.list))
         iterate = staticmethod(bind1(WorkspaceMembers.iterate))
+        update = staticmethod(bind1(WorkspaceMembers.update))
         remove = staticmethod(bind1(WorkspaceMembers.remove))
 
     class _OwnedPermissionSchemes(Owned["PermissionSchemes"]):

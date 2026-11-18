@@ -1,5 +1,5 @@
 """Members (api_v2) -- project rosters (full CRUD) and the workspace roster
-(list + remove-by-email). Workspace removal is `POST …/members/remove/` keyed
+(list, role change, remove-by-email). Workspace removal is `POST …/members/remove/` keyed
 on `email` (v1 parity), not a detail DELETE keyed on a row id."""
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from ...models.v2.members import (
     CreateProjectMember,
     Member,
     UpdateProjectMember,
+    UpdateWorkspaceMember,
     WorkspaceMemberRemove,
 )
 from ._generated.constants import (
@@ -24,6 +25,7 @@ from ._generated.constants import (
     WorkspaceMembersListField,
     WorkspaceMembersListFilters,
     WorkspaceMembersListOrderBy,
+    WorkspaceMembersPartialUpdateField,
 )
 from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
@@ -156,14 +158,15 @@ class ProjectMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMember
         return self._delete(pk=member, slug=slug, project_id=project)
 
 
-class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMember]):
-    """The workspace roster. List-only plus `remove` -- see the module docstring."""
+class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateWorkspaceMember]):
+    """The workspace roster: list, a role change, and `remove` -- see the module docstring."""
 
     path = "/workspaces/{slug}/members/"
     extra_paths = {"remove": "/workspaces/{slug}/members/remove/"}
     model = Member
     operations = {
         "list": "workspace_members_list",
+        "update": "workspace_members_partial_update",
         "remove": "workspace_members_remove",
     }
 
@@ -222,6 +225,19 @@ class WorkspaceMembers(V2Resource[Member, CreateProjectMember, UpdateProjectMemb
             },
             slug=slug,
         )
+
+    def update(
+        self,
+        slug: str,
+        member: str,
+        data: UpdateWorkspaceMember,
+        *,
+        fields: Sequence[WorkspaceMembersPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Member:
+        """Change a member's workspace role. `member` is the roster row's `id`, not the user's.
+        Demoting to `guest` also makes them a guest in every project and drops their teamspaces."""
+        return self._update(data, pk=member, params={"fields": fields, "expand": expand}, slug=slug)
 
     def remove(self, slug: str, data: WorkspaceMemberRemove) -> None:
         """Remove a member from the workspace by email (v1 parity) --
