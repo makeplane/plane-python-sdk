@@ -1,3 +1,15 @@
+from .agent_runs import (
+    AgentRun,
+    AgentRunActivity,
+    AgentRunActivitySignal,
+    AgentRunActivityType,
+    AgentRunLite,
+    AgentRunStatus,
+    AgentRunType,
+    CreateAgentRun,
+    CreateAgentRunActivity,
+    UpdateAgentRun,
+)
 from .artifacts import (
     Artifact,
     ArtifactDetail,
@@ -333,6 +345,16 @@ from .worklogs_summary import WorklogSummaryEntry
 from .workspaces import Workspace
 
 __all__ = [
+    "AgentRun",
+    "AgentRunActivity",
+    "AgentRunActivitySignal",
+    "AgentRunActivityType",
+    "AgentRunLite",
+    "AgentRunStatus",
+    "AgentRunType",
+    "CreateAgentRun",
+    "CreateAgentRunActivity",
+    "UpdateAgentRun",
     "Access",
     "ActorType",
     "Artifact",

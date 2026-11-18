@@ -6,6 +6,7 @@ from ..models.query_params import MemberListQueryParams, MemberQueryParams
 from ..models.workspaces import (
     PaginatedWorkspaceMemberResponse,
     ProjectRoleDistribution,
+    WorkspaceAssetDownload,
     WorkspaceFeature,
     WorkspaceMember,
 )
@@ -67,6 +68,20 @@ class Workspaces(BaseResource):
         """
         response = self._get(f"{workspace_slug}/project-role-distribution")
         return ProjectRoleDistribution.model_validate(response)
+
+    def get_asset(self, workspace_slug: str, asset_id: str) -> WorkspaceAssetDownload:
+        """Get a presigned download URL for a workspace asset.
+
+        Covers any uploaded asset in the workspace, including images embedded in
+        work item descriptions, which are not listed as work item attachments.
+        The URL is time-limited and needs no Plane auth to fetch.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            asset_id: UUID of the asset (the ``src`` of an ``image-component`` tag)
+        """
+        response = self._get(f"{workspace_slug}/assets/{asset_id}")
+        return WorkspaceAssetDownload.model_validate(response)
 
     def get_features(self, workspace_slug: str) -> WorkspaceFeature:
         """Get features of a workspace.

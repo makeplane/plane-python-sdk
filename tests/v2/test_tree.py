@@ -4,6 +4,7 @@ import pytest
 import responses
 
 from plane.api.v2 import V2Namespace
+from plane.api.v2.agent_runs import AgentRunActivities, AgentRuns, WorkspaceAgentRunActivities
 from plane.api.v2.artifacts import Artifacts
 from plane.api.v2.assets import WorkspaceAssets
 from plane.api.v2.audit_logs import AuditLogs
@@ -268,6 +269,19 @@ def test_every_resource_class_is_reachable_from_the_namespace(config: Configurat
 # `Wiki` (see `plane/api/v2/wiki_node.py`), with no `path` of its own -- its three
 # children each get their own row with a real URL instead.
 WORKSPACE_TREE_ATTACHMENTS = [
+    ("agent_runs", lambda ws: ws.agent_runs, AgentRuns, "/workspaces/acme/runs/"),
+    (
+        "agent_runs.activities",
+        lambda ws: ws.agent_runs.activities,
+        AgentRunActivities,
+        None,  # its collection URL carries the run id -- see the test below
+    ),
+    (
+        "agent_run_activities",
+        lambda ws: ws.agent_run_activities,
+        WorkspaceAgentRunActivities,
+        "/workspaces/acme/runs/activities/",
+    ),
     ("artifacts", lambda ws: ws.artifacts, Artifacts, "/workspaces/acme/artifacts/"),
     ("assets", lambda ws: ws.assets, WorkspaceAssets, "/workspaces/acme/assets/"),
     ("audit_logs", lambda ws: ws.audit_logs, AuditLogs, "/workspaces/acme/audit-logs/"),
@@ -681,6 +695,10 @@ def test_the_newly_attached_workspace_children_reach_their_urls(config: Configur
     assert (
         ws.dashboards.widgets._collection_url(slug="acme", dashboard_id="d1")
         == "/workspaces/acme/dashboards/d1/widgets/"
+    )
+    assert (
+        ws.agent_runs.activities._collection_url(slug="acme", run_id="r1")
+        == "/workspaces/acme/runs/r1/activities/"
     )
     assert (
         ws.customers.requests._collection_url(slug="acme", customer_id="c1")
