@@ -1,24 +1,35 @@
-"""Roles (api_v2) -- system + custom roles for the workspace. Read-only: list +
-retrieve only, no write surface (full role CRUD lives only in the app UI)."""
+"""Roles (api_v2) -- system + custom roles for the workspace. Every role reads;
+only custom roles take create/update/delete (a system role accepts `sort_order`
+alone). Writes need the plan's custom-roles feature (402 otherwise) and an owner
+or admin. `expand` accepts `permission_schemes`."""
 
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
 from typing import Any
 
-from ...models.v2.roles import Role
-from ._generated.constants import RolesListField, RolesListOrderBy, RolesRetrieveField
+from ...models.v2.roles import CreateRole, Role, UpdateRole
+from ._generated.constants import (
+    RolesCreateField,
+    RolesListField,
+    RolesListOrderBy,
+    RolesPartialUpdateField,
+    RolesRetrieveField,
+)
 from ._kernel.errors import MultipleMatchesFound, NoMatchFound
 from ._kernel.pagination import Page, PaginateStyle
 from ._kernel.resource import V2Resource
 
 
-class Roles(V2Resource[Role, Role, Role]):
+class Roles(V2Resource[Role, CreateRole, UpdateRole]):
     path = "/workspaces/{slug}/roles/"
     model = Role
     operations = {
         "list": "roles_list",
         "retrieve": "roles_retrieve",
+        "create": "roles_create",
+        "update": "roles_partial_update",
+        "delete": "roles_destroy",
     }
 
     def list(
@@ -26,6 +37,7 @@ class Roles(V2Resource[Role, Role, Role]):
         slug: str,
         *,
         fields: Sequence[RolesListField] | None = None,
+        expand: Sequence[str] | None = None,
         order_by: RolesListOrderBy | None = None,
         per_page: int | None = None,
         offset: int | None = None,
@@ -45,6 +57,7 @@ class Roles(V2Resource[Role, Role, Role]):
         return self._list(
             params={
                 "fields": fields,
+                "expand": expand,
                 "order_by": order_by,
                 "per_page": per_page,
                 "offset": offset,
@@ -64,6 +77,7 @@ class Roles(V2Resource[Role, Role, Role]):
         slug: str,
         *,
         fields: Sequence[RolesListField] | None = None,
+        expand: Sequence[str] | None = None,
         order_by: RolesListOrderBy | None = None,
         per_page: int | None = None,
         paginate: PaginateStyle | None = None,
@@ -78,6 +92,7 @@ class Roles(V2Resource[Role, Role, Role]):
         return self._iter(
             params={
                 "fields": fields,
+                "expand": expand,
                 "order_by": order_by,
                 "per_page": per_page,
                 "paginate": paginate,
@@ -91,9 +106,44 @@ class Roles(V2Resource[Role, Role, Role]):
         )
 
     def retrieve(
-        self, slug: str, role: str, *, fields: Sequence[RolesRetrieveField] | None = None
+        self,
+        slug: str,
+        role: str,
+        *,
+        fields: Sequence[RolesRetrieveField] | None = None,
+        expand: Sequence[str] | None = None,
     ) -> Role:
-        return self._retrieve(pk=role, params={"fields": fields}, slug=slug)
+        return self._retrieve(pk=role, params={"fields": fields, "expand": expand}, slug=slug)
+
+    def create(
+        self,
+        slug: str,
+        data: CreateRole,
+        *,
+        fields: Sequence[RolesCreateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Role:
+        """Create a custom role from `permission_scheme_ids`, or copy another role's
+        schemes with `based_on_slug`."""
+        return self._create(data, params={"fields": fields, "expand": expand}, slug=slug)
+
+    def update(
+        self,
+        slug: str,
+        role: str,
+        data: UpdateRole,
+        *,
+        fields: Sequence[RolesPartialUpdateField] | None = None,
+        expand: Sequence[str] | None = None,
+    ) -> Role:
+        """Edit a custom role. Disabling one that has members (`status="inactive"`)
+        needs `reassign_to`: another active role of the same namespace."""
+        return self._update(data, pk=role, params={"fields": fields, "expand": expand}, slug=slug)
+
+    def delete(self, slug: str, role: str, *, reassign_to: str | None = None) -> None:
+        """Delete a custom role. `reassign_to` (a role id) is required when the role
+        has members: they move to it first."""
+        return self._delete(pk=role, params={"reassign_to": reassign_to}, slug=slug)
 
     def find_by_name(self, slug: str, name: str, *, namespace: str | None = None) -> Role:
         """The one role with this name; raises if none or several match. Filters

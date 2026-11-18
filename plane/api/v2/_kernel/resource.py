@@ -229,8 +229,14 @@ class V2Resource(Generic[TRead, TWrite, TPatch]):
         )
         return self.model.model_validate(payload)  # type: ignore[return-value]
 
-    def _delete(self, *, pk: Any, **path_params: Any) -> None:
-        self.transport.request("DELETE", self._detail_url(pk, "delete", **path_params))
+    def _delete(
+        self, *, pk: Any, params: Mapping[str, Any] | None = None, **path_params: Any
+    ) -> None:
+        self.transport.request(
+            "DELETE",
+            self._detail_url(pk, "delete", **path_params),
+            params=self._query(params, action="delete") or None,
+        )
         return None
 
     def _upsert(

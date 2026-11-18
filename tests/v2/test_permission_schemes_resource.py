@@ -1,7 +1,9 @@
-"""Offline coverage for `ws.permission_schemes`: a read-only workspace-scoped list (with sparse
-`fields`) and retrieve."""
+"""Offline coverage for `ws.permission_schemes`: list (with sparse `fields`), retrieve, the
+custom-scheme writes, and `impact`."""
 
 from __future__ import annotations
+
+import json
 
 import pytest
 import responses
@@ -9,6 +11,7 @@ import responses
 from plane.api.v2._kernel.transport import V2Transport
 from plane.api.v2.permission_schemes import PermissionSchemes
 from plane.config import Configuration
+from plane.models.v2.permission_schemes import CreatePermissionScheme, UpdatePermissionScheme
 
 BASE = "https://api.example.com/api/v2"
 
@@ -103,3 +106,58 @@ def test_permission_schemes_unknown_field_rejected(
     -- negative assertion, proven capable of failing below."""
     with pytest.raises(ValueError, match="Unknown field"):
         permission_schemes.list("acme", fields=["not_a_real_field"])
+
+
+# -- Custom-scheme writes and impact ----------------------------------------------
+
+SCHEMES = f"{BASE}/workspaces/acme/permission-schemes"
+
+
+@responses.activate
+def test_permission_schemes_create_posts_the_body(permission_schemes: PermissionSchemes) -> None:
+    responses.post(
+        f"{SCHEMES}/",
+        json={"id": "s1", "permissions": ["project:view", "workitem:edit", "workitem:view"]},
+    )
+
+    created = permission_schemes.create(
+        "acme",
+        CreatePermissionScheme(name="Triage", namespace="project", permissions=["workitem:edit"]),
+    )
+
+    assert created.permissions == ["project:view", "workitem:edit", "workitem:view"]
+    assert json.loads(responses.calls[0].request.body) == {
+        "name": "Triage",
+        "namespace": "project",
+        "permissions": ["workitem:edit"],
+    }
+
+
+@responses.activate
+def test_permission_schemes_update_patches_the_detail_url(
+    permission_schemes: PermissionSchemes,
+) -> None:
+    responses.patch(f"{SCHEMES}/s1/", json={"id": "s1", "name": "Renamed"})
+
+    updated = permission_schemes.update("acme", "s1", UpdatePermissionScheme(name="Renamed"))
+
+    assert updated.name == "Renamed"
+    assert json.loads(responses.calls[0].request.body) == {"name": "Renamed"}
+
+
+@responses.activate
+def test_permission_schemes_delete(permission_schemes: PermissionSchemes) -> None:
+    responses.delete(f"{SCHEMES}/s1/", status=204)
+
+    assert permission_schemes.delete("acme", "s1") is None
+    assert responses.calls[0].request.url == f"{SCHEMES}/s1/"
+
+
+@responses.activate
+def test_permission_schemes_impact_gets_the_counts(permission_schemes: PermissionSchemes) -> None:
+    responses.get(f"{SCHEMES}/s1/impact/", json={"roles": 2, "users": 7, "projects": 3})
+
+    impact = permission_schemes.impact("acme", "s1")
+
+    assert (impact.roles, impact.users, impact.projects) == (2, 7, 3)
+    assert responses.calls[0].request.method == "GET"

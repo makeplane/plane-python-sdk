@@ -1,4 +1,5 @@
 import inspect
+import json
 
 import pytest
 import responses
@@ -242,3 +243,64 @@ def test_roles_spells_out_exactly_the_generated_filter_set(method_name: str) -> 
         "collides with the leading path id `slug`), or drop the parameter the golden no "
         "longer offers."
     )
+
+
+# -- Custom-role writes -----------------------------------------------------------
+
+
+@responses.activate
+def test_create_posts_the_body_and_expand(roles: Roles) -> None:
+    from plane.models.v2.roles import CreateRole
+
+    responses.post(
+        f"{BASE}/", json={"id": "r9", "name": "Triager", "permission_scheme_ids": ["s1"]}
+    )
+
+    created = roles.create(
+        "acme",
+        CreateRole(name="Triager", namespace="project", permission_scheme_ids=["s1"]),
+        expand=["permission_schemes"],
+    )
+
+    assert created.permission_scheme_ids == ["s1"]
+    assert "expand=permission_schemes" in responses.calls[0].request.url
+    assert json.loads(responses.calls[0].request.body) == {
+        "name": "Triager",
+        "namespace": "project",
+        "permission_scheme_ids": ["s1"],
+    }
+
+
+@responses.activate
+def test_update_disabling_sends_reassign_to_in_the_body(roles: Roles) -> None:
+    from plane.models.v2.roles import UpdateRole
+
+    responses.patch(f"{BASE}/r9/", json={"id": "r9", "status": "inactive"})
+
+    updated = roles.update("acme", "r9", UpdateRole(status="inactive", reassign_to="r2"))
+
+    assert updated.status == "inactive"
+    assert json.loads(responses.calls[0].request.body) == {
+        "status": "inactive",
+        "reassign_to": "r2",
+    }
+
+
+@responses.activate
+def test_delete_sends_reassign_to_as_a_query_param(roles: Roles) -> None:
+    responses.delete(
+        f"{BASE}/r9/",
+        status=204,
+        match=[matchers.query_param_matcher({"reassign_to": "r2"})],
+    )
+
+    assert roles.delete("acme", "r9", reassign_to="r2") is None
+
+
+@responses.activate
+def test_delete_without_reassign_to_sends_no_query(roles: Roles) -> None:
+    responses.delete(f"{BASE}/r9/", status=204)
+
+    roles.delete("acme", "r9")
+
+    assert responses.calls[0].request.url == f"{BASE}/r9/"

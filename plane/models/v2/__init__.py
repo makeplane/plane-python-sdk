@@ -173,10 +173,19 @@ from .pages import (
     UpdatePage,
 )
 from .permission_schemes import (
+    CreatePermissionScheme,
     Namespace,
     PermissionScheme,
+    PermissionSchemeImpact,
+    SchemeNamespace,
+    UpdatePermissionScheme,
 )
-from .permissions import EffectivePermissions
+from .permissions import (
+    EffectivePermissions,
+    PermissionCatalogue,
+    PermissionKey,
+    PermissionResource,
+)
 from .project_role_distribution import (
     ProjectRoleDistribution,
     ProjectRoleDistributionEntry,
@@ -209,9 +218,12 @@ from .releases import (
     UpdateReleaseTag,
 )
 from .roles import (
+    CreateRole,
+    CustomRoleNamespace,
     Role,
     RoleNamespace,
     RoleStatus,
+    UpdateRole,
 )
 from .states import (
     CreateState,
@@ -397,6 +409,9 @@ __all__ = [
     "DataMode",
     "DependencyRelationType",
     "EffectivePermissions",
+    "PermissionKey",
+    "PermissionResource",
+    "PermissionCatalogue",
     "Estimate",
     "UpdateEstimate",
     "EstimatePoint",
@@ -441,6 +456,10 @@ __all__ = [
     "UpdatePage",
     "CreatePage",
     "PermissionScheme",
+    "CreatePermissionScheme",
+    "UpdatePermissionScheme",
+    "PermissionSchemeImpact",
+    "SchemeNamespace",
     "PrincipalKind",
     "Priority",
     "Project",
@@ -472,6 +491,9 @@ __all__ = [
     "CreateReleaseTag",
     "CreateRelease",
     "Role",
+    "CreateRole",
+    "UpdateRole",
+    "CustomRoleNamespace",
     "RoleNamespace",
     "RoleStatus",
     "State",
