@@ -27,6 +27,7 @@ from plane.api.v2.customers import (
     CustomerWorkItems,
 )
 from plane.api.v2.cycles import Cycles, CycleWorkItems
+from plane.api.v2.dashboards import Dashboards, Widgets
 from plane.api.v2.estimates import Estimates
 from plane.api.v2.estimates.points import EstimatePoints
 from plane.api.v2.features import ProjectFeatures
@@ -366,6 +367,8 @@ WORKSPACE_TREE_ATTACHMENTS = [
         None,
     ),
     ("customers.work_items", lambda ws: ws.customers.work_items, CustomerWorkItems, None),
+    ("dashboards", lambda ws: ws.dashboards, Dashboards, "/workspaces/acme/dashboards/"),
+    ("dashboards.widgets", lambda ws: ws.dashboards.widgets, Widgets, None),
     ("initiatives", lambda ws: ws.initiatives, Initiatives, "/workspaces/acme/initiatives/"),
     (
         "initiatives.labels",
@@ -689,6 +692,10 @@ def test_the_newly_attached_workspace_children_reach_their_urls(config: Configur
     a wrongly-templated child would pass on the `isinstance` half of its row alone."""
     ws = V2Namespace(config).workspaces
 
+    assert (
+        ws.dashboards.widgets._collection_url(slug="acme", dashboard_id="d1")
+        == "/workspaces/acme/dashboards/d1/widgets/"
+    )
     assert (
         ws.agent_runs.activities._collection_url(slug="acme", run_id="r1")
         == "/workspaces/acme/runs/r1/activities/"

@@ -81,7 +81,7 @@ PlaneClient
 - `plane/client/` — `PlaneClient` (API key / access token auth) and `OAuthClient` (OAuth 2.0 flows).
 - `plane/errors/` — `PlaneError` → `HttpError`, `ConfigurationError`.
 - `plane/config.py` — `Configuration` and `RetryConfig` dataclasses.
-- `plane/api/v2/` — the v2 surface (`client.v2`). **Migration complete**: all 93
+- `plane/api/v2/` — the v2 surface (`client.v2`). **Migration complete**: all 95
   `V2Resource` subclasses in the package (`tests/v2/tree_walk.py`'s
   `all_resource_classes()`) are on the flat shape and swept by the rule tests.
   `tests/v2/tree_walk.py`'s `UNMIGRATED_RESOURCES` — the opt-out list the sweeps
@@ -90,7 +90,7 @@ PlaneClient
   never grow, so it cannot silently regain a member. Count resources, not
   grouping nodes: `wiki` and `group_sync` hold no `V2Resource` base, `path` or
   `operations` of their own — they only group children (`wiki.pages`,
-  `wiki.collections`, `group_sync.config`) — so neither is in the 93.
+  `wiki.collections`, `group_sync.config`) — so neither is in the 95.
 
   The whole project band is wired onto `client.v2.workspaces.projects`:
   `states`, `labels`, `work_items`, `cycles`, `milestones`, `modules`,
@@ -98,17 +98,18 @@ PlaneClient
   `work_item_templates`, `worklogs`, `pages`, `automations`,
   `work_item_properties`, `work_item_types` and `workflows` — nineteen
   children, and a fetched project reaches every one of them that is itself
-  navigable (`project.cycles.list()`, `project.permissions.me()`). Twenty of
-  the 93 classes are navigable — `workspaces`, `projects`, `work_items`,
+  navigable (`project.cycles.list()`, `project.permissions.me()`). Twenty-one of
+  the 95 classes are navigable — `workspaces`, `projects`, `work_items`,
   `cycles`, `milestones`, `modules`, `estimates`, `webhooks`, `collections`,
   `customers`, `initiatives`, `releases`, `work_item_types`,
-  `work_item_properties`, `automations`, `workflows` and `agent_runs` (three of those —
+  `work_item_properties`, `automations`, `workflows`, `dashboards` and `agent_runs`
+  (three of those —
   automations, work item types and work item properties — each have a separate
   project-scoped and workspace-scoped resource class, each independently
-  navigable, which is where 17 families become 20 classes) — a fetched row
+  navigable, which is where 18 families become 21 classes) — a fetched row
   reaches its child with no ids repeated. `workspaces` is the root of that set
   and the last to join it: `client.v2.workspaces.retrieve("acme")` answers a
-  `LoadedWorkspace` reaching all 27 workspace-scoped families
+  `LoadedWorkspace` reaching all 28 workspace-scoped families
   (`workspace.projects.list()`), and its children address it by `slug`, never
   the UUID `id`, which that path segment does not accept. `estimates`' child is
   `estimate_points`, not `points` — `Estimate.points` is itself an API field,
@@ -165,8 +166,9 @@ PlaneClient
   - **Loaded rows.** A resource with children (`projects`, `work_items`,
     `cycles`, `milestones`, `modules`, `estimates`, `webhooks`, `collections`,
     `customers`, `initiatives`, `releases`, `work_item_types`,
-    `work_item_properties`, `automations`, `workflows`, `workspaces`, `agent_runs` — 20 of
-    the 93 classes) returns a `Loaded` row from `retrieve`/`list`/`iterate`, not a bare
+    `work_item_properties`, `automations`, `workflows`, `dashboards`, `workspaces`,
+    `agent_runs` — 21 of the 95 classes) returns a `Loaded` row from
+    `retrieve`/`list`/`iterate`, not a bare
     pydantic model: it carries its own data and reaches its own children with none of the
     ids repeated (`project.states.list()`, `work_item.comments.list()`,
     `cycle.work_items.add(["w1"])`).
@@ -248,10 +250,10 @@ PlaneClient
     per `Loaded` subclass — `project.py`, `work_item.py`, `cycle.py`,
     `milestone.py`, `module.py`, `estimate.py`, `webhook.py`, `collection.py`,
     `customer.py`, `initiative.py`, `release.py`, `work_item_type.py`,
-    `work_item_property.py`, `automation.py`, `workflow.py`, `workspace.py`,
-    `agent_run.py`; copy
+    `work_item_property.py`, `automation.py`, `workflow.py`, `dashboard.py`,
+    `workspace.py`, `agent_run.py`; copy
     whichever is closest in shape (single bridge-only child vs. several plain-CRUD
-    children). `workspace.py` is the `bind1` exemplar and the widest, at 27
+    children). `workspace.py` is the `bind1` exemplar and the widest, at 28
     children; the two grouping nodes (`wiki`, `group_sync`) are deliberately not
     among them — neither holds a `V2Resource` base, so neither is a child a row can
     bind, and they are reached from the namespace instead.

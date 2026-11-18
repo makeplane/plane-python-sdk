@@ -8,6 +8,8 @@ from plane.client import PlaneClient
 from plane.models.initiatives import (
     CreateInitiative,
     CreateInitiativeLabel,
+    PaginatedInitiativeLabelResponse,
+    PaginatedInitiativeResponse,
     UpdateInitiative,
     UpdateInitiativeLabel,
 )
@@ -371,3 +373,26 @@ class TestInitiativeWorkItemsAPI:
 
         remaining = client.initiatives.work_items.list(workspace_slug, initiative.id)
         assert work_item.id not in [item.id for item in remaining.results]
+
+
+_PAGE = {
+    "total_count": 25,
+    "next_cursor": "20:1:0",
+    "prev_cursor": "20:-1:1",
+    "next_page_results": True,
+    "prev_page_results": False,
+    "count": 20,
+    "total_pages": 2,
+    "total_results": 25,
+    "results": [],
+}
+
+
+@pytest.mark.parametrize("model", [PaginatedInitiativeResponse, PaginatedInitiativeLabelResponse])
+def test_list_declares_the_cursor(model: type) -> None:
+    """Plane pages these lists, 20 by default; the cursor is a typed field, not an extra."""
+    assert {"next_cursor", "next_page_results", "total_count"} <= model.model_fields.keys()
+    page = model.model_validate(_PAGE)
+    assert page.next_cursor == "20:1:0"
+    assert page.next_page_results is True
+    assert page.total_count == 25
