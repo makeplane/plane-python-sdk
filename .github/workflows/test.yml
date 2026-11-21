@@ -35,6 +35,11 @@ jobs:
       - name: Unit tests (tests/v2, excluding integration)
         run: pytest tests/v2 --ignore=tests/v2/integration -q
 
+      - name: V1 relation response contract
+        run: |
+          ruff check plane/models/work_items.py tests/test_work_item_relation_response.py
+          pytest tests/test_work_item_relation_response.py -q
+
       - name: Integration tests (tests/v2/integration)
         # No PLANE_* env vars are set in CI, so every test here must skip via the
         # repo's env-var skip gate rather than run against a live API. A run that

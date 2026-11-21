@@ -493,42 +493,51 @@ class RemoveWorkItemRelation(BaseModel):
     )
 
 
-class WorkItemRelationResponse(BaseModel):
-    """Response model for work item relations."""
+class WorkItemRelationReference(BaseModel):
+    """Related work item and its project, as returned by the v1 relations endpoint."""
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
-    blocking: list[str] = Field(
+    project_id: str
+    issue_id: str
+
+
+class WorkItemRelationResponse(BaseModel):
+    """Relations grouped by type, accepting references and the existing bare-ID shape."""
+
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
+
+    blocking: list[WorkItemRelationReference | str] = Field(
         ...,
-        description="List of issue IDs that are blocking this issue",
+        description="Work items blocked by this work item (references or bare IDs)",
     )
-    blocked_by: list[str] = Field(
+    blocked_by: list[WorkItemRelationReference | str] = Field(
         ...,
-        description="List of issue IDs that this issue is blocked by",
+        description="Work items blocking this work item (references or bare IDs)",
     )
-    duplicate: list[str] = Field(
+    duplicate: list[WorkItemRelationReference | str] = Field(
         ...,
-        description="List of issue IDs that are duplicates of this issue",
+        description="Duplicate work items (references or bare IDs)",
     )
-    relates_to: list[str] = Field(
+    relates_to: list[WorkItemRelationReference | str] = Field(
         ...,
-        description="List of issue IDs that relate to this issue",
+        description="Related work items (references or bare IDs)",
     )
-    start_after: list[str] = Field(
+    start_after: list[WorkItemRelationReference | str] = Field(
         ...,
-        description="List of issue IDs that start after this issue",
+        description="Work items in the start_after group (references or bare IDs)",
     )
-    start_before: list[str] = Field(
+    start_before: list[WorkItemRelationReference | str] = Field(
         ...,
-        description="List of issue IDs that start before this issue",
+        description="Work items in the start_before group (references or bare IDs)",
     )
-    finish_after: list[str] = Field(
+    finish_after: list[WorkItemRelationReference | str] = Field(
         ...,
-        description="List of issue IDs that finish after this issue",
+        description="Work items in the finish_after group (references or bare IDs)",
     )
-    finish_before: list[str] = Field(
+    finish_before: list[WorkItemRelationReference | str] = Field(
         ...,
-        description="List of issue IDs that finish before this issue",
+        description="Work items in the finish_before group (references or bare IDs)",
     )
 
 
