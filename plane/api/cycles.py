@@ -241,24 +241,28 @@ class Cycles(BaseResource):
             data.model_dump(exclude_none=True),
         )
 
-    def archive(self, workspace_slug: str, project_id: str, cycle_id: str) -> bool:
+    def archive(self, workspace_slug: str, project_id: str, cycle_id: str) -> None:
         """Archive a cycle.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             cycle_id: UUID of the cycle
+
+        Returns:
+            None (HTTP 204 No Content)
         """
         self._post(f"{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/archive", {})
-        return True
 
-    def unarchive(self, workspace_slug: str, project_id: str, cycle_id: str) -> bool:
+    def unarchive(self, workspace_slug: str, project_id: str, cycle_id: str) -> None:
         """Unarchive a cycle.
 
         Args:
             workspace_slug: The workspace slug identifier
             project_id: UUID of the project
             cycle_id: UUID of the cycle
+
+        Returns:
+            None (HTTP 204 No Content)
         """
         self._delete(f"{workspace_slug}/projects/{project_id}/archived-cycles/{cycle_id}/unarchive")
-        return True

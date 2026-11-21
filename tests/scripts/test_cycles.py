@@ -250,10 +250,7 @@ def main() -> None:
         # Note: Only cycles with end_date in the past can be archived
         print_step(14, "Archiving cycle 1 (required for transfer)")
         archived = client.cycles.archive(workspace_slug, project.id, cycle_1.id)
-        if archived:
-            print_success(f"Archived cycle: {cycle_1.name} (ID: {cycle_1.id})")
-        else:
-            print_error("Failed to archive cycle")
+        print_success(f"Archived cycle: {cycle_1.name} (ID: {cycle_1.id})")
 
         # Transfer work items from archived cycle 1 to cycle 2
         # (Transfer only works from completed/archived cycles)
@@ -294,10 +291,7 @@ def main() -> None:
         unarchived = client.cycles.unarchive(
             workspace_slug, project.id, cycle_1.id
         )
-        if unarchived:
-            print_success(f"Unarchived cycle: {cycle_1.name} (ID: {cycle_1.id})")
-        else:
-            print_error("Failed to unarchive cycle")
+        print_success(f"Unarchived cycle: {cycle_1.name} (ID: {cycle_1.id})")
 
         # Verify archived cycles list after unarchive
         archived_after_unarchive = client.cycles.list_archived(workspace_slug, project.id)
