@@ -317,6 +317,7 @@ from .work_items import (
     UpdateWorkItem,
     UpdateWorkItemComment,
     UpdateWorkItemLink,
+    UpdateWorkItemSubscribers,
     UpdateWorkItemWorklog,
     WorkItem,
     WorkItemActivity,
@@ -329,6 +330,7 @@ from .work_items import (
     WorkItemLink,
     WorkItemRelationCreate,
     WorkItemRelationList,
+    WorkItemSubscribers,
     WorkItemWorklog,
 )
 from .workflows import (
@@ -548,6 +550,8 @@ __all__ = [
     "CreateWorkItemComment",
     "WorkItemDependencyCreate",
     "WorkItemDependencyList",
+    "WorkItemSubscribers",
+    "UpdateWorkItemSubscribers",
     "WorkItemLink",
     "UpdateWorkItemLink",
     "CreateWorkItemLink",

@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from ..work_items.dependencies import WorkItemDependencies
     from ..work_items.links import WorkItemLinks
     from ..work_items.relations import WorkItemRelations
+    from ..work_items.subscribers import WorkItemSubscribersResource
     from ..work_items.worklogs import WorkItemWorklogs
 
     # Typed view on `Owned`: `WorkItemComments`' own methods with `slug`, `project`
@@ -71,6 +72,10 @@ if TYPE_CHECKING:
         create = staticmethod(bind3(WorkItemDependencies.create))
         delete = staticmethod(bind3(WorkItemDependencies.delete))
 
+    class _OwnedSubscribers(Owned["WorkItemSubscribersResource"]):
+        retrieve = staticmethod(bind3(WorkItemSubscribersResource.retrieve))
+        update = staticmethod(bind3(WorkItemSubscribersResource.update))
+
 
 class LoadedWorkItem(Loaded, WorkItem):
     """A work item row that is also the place its children live."""
@@ -115,4 +120,10 @@ class LoadedWorkItem(Loaded, WorkItem):
     def dependencies(self) -> _OwnedDependencies:
         return cast(
             "_OwnedDependencies", Owned(self._resources.dependencies, self._ids, self._id_names)
+        )
+
+    @property
+    def subscribers(self) -> _OwnedSubscribers:
+        return cast(
+            "_OwnedSubscribers", Owned(self._resources.subscribers, self._ids, self._id_names)
         )
