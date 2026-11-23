@@ -81,7 +81,7 @@ PlaneClient
 - `plane/client/` — `PlaneClient` (API key / access token auth) and `OAuthClient` (OAuth 2.0 flows).
 - `plane/errors/` — `PlaneError` → `HttpError`, `ConfigurationError`.
 - `plane/config.py` — `Configuration` and `RetryConfig` dataclasses.
-- `plane/api/v2/` — the v2 surface (`client.v2`). **Migration complete**: all 95
+- `plane/api/v2/` — the v2 surface (`client.v2`). **Migration complete**: all 96
   `V2Resource` subclasses in the package (`tests/v2/tree_walk.py`'s
   `all_resource_classes()`) are on the flat shape and swept by the rule tests.
   `tests/v2/tree_walk.py`'s `UNMIGRATED_RESOURCES` — the opt-out list the sweeps
@@ -90,7 +90,7 @@ PlaneClient
   never grow, so it cannot silently regain a member. Count resources, not
   grouping nodes: `wiki` and `group_sync` hold no `V2Resource` base, `path` or
   `operations` of their own — they only group children (`wiki.pages`,
-  `wiki.collections`, `group_sync.config`) — so neither is in the 95.
+  `wiki.collections`, `group_sync.config`) — so neither is in the 96.
 
   The whole project band is wired onto `client.v2.workspaces.projects`:
   `states`, `labels`, `work_items`, `cycles`, `milestones`, `modules`,
@@ -99,7 +99,7 @@ PlaneClient
   `work_item_properties`, `work_item_types` and `workflows` — nineteen
   children, and a fetched project reaches every one of them that is itself
   navigable (`project.cycles.list()`, `project.permissions.me()`). Twenty-one of
-  the 95 classes are navigable — `workspaces`, `projects`, `work_items`,
+  the 96 classes are navigable — `workspaces`, `projects`, `work_items`,
   `cycles`, `milestones`, `modules`, `estimates`, `webhooks`, `collections`,
   `customers`, `initiatives`, `releases`, `work_item_types`,
   `work_item_properties`, `automations`, `workflows`, `dashboards` and `agent_runs`
@@ -115,8 +115,8 @@ PlaneClient
   `estimate_points`, not `points` — `Estimate.points` is itself an API field,
   returned inline by `expand=["points"]`. `webhooks` is workspace-scoped, not
   part of the project band, reached via `.logs`. A fetched work item reaches
-  all seven of its children — `comments`, `attachments`, `links`, `worklogs`,
-  `activities`, `relations`, `dependencies`.
+  all eight of its children — `comments`, `attachments`, `links`, `worklogs`,
+  `activities`, `relations`, `dependencies`, `subscribers`.
 
   `client.v2.workspaces.roles.list("acme", role_slug="admin")` is worth flagging:
   the workspace slug is the positional argument, while the role's own slug filter
@@ -167,7 +167,7 @@ PlaneClient
     `cycles`, `milestones`, `modules`, `estimates`, `webhooks`, `collections`,
     `customers`, `initiatives`, `releases`, `work_item_types`,
     `work_item_properties`, `automations`, `workflows`, `dashboards`, `workspaces`,
-    `agent_runs` — 21 of the 95 classes) returns a `Loaded` row from
+    `agent_runs` — 21 of the 96 classes) returns a `Loaded` row from
     `retrieve`/`list`/`iterate`, not a bare
     pydantic model: it carries its own data and reaches its own children with none of the
     ids repeated (`project.states.list()`, `work_item.comments.list()`,

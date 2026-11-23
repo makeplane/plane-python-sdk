@@ -200,13 +200,13 @@ work_items = client.work_items.list(
 
 `client.v2` reaches the v2 surface. v1 resources on the client are unchanged.
 
-The v2 surface is complete: every one of the 95 `V2Resource` subclasses in the
+The v2 surface is complete: every one of the 96 `V2Resource` subclasses in the
 package (`tests/v2/tree_walk.py`'s `all_resource_classes()`, the enumeration the
 test suite itself sweeps) is on the flat shape described below and reachable
 through `client.v2`. Counting resources means not counting grouping nodes:
 `wiki` and `group_sync` hold no `V2Resource` base, `path` or `operations` of
 their own — they only group children (`wiki.pages`, `wiki.collections`,
-`group_sync.config`) — and are outside the 95.
+`group_sync.config`) — and are outside the 96.
 
 Wired directly on `client.v2.workspaces`: `agent_runs` (with `.activities`),
 `agent_run_activities`, `artifacts`, `assets`, `audit_logs`,
@@ -279,7 +279,7 @@ client.v2.workspaces.projects.states.list(slug="acme", project="ENG")
 A resource with children (`projects`, `work_items`, `cycles`, `milestones`,
 `modules`, `estimates`, `webhooks`, `collections`, `customers`, `initiatives`,
 `releases`, `work_item_types`, `work_item_properties`, `automations`,
-`workflows`, `dashboards`, `workspaces` and `agent_runs` — 21 of the 95 classes, some
+`workflows`, `dashboards`, `workspaces` and `agent_runs` — 21 of the 96 classes, some
 families having a separate project-scoped and workspace-scoped resource, each
 independently navigable)
 doesn't just hand back a bare pydantic model from `retrieve`/`list`/`iterate` —
@@ -315,8 +315,9 @@ log; `collections` via `.members`/`.pages`; `customers` via `.requests`,
 workspace-scoped resource only); `automations` via `.edges`, `.nodes`,
 `.activities`; `workflows` via `.states`, `.transitions`; `dashboards` via
 `.widgets`; and `agent_runs` via `.activities`, the run's log. A work item
-itself reaches all seven of its own children this way — `comments`,
-`attachments`, `links`, `worklogs`, `activities`, `relations`, `dependencies`.
+itself reaches all eight of its own children this way — `comments`,
+`attachments`, `links`, `worklogs`, `activities`, `relations`, `dependencies`,
+`subscribers`.
 
 `list` and `iterate` yield these same navigable rows, not bare pydantic models —
 `for project in client.v2.workspaces.projects.iterate("acme"): project.states.list()`
@@ -402,7 +403,7 @@ scripts to prove it, rather than trusting it by inspection.
 ### The five rules the tests enforce
 
 Five properties of the surface are each enforced by a sweep in `tests/v2/`, over
-every one of the 95 resource classes (`tests/v2/tree_walk.py`'s
+every one of the 96 resource classes (`tests/v2/tree_walk.py`'s
 `all_resource_classes()`) rather than a hand-picked subset — so a newly added
 resource is covered the moment it exists, with nothing to remember to add it to:
 

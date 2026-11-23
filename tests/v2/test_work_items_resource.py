@@ -1,6 +1,6 @@
 """Offline coverage for `WorkItems` (the flat depth-2 pattern), `WorkItemComments`
 (the depth-3 exemplar: `slug, project, work_item` leading parameters), and the other
-six work-item children on the same depth-3 shape. The children are constructed
+seven work-item children on the same depth-3 shape. The children are constructed
 directly rather than through `work_items.attachments` -- a resource's methods work
 identically either way now that `V2Resource.__init__` binds no scope, and the tree
 wiring itself is proved by `tests/v2/test_tree.py`."""
@@ -19,6 +19,7 @@ from plane.api.v2.work_items.attachments import WorkItemAttachments
 from plane.api.v2.work_items.dependencies import WorkItemDependencies
 from plane.api.v2.work_items.links import WorkItemLinks
 from plane.api.v2.work_items.relations import WorkItemRelations
+from plane.api.v2.work_items.subscribers import WorkItemSubscribersResource
 from plane.api.v2.work_items.worklogs import WorkItemWorklogs
 from plane.config import Configuration
 from plane.models.v2.work_items import (
@@ -30,6 +31,7 @@ from plane.models.v2.work_items import (
     UpdateWorkItem,
     UpdateWorkItemComment,
     UpdateWorkItemLink,
+    UpdateWorkItemSubscribers,
     UpdateWorkItemWorklog,
     WorkItemAttachmentConfirm,
     WorkItemDependencyCreate,
@@ -517,6 +519,11 @@ def dependencies(config: Configuration) -> WorkItemDependencies:
 
 
 @pytest.fixture
+def subscribers(config: Configuration) -> WorkItemSubscribersResource:
+    return WorkItemSubscribersResource(V2Transport(config))
+
+
+@pytest.fixture
 def worklogs(config: Configuration) -> WorkItemWorklogs:
     return WorkItemWorklogs(V2Transport(config))
 
@@ -700,6 +707,41 @@ def test_dependencies_list_and_create_hit_the_collection_url(
 
 
 @responses.activate
+def test_subscribers_retrieve_and_update_hit_the_singleton_url(
+    subscribers: WorkItemSubscribersResource,
+) -> None:
+    responses.get(f"{BASE}/w1/subscribers/", json={"subscriber_ids": ["u1"]})
+    responses.patch(f"{BASE}/w1/subscribers/", json={"subscriber_ids": ["u2"]})
+
+    assert subscribers.retrieve("acme", "ENG", "w1").subscriber_ids == ["u1"]
+    assert responses.calls[0].request.url == f"{BASE}/w1/subscribers/"
+
+    updated = subscribers.update(
+        "acme", "ENG", "w1", UpdateWorkItemSubscribers(add=["u2"], remove=["u1"])
+    )
+    assert updated.subscriber_ids == ["u2"]
+    assert responses.calls[1].request.method == "PATCH"
+    assert json.loads(responses.calls[1].request.body) == {"add": ["u2"], "remove": ["u1"]}
+
+
+@responses.activate
+def test_subscribers_by_identifier_need_no_project(
+    subscribers: WorkItemSubscribersResource,
+) -> None:
+    url = "https://api.example.com/api/v2/workspaces/acme/work-items/ENG-12/subscribers/"
+    responses.get(url, json={"subscriber_ids": ["u1"]})
+    responses.patch(url, json={"subscriber_ids": []})
+
+    assert subscribers.retrieve_by_identifier("acme", "ENG-12").subscriber_ids == ["u1"]
+    removed = subscribers.update_by_identifier(
+        "acme", "ENG-12", UpdateWorkItemSubscribers(remove=["u1"])
+    )
+    assert removed.subscriber_ids == []
+    assert [call.request.url for call in responses.calls] == [url, url]
+    assert json.loads(responses.calls[1].request.body) == {"remove": ["u1"]}
+
+
+@responses.activate
 def test_worklogs_full_crud_with_expand(worklogs: WorkItemWorklogs) -> None:
     responses.get(
         f"{BASE}/w1/worklogs/",
@@ -842,5 +884,6 @@ def test_fetched_work_item_reaches_every_child(config: Configuration) -> None:
         "activities",
         "relations",
         "dependencies",
+        "subscribers",
     ):
         assert hasattr(item, child), f"LoadedWorkItem is missing {child}"

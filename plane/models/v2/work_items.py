@@ -6,7 +6,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from .agent_runs import AgentRunLite
 
@@ -333,3 +333,24 @@ class WorkItemDependencyCreate(BaseModel):
 
     relation_type: DependencyRelationType
     work_item_ids: list[str]
+
+
+# -- Subscribers ----------------------------------------------------------------
+
+
+class WorkItemSubscribers(BaseModel):
+    """The ids of the users subscribed to a work item."""
+
+    model_config = ConfigDict(extra="allow")
+
+    subscriber_ids: list[str]
+
+
+class UpdateWorkItemSubscribers(BaseModel):
+    """Subscribe the `add` users and unsubscribe the `remove` users; both optional.
+    Adding someone already subscribed, or removing someone who isn't, changes nothing."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    add: list[str] | None = Field(default=None, max_length=100)
+    remove: list[str] | None = Field(default=None, max_length=100)
