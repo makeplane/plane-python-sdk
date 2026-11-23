@@ -23,6 +23,7 @@ class Configuration:
         access_token: str | None = None,
         timeout: float | tuple[float, float] | None = 30.0,
         retry: RetryConfig | None = None,
+        api_key_header: str = "X-Api-Key",
     ) -> None:
         if not api_key and not access_token:
             raise ConfigurationError(
@@ -41,3 +42,8 @@ class Configuration:
         self.access_token = access_token
         self.timeout = timeout
         self.retry = retry
+        # Header that carries api_key. Plane reads X-Api-Key; an API gateway in front
+        # of Plane may expect its own consumer-key header instead (e.g. X-Gravitee-Api-Key).
+        if not api_key_header or not api_key_header.strip():
+            raise ConfigurationError("'api_key_header' must be a non-empty header name")
+        self.api_key_header = api_key_header.strip()
