@@ -56,6 +56,22 @@ class Workspaces(BaseResource):
         )
         return PaginatedWorkspaceMemberResponse.model_validate(response)
 
+    def update_member_role(
+        self, workspace_slug: str, member_id: str, role_slug: str
+    ) -> WorkspaceMember:
+        """Give a workspace member another role.
+
+        Demoting to ``guest`` also makes them a guest in every project and drops
+        their teamspaces; a role that needs a seat fails when none is free.
+
+        Args:
+            workspace_slug: The workspace slug identifier
+            member_id: The member's user id (the ``id`` that :meth:`get_members` returns)
+            role_slug: A workspace role's slug, such as admin, member or guest
+        """
+        response = self._patch(f"{workspace_slug}/members/{member_id}", {"role_slug": role_slug})
+        return WorkspaceMember.model_validate(response)
+
     def get_project_role_distribution(self, workspace_slug: str) -> ProjectRoleDistribution:
         """Get the distribution of project members by role across the workspace.
 

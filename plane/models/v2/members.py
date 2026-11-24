@@ -37,6 +37,14 @@ class UpdateProjectMember(BaseModel):
     role: str | None = None
 
 
+class UpdateWorkspaceMember(BaseModel):
+    """PATCH body -- change a workspace member's role, by slug (custom roles too)."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    role: str
+
+
 class WorkspaceMemberRemove(BaseModel):
     """POST body for `WorkspaceMembers.remove` (v1 parity) -- removes by email,
     not by member row id; `remove_seat` additionally frees the license seat."""
