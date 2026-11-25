@@ -7,6 +7,7 @@ from collections.abc import Iterator, Sequence
 
 from typing_extensions import Unpack
 
+from ...models.v2.permissions import EffectivePermissions
 from ...models.v2.teamspaces import CreateTeamspace, Teamspace, UpdateTeamspace
 from ._generated.constants import (
     TeamspacesCreateField,
@@ -22,6 +23,9 @@ from ._kernel.resource import V2Resource
 
 class Teamspaces(V2Resource[Teamspace, CreateTeamspace, UpdateTeamspace]):
     path = "/workspaces/{slug}/teamspaces/"
+    extra_paths = {
+        "my_permissions": "/workspaces/{slug}/teamspaces/{team_space_id}/permissions/me/"
+    }
     model = Teamspace
     operations = {
         "list": "teamspaces_list",
@@ -29,6 +33,7 @@ class Teamspaces(V2Resource[Teamspace, CreateTeamspace, UpdateTeamspace]):
         "create": "teamspaces_create",
         "update": "teamspaces_partial_update",
         "delete": "teamspaces_destroy",
+        "my_permissions": "workspaces_teamspaces_permissions_me_retrieve",
     }
 
     def list(
@@ -131,3 +136,14 @@ class Teamspaces(V2Resource[Teamspace, CreateTeamspace, UpdateTeamspace]):
 
     def delete(self, slug: str, teamspace: str) -> None:
         return self._delete(pk=teamspace, slug=slug)
+
+    def my_permissions(self, slug: str, teamspace: str) -> EffectivePermissions:
+        """The caller's effective permissions in this teamspace. A method here rather
+        than a `permissions` child, which would need a navigable `LoadedTeamspace`."""
+        return self._custom_action(
+            "my_permissions",
+            model=EffectivePermissions,
+            method="GET",
+            slug=slug,
+            team_space_id=teamspace,
+        )

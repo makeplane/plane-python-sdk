@@ -165,7 +165,11 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "pages_list",
         "pages_partial_update",
         "pages_retrieve",
+        "permission_schemes_create",
+        "permission_schemes_destroy",
+        "permission_schemes_impact",
         "permission_schemes_list",
+        "permission_schemes_partial_update",
         "permission_schemes_retrieve",
         "project_automation_activities_list",
         "project_automation_activities_retrieve",
@@ -250,7 +254,10 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "releases_partial_update",
         "releases_retrieve",
         "releases_work_items",
+        "roles_create",
+        "roles_destroy",
         "roles_list",
+        "roles_partial_update",
         "roles_retrieve",
         "run_activities_create",
         "run_activities_list",
@@ -446,8 +453,10 @@ OPERATION_IDS: frozenset[str] = frozenset(
         "workspaces_artifacts_retrieve",
         "workspaces_artifacts_update_partial_update",
         "workspaces_permissions_me_retrieve",
+        "workspaces_permissions_resources_retrieve",
         "workspaces_projects_permissions_me_retrieve",
         "workspaces_retrieve",
+        "workspaces_teamspaces_permissions_me_retrieve",
     ]
 )
 
@@ -2247,6 +2256,34 @@ FIELDS: dict[str, frozenset[str]] = {
             "sort_order",
         ]
     ),
+    "permission_schemes_create": frozenset(
+        [
+            "all",
+            "description",
+            "id",
+            "is_system",
+            "name",
+            "namespace",
+            "permissions",
+            "slug",
+            "sort_order",
+            "updated_at",
+        ]
+    ),
+    "permission_schemes_destroy": frozenset(
+        [
+            "all",
+            "description",
+            "id",
+            "is_system",
+            "name",
+            "namespace",
+            "permissions",
+            "slug",
+            "sort_order",
+            "updated_at",
+        ]
+    ),
     "permission_schemes_list": frozenset(
         [
             "all",
@@ -2258,6 +2295,21 @@ FIELDS: dict[str, frozenset[str]] = {
             "permissions",
             "slug",
             "sort_order",
+            "updated_at",
+        ]
+    ),
+    "permission_schemes_partial_update": frozenset(
+        [
+            "all",
+            "description",
+            "id",
+            "is_system",
+            "name",
+            "namespace",
+            "permissions",
+            "slug",
+            "sort_order",
+            "updated_at",
         ]
     ),
     "permission_schemes_retrieve": frozenset(
@@ -2271,6 +2323,7 @@ FIELDS: dict[str, frozenset[str]] = {
             "permissions",
             "slug",
             "sort_order",
+            "updated_at",
         ]
     ),
     "project_automation_activities_list": frozenset(
@@ -3381,11 +3434,95 @@ FIELDS: dict[str, frozenset[str]] = {
             "target_date",
         ]
     ),
+    "roles_create": frozenset(
+        [
+            "all",
+            "based_on_id",
+            "description",
+            "id",
+            "is_system",
+            "level",
+            "name",
+            "namespace",
+            "permission_scheme_ids",
+            "permissions",
+            "slug",
+            "sort_order",
+            "status",
+            "updated_at",
+        ]
+    ),
+    "roles_destroy": frozenset(
+        [
+            "all",
+            "based_on_id",
+            "description",
+            "id",
+            "is_system",
+            "level",
+            "name",
+            "namespace",
+            "permission_scheme_ids",
+            "permissions",
+            "slug",
+            "sort_order",
+            "status",
+            "updated_at",
+        ]
+    ),
     "roles_list": frozenset(
-        ["all", "description", "id", "is_system", "level", "name", "namespace", "slug", "status"]
+        [
+            "all",
+            "based_on_id",
+            "description",
+            "id",
+            "is_system",
+            "level",
+            "name",
+            "namespace",
+            "permission_scheme_ids",
+            "permissions",
+            "slug",
+            "sort_order",
+            "status",
+            "updated_at",
+        ]
+    ),
+    "roles_partial_update": frozenset(
+        [
+            "all",
+            "based_on_id",
+            "description",
+            "id",
+            "is_system",
+            "level",
+            "name",
+            "namespace",
+            "permission_scheme_ids",
+            "permissions",
+            "slug",
+            "sort_order",
+            "status",
+            "updated_at",
+        ]
     ),
     "roles_retrieve": frozenset(
-        ["all", "description", "id", "is_system", "level", "name", "namespace", "slug", "status"]
+        [
+            "all",
+            "based_on_id",
+            "description",
+            "id",
+            "is_system",
+            "level",
+            "name",
+            "namespace",
+            "permission_scheme_ids",
+            "permissions",
+            "slug",
+            "sort_order",
+            "status",
+            "updated_at",
+        ]
     ),
     "run_activities_create": frozenset(
         [
@@ -6332,6 +6469,11 @@ EXPAND: dict[str, frozenset[str]] = {
     "releases_list": frozenset(["lead", "tag"]),
     "releases_partial_update": frozenset(["lead", "tag"]),
     "releases_retrieve": frozenset(["lead", "tag"]),
+    "roles_create": frozenset(["permission_schemes"]),
+    "roles_destroy": frozenset(["permission_schemes"]),
+    "roles_list": frozenset(["permission_schemes"]),
+    "roles_partial_update": frozenset(["permission_schemes"]),
+    "roles_retrieve": frozenset(["permission_schemes"]),
     "run_activities_create": frozenset(["actor"]),
     "run_activities_list": frozenset(["actor"]),
     "run_activities_retrieve": frozenset(["actor"]),
@@ -8100,6 +8242,30 @@ PagesRetrieveField = Literal[
     "page_ids",
     "sort_order",
 ]
+PermissionSchemesCreateField = Literal[
+    "all",
+    "description",
+    "id",
+    "is_system",
+    "name",
+    "namespace",
+    "permissions",
+    "slug",
+    "sort_order",
+    "updated_at",
+]
+PermissionSchemesDestroyField = Literal[
+    "all",
+    "description",
+    "id",
+    "is_system",
+    "name",
+    "namespace",
+    "permissions",
+    "slug",
+    "sort_order",
+    "updated_at",
+]
 PermissionSchemesListField = Literal[
     "all",
     "description",
@@ -8110,6 +8276,19 @@ PermissionSchemesListField = Literal[
     "permissions",
     "slug",
     "sort_order",
+    "updated_at",
+]
+PermissionSchemesPartialUpdateField = Literal[
+    "all",
+    "description",
+    "id",
+    "is_system",
+    "name",
+    "namespace",
+    "permissions",
+    "slug",
+    "sort_order",
+    "updated_at",
 ]
 PermissionSchemesRetrieveField = Literal[
     "all",
@@ -8121,6 +8300,7 @@ PermissionSchemesRetrieveField = Literal[
     "permissions",
     "slug",
     "sort_order",
+    "updated_at",
 ]
 ProjectAutomationActivitiesListField = Literal[
     "actor_id",
@@ -9089,11 +9269,85 @@ ReleasesRetrieveField = Literal[
     "tag_id",
     "target_date",
 ]
+RolesCreateField = Literal[
+    "all",
+    "based_on_id",
+    "description",
+    "id",
+    "is_system",
+    "level",
+    "name",
+    "namespace",
+    "permission_scheme_ids",
+    "permissions",
+    "slug",
+    "sort_order",
+    "status",
+    "updated_at",
+]
+RolesDestroyField = Literal[
+    "all",
+    "based_on_id",
+    "description",
+    "id",
+    "is_system",
+    "level",
+    "name",
+    "namespace",
+    "permission_scheme_ids",
+    "permissions",
+    "slug",
+    "sort_order",
+    "status",
+    "updated_at",
+]
 RolesListField = Literal[
-    "all", "description", "id", "is_system", "level", "name", "namespace", "slug", "status"
+    "all",
+    "based_on_id",
+    "description",
+    "id",
+    "is_system",
+    "level",
+    "name",
+    "namespace",
+    "permission_scheme_ids",
+    "permissions",
+    "slug",
+    "sort_order",
+    "status",
+    "updated_at",
+]
+RolesPartialUpdateField = Literal[
+    "all",
+    "based_on_id",
+    "description",
+    "id",
+    "is_system",
+    "level",
+    "name",
+    "namespace",
+    "permission_scheme_ids",
+    "permissions",
+    "slug",
+    "sort_order",
+    "status",
+    "updated_at",
 ]
 RolesRetrieveField = Literal[
-    "all", "description", "id", "is_system", "level", "name", "namespace", "slug", "status"
+    "all",
+    "based_on_id",
+    "description",
+    "id",
+    "is_system",
+    "level",
+    "name",
+    "namespace",
+    "permission_scheme_ids",
+    "permissions",
+    "slug",
+    "sort_order",
+    "status",
+    "updated_at",
 ]
 RunActivitiesCreateField = Literal[
     "actor_id",
@@ -11950,6 +12204,10 @@ class ReleasesListFilters(TypedDict, total=False):
     target_date: str
 
 
+class RolesDestroyFilters(TypedDict, total=False):
+    reassign_to: str
+
+
 class RolesListFilters(TypedDict, total=False):
     is_system: bool
     namespace: str
@@ -12242,3 +12500,7 @@ class WorkspaceWorkItemsListFilters(TypedDict, total=False):
     type_id__in: Sequence[str]
     updated_at__gte: str
     updated_at__lte: str
+
+
+class WorkspacesPermissionsResourcesRetrieveFilters(TypedDict, total=False):
+    namespace: str

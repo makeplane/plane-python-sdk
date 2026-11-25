@@ -148,3 +148,16 @@ def test_find_by_name(teamspaces: Teamspaces) -> None:
 
     assert found.id == "1"
     assert responses.calls[0].request.url.startswith(f"{BASE}/")
+
+
+@responses.activate
+def test_my_permissions_reads_the_teamspace_scoped_me(teamspaces: Teamspaces) -> None:
+    responses.get(
+        f"{BASE}/t1/permissions/me/",
+        json={"relation": "member", "permission_grants": ["teamspace:view"]},
+    )
+
+    result = teamspaces.my_permissions("acme", "t1")
+
+    assert result.relation == "member"
+    assert result.permission_grants == ["teamspace:view"]
