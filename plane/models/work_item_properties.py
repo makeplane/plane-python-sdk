@@ -1,15 +1,35 @@
-from typing import Any
+from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
 
 from .enums import PropertyType, RelationType
 from .work_item_property_configurations import (
+    CurrencyNumberAttributeSettings,
     DateAttributeSettings,
+    PercentageNumberAttributeSettings,
+    StandardNumberAttributeSettings,
     TextAttributeSettings,
 )
 
-# Settings type used by TEXT and DATETIME properties
-PropertySettings = TextAttributeSettings | DateAttributeSettings | None
+# Settings type used by TEXT, DATETIME and DECIMAL properties. Every `display_format`
+# value is unique across the five models, so it picks the model on its own.
+PropertySettings = (
+    Annotated[
+        TextAttributeSettings
+        | DateAttributeSettings
+        | StandardNumberAttributeSettings
+        | PercentageNumberAttributeSettings
+        | CurrencyNumberAttributeSettings,
+        Field(discriminator="display_format"),
+    ]
+    | None
+)
+
+_NUMBER_SETTINGS = (
+    StandardNumberAttributeSettings,
+    PercentageNumberAttributeSettings,
+    CurrencyNumberAttributeSettings,
+)
 
 
 class WorkItemProperty(BaseModel):
@@ -104,6 +124,15 @@ class CreateWorkItemProperty(BaseModel):
             if not isinstance(settings, DateAttributeSettings):
                 raise ValueError("settings must be DateAttributeSettings for DATETIME properties")
 
+        # DECIMAL settings are optional (the server defaults to standard, 2 places,
+        # thousand separator), but must be a number display format when given
+        if prop_type == PropertyType.DECIMAL:
+            if settings is not None and not isinstance(settings, _NUMBER_SETTINGS):
+                raise ValueError(
+                    "settings must be Standard/Percentage/CurrencyNumberAttributeSettings "
+                    "for DECIMAL properties"
+                )
+
         # RELATION properties require relation_type
         if prop_type == PropertyType.RELATION:
             if relation_type is None:
@@ -168,6 +197,15 @@ class UpdateWorkItemProperty(BaseModel):
                 )
             if not isinstance(settings, DateAttributeSettings):
                 raise ValueError("settings must be DateAttributeSettings for DATETIME properties")
+
+        # DECIMAL settings are optional (the server defaults to standard, 2 places,
+        # thousand separator), but must be a number display format when given
+        if prop_type == PropertyType.DECIMAL:
+            if settings is not None and not isinstance(settings, _NUMBER_SETTINGS):
+                raise ValueError(
+                    "settings must be Standard/Percentage/CurrencyNumberAttributeSettings "
+                    "for DECIMAL properties"
+                )
 
         # RELATION properties require relation_type
         if prop_type == PropertyType.RELATION:
