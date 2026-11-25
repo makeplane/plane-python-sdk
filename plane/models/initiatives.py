@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 from .enums import InitiativeState
+from .pagination import PaginatedResponse
 
 
 class Initiative(BaseModel):
@@ -53,7 +54,7 @@ class UpdateInitiative(BaseModel):
     lead: str | None = None
 
 
-class PaginatedInitiativeResponse(BaseModel):
+class PaginatedInitiativeResponse(PaginatedResponse):
     """Paginated initiative response model."""
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
@@ -99,7 +100,7 @@ class UpdateInitiativeLabel(BaseModel):
     sort_order: float | None = None
 
 
-class PaginatedInitiativeLabelResponse(BaseModel):
+class PaginatedInitiativeLabelResponse(PaginatedResponse):
     """Paginated initiative label response model."""
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)

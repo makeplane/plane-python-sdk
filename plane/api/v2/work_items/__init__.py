@@ -1,11 +1,11 @@
 """Work items (api_v2) -- the hardest, and largest, api_v2 resource family.
 Project-scoped, with `archive`/`unarchive` plus nested `.comments`/`.attachments`/
-`.links`/`.worklogs`/`.activities`/`.relations`/`.dependencies`.
+`.links`/`.worklogs`/`.activities`/`.relations`/`.dependencies`/`.subscribers`.
 
 A fetched row (`retrieve`/`create`, and every row in a `list` page) comes back as
 a `LoadedWorkItem`: it carries the row's data and can reach every child -- `.comments`,
-`.attachments`, `.links`, `.worklogs`, `.activities`, `.relations`, `.dependencies` --
-without the caller repeating `slug`/`project`/`work_item`."""
+`.attachments`, `.links`, `.worklogs`, `.activities`, `.relations`, `.dependencies`,
+`.subscribers` -- without the caller repeating `slug`/`project`/`work_item`."""
 
 from __future__ import annotations
 
@@ -38,6 +38,7 @@ from .comments import WorkItemComments
 from .dependencies import WorkItemDependencies
 from .links import WorkItemLinks
 from .relations import WorkItemRelations
+from .subscribers import WorkItemSubscribersResource
 from .worklogs import WorkItemWorklogs
 from .workspace import WorkspaceWorkItems
 
@@ -48,6 +49,7 @@ __all__ = [
     "WorkItemDependencies",
     "WorkItemLinks",
     "WorkItemRelations",
+    "WorkItemSubscribersResource",
     "WorkItemWorklogs",
     "WorkItems",
     "WorkspaceWorkItems",
@@ -84,6 +86,7 @@ class WorkItems(
         self.activities = WorkItemActivities(transport)
         self.relations = WorkItemRelations(transport)
         self.dependencies = WorkItemDependencies(transport)
+        self.subscribers = WorkItemSubscribersResource(transport)
 
     # -- CRUD ---------------------------------------------------------------
 

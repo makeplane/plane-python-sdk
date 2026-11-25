@@ -32,7 +32,10 @@ class PlaneAPIError(PlaneError):
         errors: list[FieldError] | None = None,
         response: Any = None,
     ) -> None:
-        super().__init__(f"HTTP {status} {code}: {detail}", status_code=status)
+        # The field messages say why; `detail` is often a generic "fields failed validation".
+        reasons = "; ".join(f"{error.field}: {error.message}" for error in errors or [])
+        message = f"HTTP {status} {code}: {detail}" + (f" ({reasons})" if reasons else "")
+        super().__init__(message, status_code=status)
         self.status = status
         self.type = type
         self.code = code

@@ -60,7 +60,8 @@ def test_every_singleton_read_is_spelled_retrieve_or_me() -> None:
     offenders = sorted(
         f"{resource_class.__name__}.{name}()"
         for resource_class, name in SINGLETON_READS
-        if name not in {"retrieve", *CALLER_SCOPED}
+        # `retrieve_by_identifier` is `retrieve` by readable key, the name it has everywhere.
+        if name not in {"retrieve", "retrieve_by_identifier", *CALLER_SCOPED}
         # `list`-shaped singletons are a separate case: a collection URL that answers a
         # map or an array rather than one row (`CustomerPropertyValues`,
         # `WorkItemRelations`, `WorkItemDependencies`) is honestly a `list`.

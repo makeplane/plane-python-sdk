@@ -41,3 +41,25 @@ def test_from_payload_non_dict_body_still_carries_status() -> None:
 
     assert error.status == 502
     assert error.code == "server_error"
+
+
+def test_the_message_carries_the_field_messages() -> None:
+    err = PlaneAPIError.from_payload(
+        400,
+        {
+            "code": "invalid_request",
+            "detail": "One or more fields failed validation.",
+            "errors": [{"field": "role", "code": "invalid", "message": "Guests stay guests."}],
+        },
+    )
+
+    assert str(err) == (
+        "HTTP 400 invalid_request: One or more fields failed validation. "
+        "(role: Guests stay guests.)"
+    )
+
+
+def test_the_message_without_field_errors_is_unchanged() -> None:
+    err = PlaneAPIError.from_payload(404, {"code": "not_found", "detail": "Not found."})
+
+    assert str(err) == "HTTP 404 not_found: Not found."
