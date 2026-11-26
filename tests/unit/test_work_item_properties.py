@@ -813,9 +813,7 @@ class TestProjectLevelWorkItemPropertiesAPI:
             assert updated.description == "Updated project property"
         finally:
             try:
-                client.work_item_properties.delete_project(
-                    workspace_slug, project.id, created.id
-                )
+                client.work_item_properties.delete_project(workspace_slug, project.id, created.id)
             except Exception:
                 pass
 
@@ -1082,3 +1080,96 @@ class TestNumberDisplayFormatsOffline:
         )
 
         assert prop.settings == {"display_format": "scientific", "significant_figures": 3}
+
+    @pytest.mark.parametrize("settings", NUMBER_SETTINGS, ids=lambda s: s.display_format)
+    def test_an_unknown_key_is_rejected_on_create_and_update(self, settings) -> None:
+        """Plane rejects keys a format doesn't have, so a typo must not be dropped silently."""
+        with_typo = {**settings.model_dump(exclude_none=True), "decimal_place": 2}
+
+        with pytest.raises(ValidationError, match="decimal_place"):
+            CreateWorkItemProperty(
+                display_name="Budget", property_type=PropertyType.DECIMAL, settings=with_typo
+            )
+        with pytest.raises(ValidationError, match="decimal_place"):
+            UpdateWorkItemProperty(property_type=PropertyType.DECIMAL, settings=with_typo)
+        with pytest.raises(ValidationError, match="decimal_place"):
+            type(settings).model_validate(with_typo)
+
+    def test_a_number_format_with_an_unknown_key_still_reads(self) -> None:
+        """A key the server adds later must not break listing: the settings read as a dict."""
+        settings = {
+            "display_format": "currency",
+            "currency_code": "USD",
+            "decimal_places": 2,
+            "symbol_position": "before",
+        }
+        prop = WorkItemProperty.model_validate(
+            {"id": "p", "display_name": "Budget", "property_type": "DECIMAL", "settings": settings}
+        )
+
+        assert prop.settings == settings
+
+    def test_empty_decimal_settings_are_sent_as_empty(self) -> None:
+        """Plane reads `settings={}` on a DECIMAL property as the default format, and on
+        update resets the property to it, so the {} must reach the request body."""
+        create = CreateWorkItemProperty(
+            display_name="Budget", property_type=PropertyType.DECIMAL, settings={}
+        )
+        update = UpdateWorkItemProperty(property_type=PropertyType.DECIMAL, settings={})
+        update_settings_only = UpdateWorkItemProperty(settings={})
+
+        assert create.model_dump(exclude_none=True)["settings"] == {}
+        assert update.model_dump(exclude_none=True)["settings"] == {}
+        assert update_settings_only.model_dump(exclude_none=True) == {"settings": {}}
+
+    def test_empty_decimal_settings_reach_the_request_body(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        client = PlaneClient(api_key="k", base_url="http://plane.invalid")
+        sent: list[dict] = []
+        # What Plane stores for {}: the default format
+        response = {
+            "id": "p",
+            "display_name": "Budget",
+            "property_type": "DECIMAL",
+            "settings": {
+                "display_format": "standard",
+                "decimal_places": 2,
+                "thousand_separator": True,
+            },
+        }
+
+        def send(endpoint: str, data: dict | None = None, params: dict | None = None) -> dict:
+            sent.append(data or {})
+            return response
+
+        for resource in (client.work_item_properties, client.workspace_work_item_properties):
+            monkeypatch.setattr(resource, "_post", send)
+            monkeypatch.setattr(resource, "_patch", send)
+
+        create = CreateWorkItemProperty(
+            display_name="Budget", property_type=PropertyType.DECIMAL, settings={}
+        )
+        update = UpdateWorkItemProperty(settings={})
+        client.work_item_properties.create("ws", "proj", "type", create)
+        client.work_item_properties.update("ws", "proj", "type", "p", update)
+        client.workspace_work_item_properties.create("ws", create)
+        prop = client.workspace_work_item_properties.update("ws", "p", update)
+
+        assert [body["settings"] for body in sent] == [{}, {}, {}, {}]
+        assert isinstance(prop.settings, StandardNumberAttributeSettings)
+
+    def test_empty_settings_are_still_rejected_on_text_and_datetime(self) -> None:
+        for property_type in (PropertyType.TEXT, PropertyType.DATETIME):
+            with pytest.raises(ValidationError, match="must be"):
+                CreateWorkItemProperty(
+                    display_name="Notes", property_type=property_type, settings={}
+                )
+
+    def test_stored_empty_settings_still_read(self) -> None:
+        """A DECIMAL property created before display formats holds {}."""
+        prop = WorkItemProperty.model_validate(
+            {"id": "p", "display_name": "Budget", "property_type": "DECIMAL", "settings": {}}
+        )
+
+        assert prop.settings == {}

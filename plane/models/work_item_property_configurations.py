@@ -2,7 +2,6 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 # -------------------------- LITERALS --------------------------
 
 TextDisplayFormat = Literal["single-line", "multi-line", "readonly"]
@@ -37,7 +36,7 @@ class DateAttributeSettings(BaseModel):
 class StandardNumberAttributeSettings(BaseModel):
     """Settings for DECIMAL properties displayed as plain numbers, e.g. 1,234.50."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     display_format: Literal["standard"]
     decimal_places: int = Field(..., ge=0, le=4)
@@ -47,7 +46,7 @@ class StandardNumberAttributeSettings(BaseModel):
 class PercentageNumberAttributeSettings(BaseModel):
     """Settings for DECIMAL properties displayed as percentages, e.g. 12.5%."""
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     display_format: Literal["percentage"]
     decimal_places: int = Field(..., ge=0, le=4)
@@ -61,14 +60,16 @@ class CurrencyNumberAttributeSettings(BaseModel):
     for JPY) -- the server rejects a value that doesn't match the currency.
     """
 
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     display_format: Literal["currency"]
     currency_code: str = Field(..., pattern=r"^[A-Z]{3}$", description="ISO 4217, e.g. 'USD'")
     decimal_places: int | None = Field(None, ge=0, le=4)
 
 
-# Settings for DECIMAL properties, picked by `display_format`
+# Settings for DECIMAL properties, picked by `display_format`. The three models forbid
+# unknown keys, as the server does, so a typo like `decimal_place` fails here instead of
+# being dropped. A response with a key they don't know still reads, as a dict.
 NumberAttributeSettings = Annotated[
     StandardNumberAttributeSettings
     | PercentageNumberAttributeSettings
