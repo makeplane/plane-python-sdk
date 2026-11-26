@@ -13,7 +13,12 @@ from plane.models.work_item_properties import (
     UpdateWorkItemProperty,
     UpdateWorkItemPropertyOption,
 )
-from plane.models.work_item_property_configurations import TextAttributeSettings
+from plane.models.work_item_property_configurations import (
+    CurrencyNumberAttributeSettings,
+    PercentageNumberAttributeSettings,
+    StandardNumberAttributeSettings,
+    TextAttributeSettings,
+)
 
 
 class TestWorkspaceWorkItemProperties:
@@ -64,6 +69,46 @@ class TestWorkspaceWorkItemProperties:
             )
             assert updated.id == created.id
             assert updated.description == "Updated description"
+        finally:
+            try:
+                client.workspace_work_item_properties.delete(workspace_slug, created.id)
+            except Exception as exc:
+                warnings.warn(
+                    f"Teardown failed for workspace property {created.id}: {exc}", stacklevel=1
+                )
+
+    def test_create_update_decimal_property_display_formats(
+        self, client: PlaneClient, workspace_slug: str
+    ) -> None:
+        """A workspace DECIMAL property defaults to the standard format and takes the others."""
+        created = client.workspace_work_item_properties.create(
+            workspace_slug,
+            CreateWorkItemProperty(
+                display_name=f"test-number-{uuid4().hex[:8]}",
+                property_type=PropertyType.DECIMAL,
+                is_active=True,
+            ),
+        )
+        try:
+            assert created.settings == StandardNumberAttributeSettings(
+                display_format="standard", decimal_places=2, thousand_separator=True
+            )
+
+            for settings in (
+                PercentageNumberAttributeSettings(display_format="percentage", decimal_places=0),
+                CurrencyNumberAttributeSettings(
+                    display_format="currency", currency_code="USD", decimal_places=2
+                ),
+            ):
+                updated = client.workspace_work_item_properties.update(
+                    workspace_slug,
+                    created.id,
+                    UpdateWorkItemProperty(property_type=PropertyType.DECIMAL, settings=settings),
+                )
+                assert updated.settings == settings
+
+            retrieved = client.workspace_work_item_properties.retrieve(workspace_slug, created.id)
+            assert isinstance(retrieved.settings, CurrencyNumberAttributeSettings)
         finally:
             try:
                 client.workspace_work_item_properties.delete(workspace_slug, created.id)
@@ -162,12 +207,8 @@ class TestWorkspaceWorkItemPropertyOptions:
             assert retrieved.id == opt.id
             assert retrieved.name == opt.name
 
-            client.workspace_work_item_properties.options.delete(
-                workspace_slug, prop.id, opt.id
-            )
-            remaining = client.workspace_work_item_properties.options.list(
-                workspace_slug, prop.id
-            )
+            client.workspace_work_item_properties.options.delete(workspace_slug, prop.id, opt.id)
+            remaining = client.workspace_work_item_properties.options.list(workspace_slug, prop.id)
             assert all(o.id != opt.id for o in remaining)
         finally:
             try:

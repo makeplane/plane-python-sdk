@@ -1,6 +1,7 @@
 """Unit tests for WorkItemProperties API resource (smoke tests with real HTTP requests)."""
 
 import pytest
+from pydantic import ValidationError
 
 from plane.client import PlaneClient
 from plane.models.enums import PropertyType, RelationType
@@ -15,9 +16,23 @@ from plane.models.work_item_properties import (
     WorkItemPropertyValueDetail,
 )
 from plane.models.work_item_property_configurations import (
+    CurrencyNumberAttributeSettings,
     DateAttributeSettings,
+    PercentageNumberAttributeSettings,
+    StandardNumberAttributeSettings,
     TextAttributeSettings,
 )
+
+# One of each number display format, as sent and as Plane returns it
+NUMBER_SETTINGS = [
+    StandardNumberAttributeSettings(
+        display_format="standard", decimal_places=3, thousand_separator=False
+    ),
+    PercentageNumberAttributeSettings(display_format="percentage", decimal_places=1),
+    CurrencyNumberAttributeSettings(
+        display_format="currency", currency_code="EUR", decimal_places=2
+    ),
+]
 
 
 class TestWorkItemPropertiesAPI:
@@ -400,6 +415,10 @@ class TestWorkItemPropertyTypes:
         assert prop is not None
         assert prop.property_type == PropertyType.DECIMAL
         assert prop.display_name == property_data.display_name
+        # Without settings, Plane fills in the standard format
+        assert prop.settings == StandardNumberAttributeSettings(
+            display_format="standard", decimal_places=2, thousand_separator=True
+        )
 
         # Cleanup
         try:
@@ -408,6 +427,87 @@ class TestWorkItemPropertyTypes:
             )
         except Exception:
             pass
+
+    @pytest.mark.parametrize("settings", NUMBER_SETTINGS, ids=lambda s: s.display_format)
+    def test_create_update_decimal_property_with_display_format(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+        project: Project,
+        work_item_type,
+        settings,
+    ) -> None:
+        """Create a DECIMAL property in each display format, then switch it to another."""
+        import time
+
+        prop = client.work_item_properties.create(
+            workspace_slug,
+            project.id,
+            work_item_type.id,
+            CreateWorkItemProperty(
+                display_name=f"Number {settings.display_format} {int(time.time())}",
+                property_type=PropertyType.DECIMAL,
+                settings=settings,
+            ),
+        )
+        try:
+            assert prop.settings == settings
+
+            retrieved = client.work_item_properties.retrieve(
+                workspace_slug, project.id, work_item_type.id, prop.id
+            )
+            assert retrieved.settings == settings
+
+            other = NUMBER_SETTINGS[(NUMBER_SETTINGS.index(settings) + 1) % len(NUMBER_SETTINGS)]
+            updated = client.work_item_properties.update(
+                workspace_slug,
+                project.id,
+                work_item_type.id,
+                prop.id,
+                UpdateWorkItemProperty(property_type=PropertyType.DECIMAL, settings=other),
+            )
+            assert updated.settings == other
+        finally:
+            try:
+                client.work_item_properties.delete(
+                    workspace_slug, project.id, work_item_type.id, prop.id
+                )
+            except Exception:
+                pass
+
+    def test_create_currency_property_without_decimal_places(
+        self,
+        client: PlaneClient,
+        workspace_slug: str,
+        project: Project,
+        work_item_type,
+    ) -> None:
+        """Plane fills decimal_places from the currency when it is left out."""
+        import time
+
+        prop = client.work_item_properties.create(
+            workspace_slug,
+            project.id,
+            work_item_type.id,
+            CreateWorkItemProperty(
+                display_name=f"Yen {int(time.time())}",
+                property_type=PropertyType.DECIMAL,
+                settings=CurrencyNumberAttributeSettings(
+                    display_format="currency", currency_code="JPY"
+                ),
+            ),
+        )
+        try:
+            assert prop.settings == CurrencyNumberAttributeSettings(
+                display_format="currency", currency_code="JPY", decimal_places=0
+            )
+        finally:
+            try:
+                client.work_item_properties.delete(
+                    workspace_slug, project.id, work_item_type.id, prop.id
+                )
+            except Exception:
+                pass
 
     def test_create_boolean_property(
         self,
@@ -713,9 +813,7 @@ class TestProjectLevelWorkItemPropertiesAPI:
             assert updated.description == "Updated project property"
         finally:
             try:
-                client.work_item_properties.delete_project(
-                    workspace_slug, project.id, created.id
-                )
+                client.work_item_properties.delete_project(workspace_slug, project.id, created.id)
             except Exception:
                 pass
 
@@ -850,3 +948,228 @@ class TestRichTextValueOffline:
 
         assert detail.value == "desc-1"
         assert detail.value_detail.description_html == "<p>Notes</p>"
+
+
+class TestNumberDisplayFormatsOffline:
+    """Number (DECIMAL) display formats live in `settings`, picked by `display_format`."""
+
+    @pytest.mark.parametrize("settings", NUMBER_SETTINGS, ids=lambda s: s.display_format)
+    def test_each_format_is_accepted_on_create_and_update(self, settings) -> None:
+        as_dict = settings.model_dump(exclude_none=True)
+        create = CreateWorkItemProperty(
+            display_name="Budget", property_type=PropertyType.DECIMAL, settings=as_dict
+        )
+        update = UpdateWorkItemProperty(property_type=PropertyType.DECIMAL, settings=as_dict)
+
+        assert create.settings == settings
+        assert update.settings == settings
+        assert create.model_dump(exclude_none=True)["settings"] == as_dict
+        assert update.model_dump(exclude_none=True)["settings"] == as_dict
+
+    def test_the_reported_currency_example_validates(self) -> None:
+        prop = CreateWorkItemProperty(
+            display_name="Budget",
+            property_type="DECIMAL",
+            settings={"display_format": "currency", "currency_code": "USD", "decimal_places": 2},
+        )
+
+        assert isinstance(prop.settings, CurrencyNumberAttributeSettings)
+
+    def test_decimal_settings_are_optional(self) -> None:
+        """Plane fills in the standard format, so nothing is sent."""
+        create = CreateWorkItemProperty(display_name="Budget", property_type=PropertyType.DECIMAL)
+        update = UpdateWorkItemProperty(property_type=PropertyType.DECIMAL)
+
+        assert "settings" not in create.model_dump(exclude_none=True)
+        assert "settings" not in update.model_dump(exclude_none=True)
+
+    def test_currency_without_decimal_places_leaves_them_to_the_server(self) -> None:
+        prop = CreateWorkItemProperty(
+            display_name="Budget",
+            property_type=PropertyType.DECIMAL,
+            settings={"display_format": "currency", "currency_code": "JPY"},
+        )
+
+        assert prop.model_dump(exclude_none=True)["settings"] == {
+            "display_format": "currency",
+            "currency_code": "JPY",
+        }
+
+    @pytest.mark.parametrize("decimal_places", [-1, 5])
+    @pytest.mark.parametrize(
+        "settings",
+        [
+            {"display_format": "standard", "thousand_separator": True},
+            {"display_format": "percentage"},
+            {"display_format": "currency", "currency_code": "USD"},
+        ],
+        ids=lambda s: s["display_format"],
+    )
+    def test_decimal_places_out_of_range_is_rejected(self, settings, decimal_places) -> None:
+        with pytest.raises(ValidationError, match="decimal_places"):
+            CreateWorkItemProperty(
+                display_name="Budget",
+                property_type=PropertyType.DECIMAL,
+                settings={**settings, "decimal_places": decimal_places},
+            )
+
+    @pytest.mark.parametrize("currency_code", ["usd", "US", "USDT", "U$D"])
+    def test_a_malformed_currency_code_is_rejected(self, currency_code) -> None:
+        with pytest.raises(ValidationError, match="currency_code"):
+            CurrencyNumberAttributeSettings(display_format="currency", currency_code=currency_code)
+
+    def test_standard_requires_thousand_separator(self) -> None:
+        with pytest.raises(ValidationError, match="thousand_separator"):
+            StandardNumberAttributeSettings(display_format="standard", decimal_places=2)
+
+    @pytest.mark.parametrize(
+        ("property_type", "settings", "message"),
+        [
+            (PropertyType.TEXT, NUMBER_SETTINGS[0], "TextAttributeSettings"),
+            (PropertyType.DATETIME, NUMBER_SETTINGS[2], "DateAttributeSettings"),
+            (
+                PropertyType.DECIMAL,
+                TextAttributeSettings(display_format="single-line"),
+                "for DECIMAL properties",
+            ),
+            (
+                PropertyType.DECIMAL,
+                DateAttributeSettings(display_format="MM/dd/yyyy"),
+                "for DECIMAL properties",
+            ),
+        ],
+        ids=["number-on-text", "number-on-datetime", "text-on-decimal", "date-on-decimal"],
+    )
+    def test_settings_of_another_property_type_are_rejected(
+        self, property_type, settings, message
+    ) -> None:
+        with pytest.raises(ValidationError, match=message):
+            CreateWorkItemProperty(
+                display_name="Budget", property_type=property_type, settings=settings
+            )
+        with pytest.raises(ValidationError, match=message):
+            UpdateWorkItemProperty(property_type=property_type, settings=settings)
+
+    def test_a_retrieved_decimal_property_parses_its_settings(self) -> None:
+        prop = WorkItemProperty.model_validate(
+            {
+                "id": "p",
+                "display_name": "Budget",
+                "property_type": "DECIMAL",
+                "settings": {
+                    "display_format": "currency",
+                    "currency_code": "USD",
+                    "decimal_places": 2,
+                },
+            }
+        )
+
+        assert prop.settings == CurrencyNumberAttributeSettings(
+            display_format="currency", currency_code="USD", decimal_places=2
+        )
+
+    def test_unknown_settings_still_read_as_a_dict(self) -> None:
+        """A display format this SDK doesn't know yet must not break listing."""
+        prop = WorkItemProperty.model_validate(
+            {
+                "id": "p",
+                "display_name": "Budget",
+                "property_type": "DECIMAL",
+                "settings": {"display_format": "scientific", "significant_figures": 3},
+            }
+        )
+
+        assert prop.settings == {"display_format": "scientific", "significant_figures": 3}
+
+    @pytest.mark.parametrize("settings", NUMBER_SETTINGS, ids=lambda s: s.display_format)
+    def test_an_unknown_key_is_rejected_on_create_and_update(self, settings) -> None:
+        """Plane rejects keys a format doesn't have, so a typo must not be dropped silently."""
+        with_typo = {**settings.model_dump(exclude_none=True), "decimal_place": 2}
+
+        with pytest.raises(ValidationError, match="decimal_place"):
+            CreateWorkItemProperty(
+                display_name="Budget", property_type=PropertyType.DECIMAL, settings=with_typo
+            )
+        with pytest.raises(ValidationError, match="decimal_place"):
+            UpdateWorkItemProperty(property_type=PropertyType.DECIMAL, settings=with_typo)
+        with pytest.raises(ValidationError, match="decimal_place"):
+            type(settings).model_validate(with_typo)
+
+    def test_a_number_format_with_an_unknown_key_still_reads(self) -> None:
+        """A key the server adds later must not break listing: the settings read as a dict."""
+        settings = {
+            "display_format": "currency",
+            "currency_code": "USD",
+            "decimal_places": 2,
+            "symbol_position": "before",
+        }
+        prop = WorkItemProperty.model_validate(
+            {"id": "p", "display_name": "Budget", "property_type": "DECIMAL", "settings": settings}
+        )
+
+        assert prop.settings == settings
+
+    def test_empty_decimal_settings_are_sent_as_empty(self) -> None:
+        """Plane reads `settings={}` on a DECIMAL property as the default format, and on
+        update resets the property to it, so the {} must reach the request body."""
+        create = CreateWorkItemProperty(
+            display_name="Budget", property_type=PropertyType.DECIMAL, settings={}
+        )
+        update = UpdateWorkItemProperty(property_type=PropertyType.DECIMAL, settings={})
+        update_settings_only = UpdateWorkItemProperty(settings={})
+
+        assert create.model_dump(exclude_none=True)["settings"] == {}
+        assert update.model_dump(exclude_none=True)["settings"] == {}
+        assert update_settings_only.model_dump(exclude_none=True) == {"settings": {}}
+
+    def test_empty_decimal_settings_reach_the_request_body(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        client = PlaneClient(api_key="k", base_url="http://plane.invalid")
+        sent: list[dict] = []
+        # What Plane stores for {}: the default format
+        response = {
+            "id": "p",
+            "display_name": "Budget",
+            "property_type": "DECIMAL",
+            "settings": {
+                "display_format": "standard",
+                "decimal_places": 2,
+                "thousand_separator": True,
+            },
+        }
+
+        def send(endpoint: str, data: dict | None = None, params: dict | None = None) -> dict:
+            sent.append(data or {})
+            return response
+
+        for resource in (client.work_item_properties, client.workspace_work_item_properties):
+            monkeypatch.setattr(resource, "_post", send)
+            monkeypatch.setattr(resource, "_patch", send)
+
+        create = CreateWorkItemProperty(
+            display_name="Budget", property_type=PropertyType.DECIMAL, settings={}
+        )
+        update = UpdateWorkItemProperty(settings={})
+        client.work_item_properties.create("ws", "proj", "type", create)
+        client.work_item_properties.update("ws", "proj", "type", "p", update)
+        client.workspace_work_item_properties.create("ws", create)
+        prop = client.workspace_work_item_properties.update("ws", "p", update)
+
+        assert [body["settings"] for body in sent] == [{}, {}, {}, {}]
+        assert isinstance(prop.settings, StandardNumberAttributeSettings)
+
+    def test_empty_settings_are_still_rejected_on_text_and_datetime(self) -> None:
+        for property_type in (PropertyType.TEXT, PropertyType.DATETIME):
+            with pytest.raises(ValidationError, match="must be"):
+                CreateWorkItemProperty(
+                    display_name="Notes", property_type=property_type, settings={}
+                )
+
+    def test_stored_empty_settings_still_read(self) -> None:
+        """A DECIMAL property created before display formats holds {}."""
+        prop = WorkItemProperty.model_validate(
+            {"id": "p", "display_name": "Budget", "property_type": "DECIMAL", "settings": {}}
+        )
+
+        assert prop.settings == {}
