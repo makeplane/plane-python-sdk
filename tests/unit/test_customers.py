@@ -667,7 +667,7 @@ class TestCustomerPropertyTypesOffline:
 
     BASE = {"name": "tier", "display_name": "Tier"}
 
-    @pytest.mark.parametrize("property_type", ["FORMULA", "CASCADING"])
+    @pytest.mark.parametrize("property_type", ["FORMULA", "CASCADING", "SLIDER"])
     def test_a_work_item_only_type_is_refused(self, property_type: str) -> None:
         with pytest.raises(ValueError, match="property_type"):
             CreateCustomerProperty(**self.BASE, property_type=property_type)
