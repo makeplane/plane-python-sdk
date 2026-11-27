@@ -11,7 +11,9 @@ from plane.models.work_item_properties import (
     CreateWorkItemPropertyValue,
     RichTextValue,
     UpdateWorkItemProperty,
+    UpdateWorkItemPropertyOption,
     WorkItemProperty,
+    WorkItemPropertyOption,
     WorkItemPropertyValueDetail,
 )
 from plane.models.work_item_property_configurations import (
@@ -797,6 +799,51 @@ class TestWorkItemPropertyTypesOffline:
     def test_rich_text_is_a_relation_type_not_a_property_type(self) -> None:
         assert "RICH_TEXT" in {member.value for member in RelationType}
         assert "RICH_TEXT" not in {member.value for member in PropertyType}
+
+
+class TestOptionColorsOffline:
+    """An option's color lives in `settings`. The request models ignore unknown fields, so
+    a color passed before `settings` was declared was silently dropped."""
+
+    @pytest.fixture
+    def sent(self, monkeypatch: pytest.MonkeyPatch) -> list[dict]:
+        client = PlaneClient(api_key="k", base_url="http://plane.invalid")
+        payloads: list[dict] = []
+
+        def send(endpoint: str, data: dict | None = None, params: dict | None = None) -> dict:
+            payloads.append(data or {})
+            return {"id": "o", "name": "High", "settings": (data or {}).get("settings", {})}
+
+        monkeypatch.setattr(client.work_item_properties.options, "_post", send)
+        monkeypatch.setattr(client.work_item_properties.options, "_patch", send)
+        self.options = client.work_item_properties.options
+        return payloads
+
+    def test_an_option_reads_its_color(self) -> None:
+        option = WorkItemPropertyOption.model_validate(
+            {"id": "o", "name": "High", "settings": {"color": "#DC2626"}}
+        )
+
+        assert option.settings == {"color": "#DC2626"}
+
+    def test_create_sends_the_color(self, sent: list[dict]) -> None:
+        self.options.create(
+            "ws",
+            "proj",
+            "prop",
+            CreateWorkItemPropertyOption(name="High", settings={"color": "#DC2626"}),
+        )
+
+        assert sent[-1] == {"name": "High", "settings": {"color": "#DC2626"}}
+
+    def test_clearing_a_color_sends_null(self, sent: list[dict]) -> None:
+        """`exclude_none` drops model fields that are None, not dict values, so the
+        `None` that tells Plane to clear the color reaches the request."""
+        self.options.update(
+            "ws", "proj", "prop", "o", UpdateWorkItemPropertyOption(settings={"color": None})
+        )
+
+        assert sent[-1] == {"settings": {"color": None}}
 
 
 class TestRichTextValueOffline:
