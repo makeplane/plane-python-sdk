@@ -794,6 +794,30 @@ class TestWorkItemPropertyTypesOffline:
 
         assert prop.property_type == PropertyType.CASCADING
 
+    def test_a_rating_property_parses(self) -> None:
+        """Same failure as CASCADING: one RATING property broke listing the workspace's."""
+        prop = WorkItemProperty.model_validate(
+            {"id": "p", "property_type": "RATING", "display_name": "Impact"}
+        )
+
+        assert prop.property_type == PropertyType.RATING
+
+    def test_a_rating_value_stays_an_int(self) -> None:
+        """Plane returns a rating as an int; the union had no int, so 4 read back as 4.0."""
+        detail = WorkItemPropertyValueDetail.model_validate(
+            {"id": "v", "property_id": "p", "issue_id": "w", "value": 4}
+        )
+
+        assert detail.value == 4
+        assert type(detail.value) is int
+
+    def test_a_decimal_value_stays_a_float(self) -> None:
+        detail = WorkItemPropertyValueDetail.model_validate(
+            {"id": "v", "property_id": "p", "issue_id": "w", "value": 4.5}
+        )
+
+        assert type(detail.value) is float
+
     def test_rich_text_is_a_relation_type_not_a_property_type(self) -> None:
         assert "RICH_TEXT" in {member.value for member in RelationType}
         assert "RICH_TEXT" not in {member.value for member in PropertyType}
