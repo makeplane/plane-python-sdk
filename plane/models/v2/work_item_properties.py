@@ -19,6 +19,7 @@ WorkItemPropertyType = Literal[
     "EMAIL",
     "FILE",
     "FORMULA",
+    "SLIDER",
 ]
 WorkItemPropertyRelationType = Literal["ISSUE", "USER", "RELEASE", "RICH_TEXT"]
 

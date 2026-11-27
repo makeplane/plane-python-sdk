@@ -794,6 +794,53 @@ class TestWorkItemPropertyTypesOffline:
 
         assert prop.property_type == PropertyType.CASCADING
 
+    def test_a_slider_property_parses(self) -> None:
+        """Same failure as CASCADING: one SLIDER property broke listing the workspace's.
+        Its server-owned settings have no display_format, so they read as a plain dict."""
+        prop = WorkItemProperty.model_validate(
+            {
+                "id": "p",
+                "property_type": "SLIDER",
+                "display_name": "Confidence",
+                "settings": {"min": 0, "max": 10},
+            }
+        )
+
+        assert prop.property_type == PropertyType.SLIDER
+        assert prop.settings == {"min": 0, "max": 10}
+
+    def test_a_slider_property_is_created_without_settings(self) -> None:
+        """The server assigns a slider's settings and refuses any sent on create."""
+        body = CreateWorkItemProperty(display_name="Confidence", property_type=PropertyType.SLIDER)
+
+        dumped = body.model_dump(exclude_none=True)
+        assert dumped["property_type"] == "SLIDER"
+        assert "settings" not in dumped
+
+    @pytest.mark.parametrize("value", [0, 7, 10])
+    def test_a_slider_value_stays_an_int(self, value: int) -> None:
+        """Plane returns a slider value as an int; the union had no int, so 7 read back as
+        7.0 -- and 0, a real slider value, must not read as False."""
+        detail = WorkItemPropertyValueDetail.model_validate(
+            {"id": "v", "property_id": "p", "issue_id": "w", "value": value}
+        )
+
+        assert detail.value == value
+        assert type(detail.value) is int
+
+    def test_a_decimal_value_stays_a_float(self) -> None:
+        detail = WorkItemPropertyValueDetail.model_validate(
+            {"id": "v", "property_id": "p", "issue_id": "w", "value": 4.5}
+        )
+
+        assert type(detail.value) is float
+
+    def test_a_slider_zero_is_sent(self) -> None:
+        """0 sets a slider; it is not dropped as empty."""
+        body = CreateWorkItemPropertyValue(value=0)
+
+        assert body.model_dump(exclude_none=True) == {"value": 0}
+
     def test_rich_text_is_a_relation_type_not_a_property_type(self) -> None:
         assert "RICH_TEXT" in {member.value for member in RelationType}
         assert "RICH_TEXT" not in {member.value for member in PropertyType}
