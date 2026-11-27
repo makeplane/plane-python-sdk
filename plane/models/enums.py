@@ -56,6 +56,7 @@ PropertyTypeEnum = Literal[
     "FILE",
     "FORMULA",
     "CASCADING",
+    "RATING",
 ]
 RelationTypeEnum = Literal["ISSUE", "USER", "RELEASE", "RICH_TEXT"]
 CycleStatusEnum = Literal["current", "upcoming", "completed", "draft", "incomplete"]
@@ -80,6 +81,7 @@ class PropertyType(str, Enum):
     FILE = "FILE"
     FORMULA = "FORMULA"
     CASCADING = "CASCADING"
+    RATING = "RATING"
 
 
 class RelationType(str, Enum):

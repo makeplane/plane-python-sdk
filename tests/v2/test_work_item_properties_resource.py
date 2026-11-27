@@ -26,7 +26,9 @@ from plane.models.v2.work_item_properties import (
     CreateWorkItemPropertyOption,
     UpdateWorkItemProperty,
     UpdateWorkItemPropertyOption,
+    WorkItemProperty,
 )
+from plane.models.v2.work_item_types import WorkItemProperty as WorkItemTypeProperty
 
 PROJECT_BASE = "https://api.example.com/api/v2/workspaces/acme/projects/ENG/work-item-properties"
 WORKSPACE_BASE = "https://api.example.com/api/v2/workspaces/acme/work-item-properties"
@@ -480,6 +482,21 @@ def test_workspace_options_crud(workspace_options: WorkspaceWorkItemPropertyOpti
     assert fetched.id == "o1"
     assert updated.name == "Blocker"
     assert responses.calls[3].request.url == f"{WORKSPACE_BASE}/p1/options/o1/"
+
+
+@pytest.mark.parametrize("model", [WorkItemProperty, WorkItemTypeProperty])
+def test_a_rating_property_parses(model: type[WorkItemProperty | WorkItemTypeProperty]) -> None:
+    """The golden lists RATING; without it in the Literal one rating property made
+    listing a workspace's properties, or a type's, raise ValidationError."""
+    prop = model.model_validate({"id": "p1", "display_name": "Impact", "property_type": "RATING"})
+
+    assert prop.property_type == "RATING"
+
+
+def test_create_a_rating_property() -> None:
+    body = CreateWorkItemProperty(display_name="Impact", property_type="RATING")
+
+    assert body.model_dump(exclude_none=True)["property_type"] == "RATING"
 
 
 # -- Navigation: a fetched property reaches its options/contexts -- see

@@ -287,6 +287,7 @@ class CreateWorkItemPropertyValue(BaseModel):
     - DATETIME: string (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
     - DECIMAL: number (int or float)
     - BOOLEAN: boolean (true/false)
+    - RATING: integer from 1 to 5 (clear a rating with DELETE, not 0)
     - OPTION/RELATION (single): string (UUID)
     - OPTION/RELATION (multi, when is_multi=True): list of strings (UUIDs) or single string
     - RELATION with relation_type=RICH_TEXT: RichTextValue
@@ -323,7 +324,7 @@ class WorkItemPropertyValueDetail(BaseModel):
     id: str = Field(..., description="Unique identifier for this property value")
     property_id: str = Field(..., description="ID of the property")
     issue_id: str = Field(..., description="ID of the work item")
-    value: str | bool | float | None = Field(
+    value: str | bool | int | float | None = Field(
         ..., description="The actual value, formatted according to property type"
     )
     value_type: str | None = Field(None, description="Type of the value")
