@@ -94,7 +94,7 @@ class RelationType(str, Enum):
 
 
 class CustomerPropertyType(str, Enum):
-    """Customer property types -- the work item set without FORMULA and CASCADING."""
+    """Customer property types -- the work item set without FORMULA, CASCADING and RATING."""
 
     TEXT = "TEXT"
     DATETIME = "DATETIME"
