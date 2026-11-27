@@ -192,6 +192,7 @@ class WorkItemPropertyOption(BaseModel):
     sort_order: float | None = None
     description: str | None = None
     logo_props: Any | None = None
+    settings: dict[str, Any] | None = None
     is_active: bool | None = None
     is_default: bool | None = None
     external_source: str | None = None
@@ -205,12 +206,16 @@ class WorkItemPropertyOption(BaseModel):
 
 
 class CreateWorkItemPropertyOption(BaseModel):
-    """Request model for creating a work item property option."""
+    """Request model for creating a work item property option.
+
+    `settings` takes `{"color": "#RRGGBB"}` (stored upper-cased).
+    """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     name: str
     description: str | None = None
+    settings: dict[str, Any] | None = None
     is_active: bool | None = None
     is_default: bool | None = None
     external_source: str | None = None
@@ -219,12 +224,17 @@ class CreateWorkItemPropertyOption(BaseModel):
 
 
 class UpdateWorkItemPropertyOption(BaseModel):
-    """Request model for updating a work item property option."""
+    """Request model for updating a work item property option.
+
+    `settings` keys merge over the stored ones; `{"color": None}` clears the color (a
+    `settings=None` is dropped, not sent).
+    """
 
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     name: str | None = None
     description: str | None = None
+    settings: dict[str, Any] | None = None
     is_active: bool | None = None
     is_default: bool | None = None
     external_source: str | None = None

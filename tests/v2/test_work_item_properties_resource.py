@@ -26,6 +26,7 @@ from plane.models.v2.work_item_properties import (
     CreateWorkItemPropertyOption,
     UpdateWorkItemProperty,
     UpdateWorkItemPropertyOption,
+    WorkItemPropertyContextOptionInput,
 )
 
 PROJECT_BASE = "https://api.example.com/api/v2/workspaces/acme/projects/ENG/work-item-properties"
@@ -480,6 +481,100 @@ def test_workspace_options_crud(workspace_options: WorkspaceWorkItemPropertyOpti
     assert fetched.id == "o1"
     assert updated.name == "Blocker"
     assert responses.calls[3].request.url == f"{WORKSPACE_BASE}/p1/options/o1/"
+
+
+# -- Option colors (`settings`) ----------------------------------------------------
+
+
+@responses.activate
+def test_an_option_reads_its_color(options: WorkItemPropertyOptions) -> None:
+    responses.get(
+        f"{PROJECT_BASE}/p1/options/o1/",
+        json={"id": "o1", "name": "Critical", "settings": {"color": "#DC2626"}},
+    )
+
+    assert options.retrieve("acme", "ENG", "p1", "o1").settings == {"color": "#DC2626"}
+
+
+@responses.activate
+def test_option_create_and_update_send_the_color(
+    options: WorkItemPropertyOptions, workspace_options: WorkspaceWorkItemPropertyOptions
+) -> None:
+    """The request models ignore unknown fields, so without `settings` declared a color
+    was dropped from the body and the request still succeeded."""
+    responses.post(f"{PROJECT_BASE}/p1/options/", json={"id": "o1"}, status=201)
+    responses.patch(f"{WORKSPACE_BASE}/p1/options/o1/", json={"id": "o1"})
+
+    options.create(
+        "acme",
+        "ENG",
+        "p1",
+        CreateWorkItemPropertyOption(name="Critical", settings={"color": "#DC2626"}),
+    )
+    workspace_options.update(
+        "acme", "p1", "o1", UpdateWorkItemPropertyOption(settings={"color": "#16A34A"})
+    )
+
+    assert json.loads(responses.calls[0].request.body) == {
+        "name": "Critical",
+        "settings": {"color": "#DC2626"},
+    }
+    assert json.loads(responses.calls[1].request.body) == {"settings": {"color": "#16A34A"}}
+
+
+@responses.activate
+def test_clearing_a_color_sends_null(options: WorkItemPropertyOptions) -> None:
+    """`{"color": None}` is how the API clears a color. `settings` is a dict, not a
+    model, because `exclude_none` would strip the `None` from a model and send `{}`."""
+    responses.patch(f"{PROJECT_BASE}/p1/options/o1/", json={"id": "o1", "settings": {}})
+
+    options.update(
+        "acme", "ENG", "p1", "o1", UpdateWorkItemPropertyOption(settings={"color": None})
+    )
+
+    assert json.loads(responses.calls[0].request.body) == {"settings": {"color": None}}
+
+
+@responses.activate
+def test_inline_property_options_send_their_color(properties: WorkItemProperties) -> None:
+    responses.post(f"{PROJECT_BASE}/", json={"id": "p1"}, status=201)
+
+    properties.create(
+        "acme",
+        "ENG",
+        CreateWorkItemProperty(
+            display_name="Severity",
+            property_type="OPTION",
+            options=[CreateWorkItemPropertyOption(name="High", settings={"color": "#DC2626"})],
+        ),
+    )
+
+    body = json.loads(responses.calls[0].request.body)
+    assert body["options"] == [{"name": "High", "settings": {"color": "#DC2626"}}]
+
+
+@responses.activate
+def test_context_options_send_their_color(contexts: WorkItemPropertyContexts) -> None:
+    responses.patch(f"{WORKSPACE_BASE}/p1/contexts/c1/", json={"id": "c1"})
+
+    contexts.update(
+        "acme",
+        "p1",
+        "c1",
+        CreateWorkItemPropertyContext(
+            options=[
+                WorkItemPropertyContextOptionInput(id="o1", settings={"color": "#16A34A"}),
+                WorkItemPropertyContextOptionInput(name="Low", settings={"color": None}),
+            ]
+        ),
+    )
+
+    assert json.loads(responses.calls[0].request.body) == {
+        "options": [
+            {"id": "o1", "settings": {"color": "#16A34A"}},
+            {"name": "Low", "settings": {"color": None}},
+        ]
+    }
 
 
 # -- Navigation: a fetched property reaches its options/contexts -- see

@@ -50,7 +50,8 @@ class WorkItemProperty(BaseModel):
 
 class CreateWorkItemPropertyOption(BaseModel):
     """POST body for a standalone option, or one entry of
-    `CreateWorkItemProperty.options` seeding OPTION values on create."""
+    `CreateWorkItemProperty.options` seeding OPTION values on create. `settings` takes
+    `{"color": "#RRGGBB"}` (stored upper-cased)."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -59,6 +60,7 @@ class CreateWorkItemPropertyOption(BaseModel):
     external_id: str | None = None
     external_source: str | None = None
     is_default: bool | None = None
+    settings: dict[str, Any] | None = None
 
 
 class CreateWorkItemProperty(BaseModel):
@@ -113,11 +115,14 @@ class WorkItemPropertyOption(BaseModel):
     external_source: str | None = None
     is_default: bool | None = None
     name: str | None = None
+    settings: dict[str, Any] | None = None
     sort_order: float | None = None
 
 
 class UpdateWorkItemPropertyOption(BaseModel):
-    """PATCH body -- every field optional."""
+    """PATCH body -- every field optional. `settings` keys merge over the stored ones;
+    `{"color": None}` clears the color (a `settings=None` is dropped, not sent). A dict,
+    not a model, so that `None` survives the `exclude_none` dump."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -126,6 +131,7 @@ class UpdateWorkItemPropertyOption(BaseModel):
     external_source: str | None = None
     is_default: bool | None = None
     name: str | None = None
+    settings: dict[str, Any] | None = None
 
 
 class WorkItemPropertyContext(BaseModel):
@@ -155,7 +161,8 @@ class WorkItemPropertyContext(BaseModel):
 
 class WorkItemPropertyContextOptionInput(BaseModel):
     """One entry of `CreateWorkItemPropertyContext.options`. `id` reconciles an
-    existing option; omit it to create a new one from `name`."""
+    existing option; omit it to create a new one from `name`. `settings` sets the
+    option's color on either, as on `UpdateWorkItemPropertyOption`."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -163,6 +170,7 @@ class WorkItemPropertyContextOptionInput(BaseModel):
     name: str | None = None
     description: str | None = None
     is_default: bool | None = None
+    settings: dict[str, Any] | None = None
     sort_order: float | None = None
 
 
